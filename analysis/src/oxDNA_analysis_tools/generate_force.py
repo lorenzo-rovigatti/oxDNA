@@ -10,7 +10,7 @@ def cli_parser(prog="generate_force.py"):
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the forces to. Defaults to forces.txt')
     parser.add_argument('-f', '--pairs', type=str, nargs=1, help='Name of the file to write the designed pairs list to')
     parser.add_argument('-s', '--stiff', type=float, nargs=1, help='Stiffness of the mutual trap')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -22,6 +22,9 @@ def main():
     logger_settings.set_quiet(args.quiet)
     inputfile = args.inputfile[0]
     conf_file = args.configuration[0]
+
+    from oxDNA_analysis_tools.config import check
+    check(["oxpy"])
 
     #-o names the output file
     if args.output:

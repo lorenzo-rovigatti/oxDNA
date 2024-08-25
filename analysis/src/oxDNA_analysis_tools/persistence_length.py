@@ -178,7 +178,7 @@ def cli_parser(prog="persistence_length.py"):
     parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the correlations will be written to a txt file in the format `offset correlation`')
     parser.add_argument('-n', '--plot_name', nargs=1, help='Name to save the plot showing the fit of persistence length to correlations.  Defaults to persistence_length.png')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -187,7 +187,7 @@ def main():
 
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "matplotlib", "numpy"])
+    check(["python", "matplotlib", "numpy", "oxpy"])
 
     traj = args.traj_file[0]
     inp_file = args.input[0]

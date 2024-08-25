@@ -159,6 +159,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					RepulsionPlane *p_force = (RepulsionPlane *) p->ext_forces[j];
 					init_RepulsionPlane_from_CPU(&cuda_force->repulsionplane, p_force);
 				}
+				else if(force_type == typeid(AttractionPlane) ) {
+					AttractionPlane *p_force = (AttractionPlane *) p->ext_forces[j];
+					init_AttractionPlane_from_CPU(&cuda_force->attractionplane, p_force);
+				}
 				else if(force_type == typeid(RepulsionPlaneMoving)) {
 					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving *) p->ext_forces[j];
 					init_RepulsionPlaneMoving_from_CPU(&cuda_force->repulsionplanemoving, p_force);
@@ -198,6 +202,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 				else if(force_type == typeid(LTCOMTrap)) {
 					LTCOMTrap *p_force = (LTCOMTrap *) p->ext_forces[j];
 					init_LTCOMTrap_from_CPU(&cuda_force->ltcomtrap, p_force, first_time);
+				}
+				else if(force_type == typeid(YukawaSphere)) {
+					YukawaSphere *p_force = (YukawaSphere *) p->ext_forces[j];
+					init_YukawaSphere_from_CPU(&cuda_force->yukawasphere, p_force);
 				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "

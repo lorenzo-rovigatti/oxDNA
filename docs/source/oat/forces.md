@@ -17,6 +17,7 @@ Python data structures for all forces defined by oxDNA
     oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap
     oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap
     oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane
+    oxDNA_analysis_tools.external_force_utils.forces.attraction_plane
     oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere
 
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.mutual_trap
@@ -24,6 +25,7 @@ Python data structures for all forces defined by oxDNA
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane
+.. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.attraction_plane
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere
 ```
 

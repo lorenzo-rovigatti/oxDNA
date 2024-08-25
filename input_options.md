@@ -29,8 +29,8 @@ Core options:
         forces' configuration has to be provided (see external_forces_file)
     [external_forces_file = <path>]
         specifies the file containing all the external forces' configurations.
-        Currently there are six supported force types: string, twist, trap,
-        repulsion_plane, repulsion_plane_moving and mutual_trap (see
+        Currently there are several supported force types: string, twist, trap,
+        repulsion_plane, attraction_plane, repulsion_plane_moving and mutual_trap (see
         EXAMPLES/TRAPS for some examples)
     [back_in_box = <bool>]
         whether particles should be brought back into the box when a

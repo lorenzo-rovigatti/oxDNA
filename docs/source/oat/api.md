@@ -346,6 +346,22 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autofunction:: oxDNA_analysis_tools.output_bonds.output_bonds
 ```
 
+## OxDNA to PDB
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
+    
+.. autofunction:: oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
+```
+
 ## Principle component analysis
 
 ```{eval-rst}

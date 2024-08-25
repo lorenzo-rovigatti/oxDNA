@@ -49,6 +49,7 @@ protected:
 	number _rfene = 1.5;
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
+	number _PS_sqr_WCA_rcut;
 	number _PS_sqr_rep_rcut;
 
 	std::vector<LR_vector> _chain_coms;
@@ -77,6 +78,11 @@ protected:
 	bool _enable_semiflexibility = false;
 	number _semiflexibility_k;
 
+	/// yukawa repulsion
+	number _yk_strength = 0.;
+	number _yk_debye = 0.;
+	number _yk_rcut_multiplier = 3.;
+
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
 	int _N_chains = -1;
@@ -90,6 +96,7 @@ protected:
 	bool _sticky_interaction(int p_btype, int q_btype);
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
+	number _yukawa(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
 	number _semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces);
@@ -123,7 +130,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
-	virtual number pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_nonbonded_repulsive(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);

@@ -23,7 +23,9 @@
 #include "../Forces/GenericCentralForce.h"
 #include "../Forces/LJCone.h"
 #include "../Forces/RepulsiveEllipsoid.h"
+#include "../Forces/YukawaSphere.h"
 #include "../Forces/Metadynamics/LTCOMTrap.h"
+#include "../Forces/AttractionPlane.h"
 
 #include "CUDAUtils.h"
 
@@ -43,6 +45,9 @@
 #define CUDA_REPULSIVE_ELLIPSOID 12
 #define CUDA_COM_FORCE 13
 #define CUDA_LR_COM_TRAP 14
+#define CUDA_YUKAWA_SPHERE 15
+#define CUDA_ATTRACTION_PLANE 16
+
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -148,6 +153,25 @@ void init_RepulsionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *c
 	cuda_force->position = cpu_force->_position;
 	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
 }
+
+/**
+ * @brief CUDA version of an AttractionPlane.
+ */
+struct attraction_plane {
+	int type;
+	c_number stiff;
+	c_number position;
+	float3 dir;
+};
+
+void init_AttractionPlane_from_CPU(attraction_plane *cuda_force, AttractionPlane *cpu_force) {
+	cuda_force->type = CUDA_ATTRACTION_PLANE;
+	cuda_force->stiff = cpu_force->_stiff;
+	cuda_force->position = cpu_force->_position;
+	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
+}
+
+
 
 /**
  * @brief CUDA version of a RepulsionPlaneMoving.
@@ -423,6 +447,35 @@ void init_LTCOMTrap_from_CPU(lt_com_trap *cuda_force, LTCOMTrap *cpu_force, bool
 }
 
 /**
+ * @brief CUDA version of a YukawaSphere.
+ */
+struct Yukawa_sphere {
+	int type;
+	float3 center;
+	c_number radius;
+	c_number epsilon;
+	c_number sigma;
+	int WCA_n;
+	c_number WCA_cutoff;
+	c_number debye_length;
+	c_number debye_A;
+	c_number cutoff;
+};
+
+void init_YukawaSphere_from_CPU(Yukawa_sphere *cuda_force, YukawaSphere *cpu_force) {
+	cuda_force->type = CUDA_YUKAWA_SPHERE;
+	cuda_force->center = make_float3(cpu_force->_center.x, cpu_force->_center.y, cpu_force->_center.z);
+	cuda_force->radius = cpu_force->_radius;
+	cuda_force->epsilon = cpu_force->_epsilon;
+	cuda_force->sigma = cpu_force->_sigma;
+	cuda_force->WCA_n = cpu_force->_WCA_n;
+	cuda_force->WCA_cutoff = cpu_force->_WCA_cutoff;
+	cuda_force->debye_length = cpu_force->_debye_length;
+	cuda_force->debye_A = cpu_force->_debye_A;
+	cuda_force->cutoff = cpu_force->_cutoff;
+}
+
+/**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
 union CUDA_trap {
@@ -442,6 +495,8 @@ union CUDA_trap {
 	repulsive_ellipsoid repulsiveellipsoid;
 	COM_force comforce;
 	lt_com_trap ltcomtrap;
+	Yukawa_sphere yukawasphere;
+	attraction_plane attractionplane;
 };
 
 #endif /* CUDAFORCES_H_ */

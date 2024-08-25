@@ -127,8 +127,8 @@ def cli_parser(prog="multidimensional_scaling_mean.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-o', '--output', metavar='output', type=str, nargs=1, help='the name of the .dat file where the mean will be written')
     parser.add_argument('-d', '--dev_file', metavar='dev_file', type=str, nargs=1, help='the name of the .json file where the devs will be written')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

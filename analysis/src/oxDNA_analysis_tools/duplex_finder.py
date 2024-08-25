@@ -165,9 +165,9 @@ def cli_parser(prog="duplex_finder.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Fit vectors to every duplex in the structure")
     parser.add_argument('input', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help="The trajectory file from the simulation")
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file',  type=str, nargs=1, help='name of the file to write the angle list to')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -176,7 +176,7 @@ def main():
 
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "numpy"])
+    check(["python", "numpy", "oxpy"])
 
     #Process command line arguments:
     inputfile = args.input[0]

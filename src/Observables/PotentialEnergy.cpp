@@ -38,14 +38,14 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 	if(!_split) {
 		number energy = get_potential_energy();
 
-		return Utils::sformat("% 10.6lf", energy);
+		return Utils::sformat(_number_formatter, energy);
 	}
 	else {
 		std::string res("");
 		auto energies = _config_info->interaction->get_system_energy_split(_config_info->particles(), _config_info->lists);
 		for(auto energy_item : energies) {
 			number contrib = energy_item.second / _config_info->N();
-			res = Utils::sformat("%s % 10.6lf", res.c_str(), contrib);
+			res = Utils::sformat("%s " + _number_formatter, res.c_str(), contrib);
 		}
 
 		return res;

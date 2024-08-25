@@ -70,7 +70,7 @@ def cli_parser(prog="file_info.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Prints metadata about trajectories")
     parser.add_argument('trajectories', type=str, nargs='+', help='One or more trajectories to get information on.')
     parser.add_argument('-l', '--labels', type=str, nargs='+', help='Labels for the files if not the filename')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

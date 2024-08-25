@@ -8,7 +8,7 @@
 DetailedPolymerSwapInteraction::DetailedPolymerSwapInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
-	ADD_INTERACTION_TO_MAP(NONBONDED, pair_nonbonded_WCA);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_nonbonded_repulsive);
 	ADD_INTERACTION_TO_MAP(STICKY, pair_nonbonded_sticky);
 
 }
@@ -42,11 +42,26 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
+
+	if(getInputNumber(&inp, "DPS_yukawa_strength", &_yk_strength, 0) == KEY_FOUND) {
+		if(_yk_strength <= 0.) {
+			throw oxDNAException("DPS_yukawa_strength should be larger than 0.");
+		}
+
+		getInputNumber(&inp, "DPS_yukawa_debye_length", &_yk_debye, 1);
+		if(_yk_debye <= 0.) {
+			throw oxDNAException("DPS_yukawa_debye_length should be larger than 0.");
+		}
+
+		getInputNumber(&inp, "DPS_yukawa_rcut_multiplier", &_yk_rcut_multiplier, 0);
+	}
 }
 
 void DetailedPolymerSwapInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
-	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	_PS_sqr_WCA_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	number sqr_debye_rcut = (_yk_strength > 0.) ? SQR(_yk_rcut_multiplier * _yk_debye) : 0.;
+	_PS_sqr_rep_rcut = std::max(_PS_sqr_WCA_rcut, sqr_debye_rcut);
 
 	_rcut = sqrt(_PS_sqr_rep_rcut);
 
@@ -68,7 +83,10 @@ void DetailedPolymerSwapInteraction::init() {
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "DetailedPolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	if(_yk_strength > 0.) {
+		OX_LOG(Logger::LOG_INFO, "DetailedPolymerSwap: yukawa strength: %lf, debye length: %lf, rcut: %lf", _yk_strength, _yk_debye, sqrt(_PS_sqr_rep_rcut));
+	}
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
@@ -150,9 +168,27 @@ number DetailedPolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, b
 	return energy;
 }
 
-number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
+number DetailedPolymerSwapInteraction::_yukawa(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 	if(sqr_r > _PS_sqr_rep_rcut) {
+		return (number) 0.;
+	}
+	number r = sqrt(sqr_r);
+	number exp_part = exp(-r / _yk_debye);
+	number energy = exp_part * _yk_strength / r;
+
+	if(update_forces) {
+		LR_vector force = _computed_r * ((_yk_strength * exp_part) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
+		p->force -= force;
+		q->force += force;
+	}
+
+	return energy;
+}
+
+number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _PS_sqr_WCA_rcut) {
 		return (number) 0.;
 	}
 
@@ -161,7 +197,7 @@ number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bo
 	number force_mod = 0;
 
 	// cut-off for all the repulsive interactions
-	if(sqr_r < _PS_sqr_rep_rcut) {
+	if(sqr_r < _PS_sqr_WCA_rcut) {
 		number part = 1.;
 		number ir2_scaled = SQR(_WCA_sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
@@ -403,13 +439,13 @@ number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	number energy = pair_nonbonded_WCA(p, q, false, update_forces);
+	number energy = pair_nonbonded_repulsive(p, q, false, update_forces);
 	energy += pair_nonbonded_sticky(p, q, false, update_forces);
 
 	return energy;
 }
 
-number DetailedPolymerSwapInteraction::pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DetailedPolymerSwapInteraction::pair_nonbonded_repulsive(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
 		return (number) 0.f;
 	}
@@ -419,6 +455,10 @@ number DetailedPolymerSwapInteraction::pair_nonbonded_WCA(BaseParticle *p, BaseP
 	}
 
 	number energy = _WCA(p, q, update_forces);
+
+	if(_yk_strength > 0. && !_sticky_interaction(p->btype, q->btype)) {
+		energy += _yukawa(p, q, update_forces);
+	}
 
 	return energy;
 }

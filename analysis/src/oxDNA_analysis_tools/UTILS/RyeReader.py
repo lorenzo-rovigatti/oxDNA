@@ -466,13 +466,10 @@ def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray
         cms = calc_PBC_COM(conf)
     positions = conf.positions + target - cms   
     new_poses = coord_in_box(positions)
-    positions += (new_poses - conf.positions)
-    #if center:
-    #    cms = np.mean(positions, axis=0)
-    #    positions -= cms
+
     return Configuration(
         conf.time, conf.box, conf.energy,
-        positions, conf.a1s, conf.a3s
+        new_poses, conf.a1s, conf.a3s
     )
 
 ####################################################################################

@@ -205,11 +205,45 @@ The following snippet defines a plane that acts on the whole system and will not
 
 ````
 
+## Attraction plane
+
+This kind of external force implements an attraction plane that attracts particles towards the plane with a constant force component while constraining them to stay on one side using a repulsive force component (compare repulsion plane).
+The repulsion is implemented as a harmonic interaction, but the stiffness can be made arbitrarily high to mimic a hard repulsion.
+The attraction is implemented as a constant force defined as: stiffness * a, where a = 1 units of length.
+Both attractive and repulsive component use the same stiffness value.
+
+A force of this kind is specified with `type = attraction_plane`. The relevant keys are:
+
+* `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
+* `stiff = <float>`: stiffness of the repulsion and strength of the attraction.
+* `dir = <float>,<float>,<float>`: the vector normal to the plane: it should point towards the half-plane where the attraction is not acting.
+* `position = <float>`: defines the position of the plane along the direction identified by the plane normal.
+
+If direction is `dir`{math}`=(u,v,w)`, then the plane contains all the points {math}`(x,y,z)` that satisfy the equation: {math}`u x + v y + w z + {\rm position} = 0`.
+Nucleotides with coordinates {math}`(x,y,z)` that satisfy {math}`u x + v y + w z + {\rm position} \ge 0` will feel a constant attraction force towards the plane equal to `stiff`.
+Nucleotides with coordinates {math}`(x,y,z)` that satisfy {math}`u x + v y + w z + {\rm position} \lt 0` will feel a repulsion force equal to `stiff` \* *D*, where {math}`D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }` is the distance of the nucleotide from the plane.
+
+````{admonition} Example
+
+The following snippet defines an attraction plane that acts on on all nucleotides, pulling them towards the YZ plane (x-direction at origin).
+Particles with a positive x-coordinate are pulled towards the YZ plane by a constant force of 1 simulation unit \* x (48.6 pN \* x for DNA)
+A restoring force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) is exerted on all particles with a negative x-coordinate, constraining them at the plane.
+
+    {
+    type = attraction_plane
+    particle = -1
+    stiff = 1.00
+    dir = 1, 0, 0
+    position = 0
+    }
+
+````
+
 ## Repulsive sphere
 
 This force encloses particle(s) in a repulsive sphere. The repulsion force is harmonic.
 
-A force of this kind is specified with `type = sphere`. The relevant keys are: 
+A force of this kind is specified with `type = sphere`. The relevant keys are:
 
 * `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
 * `stiff = <float>`: stiffness of the repulsion.
@@ -228,6 +262,35 @@ The following snippet defines a repulsive sphere that acts on the first 50 nucle
 	stiff = 10.0
 	rate = 0.
 	r0 = 6
+	}
+
+````
+
+## Yukawa sphere
+
+This force encloses particle(s) in a sphere that interacts through a purely repulsive [WCA](http://www.sklogwiki.org/SklogWiki/index.php/Weeks-Chandler-Andersen_reference_system_model) potential complemented by a Yukawa potential of the form {math}`A \exp(-r / \lambda)`, where {math}`A` is the interaction strength (which can be either positive or negative), {math}`r` is the distance between a particle and the sphere surface, {math}`\lambda` is the Debye length. The relevant keys are:
+
+* `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
+* `radius = <float>`: radius of the sphere.
+* `debye_A = <float>`: Strength the Yukawa interaction.
+* `debye_length = <float>`: Debye length of the Yukawa interaction.
+* `WCA_epsilon = <float>`: strength of the WCA repulsion, defaults to `1`.
+* `WCA_sigma = <float>`: diameter of the WCA repulsion, defaults to `1`.
+* `WCA_n = <int>`: exponent of the WCA repulsion, defaults to `6`.
+* `[cutoff = <float>]`: cutoff of the interaction, defaults to four times the Debye length.
+* `[center = <float>,<float>,<float>]`: centre of the sphere, defaults to `0,0,0`.
+
+````{admonition} Example
+
+The following snippet defines a Yukawa sphere that acts on all nucleotides, confining them within a sphere of radius 5 centred in {math}`(0, 0, 10)`. The WCA parameters are set to their defaults, while the Debye length and strength are `5` and `-10`, respectively.
+
+	{
+	type = yukawa_sphere
+	radius = 5
+    center = 0,0,10
+	debye_length = 5
+	debye_A = -10
+	particle = all
 	}
 
 ````

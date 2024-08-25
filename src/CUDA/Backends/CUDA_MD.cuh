@@ -170,6 +170,20 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
+			case CUDA_ATTRACTION_PLANE: {
+				number distance = extF.attractionplane.dir.x*ppos.x + extF.attractionplane.dir.y*ppos.y + extF.attractionplane.dir.z*ppos.z + extF.attractionplane.position;
+				if(distance < 0.0f) {
+					F.x += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.x;
+					F.y += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.y;
+					F.z += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.z;
+				}
+				else{
+					F.x += -extF.attractionplane.stiff * extF.attractionplane.dir.x;
+					F.y += -extF.attractionplane.stiff * extF.attractionplane.dir.y;
+					F.z += -extF.attractionplane.stiff * extF.attractionplane.dir.z;
+				}
+				break;
+			}
 			case CUDA_REPULSION_PLANE_MOVING: {
 				for(int idx = extF.repulsionplanemoving.low_idx; idx <= extF.repulsionplanemoving.high_idx; idx++) {
 					c_number4 qpos = poss[idx];
@@ -416,6 +430,36 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					F.z -= force.z / extF.ltcomtrap.p2a_size;
 				}
 				break;
+			}
+			case CUDA_YUKAWA_SPHERE: {
+				c_number4 centre = make_c_number4(extF.yukawasphere.center.x, extF.yukawasphere.center.y, extF.yukawasphere.center.z, 0.);
+
+				c_number radius = extF.yukawasphere.radius;
+				c_number epsilon = extF.yukawasphere.epsilon;
+				c_number sigma = extF.yukawasphere.sigma;
+				int WCA_n = extF.yukawasphere.WCA_n;
+				c_number WCA_cutoff = extF.yukawasphere.WCA_cutoff;
+				c_number debye_length = extF.yukawasphere.debye_length;
+				c_number debye_A = extF.yukawasphere.debye_A;
+				c_number cutoff = extF.yukawasphere.cutoff;
+
+				c_number4 dist = box->minimum_image(centre, ppos);
+				c_number dist_surface = radius - _module(dist);
+
+				if(dist_surface < cutoff) {
+					c_number dist_surface_sqr = SQR(dist_surface);
+					c_number4 direction = -dist / _module(dist);
+
+					c_number4 force = direction * ((debye_A * exp(-dist_surface / debye_length)) * (1.f / (dist_surface * debye_length) + 1.f / (dist_surface_sqr)));
+
+					if(dist_surface < WCA_cutoff) {
+						number WCA_part = pow(sigma / dist_surface, 6);
+						force += direction * (4 * epsilon * WCA_n * (2 * SQR(WCA_part) - WCA_part) / dist_surface);
+					}
+					F.x += force.x;
+					F.y += force.y;
+					F.z += force.z;
+				}
 			}
 			default: {
 				break;

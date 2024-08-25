@@ -92,7 +92,7 @@ def cli_parser(prog="db_to_force.py"):
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the force list to')
     parser.add_argument('-s', '--stiff', type=float, nargs=1, help='Stiffness of the mutual trap')
     parser.add_argument('-r', '--reverse', action='store_true', dest='reverse', default=False, help='Reverse the dot-bracket before writing forces')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

@@ -81,9 +81,9 @@ def cli_parser(prog="subset_trajectory.py"):
     parser.add_argument('trajectory', type=str, help="The trajectory file to subset")
     parser.add_argument('topology', type=str, help="The topology file corresponding to the trajectory")
     parser.add_argument('-i', '--index', metavar=('index', 'outfile'), action='append', nargs=2, help='A space separated index file and the associated output file name.  This can be called multiple times')
-    parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-f', action='store_true', dest='old_format', help="Use the old 3'-5' topology format?")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-f', '--old_format', action='store_true', dest='old_format', help="Use the old 3'-5' topology format?")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return(parser)
 
 def main():

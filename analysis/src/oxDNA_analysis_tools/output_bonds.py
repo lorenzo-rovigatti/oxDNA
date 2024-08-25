@@ -140,10 +140,10 @@ def cli_parser(prog="output_bonds.py"):
     parser = argparse.ArgumentParser(prog = prog, description="List all the interactions between nucleotides")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
-    parser.add_argument('-v', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as an oxView JSON')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-v', '--view', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as an oxView JSON')
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-u', '--units', type=str, nargs=1, dest='units', help="(optional) The units of the energy (pNnm or oxDNA)")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -152,7 +152,7 @@ def main():
 
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "numpy"])
+    check(["python", "numpy", "oxpy"])
 
     traj_file = args.trajectory[0]
     inputfile = args.inputfile[0]

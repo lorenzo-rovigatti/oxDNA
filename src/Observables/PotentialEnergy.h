@@ -24,6 +24,7 @@
 class PotentialEnergy: public BaseObservable {
 protected:
 	bool _split;
+
 public:
 	PotentialEnergy();
 	virtual ~PotentialEnergy();
