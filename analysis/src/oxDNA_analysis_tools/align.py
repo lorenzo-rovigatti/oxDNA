@@ -62,7 +62,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
 
     # align
     for i, c in enumerate(np_coords):
-        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3), center=ctx.center)
+        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3))
         confs[i].positions = c[0]
         confs[i].a1s = c[1]
         confs[i].a3s = c[2]
