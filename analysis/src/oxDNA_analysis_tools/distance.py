@@ -30,7 +30,7 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
         box (float): The size of the box (assumes a cubic box)
 
     Returns:
-        (float): The distance between the two particles
+        float: The distance between the two particles
     """
     p1 = p1 - (np.floor(p1/box) * box)
     p2 = p2 - (np.floor(p2/box) * box)
@@ -48,7 +48,7 @@ def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarra
         box (float) : The size of the box (assumes a cubic box)
 
     returns:
-        (np.array) : the distances between the points (NxM array)
+        np.ndarray : the distances between the points (NxM array)
     """
 
     p1s = p1s - (np.floor(p1s/box) * box)
@@ -78,7 +78,7 @@ def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[
             p2ss (List[List[int]]): A list of particle indices for each trajectory
 
         Returns:
-            distances (List[List[float]]): A list of distances for each trajectory
+            List[List[float]]: A list of distances for each trajectory
     """
     distances = [[] for _ in traj_infos]
     for i, (traj_info, top_info, p1s, p2s) in enumerate(zip(traj_infos, top_infos, p1ss, p2ss)):

@@ -25,7 +25,7 @@ def forces2pairs(force_file:str) -> List[Tuple]:
         force_file (str): path to the force file
 
     Returns:
-        pairs (List[Tuple]): A list of tuples where each tuple corresponds to a pair found in the force file.
+        List[Tuple]: A list of tuples where each tuple corresponds to a pair found in the force file.
     """
     pairs = []
     a = b = -1

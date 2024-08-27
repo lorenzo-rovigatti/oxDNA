@@ -24,7 +24,7 @@ def forces2db(n_bases:int, forces:List[Dict[str, Any]]) -> str:
             forces (List[Dict[str, Any]]): A list of mutual trap dictionaries (from read_force_file)
 
         returns:
-            db (str): The forces as a dot-bracket string
+            str: The forces as a dot-bracket string
     """
     pairs = {f['particle'] : f['ref_particle'] for f in forces}
     db = pairs2db(n_bases, pairs)

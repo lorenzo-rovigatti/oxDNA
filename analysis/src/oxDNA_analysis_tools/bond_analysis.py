@@ -77,10 +77,11 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
             ncpus (int): (optional) number of cores to use
 
         Returns:
-            total_bonds (np.ndarray): Number of formed bonds among the specified nucleotides at each step in the simulation
-            incorrect_bonds (np.ndarray): Number of missbonds among specified nucleotides at each step in the simulation
-            correct_bonds (np.ndarray): Number of correct bonds among specified nucleotides at each step in the simulation
-            nt_array (np.ndarray): per-nucleotide correct bond occupancy
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            | Number of formed bonds among the specified nucleotides at each step in the simulation
+            | Number of missbonds among specified nucleotides at each step in the simulation
+            | Number of correct bonds among specified nucleotides at each step in the simulation
+            | Per-nucleotide correct bond occupancy
     '''
     ctx = ComputeContext(traj_info, top_info, pairs, inputfile)
 

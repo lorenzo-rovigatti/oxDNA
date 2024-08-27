@@ -37,6 +37,9 @@ def make_heatmap(contact_map:np.ndarray):
 
     Parameters:
         contact_map (numpy.array): An array of all pairwise distances between nucleotides.
+
+    Displays:
+        The distances between all nucleotides as a heatmap
     """
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots()
@@ -77,6 +80,9 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             ncpus (int): (optional) Number of CPUs to use.
+
+        Returns:
+            Tuple[Configuration, np.ndarray]: The average configuration and the distance matrix with all distances above the cutoff masked
     """
     example_conf = get_confs(top_info, traj_info, 1, 1)[0]
     
@@ -103,6 +109,9 @@ def distance_deviations(traj_info:TrajInfo, top_info:TopInfo, masked_mean:np.nda
             top_info (TopInfo): Information about the topology.
             masked_mean (np.ndarray): The mean contact map with values greater than a cutoff masked.
             ncpus (int): (optional) Number of CPUs to use.
+
+        Returns:
+            np.ndarray: The per-particle deviation from the mean distance map
     """
     # Compute the deviations from the mean
     ctx = DevsContext(traj_info, top_info, masked_mean)

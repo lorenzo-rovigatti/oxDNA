@@ -12,7 +12,7 @@ def file_info(trajectories:List) -> Dict:
             trajectories (List[str]) : Filepaths to the trajectories to analyze
 
         Returns:
-            info (Dict) : Dictionary with name, number of particles, number of confs, filezie, starting step and ending step.
+            Dict : Dictionary with name, number of particles, number of confs, filezie, starting step and ending step.
     """
     
     info = {

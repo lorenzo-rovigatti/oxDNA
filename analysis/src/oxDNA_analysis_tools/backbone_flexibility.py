@@ -88,8 +88,9 @@ def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncp
             ncpus (int): (optional) Number of CPUs to use
 
         Returns:
-            torsions (np.array): Torsion angles
-            dihedrals (np.array): Dihedral angles
+            Tuple[np.ndarray, np.ndarray]:
+            | Torsion angles
+            | Dihedral angles
 
     '''
     # Create a ComputeContext which defines the problem to pass to the worker processes 

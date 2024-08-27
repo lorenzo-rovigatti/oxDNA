@@ -16,7 +16,7 @@ def pairs2db(n_bases:int, pairs:Dict[int, int]) -> str:
         pairs (dict[int, int]): The IDs of paired nucleotides
 
     Returns:
-        db (str): The pairs as a dot-bracket string, including any nested bases
+        str: The pairs as a dot-bracket string, including any nested bases
     """
 
     n = n_bases

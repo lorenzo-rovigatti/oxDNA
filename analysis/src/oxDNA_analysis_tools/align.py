@@ -26,7 +26,7 @@ def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:np.ndarray, ref_
         ref_center (numpy.ndarray): (optional) The center of mass of the reference configuration. If not provided, it will be calculated (slightly slower for many confs).
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray] A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
     """
     # Center the ref
     if len(ref_center) == 0:

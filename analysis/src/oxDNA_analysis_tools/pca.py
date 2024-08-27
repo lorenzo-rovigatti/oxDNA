@@ -30,12 +30,12 @@ def align_positions(centered_ref_coords:np.ndarray, coords:np.ndarray) -> np.nda
 
     This one only considers positions, unlike the one in align which also handles the a vectors
 
-    Parameters
+    Parameters:
         centered_ref_coords (np.array): reference coordinates, centered on [0, 0, 0]
         coords (np.array): coordinates to be aligned
 
-    Returns
-        (np.array) : Aligned coordinates for the given conf
+    Returns:
+        np.ndarray: Aligned coordinates for the given conf
     """
     # center on centroid
     av1, reference_coords = np.zeros(3), centered_ref_coords.copy()
@@ -95,7 +95,7 @@ def map_confs_to_pcs(ctx:ComputeContext_map, chunk_size:int, chunk_id:int):
         cunk_id (int) : The id of the current chunk
 
     Returns:
-        coordinates (numpy.array): The positions of each frame of the trajectory in principal component space.
+        np.ndarray: The positions of each frame of the trajectory in principal component space.
     """
 
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
@@ -118,7 +118,7 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
             ncpus (int) : (optional) The number of CPUs to use for the computation
 
         Returns:
-            (np.ndarray, np.ndarray, np.ndarray) : The structures mapped to coordinate space, the eigenvalues and the eigenvectors
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: The structures mapped to coordinate space, the eigenvalues and the eigenvectors
 
     """
     
