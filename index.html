@@ -91,11 +91,38 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="oxdna">
 <h1>oxDNA<a class="headerlink" href="#oxdna" title="Permalink to this heading"></a></h1>
-<p>oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by <a class="reference external" href="http://dx.doi.org/10.1063/1.3552946">T. E. Ouldridge, J. P. K. Doye and A. A. Louis</a>. It has been since reworked and it is now an extensible simulation+analysis framework.</p>
-<p>oxDNA can perform both molecular dynamics (MD) and Monte Carlo (MC) simulations of the oxDNA and oxRNA models. MD simulations can be run on single CPUs or single CUDA-enabled GPUs, while MC simulations, which can only be run serially, can exploit the Virtual Move Monte Carlo algorithm to greatly speed-up equilibration and sampling, and Umbrella Sampling biasing to efficiently obtain free-energy profiles. The package also features a Forward-Flux Sampling interface to study the kinetics of rare events, and makes it possible to alter the behaviour of the systems by adding <em>external forces</em> that can be used, for instance, to pull on or apply torques to strands or confine nucleotides within semi-planes or spheres.</p>
-<p>The package also includes <code class="docutils literal notranslate"><span class="pre">oxpy</span></code>, a Python library which makes it possible to control the behavior of the simulation using Python scripts. The repository contains examples that demonstrate how to leverage <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> to write backends to run replica-exchange and well-tempered metadynamics simulations, which are popular techniques in modern molecular dynamics to improve sampling efficiency.</p>
-<p>The package can also be used to compute nucleic-acid-related quantities such as the energy due to hydrogen bonding or stacking, the distance between groups of nucleotides, the list of hydrogen-bonded nucleotides or of over-stretched bonds, and much more. The analysis can be performed while the simulation is running or on generated trajectory files.</p>
+<p>oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by <a class="reference external" href="http://dx.doi.org/10.1063/1.3552946">T. E. Ouldridge, J. P. K. Doye and A. A. Louis</a>. It has been since reworked and it is now an extensible simulation+analysis framework. The following nucleic-acid-related force fields are implemented:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://pubs.aip.org/aip/jcp/article-abstract/137/13/135101/191221/Sequence-dependent-thermodynamics-of-a-coarse?redirectedFrom=fulltext">oxDNA1</a></p></li>
+<li><p><a class="reference external" href="https://pubs.aip.org/aip/jcp/article-abstract/142/23/234901/193554/Introducing-improved-structural-properties-and?redirectedFrom=fulltext">oxDNA2</a></p></li>
+<li><p><a class="reference external" href="https://pubs.aip.org/aip/jcp/article-abstract/140/23/235102/73414/A-nucleotide-level-coarse-grained-model-of-RNA?redirectedFrom=fulltext">oxRNA</a></p></li>
+<li><p><a class="reference external" href="https://pubs.aip.org/aip/jcp/article/160/11/115101/3275728">oxNA</a></p></li>
+</ul>
+<p>oxDNA can perform both molecular dynamics (MD) and Monte Carlo (MC) simulations of the oxDNA and oxRNA models. MD simulations can be run on single CPUs or single CUDA-enabled GPUs, while MC simulations, which can only be run serially, can exploit the Virtual Move Monte Carlo algorithm to greatly speed-up equilibration and sampling, and <a class="reference internal" href="umbrella_sampling.html"><span class="std std-doc">Umbrella Sampling biasing</span></a> to efficiently obtain free-energy profiles. The package also features a <a class="reference internal" href="ffs.html"><span class="std std-doc">Forward-Flux Sampling interface</span></a> to study the kinetics of rare events, and makes it possible to alter the behaviour of the systems by adding <a class="reference internal" href="forces.html"><span class="std std-doc"><em>external forces</em></span></a> that can be used, for instance, to pull on or apply torques to strands or confine nucleotides within semi-planes or spheres.</p>
+<p>The package also includes <a class="reference internal" href="oxpy/index.html"><span class="std std-doc">the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> Python module</span></a>, which makes it possible to control the behavior of the simulation using Python scripts. The repository contains examples that demonstrate how to leverage <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> to write backends to run replica-exchange and well-tempered metadynamics simulations, which are popular techniques in modern molecular dynamics to improve sampling efficiency.</p>
+<p>The package can be used to compute <a class="reference internal" href="observables.html"><span class="std std-doc">nucleic-acid-related quantities</span></a> such as the energy due to hydrogen bonding or stacking, the distance between groups of nucleotides, the list of hydrogen-bonded nucleotides or of over-stretched bonds, and much more. The analysis can be performed while the simulation is running or on generated trajectory files.</p>
 <p>The simulation engine is complemented by an updated version of <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> (<code class="docutils literal notranslate"><span class="pre">oat</span></code>), a Python library aimed at facilitating the analysis of oxDNA/oxRNA trajectories. <code class="docutils literal notranslate"><span class="pre">Oat</span></code> provides numerous common simulation trajectory analysis tools including alignment, mean structures, subsetting trajectories, distances between nucleotides, interduplex angles, and comparisons in hydrogen bonding patterns between the trajectory and an idealized structure.</p>
+<section id="citing-oxdna">
+<h2>Citing oxDNA<a class="headerlink" href="#citing-oxdna" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://doi.org/10.21105/joss.04693"><img alt="DOI" src="https://joss.theoj.org/papers/10.21105/joss.04693/status.svg" /></a></p>
+<p>Please cite these publications for any work that uses the oxDNA simulation package:</p>
+<ul class="simple">
+<li><p>for the code:</p>
+<ul>
+<li><p><a class="reference external" href="https://doi.org/10.21105/joss.04693">E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023)</a></p></li>
+</ul>
+</li>
+<li><p>for the CUDA-powered code:</p>
+<ul>
+<li><p><a class="reference external" href="https://doi.org/10.1002/jcc.23763">L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)</a></p></li>
+</ul>
+</li>
+<li><p>for oxDNA analysis tools:</p>
+<ul>
+<li><p><a class="reference external" href="https://doi.org/10.1093/nar/gkab324">E. Poppleton et al., Nucleic Acids Research e72 (2020)</a></p></li>
+</ul>
+</li>
+</ul>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul>
@@ -163,6 +190,7 @@
 <li class="toctree-l2"><a class="reference internal" href="forces.html#harmonic-trap">Harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#rotating-harmonic-trap">Rotating harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#repulsion-plane">Repulsion plane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#attraction-plane">Attraction plane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#repulsive-sphere">Repulsive sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#yukawa-sphere">Yukawa sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
@@ -216,7 +244,7 @@
 </ul>
 </div>
 <section id="analysis">
-<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this heading"></a></h2>
+<h3>Analysis<a class="headerlink" href="#analysis" title="Permalink to this heading"></a></h3>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oat/index.html">oxDNA Analysis Tools</a><ul>
@@ -238,7 +266,7 @@
 </div>
 </section>
 <section id="python-bindings">
-<h2>Python Bindings<a class="headerlink" href="#python-bindings" title="Permalink to this heading"></a></h2>
+<h3>Python Bindings<a class="headerlink" href="#python-bindings" title="Permalink to this heading"></a></h3>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a><ul>
@@ -260,6 +288,7 @@
 </li>
 </ul>
 </div>
+</section>
 </section>
 </section>
 

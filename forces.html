@@ -62,6 +62,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#harmonic-trap">Harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rotating-harmonic-trap">Rotating harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsion-plane">Repulsion plane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#attraction-plane">Attraction plane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsive-sphere">Repulsive sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#yukawa-sphere">Yukawa sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
@@ -294,6 +295,38 @@ For nucleotides for which <span class="math notranslate nohighlight">\(u x + v y
 <p>The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit * x (48.6 pN * x for DNA) will be exerted on all particles .</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
 type = repulsion_plane
+particle = -1
+stiff = 1.00
+dir = 1, 0, 0
+position = 0
+}
+</pre></div>
+</div>
+</div>
+</section>
+<section id="attraction-plane">
+<h2>Attraction plane<a class="headerlink" href="#attraction-plane" title="Permalink to this heading"></a></h2>
+<p>This kind of external force implements an attraction plane that attracts particles towards the plane with a constant force component while constraining them to stay on one side using a repulsive force component (compare repulsion plane).
+The repulsion is implemented as a harmonic interaction, but the stiffness can be made arbitrarily high to mimic a hard repulsion.
+The attraction is implemented as a constant force defined as: stiffness * a, where a = 1 units of length.
+Both attractive and repulsive component use the same stiffness value.</p>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">attraction_plane</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the repulsion and strength of the attraction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: the vector normal to the plane: it should point towards the half-plane where the attraction is not acting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">position</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: defines the position of the plane along the direction identified by the plane normal.</p></li>
+</ul>
+<p>If direction is <code class="docutils literal notranslate"><span class="pre">dir</span></code><span class="math notranslate nohighlight">\(=(u,v,w)\)</span>, then the plane contains all the points <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy the equation: <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} = 0\)</span>.
+Nucleotides with coordinates <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \ge 0\)</span> will feel a constant attraction force towards the plane equal to <code class="docutils literal notranslate"><span class="pre">stiff</span></code>.
+Nucleotides with coordinates <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \lt 0\)</span> will feel a repulsion force equal to <code class="docutils literal notranslate"><span class="pre">stiff</span></code> * <em>D</em>, where <span class="math notranslate nohighlight">\(D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }\)</span> is the distance of the nucleotide from the plane.</p>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following snippet defines an attraction plane that acts on on all nucleotides, pulling them towards the YZ plane (x-direction at origin).
+Particles with a positive x-coordinate are pulled towards the YZ plane by a constant force of 1 simulation unit * x (48.6 pN * x for DNA)
+A restoring force proportional to 1 simulation unit * x (48.6 pN * x for DNA) is exerted on all particles with a negative x-coordinate, constraining them at the plane.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = attraction_plane
 particle = -1
 stiff = 1.00
 dir = 1, 0, 0

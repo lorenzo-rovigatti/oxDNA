@@ -266,6 +266,7 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 ```
 
 ## File info
+
 ```{eval-rst}
 .. toctree::
    :maxdepth: 2
@@ -278,6 +279,22 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
     oxDNA_analysis_tools.file_info.file_info
     
 .. autofunction:: oxDNA_analysis_tools.file_info.file_info
+```
+
+## Forces to dot-bracket
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.forces2db.forces2db
+    
+.. autofunction:: oxDNA_analysis_tools.forces2db.forces2db
 ```
 
 ## Mean
@@ -344,6 +361,38 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
     oxDNA_analysis_tools.output_bonds.output_bonds
     
 .. autofunction:: oxDNA_analysis_tools.output_bonds.output_bonds
+```
+
+## OxDNA to PDB
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
+    
+.. autofunction:: oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
+```
+
+## Pairs to dot-bracket
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.pairs2db.pairs2db
+    
+.. autofunction:: oxDNA_analysis_tools.pairs2db.pairs2db
 ```
 
 ## Principle component analysis

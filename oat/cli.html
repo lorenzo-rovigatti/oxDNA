@@ -78,6 +78,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#duplex-angle-plotter">Duplex angle plotter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#duplex-finder">Duplex finder</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#file-info">File info</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#forces-to-dot-bracket">Forces to dot-bracket</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#forces-to-pairs">Forces to pairs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#generate-force">Generate force</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mean">Mean</a></li>
@@ -85,6 +86,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output-bonds">Output bonds</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#oxdna-pdb">oxDNA -&gt; PDB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pairs-to-dot-bracket">Pairs to dot-bracket</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#persistence-length">Persistence Length</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#plot-energy">Plot energy</a></li>
@@ -154,20 +156,20 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-i</kbd></dt>
+<dt><kbd>-i, --index</kbd></dt>
 <dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>
 </dd>
-<dt><kbd>-r</kbd></dt>
+<dt><kbd>-r, --ref</kbd></dt>
 <dd><p>Align to a provided configuration instead of the first frame.</p>
 </dd>
-<dt><kbd>-c</kbd></dt>
+<dt><kbd>-c, --nocenter</kbd></dt>
 <dd><p>Don’t center the output.  Can avoid errors caused by small boxes.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -222,16 +224,16 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-o</kbd></dt>
+<dt><kbd>-o, --output</kbd></dt>
 <dd><p>(optional) The name of the file to write the graph to</p>
 </dd>
-<dt><kbd>-d</kbd></dt>
+<dt><kbd>-d, --data</kbd></dt>
 <dd><p>(optional) The name of the file to write the data to</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -243,7 +245,7 @@
 <p><p>Compare the bonds found at each trajectory with the intended design</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">bond_analysis</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">trajectory_plot</span><span class="p">]</span>
-                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                          <span class="n">inputfile</span> <span class="n">trajectory</span> <span class="n">designed_pairs</span>
 </pre></div>
 </div>
@@ -264,16 +266,19 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-o</kbd></dt>
+<dt><kbd>-o, --output</kbd></dt>
 <dd><p>Name of the file to save the output oxView overlay to</p>
 </dd>
-<dt><kbd>-t</kbd></dt>
+<dt><kbd>-t, --plot</kbd></dt>
 <dd><p>Name of the file to save the trajecotry plot to</p>
 </dd>
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-d, --data</kbd></dt>
+<dd><p>If set, save the data used to make the plot to a json file.</p>
+</dd>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -302,16 +307,16 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The filename to save the centroid to</p>
 </dd>
-<dt><kbd>-i</kbd></dt>
+<dt><kbd>-i, --index</kbd></dt>
 <dd><p>Alignment and RMSD based on a subset of particles given in a space-separated list in the provided file</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -342,7 +347,7 @@
 <dt><kbd>-m, --min_samples</kbd></dt>
 <dd><p>The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -362,7 +367,7 @@
 <dt><kbd>-n, --chunk_size</kbd></dt>
 <dd><p>Number of configurations to per chunk.  Persistent across analyses.</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -387,16 +392,16 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-g</kbd></dt>
+<dt><kbd>-g, --plot</kbd></dt>
 <dd><p>Filename for the plot</p>
 </dd>
-<dt><kbd>-d</kbd></dt>
+<dt><kbd>-d, --data</kbd></dt>
 <dd><p>The name of the file to save the contact map as a pickle.</p>
 </dd>
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -425,22 +430,22 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 <p>Default: 1</p>
 </dd>
-<dt><kbd>-s</kbd></dt>
+<dt><kbd>-s, --start</kbd></dt>
 <dd><p>First conf to write to the output file.</p>
 <p>Default: 0</p>
 </dd>
-<dt><kbd>-e</kbd></dt>
+<dt><kbd>-e, --stop</kbd></dt>
 <dd><p>Process up to this conf (exclusive).  Accepts negative indexes.</p>
 </dd>
-<dt><kbd>-d</kbd></dt>
+<dt><kbd>-d, --stride</kbd></dt>
 <dd><p>Write out every this many confs (default=10)</p>
 <p>Default: 10</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -470,22 +475,22 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The filename to save the RMSF json file to</p>
 </dd>
-<dt><kbd>-i</kbd></dt>
+<dt><kbd>-i, --index</kbd></dt>
 <dd><p>Compute mean structure of a subset of particles from a space-separated list in the provided file</p>
 </dd>
-<dt><kbd>-r</kbd></dt>
+<dt><kbd>-r, --plot</kbd></dt>
 <dd><p>The name of the file to save the RMSD plot to.</p>
 </dd>
-<dt><kbd>-d</kbd></dt>
+<dt><kbd>-d, --data</kbd></dt>
 <dd><p>The name of the file to save the RMSD data in json format.</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -524,11 +529,11 @@
 <dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-c</kbd></dt>
+<dt><kbd>-c, --cluster</kbd></dt>
 <dd><p>Run the clusterer on each configuration’s distance?</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -563,7 +568,7 @@
 <dd><p>Reverse the dot-bracket before writing forces</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -602,7 +607,7 @@
 <dt><kbd>-n, --names</kbd></dt>
 <dd><p>Names of the data series.  Will default to particle ids if not provided</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -631,13 +636,13 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>name of the file to write the angle list to</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -666,7 +671,38 @@
 <dt><kbd>-l, --labels</kbd></dt>
 <dd><p>Labels for the files if not the filename</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="forces-to-dot-bracket">
+<h2>Forces to dot-bracket<a class="headerlink" href="#forces-to-dot-bracket" title="Permalink to this heading"></a></h2>
+<p><p>Convert a force file to dot-bracket notation</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">forces2db</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">topology</span> <span class="n">force_file</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>topology</kbd></dt>
+<dd><p>Topology file for the structure</p>
+</dd>
+<dt><kbd>force_file</kbd></dt>
+<dd><p>The force file to generate the dot-bracket from</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>If set, print the dot-bracket to a file, otherwise to the screen</p>
+</dd>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -694,7 +730,7 @@
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>name of the file to write the pair list to</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -732,7 +768,7 @@
 <dt><kbd>-s, --stiff</kbd></dt>
 <dd><p>Stiffness of the mutual trap</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -759,7 +795,7 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
 <dt><kbd>-o, --output</kbd></dt>
@@ -768,13 +804,13 @@
 <dt><kbd>-d, --deviations</kbd></dt>
 <dd><p>Immediately run oat deviations from the output</p>
 </dd>
-<dt><kbd>-i</kbd></dt>
+<dt><kbd>-i, --index</kbd></dt>
 <dd><p>Compute mean structure of a subset of particles from a space-separated list in the provided file</p>
 </dd>
 <dt><kbd>-a, --align</kbd></dt>
 <dd><p>The id of the configuration to align to, otherwise random</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -785,7 +821,8 @@
 <h2>Minify<a class="headerlink" href="#minify" title="Permalink to this heading"></a></h2>
 <p><p>Compress given configuration.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">D</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">outfile</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DECIMALS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                  <span class="n">trajectory</span> <span class="n">outfile</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -802,17 +839,17 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-a</kbd></dt>
+<dt><kbd>-a, --no_a</kbd></dt>
 <dd><p>Discard a vectors.</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-d</kbd></dt>
+<dt><kbd>-d, --decimals</kbd></dt>
 <dd><p>Round positions and orientations to the specified number of digits.</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -845,10 +882,10 @@
 <dt><kbd>-d, --dev_file</kbd></dt>
 <dd><p>the name of the .json file where the devs will be written</p>
 </dd>
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -877,16 +914,16 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-v</kbd></dt>
+<dt><kbd>-v, --view</kbd></dt>
 <dd><p>if you want instead average per-particle energy as an oxView JSON</p>
 </dd>
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
 <dt><kbd>-u, --units</kbd></dt>
 <dd><p>(optional) The units of the energy (pNnm or oxDNA)</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -928,7 +965,7 @@
 <dt><kbd>-d, --output_direction</kbd></dt>
 <dd><p>Direction to save nucleic acid strands in.  Should be “53” or “35”.  Defaults to same as input direction.</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -946,6 +983,37 @@
 </dd>
 <dt><kbd>-r, --rmsf-file</kbd></dt>
 <dd><p>A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="pairs-to-dot-bracket">
+<h2>Pairs to dot-bracket<a class="headerlink" href="#pairs-to-dot-bracket" title="Permalink to this heading"></a></h2>
+<p><p>Convert a pair file to dot-bracket notation</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pairs2db</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">topology</span> <span class="n">pair_file</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>topology</kbd></dt>
+<dd><p>Topology file for the structure</p>
+</dd>
+<dt><kbd>pair_file</kbd></dt>
+<dd><p>The pair file to generate the dot-bracket from</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>If set, print the dot-bracket to a file, otherwise to the screen</p>
+</dd>
+<dt><kbd>-q, --quiet</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
 </dd>
 </dl>
 </section>
@@ -975,17 +1043,17 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-c</kbd></dt>
+<dt><kbd>-c, --cluster</kbd></dt>
 <dd><p>Run the clusterer on each configuration’s position in PCA space?</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-n</kbd></dt>
+<dt><kbd>-n, --view_comps</kbd></dt>
 <dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -1030,7 +1098,7 @@
 <dt><kbd>-n, --plot_name</kbd></dt>
 <dd><p>Name to save the plot showing the fit of persistence length to correlations.  Defaults to persistence_length.png</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -1063,7 +1131,7 @@
 <dt><kbd>-f, --format</kbd></dt>
 <dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -1095,14 +1163,14 @@
 <dt><kbd>-i, --index</kbd></dt>
 <dd><p>A space separated index file and the associated output file name.  This can be called multiple times</p>
 </dd>
-<dt><kbd>-p</kbd></dt>
+<dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
-<dt><kbd>-f</kbd></dt>
+<dt><kbd>-f, --old_format</kbd></dt>
 <dd><p>Use the old 3’-5’ topology format?</p>
 <p>Default: False</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
@@ -1113,7 +1181,7 @@
 <h2>Superimpose<a class="headerlink" href="#superimpose" title="Permalink to this heading"></a></h2>
 <p><p>superimposes one or more structures sharing a topology to a reference structure</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_files</span><span class="p">)</span> <span class="p">[</span><span class="n">index_file</span><span class="p">(</span><span class="n">s</span> <span class="o">...</span><span class="p">]]</span>
                        <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_names</span> <span class="p">[</span><span class="n">output_names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                        <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -1132,13 +1200,13 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-i</kbd></dt>
-<dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>
+<dt><kbd>-i, --index</kbd></dt>
+<dd><p>Align to only a subset of particles from a space-separated list in the provided file. If 1 file provided, the indexing is applied to all structures. Otherwise an equal number of indexes and configurations must be provided.</p>
 </dd>
-<dt><kbd>-o</kbd></dt>
+<dt><kbd>-o, --output</kbd></dt>
 <dd><p>The names of the output files (defaults to inputname_a.dat)</p>
 </dd>
-<dt><kbd>-q</kbd></dt>
+<dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
