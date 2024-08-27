@@ -28,6 +28,7 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 
 	getInputNumber(&inp, "DPS_lambda", &_lambda, 0);
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
+    getInputBool(&inp, "DPS_no_three_body", &no_three_body, 0);
 
 	getInputBool(&inp, "DPS_normalise_patches", &_normalise_patches, 0);
 
@@ -62,6 +63,9 @@ void DetailedPatchySwapInteraction::init() {
 			OX_LOG(Logger::LOG_INFO, "DPS: Custom patches will NOT be normalised");
 		}
 	}
+    if (no_three_body){
+        OX_LOG(Logger::LOG_INFO, "DPS: Three-body interaction is DISABLED");
+    }
 
 	if(_is_KF) {
 		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_KF);
