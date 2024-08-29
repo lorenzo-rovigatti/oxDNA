@@ -30,6 +30,15 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 
 **A:** No, oxDNA can run simulations on single cores or single GPUs only.
 
+**Q: How is the oxDNA force field defined?**
+
+**A:** The functional forms can be found in the original publications:
+
+* [oxDNA1](https://pubs.aip.org/aip/jcp/article-abstract/137/13/135101/191221/Sequence-dependent-thermodynamics-of-a-coarse?redirectedFrom=fulltext)
+* [oxDNA2](https://pubs.aip.org/aip/jcp/article-abstract/142/23/234901/193554/Introducing-improved-structural-properties-and?redirectedFrom=fulltext)
+* [oxRNA](https://pubs.aip.org/aip/jcp/article-abstract/140/23/235102/73414/A-nucleotide-level-coarse-grained-model-of-RNA?redirectedFrom=fulltext)
+* [oxNA](https://pubs.aip.org/aip/jcp/article/160/11/115101/3275728)
+
 ## Citing oxDNA
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04693/status.svg)](https://doi.org/10.21105/joss.04693)

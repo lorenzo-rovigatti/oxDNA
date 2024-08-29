@@ -17,7 +17,7 @@ def parse_dot_bracket(input:str) -> np.ndarray:
         input (str): A dot-bracket string
 
     Returns:
-        (list): A list where each index corresponds to a nucleotide.  Value is -1 is unpaired or another index if paired.
+        np.ndarray: A list where each index corresponds to a nucleotide.  Value is -1 is unpaired or another index if paired.
     """
     output = np.full(len(input), -1)
     paren_queue = []

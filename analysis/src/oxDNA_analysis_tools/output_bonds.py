@@ -111,7 +111,7 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:
             ncpus (int): (optional) Number of CPUs to use.
 
         Returns:
-            energies (np.array): If visualize is True, the energies are saved as a mean-per-particle oxView file.  If False, they are printed to the screen and None is returned.
+            np.ndarray or None: If visualize is True, the energies are saved as a mean-per-particle oxView file.  If False, they are printed to the screen and None is returned.
     """
     
     ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, 0)

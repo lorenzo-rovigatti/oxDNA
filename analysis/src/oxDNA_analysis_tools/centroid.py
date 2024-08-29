@@ -50,8 +50,9 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
             ncpus (int): (optional) Number of CPUs to use for alignment
 
         Returns:
-            centroid_candidate (Configuration): The configuration with the lowest RMSD to the reference
-            min_RMSD (float): The RMSD from the centroid to the reference
+            Tuple[Configuration, float]:
+            | The configuration with the lowest RMSD to the reference
+            | The RMSD from the centroid to the reference
     '''
     if indexes == []:
         indexes = list(range(top_info.nbases))

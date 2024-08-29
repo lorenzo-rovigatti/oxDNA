@@ -25,7 +25,7 @@ def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.ndarray:
         chunk_id (int): The id of the chunk to process.
     
     Returns:
-        distances (numpy.array): A NxN matrix containing pairwise distances between every pair of nucleotides.
+        np.ndarray: A NxN matrix containing pairwise distances between every pair of nucleotides.
     """
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
 
@@ -44,6 +44,9 @@ def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.ndarray:
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             ncpus (int): (optional) The number of cores to use.
+        
+        Returns:
+            np.ndarray: The average distance between all nucleotides in the structure over the trajectory
     """
     ctx = ComputeContext(traj_info, top_info)
 

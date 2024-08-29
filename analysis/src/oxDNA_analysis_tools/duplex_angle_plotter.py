@@ -15,7 +15,7 @@ def rad2degree(angle:float) -> float:
         angle (float): The angle in radians to convert.
 
     Returns:
-        angle (float): The angle converted to degrees.
+        (float): The angle converted to degrees.
     """
     return (angle * 180 / np.pi)
 
@@ -28,7 +28,7 @@ def angle_between (axis1:np.ndarray, axis2:np.ndarray) -> float:
         axis2 (numpy.array): The second vector.
     
     Returns:
-        angle (float): The angle between the vectors in radians.
+        (float): The angle between the vectors in radians.
     """
     return (np.arccos(np.dot(axis1, axis2)/(np.linalg.norm(axis1)*np.linalg.norm(axis2))))
 
@@ -43,11 +43,12 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
             invert_mask (List[bool]): Invert one of the vectors in the i-th duplex pair?
 
         Returns:
-            angles (List[List[np.array]]): The list of angles between the specified duplexes.
-            means (List[float]): The mean angle between each pair of duplexes.
-            medians (List[float]): The median angle between each pair of duplexes.
-            stdevs (List[float]): The standard deviation of the angle between each pair of duplexes.
-            representations (List[float]): The percentage of confs that have the duplexes.
+            Tuple[List[List[ndarray]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]: 
+            | The list of angles between the specified duplexes.
+            | The mean angle between each pair of duplexes.
+            | The median angle between each pair of duplexes.
+            | The standard deviation of the angle between each pair of duplexes.
+            | The percentage of confs that have the duplexes.
     """
     if(len(files) != len(p1s) != len(p2s)):
         raise RuntimeError("Bad input arguments!\nThe number of files must equal the number of lists of particle pairs.\n\

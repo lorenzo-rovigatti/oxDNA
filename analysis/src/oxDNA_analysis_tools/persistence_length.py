@@ -27,7 +27,7 @@ def get_r(conf, nucid:int, pair_dict:Dict) -> np.ndarray:
             nucid (int) : ID of the nucleotide in the first strand to compute the vector from
 
         Returns:
-            (np.ndarray) : The vector pointing from the midpoint of nucid's base pair to the +1 base pair.
+            np.ndarray: The vector pointing from the midpoint of nucid's base pair to the +1 base pair.
     """
     box = np.array(conf.box.box_sides)
     pair = pair_dict[nucid]
@@ -117,7 +117,7 @@ def persistence_length(traj_info:TrajInfo, inp_file:str, n1:int, n2:int, ncpus:i
             n2 (int): ID of the particle to end the analysis. 
         
         Returns:
-            (Tuple[float, np.ndarray]) : Tuple containing the average contour length and correlations between each pair step
+            Tuple[float, np.ndarray]: Tuple containing the average contour length and correlations between each pair step
     """
 
     ctx = ComputeContext(traj_info, inp_file, n1, n2)
@@ -146,7 +146,7 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
             plt_name (str) : Name to save the resulting plot to
 
         Returns:
-            (float) : Persistence length in nucleotides
+            float: Persistence length in nucleotides
     """
     # Fit the PL to the correlations
     x = np.arange(0, len(correlations))

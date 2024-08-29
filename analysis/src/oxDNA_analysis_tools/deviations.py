@@ -42,8 +42,9 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             ncpus (int): (optional) Number of CPUs to use for alignment
         
         Returns:
-            RMSDs (np.array): Root mean squared deviation for each configuration in the trajectory
-            RMSFs (np.array): Average fluctuation for each particle in the structure
+            Tuple[np.ndarray, np.ndarray]:
+            | Root mean squared deviation for each configuration in the trajectory
+            | Average fluctuation for each particle in the structure
     """
     if indexes == []:
         indexes = list(range(top_info.nbases))

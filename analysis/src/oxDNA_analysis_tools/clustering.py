@@ -12,17 +12,15 @@ from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.UTILS.data_structures import TrajInfo, TopInfo
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, linear_read, conf_to_str, describe, write_conf
 
-def split_trajectory(traj_info, top_info, labs):
+def split_trajectory(traj_info, top_info, labs) -> None:
     """
-    Splits the trajectory into the clustered trajectories
+    Splits the trajectory into the clustered trajectories.  Names each trajectory cluster_<n>.dat
 
     Parameters:
         traj_info (TrajInfo): Metadata on the trajectory file
         top_info (TopInfo): Metadata on the topology file
         labs (numpy.array): The cluster each configuration belongs to.
     """
-
-    
 
     slabs = set(labs)
 
@@ -67,11 +65,14 @@ def get_centroid(points:np.ndarray, metric_name:str, labs:np.ndarray, traj_info:
     Takes the output from DBSCAN and finds the centroid of each cluster.
 
     Parameters:
-        points (numpy.array): The points fed to the clstering algorithm.
+        points (numpy.array): The points fed to the clustering algorithm.
         metric_name (str): The type of data the points represent ('euclidean' or 'precomputed').
         labs (numpy.array): The cluster each point belongs to.
         traj_info (TrajInfo): Trajectory metadata.
         top_info (TopInfo): Topology metadata.
+
+    Returns:
+        List[int]: The configuration ID for the centroid of each cluster
     """
 
     log("Finding cluster centroids...")
@@ -205,6 +206,9 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
         no_traj (bool): If True, skip splitting the trajectory (these are slow)
         interactive_plot (bool): If True, show plot interactivley instead of saving as an animation
         min_clusters (int): If less than min_clusters are found, return and don't do further calculations
+
+    Returns:
+        np.ndarray: The label for each configuration
     """
     
     check(["python", "sklearn", "matplotlib"])

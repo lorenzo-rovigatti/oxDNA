@@ -61,7 +61,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None
             ncpus (int): (optional) The number of CPUs to use. If None, 1 CPU will be used.
         
         Returns:
-            Configuration (Configuration): The mean structure of the trajectory.
+            Configuration: The mean structure of the trajectory.
     """
 
     # Handle case where function was called from another script with incomplete arguments

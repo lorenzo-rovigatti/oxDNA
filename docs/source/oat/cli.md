@@ -133,6 +133,14 @@
     :prog: oat file_info
 ```
 
+## Forces to dot-bracket
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/forces2db.py
+    :func: cli_parser
+    :prog: oat forces2db
+```
+
 ## Forces to pairs
 
 ```{eval-rst}
@@ -194,6 +202,14 @@
     :filename: ../analysis/src/oxDNA_analysis_tools/oxDNA_PDB.py
     :func: cli_parser
     :prog: oat oxDNA_PDB
+```
+
+## Pairs to dot-bracket
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/pairs2db.py
+    :func: cli_parser
+    :prog: oat pairs2db
 ```
 
 ## Principal component analysis

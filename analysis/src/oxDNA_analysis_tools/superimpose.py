@@ -19,7 +19,7 @@ def superimpose(ref:Configuration, victims:List[str], indexes:np.ndarray=np.arra
         indexes (np.ndarray[int]) : the indexes of the particles to superimpose on the reference (default: all)
 
     Returns:
-        Aligned configurations (List[Configuration])
+        List[Configuration]: Aligned configurations
     """
 
     if not (indexes.ndim and indexes.size):

@@ -32,6 +32,8 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
             start (int) : (optional) Starting configuration for the new trajectory.  Accepts negative indexes.  default=0
             stop (int) : (optional) Process up to this conf (exclusive).  Accepts negative indexes. 
             stride (int) : (optional) Include only every stride-th conf. (default=10)
+
+        Writes the trajectory directly to outfile.
     """
     top_info, traj_info = describe(None, traj)
     

@@ -5,7 +5,6 @@
 #Python2
 #Converts the forces file printed out by tiamat2oxdna to a pairs file containing all designed H-bonds
 
-import sys
 import argparse
 import os
 from typing import List, Tuple
@@ -26,7 +25,7 @@ def forces2pairs(force_file:str) -> List[Tuple]:
         force_file (str): path to the force file
 
     Returns:
-        pairs (List[Tuple]): A list of tuples where each tuple corresponds to a pair found in the force file.
+        List[Tuple]: A list of tuples where each tuple corresponds to a pair found in the force file.
     """
     pairs = []
     a = b = -1
