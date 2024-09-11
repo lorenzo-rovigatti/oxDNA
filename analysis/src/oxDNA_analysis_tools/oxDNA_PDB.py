@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import os
+import re
 import numpy as np
 import copy
 import argparse
@@ -288,8 +288,7 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             nucleotides_in_strand = strand.monomers
             sequence = [n.btype for n in nucleotides_in_strand]
             isDNA = True #This should be in the strand parser instead.
-            if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
-                isDNA = False
+            isDNA = strand.get_kwdata()['type'] == 'DNA'
 
             log("Converting strand {}".format(strand.id), end='\r')
 
@@ -448,7 +447,7 @@ def main():
 
     # Parse optional arguments
     if args.output:
-        out_basename = args.output.rstrip('.pdb')
+        out_basename = re.sub(r"\.pdb$", "", args.output)
     else:
         out_basename = conf_file
     reverse = False
