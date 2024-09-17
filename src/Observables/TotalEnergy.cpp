@@ -33,7 +33,8 @@ std::string TotalEnergy::get_output_string(llint curr_step) {
 	number U = get_U(curr_step);
 	number K = get_K(curr_step);
 
-	return Utils::sformat("% 10.6lf % 10.6lf % 10.6lf", U, K, U + K);
+	std::string format = Utils::sformat("%s %s %s", _number_formatter.c_str(), _number_formatter.c_str(), _number_formatter.c_str());
+	return Utils::sformat(format, U, K, U + K);
 }
 
 number TotalEnergy::get_U(llint curr_step) {
