@@ -18,6 +18,8 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -167,6 +169,31 @@ INFO: Timings, in seconds, by Timer (total, own, spent in children)
 <h3>GPU simulations<a class="headerlink" href="#gpu-simulations" title="Permalink to this heading"></a></h3>
 <p>When running CUDA-powered simulations, the box size has a non-trivial effect on performance, and its interaction with other parameters such as <code class="docutils literal notranslate"><span class="pre">salt_concentration</span></code>, <code class="docutils literal notranslate"><span class="pre">verlet_skin</span></code>, and possibly others, make it hard to come up with a way of automatically set the best options for a given case.</p>
 <p>Since there is no dynamic memory on GPUs, in order to avoid crashing simulations oxDNA sets the size of the cells used to build neighbouring lists so that their memory footprint is not too high. If you want to optimise performance is sometimes worth to set <code class="docutils literal notranslate"><span class="pre">cells_auto_optimisation</span> <span class="pre">=</span> <span class="pre">false</span></code> so that oxDNA uses the smallest possible cells (at the cost of memory consumption). If the resulting memory footprint can be handled by your GPU you’ll probably see some (possibly large) performance gains.</p>
+<p>There are some heuristics that attempt to limit the memory consumption of CUDA simulations. First of all, the given combination of parameters is used to evaluate the minimum size of the cells required to build neighbouring lists, <span class="math notranslate nohighlight">\(r_m\)</span>. In turn, <span class="math notranslate nohighlight">\(r_m\)</span> is used to compute the number of cells along each coordinate <span class="math notranslate nohighlight">\(i\)</span> (where <span class="math notranslate nohighlight">\(i = x, y, z\)</span>) as</p>
+<div class="math notranslate nohighlight">
+\[
+N_i = \max(\lfloor L_i / r_m \rfloor, 3),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(L_i\)</span> is the length of the box edge along the <span class="math notranslate nohighlight">\(i\)</span>-th direction. This value of <span class="math notranslate nohighlight">\(N_i\)</span> is the number of cells used for the simulation if <code class="docutils literal notranslate"><span class="pre">cells_auto_optimisation</span></code> is set to <code class="docutils literal notranslate"><span class="pre">false</span></code>. However, if it set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, which is the default, then the code checks whether <span class="math notranslate nohighlight">\(N_i &gt; \lceil f L_i \rceil\)</span>, and if it is then sets</p>
+<div class="math notranslate nohighlight">
+\[
+N_i = f L_i,
+\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[
+f = \left( \frac{2 N}{L_x L_y L_z} \right)^{1/3}.
+\]</div>
+<p>The maximum number of particles that are in each given cell, <span class="math notranslate nohighlight">\(M\)</span>, is another important parameter that can be, to some extent, tuned to avoid crashes. It is defined at the beginning of the simulation, and also each time the total number of cells changes while the simulation is running, as</p>
+<div class="math notranslate nohighlight">
+\[
+M = f_\rho M_\text{max},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_\rho\)</span> is a factor that can be set with the <code class="docutils literal notranslate"><span class="pre">max_density_multiplier</span></code> option and defaults to 3, while <span class="math notranslate nohighlight">\(M_\text{max}\)</span> is the number of particles found in the cell containing the largest amount of particles in the current configuration.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On newer versions of oxDNA (&gt; 3.6.1), setting <code class="docutils literal notranslate"><span class="pre">debug</span> <span class="pre">=</span> <span class="pre">true</span></code> will report in the log file (or on screen if <code class="docutils literal notranslate"><span class="pre">log_file</span></code> is not set) the amount of memory that is requested by each allocation on the GPU.</p>
+</div>
 </section>
 </section>
 <section id="monte-carlo">

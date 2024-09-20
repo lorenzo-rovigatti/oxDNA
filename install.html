@@ -145,7 +145,7 @@ git<span class="w"> </span>pull<span class="w">        </span><span class="c1">#
 make<span class="w"> </span>-j4<span class="w">        </span><span class="c1"># compile the updated source</span>
 </pre></div>
 </div>
-<p>If you also want to update <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> don’t forget to run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> after the compilation.</p>
+<p>If you also want to update <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">OAT</span></code> don’t forget to run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> after the compilation.</p>
 </section>
 <section id="cmake-options">
 <h3>CMake options<a class="headerlink" href="#cmake-options" title="Permalink to this heading"></a></h3>
@@ -215,6 +215,7 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 <h2>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>An <code class="docutils literal notranslate"><span class="pre">illegal</span> <span class="pre">instruction</span></code> is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with <code class="docutils literal notranslate"><span class="pre">-DNATIVE_COMPILATION=Off</span></code> and re-compile the code to fix the issue.</p></li>
+<li><p>When compiling oxDNA with Python support on Microsoft’s WSL, if the local repository is downloaded in Windows (<em>i.e.</em>, outside WSL), tests and analysis scripts may fail (see <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/issues/122#issue-2499923060">this issue</a>). To avoid these problems, clone the repository directly within the WSL environment.</p></li>
 <li><p>A list of other known issues can be browsed online <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/issues">here</a>.</p></li>
 </ul>
 </section>
