@@ -1,0 +1,17 @@
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src)
+
+if(${CMAKE_MAJOR_VERSION} GREATER 2)
+	FILE(GLOB_RECURSE entries LIST_DIRECTORIES true RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*")
+
+	FOREACH(entry ${entries})
+		IF(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${entry} AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${entry}/CMakeLists.txt)
+			MESSAGE(STATUS "Adding the targets found in the ${CMAKE_CURRENT_SOURCE_DIR}/${entry} folder")
+			ADD_SUBDIRECTORY(${entry})
+		ENDIF()
+	ENDFOREACH()
+else()
+	add_subdirectory(randisi)
+	add_subdirectory(romano)
+	add_subdirectory(rovigatti)
+	add_subdirectory(tostiguerra)
+endif()

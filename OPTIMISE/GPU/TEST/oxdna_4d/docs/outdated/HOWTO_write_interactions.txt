@@ -1,0 +1,69 @@
+This is a stub of a guide on how to code new  interactions, 
+True at the moment of writing (16 April 2015).
+
+	Written by Ferdinando Randisi
+	
+*) It's probably best to code a new interaction by copying a similar
+	interaction and modifying it until it becomes what you wish it to become.
+
+*) The init and get_settings are called at different times: get_settings is called
+ before the configuration file is read, and init is called afterwards. The
+topology is only read in read_topology, which is called after both
+get_settings and init.
+
+*) If the interaction is sensitive to orientational degrees of freedom, the
+	Particle class should overload the function is_rigid_body to return true instead
+	of false, otherwise the orientational degrees of freedom won't be updated. 
+	NOTE: at the time of writing, orientational degrees of freedom	can only be stored 
+	as a 3x3 matrix. If you can store them differently then	you might have a different 
+	function, or a variable, or something different.
+*) Include the particle header with the # include "../Particles/MyParticle.h",
+	with "MyParticle.h" the name of the particle header file.
+*) Apart from creating the header and source for the interaction (and possibly
+	the particle), there's some files you should edit for your interactions to
+	be usable:
+		i) In the beginning of src/Interactions/InteractionFactory.cpp, add:
+				#include "yourInteraction.h", and add an if-case that makes the code
+				load your interaction if the inter_type string matches the name of
+				your interaction. For example:
+		   else if(inter_type.compare("NAME") == 0) return new NAMEInteraction<number>();
+				NOTE: if the other strings are compared in a different way, then
+				prefer that one over this. 
+		ii) in CMakeLists.txt, add the InteractionMyInteraction.cpp file alongside
+				 the others, as well as the Particle.cpp (if any).
+*) Every particle has an affected vector, that keeps track of the bonded energy terms
+	 that should be recomputed every time a particle moves/rotates. Make sure to
+	 fill it, if the interaction has a notion of topology (e.g. if some particles are 
+	 bound to each other, like for example in a linear polymer. A monoatomic gas, by 
+	contrast does not have any bonded praticles). If the topology is linear, with nearest
+ 	neighbour interaction, you can mimick what DNA does. Otherwise you might need something 
+	fancier.
+*) Implement pair_interaction_bonded so that, if called with (p,P_VIRTUAL),
+	it returns the interaction energy of all the interaction terms labelled with that
+	particle. This has to be written such that 
+	E_bonded = sum_p pair_interaction_bonded(p,P_VIRTUAL).
+	since this is what will happen when the particle will be called 
+	<	Possibly it also has to be true that 1/2
+	sum_{p}\sum_{q in p_affected}{pair_interaction_bonded(p,q) = E_bonded, I
+	should check>
+*) Give some sensible default parameters to the model via the constructor, not with
+	the init function. This is for good programming practice, as it allows one e.g.
+	to call different constructors that set the parameters to different values
+	depending on the string received from the input file.
+*) the enumerator should be implemented so that the energy can be printed term
+	by term, with the option split=True. Take a look at what DNA does and do something similar.
+*) When the energy observable is computed with the option split = True, each
+	energy term is called between each particle pair. Therefore, the bonded
+	terms should check whether the particles are actually bonded and return 0
+	otherwise. Otherwise bonded terms will be computed between all the
+	particles, not only the bonded ones.
+*) Never use some flags to avoid computing a given term of the potential: just say
+	that the term returns 0 if the prefactor is 0 (in all compilers 0 is represented
+	correctly with infinite precision, even in doubles). Otherwise you'll break the 
+	split energy output (see above). 	NOTE: while if you assign
+	the value of 0 to a variable it will always have value 0, if you assign it
+	non-explicitly then you'd get something different. for example, var = 12 - 24*0.5
+	could be very close to 0, but not exactly there, so behave accordingly.
+	If you use flags but don't set the prefactor to 0 then the split terms in the
+	energy observable will have problems.
+		
