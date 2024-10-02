@@ -1,0 +1,66 @@
+FILES
+----- 
+
+- c++ source files should use the file extension .cpp. 
+- Every .cpp file should have an associated .h file. The two should be named the 
+same, except for the extension.
+- Abstract (interface) classes may be defined entirely in a header file (see e.g. 
+BaseInteraction.h).
+- The .cpp and .h files should bear the same name as the class defined therein.  
+
+NAMING CONVENTIONS
+------------------
+
+- The name of classes and structures should be in CamelCase (with the first letter
+capitalised). Example: ThisIsAClass
+- The name of methods, functions and variables should be in lower case. When the 
+name is made of distinct words or parts, these should be separated by an underscore.
+Example: this_is_a_variable
+- Please be as descriptive as you can AT LEAST when naming classes and public methods.
+Using long names does not hurt anyone but greatly increases the readability of the 
+code.
+- The name of private and protected members of classes and structures should be 
+prefixed with an underscore. 
+
+CODING STYLE
+------------
+
+- Indentation: please use tabs and make sure that your code is well-indented. If 
+you are too lazy to do it yourself then install eclipse, open your file and press
+ctrl+shift+f :-)
+- Braces: for consistency please put opening braces on the same level as function/
+method/class declarations and if/for/while statements. The opening brace should 
+be preceded by a space. Example:
+
+void my_function() {
+	if(1 != 0) {
+		printf("what?\n");
+		return;
+	}
+}
+
+- Comments: please comment only the sections of your code that do not do something 
+obvious. DO NOT OVERCOMMENT. Inline comments should be avoided. Put your comments 
+above the section of the code they refer to.
+- Doxygen comments: please document the public interface of classes. I know it's 
+boring, but it is fundamental to keep track of what oxDNA can and can not do. Adding 
+and updating input options in the comments relative to the definition of a class 
+is highly appreciated. See for example the documentation relative to the SimBackend 
+class.
+
+COMPILATION AND TESTING
+-----------------------
+
+- Make sure that the modified code compiles. If possible, try also to compile the 
+CUDA and MPI versions. 
+- The CPU code should not issue any warnings.
+- The code should run clean with valgrind. 
+- When changing core files, always run 'make test' and 'make test_scientific' before
+committing. They should all come out clean. Note that, on some machines, the 
+'hairpin18/MD_float/INPUT' test may fail without any sensible reasons.
+
+TIPS
+----
+
+- Define variables in the innermost scope where they are used. If possible, initialise
+them as soon as they are defined.

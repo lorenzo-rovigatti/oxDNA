@@ -1,0 +1,3 @@
+include src/oxDNA_analysis_tools/UTILS/*.pdb
+include src/oxDNA_analysis_tools/cython_utils/*.pyx
+include src/oxDNA_analysis_tools/cython_utils/*.c

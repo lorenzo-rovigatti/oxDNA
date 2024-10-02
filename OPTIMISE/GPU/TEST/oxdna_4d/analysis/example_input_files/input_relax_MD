@@ -1,0 +1,52 @@
+# Documentation https://lorenzo-rovigatti.github.io/oxDNA/input.html
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+sim_type = MD
+backend = CUDA
+backend_precision = mixed
+use_edge = 1
+edge_n_forces = 1
+CUDA_list = verlet
+CUDA_sort_every = 0
+cells_auto_optimisation = true
+verlet_skin = 0.5
+#max_density_multiplier=10
+#debug = 1
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+interaction_type=DNA2
+steps = 1e8
+dt = 0.002
+ensemble = nvt
+T = 20C
+salt_concentration=1.0
+thermostat = langevin
+newtonian_steps = 103
+diff_coeff = 2.5
+max_backbone_force = 5
+max_backbone_far = 10
+external_forces = 1
+external_forces_file = external_forces.txt
+use_average_seq = 1
+#seq_dep_file = /home/erik/software/oxDNA/oxDNA2_sequence_dependent_parameters.txt
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = topology.top
+conf_file = last_conf_MC.dat
+lastconf_file = last_conf_MD.dat
+trajectory_file = trajectory_MD.dat
+energy_file = energy_MD.dat
+print_conf_interval = ${$(steps) / 200}
+print_energy_every = ${$(steps) / 2000}
+time_scale = linear
+reset_com_momentum = true
+refresh_vel = 1
+restart_step_counter = 1
+no_stdout_energy = 0
+#log_file = log_trap.dat
+
