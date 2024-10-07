@@ -95,6 +95,9 @@ class System:
             strands (List[Strand]) : A list of Strand objects
     """
 
+    top_file: str
+    strands: List[Strand]
+
     def __init__(self, top_file:str='', strands:List = []):
         self.top_file = top_file
         self.strands = strands
@@ -138,6 +141,12 @@ class Strand:
             circular (bool) : Is this a circular strand? (default : False)
     """
 
+    __from_old: bool
+    id: int
+    monomers: List[Monomer]
+    type: str
+    circular: bool
+
     def __init__(self, id, *initial_data, **kwargs):
         self.__from_old = False
         self.id = id
@@ -149,7 +158,11 @@ class Strand:
                 setattr(self, key, dictionary[key])
         for key in kwargs:
             setattr(self, key, kwargs[key])
+
+        # the initial values come in as strings, so ones with known types must be set.
         self.id = int(self.id)
+        if isinstance(self.circular, str):
+            self.circular = self.circular.lower() == "true"
 
     def __getitem__(self, key:int):
         return self.monomers[key]
