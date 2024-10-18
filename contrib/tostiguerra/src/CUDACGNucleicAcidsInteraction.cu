@@ -22,10 +22,12 @@ __constant__ int MD_n[1];
 __constant__ int MD_interaction_matrix_size[1];
 __constant__ float MD_sqr_rep_rcut[1];
 __constant__ float MD_sqr_rep_rcut_unbonded[1];
+__constant__ float MD_sqr_rep_rcut_crossover[1];
 __constant__ float MD_sqr_rfene[1];
 __constant__ float MD_Kfene[1];
 __constant__ float MD_WCA_sigma[1];
 __constant__ float MD_WCA_sigma_unbonded[1];
+__constant__ float MD_WCA_sigma_crossover[1];
 __constant__ float MD_deltaPatchMon[1];
 __constant__ float MD_sqr_rcut[1];
 __constant__ float MD_alpha[1];
@@ -205,7 +207,6 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 			// the factor 2 takes into account the fact that the pair energy is always counted twice
 			F.w += 2.f * prefactor * curr_energy * other_energy;
 
-			// if(new_bond.r_mod > _3b_sigma)
 			{
 				c_number factor = -prefactor * other_energy;
 				c_number4 tmp_force = factor * b1.force;
@@ -220,7 +221,6 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 				// _update_stress_tensor(p->pos + bi.r, -tmp_force);
 			}
 
-			// if(other_bond.r_mod > _3b_sigma)
 			{
 				c_number factor = -prefactor * curr_energy;
 				c_number4 tmp_force = factor * b2.force;
@@ -234,26 +234,6 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 				// _update_stress_tensor(p->pos, tmp_force);
 				// _update_stress_tensor(p->pos + bj.r, -tmp_force);
 			}
-
-//			if(curr_energy != MD_3b_epsilon[0]) {
-//				c_number factor = MD_3b_prefactor[0] * other_energy;
-//				c_number4 force = b1.force * factor;
-//				force.w = 0.f;
-//
-//				_update_stress_tensor<false>(p_st, b1.r, force);
-//				F += force;
-//				LR_atomicAddXYZ(forces + b1.q, -force);
-//			}
-//
-//			if(other_energy != MD_3b_epsilon[0]) {
-//				c_number factor = MD_3b_prefactor[0] * curr_energy;
-//				c_number4 force = b2.force * factor;
-//				force.w = 0.f;
-//
-//				_update_stress_tensor<false>(p_st, b2.r, force);
-//				F += force;
-//				LR_atomicAddXYZ(forces + b2.q, -force);
-//			}
 		}
 	}
 }
@@ -273,7 +253,7 @@ __device__ void _flexibility_three_body(c_number4 &ppos, c_number4 &n1_pos, c_nu
 	c_number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
 	c_number energy, force_factor;
-	if(MD_semiflexibility_3b_exp_sigma[0] > 0.0) {
+	if(MD_semiflexibility_3b_exp_sigma[0] > 0.0f) {
 		c_number arg = (1.f - cost) / MD_semiflexibility_3b_exp_sigma[0];
 		c_number exp_factor = expf(-SQR(arg));
 		energy = -MD_semiflexibility_3b_k[0] * (exp_factor - 1.f);
@@ -361,8 +341,9 @@ __device__ bool _sticky_interaction(int p_btype, int q_btype) {
 	return true;
 }
 
-__global__ void ps_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, c_number4 *three_body_forces, c_number4 *three_body_torques, int *matrix_neighs, int *number_neighs, bool update_st,
-		cudaTextureObject_t tex_eps, CUDAStressTensor *st, CUDABox *box) {
+__global__ void ps_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, c_number4 *three_body_forces, 
+						c_number4 *three_body_torques, int *matrix_neighs, int *number_neighs, int *crossovers, bool update_st, 
+						cudaTextureObject_t tex_eps, CUDAStressTensor *st, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -377,6 +358,8 @@ __global__ void ps_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 	CUDA_FS_bond_list bonds;
 	CUDAStressTensor p_st;
 
+	int p_crossover = crossovers[IND];
+
 	for(int j = 0; j < num_neighs; j++) {
 		int q_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
@@ -384,7 +367,11 @@ __global__ void ps_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 			c_number4 qpos = poss[q_index];
 			int q_btype = get_particle_btype(qpos);
 
-			_WCA(ppos, qpos, MD_WCA_sigma_unbonded[0], MD_sqr_rep_rcut_unbonded[0], F, p_st, box);
+			bool involve_crossover = p_crossover || crossovers[q_index];
+			c_number WCA_sigma = (involve_crossover) ? MD_WCA_sigma_crossover[0] : MD_WCA_sigma_unbonded[0];
+			c_number sqr_rep_rcut = (involve_crossover) ? MD_sqr_rep_rcut_crossover[0] : MD_sqr_rep_rcut_unbonded[0];
+
+			_WCA(ppos, qpos, WCA_sigma, sqr_rep_rcut, F, p_st, box);
 
 			if(_sticky_interaction(p_btype, q_btype)) {
 				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
@@ -434,6 +421,9 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 	CGNucleicAcidsInteraction::allocate_particles(particles);
 	int tmp_N_strands;
 	CGNucleicAcidsInteraction::read_topology(&tmp_N_strands, particles);
+
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_crossovers, N * sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_crossovers, crossovers.data(), N * sizeof(int), cudaMemcpyHostToDevice));
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_torques, N * sizeof(c_number4)));
@@ -492,7 +482,7 @@ void CUDACGNucleicAcidsInteraction::compute_forces(CUDABaseList *lists, c_number
 
 	ps_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_orientations, d_forces, d_torques, _d_three_body_forces, _d_three_body_torques, lists->d_matrix_neighs, lists->d_number_neighs, _update_st, _tex_eps, _d_st, d_box);
+		(d_poss, d_orientations, d_forces, d_torques, _d_three_body_forces, _d_three_body_torques, lists->d_matrix_neighs, lists->d_number_neighs, _d_crossovers, _update_st, _tex_eps, _d_st, d_box);
 	CUT_CHECK_ERROR("forces_second_step CGNucleicAcids simple_lists error");
 
 	// add the three body contributions to the two-body forces and torques
