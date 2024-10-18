@@ -137,13 +137,13 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &p_a1, c_number4 &p_a3, c_num
 			// this number is the module of the force over r, so we don't have to divide the distance vector by its module
 			c_number force_mod = (epsilon * MD_3b_A_part[0] * exp_part * (4.f * MD_3b_B_part[0] / (SQR(sqr_r) * r_mod)) + MD_3b_sigma[0] * Vradial / SQR(delta_r)) * Vteta_a3;
 			c_number4 tmp_force = patch_dist * (-force_mod / r_mod);
+			tmp_force.w = tmp_energy;
 
 			c_number4 torque_tetaTerm = Vradial * _cross(p_a3, q_a3) / 2.f;
 			c_number4 p_torque = _cross(p_patch_pos, tmp_force) + torque_tetaTerm;
 
 			F += tmp_force;
 			T += p_torque;
-			F.w += tmp_energy;
 
 			CUDA_FS_bond &new_bond = bond_list.add_bond();
 
@@ -210,6 +210,7 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 			{
 				c_number factor = -prefactor * other_energy;
 				c_number4 tmp_force = factor * b1.force;
+				tmp_force.w = 0.f;
 
 				F += tmp_force;
 				LR_atomicAddXYZ(forces + b1.q, -tmp_force);
@@ -224,6 +225,7 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 			{
 				c_number factor = -prefactor * curr_energy;
 				c_number4 tmp_force = factor * b2.force;
+				tmp_force.w = 0.f;
 
 				F += tmp_force;
 				LR_atomicAddXYZ(forces + b2.q, -tmp_force);
@@ -264,8 +266,10 @@ __device__ void _flexibility_three_body(c_number4 &ppos, c_number4 &n1_pos, c_nu
 		force_factor = 1.f;
 	}
 
-	F += force_factor * (dist_pn1 * (force_mod_n1 * MD_semiflexibility_3b_k[0]) - dist_pn2 * (force_mod_n2 * MD_semiflexibility_3b_k[0]));
-	F.w += energy;
+	c_number4 tmp_force = force_factor * (dist_pn1 * (force_mod_n1 * MD_semiflexibility_3b_k[0]) - dist_pn2 * (force_mod_n2 * MD_semiflexibility_3b_k[0]));
+	// the factor 2 takes into account the fact that the pair energy is always counted twice
+	tmp_force.w = 2.f * energy;
+	F += tmp_force;
 
 	c_number4 n1_force = force_factor * (dist_pn2 * (i_pn1_pn2 * MD_semiflexibility_3b_k[0]) - dist_pn1 * (cost_n1 * MD_semiflexibility_3b_k[0]));
 	c_number4 n2_force = force_factor * (dist_pn2 * (cost_n2 * MD_semiflexibility_3b_k[0]) - dist_pn1 * (i_pn1_pn2 * MD_semiflexibility_3b_k[0]));
