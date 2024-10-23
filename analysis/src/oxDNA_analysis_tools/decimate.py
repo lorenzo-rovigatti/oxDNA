@@ -28,7 +28,6 @@ def decimate(traj: str, outfile: str, start: int, stop: int, stride: int):
         Parameters:
             traj (str) : The trajectory file name to decimate
             outfile (str) : The file name to write the decimates trajectory to
-            ncpus (int) : (optional) How many cpus to parallelize the operation. default=1
             start (int) : (optional) Starting configuration for the new trajectory.  Accepts negative indexes.  default=0
             stop (int) : (optional) Process up to this conf (exclusive).  Accepts negative indexes. 
             stride (int) : (optional) Include only every stride-th conf. (default=10)
