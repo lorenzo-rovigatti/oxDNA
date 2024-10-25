@@ -16,6 +16,7 @@ LJInteraction::LJInteraction() :
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;
 	_n[0] = _n[1] = _n[2] = 6;
 	_N_A = _N_B = 0;
+	_rcut = 2.5;
 }
 
 LJInteraction::~LJInteraction() {
@@ -32,15 +33,15 @@ void LJInteraction::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "LJ_kob_andersen", &_is_ka_mixture, 0);
 
-	double sigma;
-	if(getInputDouble(&inp, "LJ_sigma[2]", &sigma, 0) == KEY_FOUND) {
-		_sigma[2] = sigma;
+	getInputNumber(&inp, "LJ_epsilon[0]", _epsilon, 0);
+	getInputNumber(&inp, "LJ_epsilon[1]", _epsilon + 1, 0);
+	getInputNumber(&inp, "LJ_epsilon[2]", _epsilon + 2, 0);
+
+	if(getInputNumber(&inp, "LJ_sigma[2]", _sigma + 2, 0) == KEY_FOUND) {
 		_sigma[1] = 0.5 * (1. + _sigma[2]);
 	}
 
-	float rcut = 2.5f;
-	getInputFloat(&inp, "LJ_rcut", &rcut, 0);
-	_rcut = (number) rcut;
+	getInputNumber(&inp, "LJ_rcut", &_rcut, 0);
 }
 
 void LJInteraction::init() {
