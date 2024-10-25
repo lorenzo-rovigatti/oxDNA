@@ -105,6 +105,7 @@ cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUD
 
 * An `illegal instruction` is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with `-DNATIVE_COMPILATION=Off` and re-compile the code to fix the issue.
 * When compiling oxDNA with Python support on Microsoft's WSL, if the local repository is downloaded in Windows (*i.e.*, outside WSL), tests and analysis scripts may fail (see [this issue](https://github.com/lorenzo-rovigatti/oxDNA/issues/122#issue-2499923060)). To avoid these problems, clone the repository directly within the WSL environment.
+* The `oxpy` installation may fail with a `Built wheel for oxpy is invalid: Wheel has unexpected file name` warning in some specific cases (see [here](https://github.com/lorenzo-rovigatti/oxDNA/issues/137) for an example, where updating `setuptools` solved the issue).
 * A list of other known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
 
 
