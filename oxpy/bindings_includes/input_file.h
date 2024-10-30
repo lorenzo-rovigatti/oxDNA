@@ -68,11 +68,14 @@ To check if a specific option has been set you can use `in`::
 
 	input.def("get_bool", [](input_file &inp, std::string &key) {
 		bool found;
-		if (inp.true_values.find(inp.get_value(key, 0, found)) != inp.true_values.end()) {
+		std::string value = inp.get_value(key, 0, found);
+		std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+		if (inp.true_values.find(value) != inp.true_values.end()) {
 			return true;
 		}
 		else {
-			if (inp.false_values.find(inp.get_value(key, 0, found)) != inp.false_values.end()){
+			if (inp.false_values.find(value) != inp.false_values.end()) {
 				return false;
 			}
 			else {
