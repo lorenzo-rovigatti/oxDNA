@@ -37,6 +37,10 @@ void LJInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "LJ_epsilon[1]", _epsilon + 1, 0);
 	getInputNumber(&inp, "LJ_epsilon[2]", _epsilon + 2, 0);
 
+	getInputBool(&inp, "LJ_only_repulsive[0]", _only_repulsive, 0);
+	getInputBool(&inp, "LJ_only_repulsive[1]", _only_repulsive + 1, 0);
+	getInputBool(&inp, "LJ_only_repulsive[2]", _only_repulsive + 2, 0);
+
 	if(getInputNumber(&inp, "LJ_sigma[2]", _sigma + 2, 0) == KEY_FOUND) {
 		_sigma[1] = 0.5 * (1. + _sigma[2]);
 	}
@@ -53,7 +57,7 @@ void LJInteraction::init() {
 	}
 
 	for(int i = 0; i < 3; i++) {
-		number rcut = _rcut * _sigma[i];
+		number rcut = (_only_repulsive[i]) ? pow(2.0, 1. / _n[i]) * _sigma[i] : _rcut * _sigma[i];
 		_sqr_LJ_rcut[i] = SQR(rcut);
 		_E_cut[i] = 4. * _epsilon[i] * (pow(_sigma[i] / rcut, (number) 2 * _n[i]) - pow(_sigma[i] / rcut, (number) _n[i]));
 		_sqr_sigma[i] = SQR(_sigma[i]);
