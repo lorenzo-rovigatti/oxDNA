@@ -87,9 +87,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#output-bonds">Output bonds</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#oxdna-pdb">oxDNA -&gt; PDB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pairs-to-dot-bracket">Pairs to dot-bracket</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pdb-oxdna">PDB -&gt; oxDNA</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#persistence-length">Persistence Length</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#plot-energy">Plot energy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#subset-trajectory">Subset trajectory</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#superimpose">Superimpose</a></li>
 </ul>
@@ -412,8 +413,7 @@
 <h2>Decimate<a class="headerlink" href="#decimate" title="Permalink to this heading"></a></h2>
 <p><p>Creates a smaller trajectory only including start/stop/stride frames from the input.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
-                    <span class="n">traj</span> <span class="n">outfile</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -430,16 +430,13 @@
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p, --parallel</kbd></dt>
-<dd><p>(optional) How many cores to use</p>
-<p>Default: 1</p>
-</dd>
 <dt><kbd>-s, --start</kbd></dt>
 <dd><p>First conf to write to the output file.</p>
 <p>Default: 0</p>
 </dd>
 <dt><kbd>-e, --stop</kbd></dt>
 <dd><p>Process up to this conf (exclusive).  Accepts negative indexes.</p>
+<p>Default: -1</p>
 </dd>
 <dt><kbd>-d, --stride</kbd></dt>
 <dd><p>Write out every this many confs (default=10)</p>
@@ -1018,40 +1015,30 @@
 </dl>
 </section>
 </section>
-<section id="principal-component-analysis">
-<h2>Principal component analysis<a class="headerlink" href="#principal-component-analysis" title="Permalink to this heading"></a></h2>
-<p><p>Calculates a principal component analysis of nucleotide deviations over a trajectory</p>
+<section id="pdb-oxdna">
+<h2>PDB -&gt; oxDNA<a class="headerlink" href="#pdb-oxdna" title="Permalink to this heading"></a></h2>
+<p><p>Convert a PDB file to oxDNA</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">num_components</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
-               <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">PDB_oxDNA</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">pdb_file</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
 <h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>trajectory</kbd></dt>
-<dd><p>the trajectory file you wish to analyze</p>
-</dd>
-<dt><kbd>meanfile</kbd></dt>
-<dd><p>The mean structure from oat mean</p>
-</dd>
-<dt><kbd>outfile</kbd></dt>
-<dd><p>the name of the oxView .json overlay file where the PCs will be written</p>
+<dt><kbd>pdb_file</kbd></dt>
+<dd><p>The pdb file you wish to convert</p>
 </dd>
 </dl>
 </section>
 <section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
-<dt><kbd>-p, --parallel</kbd></dt>
-<dd><p>(optional) How many cores to use</p>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename to save the output oxDNA files to</p>
 </dd>
-<dt><kbd>-c, --cluster</kbd></dt>
-<dd><p>Run the clusterer on each configuration’s position in PCA space?</p>
+<dt><kbd>-b, --backward</kbd></dt>
+<dd><p>Use the old topology format? (strands will be listed 3’-5’)</p>
 <p>Default: False</p>
-</dd>
-<dt><kbd>-n, --view_comps</kbd></dt>
-<dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
@@ -1130,6 +1117,48 @@
 </dd>
 <dt><kbd>-f, --format</kbd></dt>
 <dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
+</dd>
+<dt><kbd>-q, --quiet</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="principal-component-analysis">
+<h2>Principal component analysis<a class="headerlink" href="#principal-component-analysis" title="Permalink to this heading"></a></h2>
+<p><p>Calculates a principal component analysis of nucleotide deviations over a trajectory</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">num_components</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+               <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+<dt><kbd>meanfile</kbd></dt>
+<dd><p>The mean structure from oat mean</p>
+</dd>
+<dt><kbd>outfile</kbd></dt>
+<dd><p>the name of the oxView .json overlay file where the PCs will be written</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>-p, --parallel</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-c, --cluster</kbd></dt>
+<dd><p>Run the clusterer on each configuration’s position in PCA space?</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-n, --view_comps</kbd></dt>
+<dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
