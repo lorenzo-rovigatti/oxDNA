@@ -461,6 +461,53 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					F.z += force.z;
 				}
 			}
+			case CUDA_CCMV: {
+				c_number4 centre = make_c_number4(extF.ccmv.center.x, extF.ccmv.center.y, extF.ccmv.center.z, 0.f);
+
+				c_number radius = extF.ccmv.radius;
+				
+				c_number A_Vittorio = extF.ccmv.A_Vittorio;
+				c_number B_Vittorio = extF.ccmv.B_Vittorio;
+				c_number C_Vittorio = extF.ccmv.C_Vittorio;
+				c_number D_Vittorio = extF.ccmv.D_Vittorio;
+				c_number E_Vittorio = extF.ccmv.E_Vittorio;
+				c_number F_Vittorio = extF.ccmv.F_Vittorio;
+				c_number G_Vittorio = extF.ccmv.G_Vittorio;
+				c_number H_Vittorio = extF.ccmv.H_Vittorio;
+				c_number I_Vittorio = extF.ccmv.I_Vittorio;
+				c_number L_Vittorio = extF.ccmv.L_Vittorio;
+				c_number M_Vittorio = extF.ccmv.M_Vittorio;
+
+				c_number cutoff = extF.ccmv.cutoff;
+
+				c_number V_amplt = extF.ccmv.V_amplt;
+				c_number ForceDirection = extF.ccmv.ForceDirection;
+
+				c_number4 dist = box->minimum_image(centre, ppos);
+				c_number dist_surface = radius - _module(dist);
+
+				if(dist_surface < cutoff) {
+					c_number4 direction = ForceDirection * dist / _module(dist);
+
+					c_number4 force = direction * V_amplt * ( expf(A_Vittorio * dist_surface) * (
+						B_Vittorio +    
+						dist_surface*(2*C_Vittorio + A_Vittorio*B_Vittorio) +
+						pow(dist_surface, 2)*(3*D_Vittorio + A_Vittorio*C_Vittorio) +
+						pow(dist_surface, 3)*(4*E_Vittorio + A_Vittorio*D_Vittorio) +
+						pow(dist_surface, 4)*(5*F_Vittorio + A_Vittorio*E_Vittorio) +
+						pow(dist_surface, 5)*(6*G_Vittorio + A_Vittorio*F_Vittorio) +
+						pow(dist_surface, 6)*(7*H_Vittorio + A_Vittorio*G_Vittorio) +
+						pow(dist_surface, 7)*(8*I_Vittorio + A_Vittorio*H_Vittorio) +
+						pow(dist_surface, 8)*(9*L_Vittorio + A_Vittorio*I_Vittorio) +
+						pow(dist_surface, 9)*(10*M_Vittorio + A_Vittorio*L_Vittorio)+
+						pow(dist_surface, 10)*(A_Vittorio*M_Vittorio))
+					);
+
+					F.x += force.x;
+					F.y += force.y;
+					F.z += force.z;
+				}
+			}
 			default: {
 				break;
 			}

@@ -27,6 +27,7 @@
 #include "RepulsiveEllipsoid.h"
 #include "YukawaSphere.h"
 #include "AttractionPlane.h"
+#include "CCMV.h"
 
 
 // metadynamics-related forces
@@ -87,6 +88,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
 	else if(type_str.compare("yukawa_sphere") == 0) extF = std::make_shared<YukawaSphere>();
+	else if(type_str.compare("CCMV") == 0) extF = std::make_shared<CCMV>();
 	else if(type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
 	else if(type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
 	else if(type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();

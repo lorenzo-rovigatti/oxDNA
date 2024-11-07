@@ -24,6 +24,7 @@
 #include "../Forces/LJCone.h"
 #include "../Forces/RepulsiveEllipsoid.h"
 #include "../Forces/YukawaSphere.h"
+#include "../Forces/CCMV.h"
 #include "../Forces/Metadynamics/LTCOMTrap.h"
 #include "../Forces/AttractionPlane.h"
 
@@ -47,6 +48,7 @@
 #define CUDA_LR_COM_TRAP 14
 #define CUDA_YUKAWA_SPHERE 15
 #define CUDA_ATTRACTION_PLANE 16
+#define CUDA_CCMV 17
 
 
 /**
@@ -475,6 +477,58 @@ void init_YukawaSphere_from_CPU(Yukawa_sphere *cuda_force, YukawaSphere *cpu_for
 	cuda_force->cutoff = cpu_force->_cutoff;
 }
 
+struct CCMV_force {
+	int type;
+	float3 center;
+
+	c_number radius;
+	
+	c_number A_Vittorio;
+	c_number B_Vittorio;
+	c_number C_Vittorio;
+	c_number D_Vittorio;
+	c_number E_Vittorio;
+	c_number F_Vittorio;
+	c_number G_Vittorio;
+	c_number H_Vittorio;
+	c_number I_Vittorio;
+	c_number L_Vittorio;
+	c_number M_Vittorio;
+
+	c_number epsilon;
+	c_number sigma;
+	int WCA_n;
+	c_number WCA_cutoff;
+	c_number cutoff;
+	
+	c_number V_amplt;
+	c_number ForceDirection;
+};
+
+void init_CCMV_from_CPU(CCMV_force *cuda_force, CCMV *cpu_force) {
+	cuda_force->type = CUDA_CCMV;
+	cuda_force->center = make_float3(cpu_force->_center.x, cpu_force->_center.y, cpu_force->_center.z);
+	
+	cuda_force->radius = cpu_force->_radius;
+	
+	cuda_force->A_Vittorio = cpu_force->_A_Vittorio;
+	cuda_force->B_Vittorio = cpu_force->_B_Vittorio;
+	cuda_force->C_Vittorio = cpu_force->_C_Vittorio;
+	cuda_force->D_Vittorio = cpu_force->_D_Vittorio;
+	cuda_force->E_Vittorio = cpu_force->_E_Vittorio;
+	cuda_force->F_Vittorio = cpu_force->_F_Vittorio;
+	cuda_force->G_Vittorio = cpu_force->_G_Vittorio;
+	cuda_force->H_Vittorio = cpu_force->_H_Vittorio;
+	cuda_force->I_Vittorio = cpu_force->_I_Vittorio;
+	cuda_force->L_Vittorio = cpu_force->_L_Vittorio;
+	cuda_force->M_Vittorio = cpu_force->_M_Vittorio;
+
+	cuda_force->cutoff = cpu_force->_cutoff;
+	
+	cuda_force->V_amplt = cpu_force->_V_amplt;
+	cuda_force->ForceDirection = cpu_force->_ForceDirection;
+}
+
 /**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
@@ -497,6 +551,7 @@ union CUDA_trap {
 	lt_com_trap ltcomtrap;
 	Yukawa_sphere yukawasphere;
 	attraction_plane attractionplane;
+	CCMV_force ccmv;
 };
 
 #endif /* CUDAFORCES_H_ */
