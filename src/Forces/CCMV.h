@@ -31,7 +31,6 @@ public:
 
 	number _cutoff;
 	number _V_amplt;
-	number _ForceDirection;
 
 	CCMV();
 	virtual ~CCMV() {

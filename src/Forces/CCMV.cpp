@@ -21,7 +21,6 @@ std::tuple<std::vector<int>, std::string> CCMV::init(input_file &inp) {
 	getInputNumber(&inp, "radius", &_radius, 1);
 
 	getInputNumber(&inp, "A", &_V_amplt, 1);
-	getInputNumber(&inp, "Fdir", &_ForceDirection, 1);
 
 	getInputNumber(&inp, "cutoff", &_cutoff, 1);
 
@@ -40,7 +39,7 @@ std::tuple<std::vector<int>, std::string> CCMV::init(input_file &inp) {
 	}
 
 	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "CCMV");
-	std::string description = Utils::sformat("CCMV force (radius=%g, center=%g,%g,%g, A,B,C,D,E,F,G,H,I=%g,%g,%g,%g,%g,%g,%g,%g,%g, Ampl=%g, dir=%g, cutoff=%g, epsion=%g, sigma=%g, WCAcutoff=%g)", _radius, _center.x, _center.y, _center.z, _A_Vittorio, _B_Vittorio, _C_Vittorio, _D_Vittorio, _E_Vittorio, _F_Vittorio, _G_Vittorio, _H_Vittorio, _I_Vittorio, _V_amplt, _ForceDirection, _cutoff);
+	std::string description = Utils::sformat("CCMV force (radius=%g, center=%g,%g,%g, A,B,C,D,E,F,G,H,I=%g,%g,%g,%g,%g,%g,%g,%g,%g, Ampl=%g, cutoff=%g)", _radius, _center.x, _center.y, _center.z, _A_Vittorio, _B_Vittorio, _C_Vittorio, _D_Vittorio, _E_Vittorio, _F_Vittorio, _G_Vittorio, _H_Vittorio, _I_Vittorio, _V_amplt, _cutoff);
 
 	return std::make_tuple(particle_ids, description);
 }
@@ -55,7 +54,7 @@ LR_vector CCMV::value(llint step, LR_vector &pos) {
 	LR_vector force;
 	if(dist_surface < _cutoff) {
 		
-		LR_vector direction = _ForceDirection * dist / dist.module(); 
+		LR_vector direction = dist / dist.module(); 
 
 		force = direction * _V_amplt * (exp(_A_Vittorio*dist_surface) * (
 			_B_Vittorio +   
