@@ -32,6 +32,9 @@ void HBEnergy::init() {
 		break;
 	case BASES_FROM_FILE: {
 		ifstream inp(_list_file);
+		if(!inp.good()) {
+			throw oxDNAException(Utils::sformat("HBEnergy: Can't read bases_file '%s'", _list_file));
+		}
 		while(!inp.eof()) {
 			int n;
 			inp >> n;
