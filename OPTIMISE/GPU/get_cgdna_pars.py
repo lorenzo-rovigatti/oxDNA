@@ -214,7 +214,7 @@ def get_target_mean_and_covariance(seq, ids, jx_in, jx_from_end) :
     Inv_cov = stiff.A
     red_gs, red_stiff, red_cov = reduce(gs,Inv_cov,cgDNA_ids,jx_in,jx_from_end)
     
-    return red_gs, red_cov
+    return red_gs.tolist(), red_cov.tolist()
     
 
 def get_target_mean_and_covariance_diag_ave(N, ids) :

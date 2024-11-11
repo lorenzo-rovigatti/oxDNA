@@ -45,9 +45,9 @@ PARS_LIST = [
 #ids are reported below
 par_index = []
 
-    
+
 #FENE
-    
+
 par_index.append(PARS_LIST.index("FENE_EPS"))
 par_index.append(PARS_LIST.index("FENE_R0"))
 par_index.append(PARS_LIST.index("FENE_DELTA"))
@@ -244,22 +244,22 @@ par_index.append(PARS_LIST.index("CRST_THETA8_TC_55"))
 
 
 compl_symm_ids_2d = [0]
-compl_symm_ids_2d_no_TT_AA = [44,45]
+compl_symm_ids_2d_no_TT_AA = [44]
 compl_symm_ids = [1,2]
-for i in range(46,78) :
+for i in range(45,77) :
     compl_symm_ids.append(i)
 compl_symm_ids_no_TT_AA = []
 perm_symm_ids_2d = []
 for i in range(4,44) :
     perm_symm_ids_2d.append(i)
-for i in range(78,156) :
+for i in range(77,155) :
     perm_symm_ids_2d.append(i)
 perm_symm_ids = []
 
-is_th2 = [19,20,21,22,23,92,93,94,95,96,131,132,133,134,135]
-is_th3 = [24,25,26,27,28,97,98,99,100,101,136,137,138,139,140]
-is_th5 = [60,61,62,63,64]
-is_th6 = [65,66,67,68,69]
-is_th7 = [34,35,36,37,38,107,108,109,110,111,146,147,148,149,150]
-is_th8 = [39,40,41,42,43,112,113,114,115,116,151,152,153,154,155]
+is_th2 = [19,20,21,22,23,91,92,93,94,95,130,131,132,133,134]
+is_th3 = [24,25,26,27,28,96,97,98,99,100,135,136,137,138,139]
+is_th5 = [59,60,61,62,63]
+is_th6 = [64,65,66,67,68]
+is_th7 = [34,35,36,37,38,106,107,108,109,110,145,146,147,148,149]
+is_th8 = [39,40,41,42,43,111,112,113,114,115,150,151,152,153,154]
 

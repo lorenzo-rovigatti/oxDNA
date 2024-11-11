@@ -4,6 +4,9 @@ import parameters_list as parl
 import get_cgdna_pars
 import config as cg
 import cost_function as cfun
+import matplotlib.pyplot as plt
+import torch
+
 
 PARS_LIST = parl.PARS_LIST
 par_index = parl.par_index
@@ -43,73 +46,73 @@ def Vharmonic(x,x0):
 
 
 
- ###################################################################################################
- ############## READ OPTIMISATION PARAMETERS########################################################
- ###################################################################################################
+###################################################################################################
+############## READ OPTIMISATION CONFIG    ########################################################
+###################################################################################################
 
 
 #Parse config file (read parameters)
-#Returns False if mandatory parameters are missing 
+#Returns False if mandatory parameters are missing
 def read_config(cfile_name) :
-    
+
     cfile = open(cfile_name,'r')
-    
-    checklist = np.zeros(18, dtype = int) #check if some mandatory parameters are missing
-    
+
+    checklist = np.zeros(19, dtype = int) #check if some mandatory parameters are missing
+
     for line in cfile.readlines() :
         vals = line.split()
         if len(vals) == 0:
             continue
         if vals[0][0] == '#':
-            continue        
+            continue
         #print(vals)
-        
+
         #read sequence
         if(vals[0] == 'SEQ'):
             cg.seq.append(vals[1])
             cg.Njuns.append(len(vals[1])-1)
             cfun.internal_coords.append([])
             checklist[0] = 1
-        
+
         #read initial and final junctions ids
         if(vals[0] == "IN_J") :
             cg.inj = int(vals[1])
             checklist[1] = 1
-            
+
         if(vals[0] == "J_FROM_END") :
             cg.jfe = int(vals[1])
             checklist[2] = 1
-        
+
         #read which coordinates to optimise (ground state)
         if(vals[0] == 'IDS_GS') :
             for i in range(1,len(vals)) :
                 cg.ids_gs.append(int(vals[i]))
             cg.ids_gs.sort()
-            
+
             checklist[3] = 1
-            
+
         #read which coordinates to optimise (covariance)
         if(vals[0] == 'IDS_COV') :
             for i in range(1,len(vals)) :
                 cg.ids_cov.append(int(vals[i]))
             cg.ids_cov.sort()
-            
+
             checklist[4] = 1
-            
-        #read which coordinates to optimise (large m elstic moduli). 
+
+        #read which coordinates to optimise (large m elstic moduli).
         #Currently we optimise the persistence length, not the moduli.
         if(vals[0] == 'IDS_LRS') :
             for i in range(1,len(vals)) :
                 cg.ids_lrs.append(int(vals[i]))
             cg.ids_lrs.sort()
-            
+
             checklist[5] = 1
-        
+
         #read snapshots to discard (equilibration)
         if(vals[0] == "IN_SNAP") :
-            cg.in_snap = int(vals[1]) 
+            cg.in_snap = int(vals[1])
             checklist[6] = 1
-            
+
         #read how many replicas
         if(vals[0] == "REPS") :
             cg.Nreps = int(vals[1])
@@ -120,7 +123,7 @@ def read_config(cfile_name) :
             #print(vals)
             cfun.add_opti_par(vals[1])
             checklist[8] = 1
-            
+
         #options
         #NOTE: MODE ave NOT IMPLEMENTED
         if(vals[0] == "MODE") :
@@ -134,45 +137,58 @@ def read_config(cfile_name) :
         if(vals[0] == "ALGO") :
             cg.algo = vals[1]
             checklist[10] = 1
-            
+
         if(vals[0] == "MAXITER") :
             cg.miter = int(vals[1])
             checklist[11] = 1
-            
+
         if(vals[0] == "NEVA") :
             cg.neva = int(vals[1])
             checklist[12] = 1
         #NOTE: THESE OPTIONS WERE FOR THE OLDER VERSION OF THE CODE (WITHOUT TORCH)
         if(vals[0] == "LBFGSB_EPS") :
             cg.LBFGSB_eps = float(vals[1])
-            checklist[13] = 1            
-            
+            checklist[13] = 1
+
         if(vals[0] == "LBFGSB_IPRINT") :
             cg.LBFGSB_iprint = int(vals[1])
             checklist[14] = 1
-            
+
         if(vals[0] == "WEIGHT_GS") :
             cg.weight_gs = int(vals[1])
             checklist[15] = 1
-            
+
         #optimise persistence lengths 0==true
         if(vals[0] == "LPS") :
             if int(vals[1]) != 0 :
-                cg.opti_lp = True                
+                cg.opti_lp = True
                 checklist[16] = 1
-                
+
         #optimise persistence lengths 0==true
-        if(vals[0] == "T") :
-            cg.T = float(vals[1])               
+        if(vals[0] == "TEMPERATURE") :
+            if vals[1][len(vals[1])-1] == "K":
+                cg.T = float(vals[1][:-1])/300.*0.1
+            elif vals[1][len(vals[1])-1] == "C":
+                cg.T = (float(vals[1][:-1])+273.15)/300.*0.1
+            else:
+                print("Can't recognise temperature unit. K=kelvin, C=celsius")
+                print("e.g. T 300K or T 25C")
+                print("Using T = 300K")
+
             checklist[17] = 1
-        
+
+        #optimise persistence lengths 0==true
+        if(vals[0] == "MODELH") :
+            cg.modelh = vals[1]
+
+            checklist[18] = 1
 
     #CHECK AND PRINT
-    
+
     if checklist[0] == 1:
-        
+
         cg.Nseq = len(cg.seq)
-        
+
         for i in range(cg.Nseq):
                 print("SEQUENCE " + str(i) + ": "+cg.seq[i])
                 print("Njunctions Seq" + str(i) + ": "+str(cg.Njuns[i]))
@@ -181,12 +197,12 @@ def read_config(cfile_name) :
         print("Usage:")
         print("SEQ seq")
         return False
-    
-    
-    
+
+
+
     for i in range(cg.Nseq):
         cg.in_j.append(cg.inj)
-    
+
     if checklist[1] == 1:
         print("IN JUNCTION: "+str(cg.inj))
         print("Ignoring all junctions < "+ str(cg.inj) +" in the optimisation.")
@@ -194,11 +210,11 @@ def read_config(cfile_name) :
         print("OPTION. No in junction specified. Using default 0")
         print("Usage:")
         print("IN_J in_junction")
-        
-        
+
+
     for i in range(cg.Nseq):
         cg.fin_j.append(cg.Njuns[i]-cg.jfe-1)
-        
+
     if checklist[2] == 1:
         for i in range(len(cg.fin_j)) :
             print("END JUNCTION Seq " + str(i) +": "+str(cg.fin_j[i]))
@@ -207,9 +223,9 @@ def read_config(cfile_name) :
         print("OPTION. No junction from end specified. Using all junctions")
         print("Usage:")
         print("J_FROM_END junctions from end")
-        
+
     if checklist[3] == 1:
-        print("IDS GROUND STATE:")        
+        print("IDS GROUND STATE:")
         print(cg.ids_gs)
         print("Optimising: ")
         for i in range(len(cg.ids_gs)) :
@@ -242,8 +258,8 @@ def read_config(cfile_name) :
         print("Usage:")
         print("IDS_GS id1 id2 id3 ...")
         return False
-    
-    
+
+
     if checklist[4] == 1:
         print("IDS COVARIANCE:")
         print(cg.ids_cov)
@@ -278,8 +294,8 @@ def read_config(cfile_name) :
         print("Optimising ground state only")
         print("Usage:")
         print("ids_cov id1 id2 id3 ...")
-        
-        
+
+
     if checklist[5] == 1:
         print("IDS LONG RANGE STIFFNESS (q=0):")
         print(cg.ids_lrs)
@@ -309,8 +325,8 @@ def read_config(cfile_name) :
                 print("Optimising slide")
             if cg.ids_lrs[i] == 11:
                 print("Optimising rise")
-                
-        
+
+
 
     if cg.opti_lp == True :
         print("Optimising persistence lengths (i.e. Ar and C)")
@@ -319,90 +335,89 @@ def read_config(cfile_name) :
         print("Usage:")
         print("LPS i")
         print("i = 0 for optimising lps.")
-        
-    
-    
+
+
     #collect all ids:
-        
-    if checklist[3] == 1 :    
+
+    if checklist[3] == 1 :
         for i in range(len(cg.ids_gs)) :
             cg.ids.append(cg.ids_gs[i])
-            
+
     if checklist[4]==1 :
         for i in range(len(cg.ids_cov)) :
             if cg.ids_cov[i] in cg.ids :
                 continue
             else :
                 cg.ids.append(cg.ids_cov[i])
-                
+
     if checklist[16] == 1 :
         for i in range(len(cg.ids_inter_rot)) :
             if cg.ids_inter_rot[i] in cg.ids :
                 continue
             else :
-                cg.ids.append(cg.ids_inter_rot[i])    
+                cg.ids.append(cg.ids_inter_rot[i])
 
 
     cg.ids.sort()
-    
+
     print("ALL IDS:")
     print(cg.ids)
-        
-               
-    #generate gs(mu) and covariance. Target is read from cgna+ 
+
+
+    #generate gs(mu) and covariance. Target is read from cgna+
     if checklist[3] == 1:
         for i in range(cg.Nseq) :
             cg.dimension.append((cg.fin_j[i]-cg.in_j[i]+1)*(len(cg.ids)))
-        
+
             print("DIMENSION Seq "+str(i)+": " + str(cg.dimension[i]))
-    
-            
+
+
             if cg.ave == True and cg.diag == True:
-                
+
                 tm, tcov = get_cgdna_pars.get_target_mean_and_covariance_diag_ave((cg.fin_j[i]-cg.in_j[i]+1), cg.ids)
-                
+
                 cfun.target_mu.append(tm)
                 cfun.target_cov.append(tcov)
-                
+
             elif cg.ave == False and cg.diag == False:
-                
+
                 tm, tcov = get_cgdna_pars.get_target_mean_and_covariance(cg.seq[i], cg.ids, cg.inj, cg.jfe)
-                
+
                 cfun.target_mu.append(tm)
                 cfun.target_cov.append(tcov)
-                
+
             elif cg.ave == False and cg.diag == True:
-                
+
                 tm, tcov = get_cgdna_pars.get_target_mean_and_covariance(cg.seq[i], cg.ids, cg.inj, cg.jfe)
-                
+
                 cfun.target_mu.append(tm)
                 cfun.target_cov.append(tcov)
-                
+
                 for k in range(len(cfun.target_cov[i])) :
                     for l in range(len(cfun.target_cov[i])) :
                         if k != l :
-                            cfun.target_cov[i][k,l] = 0.
-                        
-                        
+                            cfun.target_cov[i][k][l] = 0.
+
+
         print("TARGET GS: see file target_gs.txt")
-        
+
         for l in range(cg.Nseq) :
             ofile = open("target_gs_Seq"+str(l)+".txt", 'w')
-            for i in range(len(cg.target_mu[l])) :
+            for i in range(len(cfun.target_mu[l])) :
                 print(str(cfun.target_mu[l][i]), file = ofile)
             ofile.close()
-            
+
         print("TARGET COV: : see file target_cov.txt")
         for l in range(cg.Nseq) :
             ofile = open("target_cov_Seq"+str(l)+".txt",'w')
             for i in range(len(cfun.target_cov[l])) :
                 string = ""
-                for j in range(len(cfun.target_cov[l])) :            
-                    string += str(cfun.target_cov[l][i,j]) + " "
-                print(string,file=ofile)    
+                for j in range(len(cfun.target_cov[l])) :
+                    string += str(cfun.target_cov[l][i][j]) + " "
+                print(string,file=ofile)
             ofile.close()
-            
-            
+
+
     if checklist[6] == 1:
         print("INITIAL SNAPSHOT: "+str(cg.in_snap))
         print("Ignoring all sampled snapshopts < "+ str(cg.in_snap) +" in the optimisation.")
@@ -410,23 +425,23 @@ def read_config(cfile_name) :
         print("OPTION. No in snapshot specified. Using all snapshots (is the trajectory equilibrated?).")
         print("Usage:")
         print("IN_SNAP in_snap")
-        
+
     if checklist[7] == 1:
         print("NUMBER OF REPETITIONS: "+str(cg.Nreps))
     else :
         print("OPTION. No Nreps specified. Running only one simulation replica.")
         print("Usage:")
         print("IN_SNAP in_snap")
-        
-        
+
+
     if checklist[8] == 1:
-        
-        cg.par_dimension = len(cg.par_codename)
-        
+
+        cg.par_dimension = len(cfun.OPT_PAR_LIST)
+
         print("PARAMETERS used in the optimisation: ")
         print("OPTIMISE - "+str(cg.par_dimension)+":")
-       
-        
+
+
     else :
         print("MANDATORY. No parameters for optimisation specified.")
         print("Usage. For optimisation parameters:")
@@ -437,10 +452,10 @@ def read_config(cfile_name) :
         print("cname par_name1 CONTINUITY value")
         print("cname par_name2 CONTINUITY value")
         print("...")
-        
+
         return False
-    
-    
+
+
     if checklist[9] == 1:
        if cg.ave == True:
            print("MODE: AVERAGE")
@@ -451,8 +466,8 @@ def read_config(cfile_name) :
         print("Using default mode average.")
         print("Usange: ")
         print("MODE ave/sd")
-        
-        
+
+
     if checklist[10] == 1:
         print("Optimisation algorithm selected: "+str(cg.algo))
     else :
@@ -470,9 +485,8 @@ def read_config(cfile_name) :
         print("Options:")
         print("NEVA neva")
         print("LBFGSB_EPS eps (default 0.01)")
-        print("LBFGSB_IPRINT iprint (default 1)")        
-        
-        
+        print("LBFGSB_IPRINT iprint (default 1)")
+
     if checklist[11] == 1:
         print("MAX number of ITERATIONS of the optimisation algorithm: "+str(cg.miter))
     else :
@@ -480,14 +494,14 @@ def read_config(cfile_name) :
         print("Note: it might be that MAX number of function evaluations is used, instead")
         print("Usage:")
         print("MAXITER miter")
-        
+
     if checklist[15] == 1:
         print("Using weight for GS part of the relative entropy: "+str(cg.weight_gs))
     else :
         print("OPTION. No weight for GS part of the relative entropy specified. Using default weight_gs = "+ str(cg.weight_gs))
         print("Usage:")
         print("WEIGHT_GS weight_gs")
-        
+
     if checklist[12] == 1:
         print("MAX number of function evaluations of the optimisation algorithm: "+str(cg.neva))
     else :
@@ -504,7 +518,7 @@ def read_config(cfile_name) :
             print("Note: it might be that MAX number of iterations is used, instead")
             print("Usage:")
             print("LBFGSB_EPS eps")
-            
+
         if checklist[14] == 1:
             print("iprint for L-BFGS-B algorithm: "+str(cg.LBFGSB_iprint))
         else :
@@ -512,13 +526,19 @@ def read_config(cfile_name) :
             print("Note: it might be that MAX number of iterations is used, instead")
             print("Usage:")
             print("LBFGSB_iprint iprint")
-            
-    
+
+
     if checklist[17] == 1:
         print("Temperature = "+str(cg.T))
     else:
         print("No temperature specified. Using default T = 0.1 (300K). Be sure you run the simulations at 300K.")
-    
+        
+    if checklist[18] == 1:
+        print("Using model.h file: "+cg.modelh)
+    else:
+        print("No model.h file specified")
+        print("Using default: "+cg.modelh)
+
     return True
 
 
@@ -528,7 +548,7 @@ def read_config(cfile_name) :
 
 #find initial values of the parameters from model.h file (if it gets updated, changes are read without modifying the code)
 def read_vanilla_parameters(mfile) :
-        
+
     pars_from_modelh = []
     vals_from_modelh = []
 
@@ -545,24 +565,24 @@ def read_vanilla_parameters(mfile) :
                     elif len(vals) == 5 :
                         #print(vals[2]+" " +vals[3]+" "+vals[4])
                         if vals[2]+" " +vals[3]+" "+vals[4]=="(PI - 2.35f)":
-                            vals_from_modelh.append(math.pi-2.35)    
+                            vals_from_modelh.append(math.pi-2.35)
                         if vals[2]+" " +vals[3]+" "+vals[4]=="(PI - 0.875f)":
-                            vals_from_modelh.append(math.pi-0.875)  
+                            vals_from_modelh.append(math.pi-0.875)
                     else:
                         vals_from_modelh.append(float(vals[2][:-1]))
                     break
-                
+
     return pars_from_modelh, vals_from_modelh
-                
+
 
 #read parameters from SD file
 def read_pars_from_SD_file(SDfile) :
-    
-    #over_indices: 
+
+    #over_indices:
     #0 - parameter index
     #1 - tetramer type (convert base 4 to base 10)
     #over_vals: corresponding parameter value
-    
+
     over_indices = []
     over_vals = []
     stck_fact_eps = 0.18
@@ -571,6 +591,8 @@ def read_pars_from_SD_file(SDfile) :
     for line in SDfile.readlines() :
         vals = line.strip().split()
         if len(vals) == 0:
+            continue
+        if vals[0][0] == '#':
             continue
         if vals[0] == "STCK_FACT_EPS":
             stck_fact_eps = float(vals[2])
@@ -605,9 +627,9 @@ def read_pars_from_SD_file(SDfile) :
                 par_name = vals_cn[0]
                 if vals_cn[1] == "THETA2" : 
                      par_name += "_THETA3"
-                elif vals_cn[1] == "THETA5" : 
+                elif vals_cn[1] == "THETA5" :
                      par_name += "_THETA6"
-                elif vals_cn[1] == "THETA7" : 
+                elif vals_cn[1] == "THETA7" :
                      par_name += "_THETA8"
                 for i in range(2,len(vals_cn)-2):
                      par_name += "_"+vals_cn[i]
@@ -633,8 +655,8 @@ def read_pars_from_SD_file(SDfile) :
                      oi = [PARS_LIST.index(par_name),ty]
                      over_indices.append(oi)
                      over_vals.append(float(vals[2]))
-                     
-                     
+
+
     return over_indices, over_vals, stck_fact_eps_read, stck_fact_eps
 
 
@@ -642,12 +664,12 @@ def read_pars_from_SD_file(SDfile) :
 #note: overwrite pars must include STCK_x_y
 #T = temperature in oxdna units. This is needed to correctly set STCK_EPS
 def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
-    
+
     OXPS_zero = np.zeros((len(PARS_LIST),256),dtype=float)
     shifts = np.zeros((2,256),dtype=float) #0 = hydr, 1 = stck
-    
+
     for i in range(len(PARS_LIST)) :
-        
+
         if PARS_LIST[i] == "STCK_EPS":
             for j in range(256) :
                 OXPS_zero[i][j] = 1.
@@ -659,10 +681,10 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
 
         index = pars_mh.index(PARS_LIST[i])
         val = vals_mh[index]
-        
+
         for j in range(256) :
             OXPS_zero[i][j] = val
-    
+
     #here we use the initial custom parameters, must include stck_x_y and hydr_x_y
     if [4,48] not in over_indices :
         print("No HYDR_x_y in SD file. Terminating")
@@ -670,9 +692,11 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
     if [44,0] not in over_indices :
         print("No STCK_x_y in SD file. Terminating")
         exit(1)
+    #tmp_ind = [0,4,44,48]
     for i in range(len(over_indices)) :
+        #if over_indices[i][0] not in tmp_ind : continue
         OXPS_zero[over_indices[i][0]][over_indices[i][1]] = over_vals[i]
-        
+
     #set eps and shifts
     for j in range(256) :
         #hydr
@@ -680,7 +704,7 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
         #stacking
         OXPS_zero[par_index[44]][j] =  OXPS_zero[par_index[44]][j]* (1.0 - stck_fact_eps + (T * 9.0 * stck_fact_eps))
         shifts[1][j] = Morse(OXPS_zero[par_index[47]][j],OXPS_zero[par_index[44]][j],OXPS_zero[par_index[45]][j],OXPS_zero[par_index[46]][j])
-    
+
     return OXPS_zero, shifts
 
 ###################################################################################################
@@ -693,8 +717,8 @@ def find_cuts_for_lists(OXPS_zero) :
 
     rcut_high = 0.
     rcut_low = 1000.
-    
-    
+
+
     for j in range(len(OXPS_zero[par_index[13]])):
         if OXPS_zero[par_index[13]][j] > rcut_high:
             rcut_high = OXPS_zero[par_index[13]][j]
@@ -708,10 +732,10 @@ def find_cuts_for_lists(OXPS_zero) :
             rcut_low = OXPS_zero[par_index[84]][j]
         if OXPS_zero[par_index[123]][j] < rcut_low:
             rcut_low = OXPS_zero[par_index[123]][j]
-    
+
     rcut_high = rcut_high + 0.000005
     rcut_low = rcut_low - 0.000005
-    
+
     return rcut_low , rcut_high
 
 
@@ -743,14 +767,14 @@ class nucleotide :
         self.bb = C + pos_bb1[t]*BV + pos_bb2[t]*self.norv
         self.stck = C + pos_stck[t]*BV
         self.hydr = C + pos_hydr[t]*BV
-    
+
 
 def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file):
-    
+
     rcut_sq_high = rcut_high*rcut_high
     rcut_sq_low = rcut_low*rcut_low
-    
-    
+
+
     #define tensors
 
     #bonded
@@ -773,12 +797,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     th7 = []
     th8 = []
     types_unbn = []
-    
-     
+
     Nb = 0
     Ns = 0
     nid = 0
-    
+
     topology = []
     counts = 0
     for line in topo_file.readlines() :
@@ -794,9 +817,12 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
            to = topo(nid, int(vals[0]), vals[1], int(vals[2]), int(vals[3]))
            topology.append(to)
            nid += 1
-           
+
     counts = 0
     for line in tr_file.readlines():
+        if counts < cg.in_snap :
+            counts += 1
+            continue
         a = line.strip()[0]
         if a == 't':
             nid = 0
@@ -817,7 +843,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                 nid += 1
                 #configuration read. Computing coordinates
                 if len(config) == Nb :
-                    
+
                     #compute coordinates
                     fene_r_1conf = []
                     stck_r_1conf = []
@@ -856,28 +882,27 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                                        if topology[z].id == topology[j].up_id:
                                           ty3 = base_to_id(topology[z].base_type)
                                           break
-                                      
                                break
                         if topology[i].down_id == -1:
                             ty0 = ty3
-                            
+
                         ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
-                        
+
                         types_1conf.append(ty)
-                        
+
                         #compute bnd pair coordinates
-                        
+
                         fene_r_1conf.append( np.linalg.norm(n1.bb-n2.bb) )
                         stck_r_1conf.append( np.linalg.norm(n1.stck-n2.stck) )
                         th4_bn_1conf.append( np.arccos(np.dot(n1.n,n2.n)) )
-                        
 
-            			#note rbb is the distance between backbone sites  in oxdna1 (see standalone)!
+
+            	        #note rbb is the distance between backbone sites  in oxdna1 (see standalone)!
                         bp1 = n1.c - 0.4*n1.bv
                         bp2 = n2.c - 0.4*n2.bv
                         rbb = (bp1 - bp2)/np.linalg.norm((bp1 - bp2))
                         rstck = (n1.stck - n2.stck)/np.linalg.norm((n1.stck - n2.stck))
-                        
+
                         th5_1conf.append( np.arccos(-np.dot(n2.n,rstck)))
                         th6_1conf.append( np.arccos(-np.dot(n1.n,rstck)))
                         cosphi1_1conf.append( np.dot(n2.norv,rbb))
@@ -892,7 +917,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th6.append(th6_1conf)
                     cosphi1.append(cosphi1_1conf)
                     cosphi2.append(cosphi2_1conf)
-            
+
                     hydr_r_1conf = []
                     th1_1conf = []
                     th2_1conf = []
@@ -901,8 +926,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th7_1conf = []
                     th8_1conf = []
                     types_unbn_1conf = []
-            
-                    #TODO UNDBONDED
+
+                    #UNDBONDED
                     for i in range(len(topology)) :
                         ty0 = 0
                         ty1 = 0
@@ -921,9 +946,9 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             if np.dot(n1.hydr - n2.hydr, n1.hydr - n2.hydr) > rcut_sq_high: continue #verlet cutoff
                             if topology[j].id <= topology[i].id: continue #ordered ids (avoid pairs repetition)
                             if topology[j].id == topology[i].down_id or topology[j].id == topology[i].up_id: continue #no bonded pairs
-                            
+
                             ty2 = base_to_id(topology[j].base_type)
-                            
+
                             if topology[j].up_id == -1:
                                ty3 = ty0
                             else:
@@ -931,26 +956,26 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                                    if topology[z].id == topology[j].up_id:
                                       ty3 = base_to_id(topology[z].base_type)
                                       break
-                        
+
                             if topology[i].down_id == -1:
                                ty0 = ty3
-                               
+
                             ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
-                        
+
                             types_unbn_1conf.append(ty)
-                        
+
                             #compute unbnd pair coordinates
                             hydr_r_1conf.append(np.linalg.norm((n1.hydr - n2.hydr)))
                             rhydr = (n1.hydr - n2.hydr)/np.linalg.norm((n1.hydr - n2.hydr))
 
-                            th1_1conf.append(np.acos(-np.dot(n1.bv,n2.bv)))
-                            th3_1conf.append(np.acos(-np.dot(n1.bv,rhydr)))
-                            th2_1conf.append(np.acos(np.dot(n2.bv,rhydr)))
-                        
-                            th4_unbn_1conf.append(np.acos(np.dot(n1.n,n2.n)))
-                            th8_1conf.append(np.acos(-np.dot(n1.n,rhydr)))
-                            th7_1conf.append(np.acos(np.dot(n2.n,rhydr)))
-                        
+                            th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
+                            th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
+                            th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
+
+                            th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
+                            th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
+                            th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
+
 
                     types_unbn.append(types_unbn_1conf)
                     hydr_r.append(hydr_r_1conf)
@@ -958,55 +983,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th1.append(th1_1conf)
                     th2.append(th2_1conf)
                     th3.append(th3_1conf)
-                    
+
                     th4_unbn.append(th4_unbn_1conf)
                     th7.append(th7_1conf)
                     th8.append(th8_1conf)
-                    
-                    
-    #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 
-    max_ints = 0
-    for j in range(len(types_unbn)):
-        if len(types_unbn[j]) > max_ints:
-           max_ints = len(types_unbn[j])
-    print("max unbn pairs: "+str(max_ints))
-    for j in range(len(types_unbn)):
-        for z in range(len(types_unbn[j]), max_ints):
-            types_unbn[j].append(0)
-            hydr_r[j].append(0.)
-
-            th1[j].append(0.)
-            th2[j].append(0.)
-            th3[j].append(0.)
-
-            th4_unbn[j].append(0.)
-            th7[j].append(0.)
-            th8[j].append(0.)
-                             
-                    
-                    
-        #bonded
-        fene_r = []
-        stck_r = []
-        th4_bn = []
-        th5 = []
-        th6 = []
-        cosphi1 = []
-        cosphi2 = []
-        types_bn = []
-
-        #unbonded
-
-        hydr_r = []
-        th1 = []
-        th2 = []
-        th3 = []
-        th4_unbn = []
-        th7 = []
-        th8 = []
-        types_unbn = []                
-                    
     return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn
 
 
@@ -1017,14 +998,14 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
 #given a junction trajectory (read_oxdna_trajectory_standard_order), store specific internal coordinates in
 #global variable internal_coords
 def store_internal_coord(traj,seq,ids,in_j,fin_j,in_snap,overwrite=True) :
-       
+
     coords = []
-    
+
     Nsnaps = len(traj)
     Njuns = len(traj[0])
-    
+
     alpha = 5.*math.pi/180 #angles in cgna are in radiants/5
-    
+
     for i in range(in_snap,Nsnaps) :
 
         coord = []
@@ -1034,79 +1015,414 @@ def store_internal_coord(traj,seq,ids,in_j,fin_j,in_snap,overwrite=True) :
                 continue
             for z in range(len(ids)) :
                 if ids[z] == 0 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.rot[0]*alpha)
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.rot[0]*alpha))
                 elif ids[z] == 1 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.rot[1]*alpha)
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.rot[1]*alpha))
                 elif ids[z] == 2 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.rot[2]*alpha)
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.rot[2]*alpha))
                 elif ids[z] == 3 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.tran[0])
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.tran[0]))
                 elif ids[z] == 4 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.tran[1])
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.tran[1]))
                 elif ids[z] == 5 :
-                    coord.append(traj[i][j].base_pair1.intra_coord.tran[2])
-                    
+                    coord.append(float(traj[i][j].base_pair1.intra_coord.tran[2]))
+
                 elif ids[z] == 6 :
-                    coord.append(traj[i][j].inter_coord.rot[0]*alpha)
+                    coord.append(float(traj[i][j].inter_coord.rot[0]*alpha))
                 elif ids[z] == 7 :
-                    coord.append(traj[i][j].inter_coord.rot[1]*alpha)
+                    coord.append(float(traj[i][j].inter_coord.rot[1]*alpha))
                 elif ids[z] == 8 :
-                    coord.append(traj[i][j].inter_coord.rot[2]*alpha)
+                    coord.append(float(traj[i][j].inter_coord.rot[2]*alpha))
                 elif ids[z] == 9 :
-                    coord.append(traj[i][j].inter_coord.tran[0])
+                    coord.append(float(traj[i][j].inter_coord.tran[0]))
                 elif ids[z] == 10 :
-                    coord.append(traj[i][j].inter_coord.tran[1])
+                    coord.append(float(traj[i][j].inter_coord.tran[1]))
                 elif ids[z] == 11 :
-                    coord.append(traj[i][j].inter_coord.tran[2])
-                    
+                    coord.append(float(traj[i][j].inter_coord.tran[2]))
+
         if overwrite == False :
             cfun.internal_coords[seq].append(coord)
         else :
             coords.append(coord)
-           
+
     if overwrite == True :
         cfun.internal_coords[seq] = coords
-                    
+
     return
 
 def ave_and_cov_sampled() :
-      
+
     mu_sampled = []
     cov_sampled = []
-    
+
     for l in range(cg.Nseq) :
+
         Nsnaps = len(cfun.internal_coords[l])
         Ncoords = len(cfun.internal_coords[l][0])
-        co = []
-        ma = []
-        for m in range(Ncoords) :
-            co.append(0.)
-        for m in range(Ncoords) :
-            ma.append(co)
-            
-        mu_sampled.append(co)
-        cov_sampled.append(ma)
-    
-    for l in range(cg.Nseq) :
-        Nsnaps = len(cfun.internal_coords[l])
-        Ncoords = len(cfun.internal_coords[l][0])
-        
+
+        mu_sampled_one = np.zeros(Ncoords,dtype=float)
+        cov_sampled_one = np.zeros((Ncoords,Ncoords),dtype=float)
+
+        mu_sampled.append(mu_sampled_one)
+        cov_sampled.append(cov_sampled_one)
+
         for i in range(Ncoords) :
             mu_sampled[l][i] = 0.
             for j in range(Ncoords) :
                 cov_sampled[l][i][j] = 0.
-        
+
         for i in range(Nsnaps) :
             for j in range(Ncoords) :
                 mu_sampled[l][j] += cfun.internal_coords[l][i][j]/Nsnaps
-        
-        for i in range(Nsnaps) :
-            for j in range(Ncoords) :
-                for z in range(j,Ncoords) :
-                    cov_sampled[l][j][z] += (cfun.internal_coords[l][i][j] - mu_sampled[l][j])*(cfun.internal_coords[l][i][z] - mu_sampled[l][z])/Nsnaps
-        
+
         for j in range(Ncoords) :
-            for z in range(j+1,Ncoords) :
-                cov_sampled[l][z][j] = cov_sampled[l][j][z]    
-    
+            for z in range(Ncoords) :
+                for i in range(Nsnaps) :
+                    cov_sampled[l][j][z] += (cfun.internal_coords[l][i][j] - mu_sampled[l][j])*(cfun.internal_coords[l][i][z] - mu_sampled[l][z])/Nsnaps
+
+
     return mu_sampled, cov_sampled
+
+#PLOT SAMPLED GS AND STD
+
+
+def unscrumble_gs(gs) :
+
+    unsc_gs_all = []
+
+
+    for j in range(len(cg.ids)) :
+
+        unsc_gs = []
+
+        for z in range(len(gs)) :
+            if z%len(cg.ids) == j :
+                unsc_gs.append(gs[z])
+
+        unsc_gs_all.append(unsc_gs)
+
+    return unsc_gs_all
+
+
+def plot_gs_sampled(mu_sampled,seqid) :
+
+    unscr_gs_sampled = unscrumble_gs(mu_sampled)
+    unscr_gs_target = unscrumble_gs(cfun.target_mu[seqid])
+
+    for j in range(len(unscr_gs_sampled)) : #Nids
+
+        coord_name = ""
+
+        if cg.ids[j] == 0:
+            coord_name = "buckle"
+        if cg.ids[j] == 1:
+            coord_name = "propeller"
+        if cg.ids[j] == 2:
+            coord_name = "opening"
+        if cg.ids[j] == 3:
+            coord_name = "shear"
+        if cg.ids[j] == 4:
+            coord_name = "stretch"
+        if cg.ids[j] == 5:
+            coord_name = "stagger"
+        if cg.ids[j] == 6:
+            coord_name = "tilt"
+        if cg.ids[j] == 7:
+            coord_name = "roll"
+        if cg.ids[j] == 8:
+            coord_name = "twist"
+        if cg.ids[j] == 9:
+            coord_name = "shift"
+        if cg.ids[j] == 10:
+            coord_name = "slide"
+        if cg.ids[j] == 11:
+            coord_name = "rise"
+
+        x = []
+        for z in range(len(unscr_gs_sampled[j])) :
+            x.append(z)
+
+        ys = unscr_gs_sampled[j]
+        yt = unscr_gs_target[j]
+
+
+        fig = plt.figure(figsize=(6, 4))
+        ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
+        # plt.title(r"All: $R=7$ $\phi=0.364$")
+        ax.title.set_fontsize(20)
+        ax.set_xlabel(r"Sequence",fontsize=20)
+        ax.set_ylabel(coord_name,fontsize=20)
+        #ax.set_ylim(0,160)
+        #ax.set_xlim(-1.2,1.2)
+        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.tick_params(axis='both', which='minor', labelsize=8)
+        ax.plot(x, yt, 'b', label="cgna+")
+        ax.plot(x, ys, 'r', label="oxdna")
+        ax.legend(fontsize = 20)
+        plt.savefig("Seq"+str(seqid)+"_"+coord_name+".pdf",bbox_inches='tight',pad_inches=0.05)
+
+        plt.close()
+
+    return
+
+
+def unscrumble_cov_diag(cov) :
+
+    unsc_cov_all = []
+
+    for j in range(len(cg.ids)) :
+
+        unsc_cov = []
+
+        for z in range(len(cov)) :
+            if z%len(cg.ids) == j :
+                unsc_cov.append(cov[z][z])
+
+        unsc_cov_all.append(unsc_cov)
+
+    return unsc_cov_all
+
+
+def plot_std_sampled(cov_sampled, seqid) :
+
+    unscr_cov_sampled = unscrumble_cov_diag(cov_sampled)
+    unscr_cov_target = unscrumble_cov_diag(cfun.target_cov[seqid])
+
+    for j in range(len(unscr_cov_sampled)) : #Nids
+
+        coord_name = ""
+
+        if cg.ids[j] == 0:
+            coord_name = "buckle"
+        if cg.ids[j] == 1:
+            coord_name = "propeller"
+        if cg.ids[j] == 2:
+            coord_name = "opening"
+        if cg.ids[j] == 3:
+            coord_name = "shear"
+        if cg.ids[j] == 4:
+            coord_name = "stretch"
+        if cg.ids[j] == 5:
+            coord_name = "stagger"
+        if cg.ids[j] == 6:
+            coord_name = "tilt"
+        if cg.ids[j] == 7:
+            coord_name = "roll"
+        if cg.ids[j] == 8:
+            coord_name = "twist"
+        if cg.ids[j] == 9:
+            coord_name = "shift"
+        if cg.ids[j] == 10:
+            coord_name = "slide"
+        if cg.ids[j] == 11:
+            coord_name = "rise"
+
+        x = []
+        for z in range(len(unscr_cov_sampled[j])) :
+            x.append(z)
+
+        ys = unscr_cov_sampled[j]
+        yt = unscr_cov_target[j]
+
+        fig = plt.figure(figsize=(6, 4))
+        ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
+        # plt.title(r"All: $R=7$ $\phi=0.364$")
+        ax.title.set_fontsize(20)
+        ax.set_xlabel(r"Sequence",fontsize=20)
+        ax.set_ylabel("Cov, diag "+ coord_name,fontsize=20)
+        #ax.set_ylim(0,160)
+        #ax.set_xlim(-1.2,1.2)
+        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.tick_params(axis='both', which='minor', labelsize=8)
+        ax.plot(x, yt, 'b', label="cgna+")
+        ax.plot(x, ys, 'r', label="oxdna")
+        ax.legend(fontsize = 20)
+        plt.savefig("Seq"+str(seqid)+"_STD_"+coord_name+".pdf",bbox_inches='tight',pad_inches=0.05)
+
+        plt.close()
+
+    return
+
+
+###################################################################################################
+############## PRINT FINAL PARAMETERS FILE ########################################################
+###################################################################################################
+
+#takes a list with the optimised parameters and the initial SD file, and produces the final SD dep file.
+def print_final_pfile(FOPARS,infile) :
+
+    ofile = open("oxDNA_sequence_dependent_parameters_fin.txt",'w')
+
+    ids = np.array(cfun.OPT_PAR_LIST)[:,0]
+
+    #Collect all par ids to update ( optimised + dependencies (e.g. continuity) )
+    #NOTE: only f1 and f4 continuity are implemented!!
+
+    #f1
+    f1_used = [[False,False],[False,False]]
+
+    f1_r0_id = [5,45]
+    f1_a_id = [6,46]
+    f1_rc_id = [7,47]
+    f1_bl_id = [8,48]
+    f1_bh_id = [9,49]
+    f1_rl_id = [10,50]
+    f1_rh_id = [11,51]
+    f1_rcl_id = [12,52]
+    f1_rch_id = [13,53]
+
+    #f4
+    f4_a_id = [15,20,25,30,35,40,55,60,65,87,92,97,102,107,112,126,131,136,141,146,151]
+    f4_b_id = [16,21,26,31,36,41,56,61,66,88,93,98,103,108,113,127,132,137,142,147,152]
+    f4_ts_id = [17,22,27,32,37,42,57,62,67,89,94,99,104,109,114,128,133,138,143,148,153]
+    f4_tc_id = [18,23,28,33,38,43,58,63,68,90,95,100,105,110,115,129,134,139,144,149,154]
+
+    ids_to_update = []
+
+    for ID in ids:
+
+        f1 = False
+        f4 = False
+
+        if ID in ids_to_update:
+            continue
+        else:
+            ids_to_update.append(ID)
+            #continuity
+
+            #delta
+            if ID == 2:
+                ids_to_update.append(3)
+
+            #f1
+            idx = None
+            if ID in f1_r0_id:
+               idx = f1_r0_id.index(ID)
+               if f1_used[idx][1]:
+                   continue
+               else:
+                   f1 = True
+                   f1_used[idx][0] = True
+
+            if ID in f1_a_id:
+               idx = f1_a_id.index(ID)
+               if f1_used[idx][0]:
+                   continue
+               else:
+                   f1 = True
+                   f1_used[idx][1] = True
+
+            #f4
+            if ID in f4_a_id:
+               f4 = True
+               idx = f4_a_id.index(ID)
+
+            if f1:
+                ids_to_update.append(f1_rc_id[idx])
+                ids_to_update.append(f1_bl_id[idx])
+                ids_to_update.append(f1_bh_id[idx])
+                ids_to_update.append(f1_rl_id[idx])
+                ids_to_update.append(f1_rh_id[idx])
+                ids_to_update.append(f1_rcl_id[idx])
+                ids_to_update.append(f1_rch_id[idx])
+
+            if f4:
+                ids_to_update.append(f4_b_id[idx])
+                ids_to_update.append(f4_ts_id[idx])
+                ids_to_update.append(f4_tc_id[idx])
+
+    #CREATE TENSOR WITH FINAL VALUES OF ALL PARAMETERS
+    #we do that on the cpu and copy it to the cpu
+
+    CURR_PARS = torch.tensor(cfun.PAR0,device=cfun.device)
+    PARS_OPTI = torch.tensor(FOPARS,device=cfun.device)
+
+    CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
+    CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
+
+    #delta
+    CURR_PARS[3] = torch.square( CURR_PARS[2] )
+
+    #f1
+
+    CURR_PARS[cfun.f1_RL_ID] = cfun.OFFSET_f1_RL[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
+    CURR_PARS[cfun.f1_RH_ID] = cfun.OFFSET_f1_RH[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
+    CURR_PARS[cfun.f1_RC_ID] = cfun.OFFSET_f1_RC[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
+
+    EXP1 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RL_ID]-CURR_PARS[cfun.f1_R0_ID]) )
+    EXP2 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RC_ID]-CURR_PARS[cfun.f1_R0_ID]) )
+    EXP3 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RH_ID]-CURR_PARS[cfun.f1_R0_ID]) )
+
+    CURR_PARS[cfun.f1_BL_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP1*(1-EXP1) )/( torch.square(1-EXP1) - torch.square(1-EXP2) )
+    CURR_PARS[cfun.f1_BH_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP3*(1-EXP3) )/( torch.square(1-EXP3) - torch.square(1-EXP2) )
+
+    CURR_PARS[cfun.f1_RCL_ID] = CURR_PARS[cfun.f1_RL_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BL_ID]*( EXP1*(1-EXP1) )
+    CURR_PARS[cfun.f1_RCH_ID] = CURR_PARS[cfun.f1_RH_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BH_ID]*( EXP3*(1-EXP3) )
+
+    #f4
+    CURR_PARS[cfun.f4_TS_ID] = torch.sqrt(0.81225/CURR_PARS[cfun.f4_A_ID])
+    CURR_PARS[cfun.f4_TC_ID] = 1./CURR_PARS[cfun.f4_A_ID]/CURR_PARS[cfun.f4_TS_ID]
+    CURR_PARS[cfun.f4_B_ID] = CURR_PARS[cfun.f4_A_ID]*CURR_PARS[cfun.f4_TS_ID]/(CURR_PARS[cfun.f4_TC_ID]-CURR_PARS[cfun.f4_TS_ID])
+
+
+    FIN_PARS = torch.tensor(CURR_PARS,device='cpu')
+
+
+    #PARSE SD IN FILE, COPY WHAT HASN'T CHANGED, UPDATE WHAT HAS CHANGED
+
+    for line in infile.readlines() :
+        vals = line.strip().split()
+        if len(vals) == 0:
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0][0] == '#':
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0] == "STCK_FACT_EPS":
+            print(line.strip(),file=ofile)
+            continue
+
+        vals_cn = vals[0].split("_")
+
+        #4D parameters
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE":
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-4):
+                par_name+="_"+vals_cn[i]
+            index = PARS_LIST.index(par_name)
+            if index in ids_to_update:
+                ty3 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty2 = base_to_id(vals_cn[len(vals_cn)-2])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-3])
+                ty0 = base_to_id(vals_cn[len(vals_cn)-4])
+
+                ty = ty0+ty1*4+ty2*16+ty3*64
+
+                print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+            else:
+                print(line.strip(),file=ofile)
+        #2D parameters
+        else:
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-2):
+                par_name+="_"+vals_cn[i]
+
+            if par_name == "STCK" or par_name == "HYDR":
+                par_name += "_EPS"
+
+            index = PARS_LIST.index(par_name)
+            if index in ids_to_update:
+                ty2 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+
+                ty = ty1*4+ty2*16
+
+                print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+            else:
+                print(line.strip(),file=ofile)
+
+    ofile.close()
+
