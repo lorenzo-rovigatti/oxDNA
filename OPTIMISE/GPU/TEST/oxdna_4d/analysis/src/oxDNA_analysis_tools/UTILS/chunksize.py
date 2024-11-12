@@ -1,1 +1,0 @@
-CHUNKSIZE = 20

@@ -6,6 +6,10 @@ Created on Mon Nov 20 12:11:39 2023
 @author: yqb22156
 """
 
+import os 
+path_opticode=os.path.dirname(os.path.realpath(__file__))
+
+
 bases = ['A','C','G','T']
 
 Nseq = 0 #number of sequences
@@ -13,7 +17,7 @@ seq = []
 Njuns = [] #total number of junctions
 
 inj = 0
-jfe = 0 
+jfe = 0
 in_j = [] #ignore ends
 fin_j = [] #ignore ends
 
@@ -38,7 +42,7 @@ in_snap = 0  #ignore first in_snap snapshots (equilibration)
 opti_lp = False
 
 ave = False #optimise average or SD
-diag = True # diagonal covariance
+diag = False # diagonal target covariance
 
 
 algo = "nelder-mead" #default
@@ -53,3 +57,6 @@ Niter = 0
 
 T = 0.1 #300K
 
+weight_gs = 1.
+
+modelh = path_opticode+"/model.h"

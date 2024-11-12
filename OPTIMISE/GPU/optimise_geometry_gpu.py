@@ -16,6 +16,7 @@ import sys
 import time
 from scipy import optimize
 
+
 # READ CONFIG FILE
 if len(sys.argv) != 2 :
     print("Unknown argument format.")
@@ -39,12 +40,14 @@ par_index = parl.par_index
 ###################################################################################################
 
 #print(stck_fact_eps)
-model_file = open("model.h",'r')
-pars_from_modelh, vals_from_modelh = fun.read_vanilla_parameters(model_file)    
+
+model_file = open(cg.modelh,'r')
+pars_from_modelh, vals_from_modelh = fun.read_vanilla_parameters(model_file)
 model_file.close()
 
-SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')   
-over_indices, over_vals, stck_fact_eps_read, stck_fact_eps = fun.read_pars_from_SD_file(SD_par_file)    
+
+SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
+over_indices, over_vals, stck_fact_eps_read, stck_fact_eps = fun.read_pars_from_SD_file(SD_par_file)
 SD_par_file.close()
 
 if stck_fact_eps_read :
@@ -62,6 +65,7 @@ OXPS_zero, shifts = fun.init_oxpars(pars_from_modelh, vals_from_modelh, over_ind
 if fun.read_config(config_file) == False :
     sys.exit()
 
+"""
 test_file = open("opti_p_test.txt",'w')
 for l in range(len(cfun.OPT_PAR_LIST)) :
     print(cfun.OPT_PAR_LIST[l],file=test_file)
@@ -74,7 +78,7 @@ print(OXPS_zero[1],file = test_file)
 
 print(OXPS_zero[34],file = test_file)
 test_file.close()
-
+"""
 
 #########################################################################################################################
 ############## READ TRAJECTORY, COMPUTE OXDNA COORDINATES (i.e angles and distances) AND INTERNAL COORDINATES ###########
@@ -100,6 +104,8 @@ types_unbn = []
 
 rclow, rchigh = fun.find_cuts_for_lists(OXPS_zero)
 print("cuts: "+str(rclow)+" "+str(rchigh))
+
+cg.Nreps = 1
 
 for l in range(cg.Nseq):
     for m in range(cg.Nreps) :
@@ -163,8 +169,14 @@ for l in range(cg.Nseq):
         topo_file.close()
 
 
-#make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
+#Plot sampled coordinates
+mus, covs = fun.ave_and_cov_sampled()
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l)
+    fun.plot_std_sampled(covs[l],l)
 
+
+#make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 max_ints = 0
 for l in range(cg.Nseq) :
     for j in range(len(types_unbn[l])):
@@ -186,21 +198,17 @@ for l in range(cg.Nseq) :
             th8[l][j].append(0.)
 
 
-print("Check lengths:")
-print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
-print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
-print("int_coord: "+str(len(cfun.internal_coords))+", "+str(len(cfun.internal_coords[0]))+", "+ str(len(cfun.internal_coords[0][0])))
-
 ###################################################################################################
 ############## SETUP TENSORS FOR COST FUNCTION ####################################################
 ###################################################################################################
 
-
-
-
 #create all tensors on the gpu. Change this to easily swap between gpu and cpu
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+if torch.cuda.is_available() :
+    print("Running optimisation on gpu.")
+else:
+    print("gpu not available. Running optimisation on cpu.")
 
 
 cfun.init_tensors(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
@@ -209,77 +217,33 @@ cfun.init_tensors(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
 #build tensors imposing continuity
 cfun.build_continuity_tensors()
 
-print("Continuity tensors cool.")
-
 #build masks (for selecting optim parameters and marginalising mu and cov) and symm tensors (for imposing symmetries)
 cfun.build_masks_and_symm_tensors()
 
-print("Masks cool")
-
+print("Continuity tensors created")
 
 #create reduced targets and compute cov^{-1}
 cfun.reduce_targets()
 
 print("Targets reduced")
 
+
+#print(cfun.IDS_AVE_COV_SUM)
+#print(cfun.IDS_AVE_COV_EXPAND)
+#print(cfun.AVE_COV_RED_TARGET_COV)
+
+
 #compute initial energy and modulation factors
 cfun.compute_initial_energy()
 
 print("Computed initial energy")
 
-tfile = open("fene_in.txt", 'w')
 
-EN = cfun.EN_FENE_IN.sum(dim=2)/48
-
-for i in range(cg.Nseq) :
-   for j in range(len(EN[i])):
-      if (j+1)%10 == 0:
-          print(str(float(EN[i][j])),file=tfile)
-   print("\n",file=tfile)
-
-tfile.close()
-
-
-tfile = open("stck_in.txt", 'w')
-
-EN = cfun.EN_STCK_IN.sum(dim=2)/48
-
-for i in range(cg.Nseq) :
-   for j in range(len(EN[i])):
-      if (j+1)%10 == 0: print(str(float(EN[i][j])),file=tfile)
-   print("\n",file=tfile)
-
-tfile.close()
-
-
-tfile = open("hydr_in.txt", 'w')
-
-EN = cfun.EN_HYDR_IN.sum(dim=2)/48
-
-for i in range(cg.Nseq) :
-   for j in range(len(EN[i])):
-      if (j+1)%10 == 0: print(str(float(EN[i][j])),file=tfile)
-   print("\n",file=tfile)
-
-tfile.close()
-
-
-
-tfile = open("crst_in.txt", 'w')
-
-EN = (cfun.EN_CRST_33_IN+cfun.EN_CRST_55_IN).sum(dim=2)/48
-
-for i in range(cg.Nseq) :
-   for j in range(len(EN[i])):
-      if (j+1)%10 == 0: print(str(float(EN[i][j])),file=tfile)
-   print("\n",file=tfile)
-
-tfile.close()
-
+###################################################################################################
+############## OPTIMISE ###########################################################################
+###################################################################################################
 
 #read initial optim parameters values
-
-
 ids = []
 for i in range(len(cfun.OPT_PAR_LIST)) :
     id = cfun.OPT_PAR_LIST[i][0]
@@ -288,71 +252,49 @@ for i in range(len(cfun.OPT_PAR_LIST)) :
 
 
 IDS_OP = torch.tensor(ids,device=device)
-OPTI_PAR = torch.gather(torch.reshape(cfun.CURR_PARS,(-1,)),0,IDS_OP)
-
-"""
-
-print(IDS_OP[0])
-print(cfun.OPT_PAR_LIST[0][0],cfun.OPT_PAR_LIST[0][1])
-
-print(IDS_OP[10])
-print(cfun.OPT_PAR_LIST[10][0],cfun.OPT_PAR_LIST[10][1])
-
-OPTI_PAR[0] = 0.5
-OPTI_PAR[10] = 0.3
-
-print(OPTI_PAR[0])
-print(OPTI_PAR[10])
-
-
-"""
-
-#for i in range(16):
-#    OPTI_PAR[i] += 0.02
-
-"""
-
-timefile = open("runtime.txt",'w')
-print("Run time [s]: " + str(time.time() - start_time),file=timefile)
-timefile.close()
-
-"""
-
-time_cfun = time.time()
-
-torch.autograd.set_detect_anomaly(True)
-
-
-OPTI_PAR.requires_grad_()
-optimizer = torch.optim.Adam([OPTI_PAR], lr = 0.01)
-
-
-list_params = []
+OPTI_PAR = torch.gather(torch.reshape(cfun.CURR_PARS,(-1,)),0,IDS_OP) #tensor with initial values of the opti parameters
 
 print("OPTIMISING")
 
-cfun.PAR0 = torch.clone(cfun.CURR_PARS)
+#We use scipy to handle the optimisation algorithm
+#While we compute the cost function on the gpu with pytorch
+#All the tensors necessary to the computation of the cost function are on the gpu
 
-TMP = torch.tensor(OPTI_PAR,device='cpu')
+cfun.PAR0 = torch.clone(cfun.CURR_PARS) #clone the initial values of the parameters to the gpu
+TMP = torch.tensor(OPTI_PAR,device='cpu') #copy opti parameters to the cpu.
 
+#X0 is a numpy array with the optimised parameters; it is initialised and handled by scypi.optim on the cpu
+#every time the cost function is computed, it is cloned to the device (gpu)
 X0 = TMP.numpy()
 
+
+#We impose bondaries on the optimisation parameters, to avoid pushing the reweighting too much
+#The boundaries depend on the specific parameters (e.g. FENE_R0 can vary by +-3% max)
 low_bond = torch.tensor(TMP, device='cpu').numpy()
 up_bond = torch.tensor(TMP, device='cpu').numpy()
 
 for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 1:
+        low_bond[n] = low_bond[n]*0.98
+        up_bond[n] = up_bond[n]*1.02
+    elif cfun.OPT_PAR_LIST[n][0] == 2:
+        low_bond[n] = low_bond[n]*0.98
+        up_bond[n] = up_bond[n]*1.02
+    elif cfun.OPT_PAR_LIST[n][0] == 45:
         low_bond[n] = low_bond[n]*0.97
         up_bond[n] = up_bond[n]*1.03
-    elif cfun.OPT_PAR_LIST[n][0] == 2:
-        low_bond[n] = low_bond[n]*0.95
-        up_bond[n] = up_bond[n]*1.05
-    elif cfun.OPT_PAR_LIST[n][0] == 45:
-        low_bond[n] = low_bond[n]*0.95
-        up_bond[n] = up_bond[n]*1.05
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
         low_bond[n] = 2.96709
         up_bond[n] = 3.31609
+    elif cfun.OPT_PAR_LIST[n][0] == 55 or cfun.OPT_PAR_LIST[n][0] == 60:
+
+        lb = low_bond[n]*0.5
+        ub = up_bond[n]*2
+        if lb > 0.4 : low_bond[n] = lb
+        else : low_bond[n] = 0.4
+        if ub < 2.0 : up_bond[n] = ub
+        else : up_bond[n] = 2.0
+
     else:
         low_bond[n] = low_bond[n]*0.5
         up_bond[n] = up_bond[n]*2.
@@ -362,55 +304,36 @@ bnd = optimize.Bounds(low_bond,up_bond)
 
 print("S0: "+str(cfun.COST(X0)))
 
-
+#callback is called at the end of each optimisation step. It prints the ratio x/x0
+# and the current value of the cost function. x = current solution, x0 = initial parameters
 def Callback(sol):
-    print("x: ")
+    print("x/x0: ")
     tmp = []
     for i in range(len(sol)):
         tmp.append(sol[i]/X0[i])
     print(tmp)
     print("S: "+str(cfun.COST(sol)))
 
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':100000,'iprint': 1})
-#sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', bounds=bnd, options={'maxfun':100000,'iprint': 1})
+
+time_opti_start = time.time()
+
+####### THIS LINE RUNS THE OPTIMISAION #######################
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':40000,'iprint': 1})
 
 S = cfun.COST(sol.x)
-print(S)
+print("Final value of the cost function: "+str(S))
 
 
+#printing runtime
+timefile = open("runtime.txt",'w')
+print("Total run time [s]: " + str(time.time() - start_time),file=timefile)
+print("Optimisation run time [s]: " + str(time.time() - time_opti_start),file=timefile)
+timefile.close()
 
-"""
+#printing final SD file
+in_SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
+fun.print_final_pfile(sol.x,in_SD_par_file)
+#fun.print_final_pfile(OPTI_PAR,in_SD_par_file)
+in_SD_par_file.close()
 
-for n in range(50):
-
-
-    optimizer.zero_grad()
-
-    loss = cfun.COST(OPTI_PAR)
-    print(loss)
-    loss.backward()
-    optimizer.step()
-    list_params.append(OPTI_PAR.detach().clone())
-
-
-
-size = len(list_params)
-
-
-print(size)
-print("Pars_fin:")
-print(list_params[0])
-print(list_params[size-1]/list_params[0])
-
-
-#print("Pars_fin/Pars_in: ")
-#print(list_params[size-1]/list_params[0])
-#for n in range(10000) :
-#    cfun.COST(OPTI_PAR)
-
-
-"""
-
-#print("10k cfun time: " + str(time.time()-time_cfun))
-
-print("Everything cool.")
+print("DONE")
