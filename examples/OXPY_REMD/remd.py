@@ -8,6 +8,8 @@ import numpy as np
 from mpi4py import MPI
 from random import random
 
+import argparse
+
 import oxpy
 
 try:
@@ -33,41 +35,60 @@ def get_order(i, rank, locations, mpi_nprocs):
         return im_responsible, im_rank, talk_to 
     else:
         return None    
+    
+
+def remd_log(pid, *args):
+    if pid == rank:
+        print("REMD_LOG:", pid, ":", *args)
 
 
 comm = MPI.COMM_WORLD
-rank = comm.Get_rank()  # process id  
-mpi_nprocs = comm.Get_size()  # number of processes running 
+rank = comm.Get_rank()  # process id
+mpi_nprocs = comm.Get_size()  # number of processes running
 locations = list(range(mpi_nprocs))  # curent location of the exchange temperature
 exchange = np.zeros(mpi_nprocs)  # keep track of exchanges
 exchange_tries = np.zeros(mpi_nprocs)  # and attempts
 rates = np.zeros(mpi_nprocs)
 
+parser = argparse.ArgumentParser(description="Run an REMD simulation.")
+parser.add_argument('input_file', type=str, nargs=1, help="The input file of the simulation")
+args = None
+try:
+    if rank == 0:
+        args = parser.parse_args()
+finally:
+    args = comm.bcast(args, root=0)
+
+if args == None:
+    exit(1)
+else:
+    input_file = args.input_file[0]
+
 if rank == 0:
     history = []
 
-
-def remd_log(pid, *args):
-    if pid == rank:
-        print("x", pid, ":", *args)
-
-
 with oxpy.Context():
     input = oxpy.InputFile()  # load up conf and input
-    input.init_from_filename(sys.argv[1])  # as 1st is the name of the script
+    input.init_from_filename(input_file)  # as 1st is the name of the script
+
     # have separate files for every running instance
-    
     input["energy_file"] = f"energy_{rank}.dat"
     input["lastconf_file"] = f"last_conf_{rank}.dat"
     input["CUDA_device"] = str(rank)
     # figure out steps to run and our temperature
     pt_move_every = int(input["pt_move_every"])
-    steps_to_run = int(int(input["steps"]) / pt_move_every) 
+    steps_to_run = int(int(input["steps"]) / pt_move_every)
     # setup temperatures
     temperatures = input["pt_temp_list"].split(",")
 
     input["T"] = temperatures[rank]  # set process temperature
     input["trajectory_file"] = f"trajectory_{rank}.dat"
+
+    # check that the number of processes is equal to the number of temperatures
+    if rank == 0:
+        if len(temperatures) != mpi_nprocs:
+            print(f"The number of temperatures ({len(temperatures)}) should match the number of MPI processes ({mpi_nprocs})", file=sys.stderr)
+            comm.Abort(errorcode=1)
 
     # convert temperaures to ox units
     if "K" in input["T"]:
@@ -86,10 +107,10 @@ with oxpy.Context():
         locations = comm.bcast(locations, root=0)
         # let's wait for everyone to get started 
         swap = False
-        resut = get_order(i, rank , locations, mpi_nprocs)
-        if resut:
+        result = get_order(i, rank , locations, mpi_nprocs)
+        if result:
             # unpack result
-            im_responsible, im_rank, talk_to = resut
+            im_responsible, im_rank, talk_to = result
             if im_responsible:
                 irresp_energy = comm.recv(source=talk_to)
 
@@ -127,15 +148,15 @@ with oxpy.Context():
 
         # handle updates to locations
         if rank == 0:
-            swaped = [] 
+            swapped = [] 
             # handle 0
-            if  resut and im_responsible:
+            if  result and im_responsible:
                 exchange_tries[0] += 1
                 exchange_tries[talk_to] += 1 
                 if swap:
                     locations[0] , locations[talk_to] = locations[talk_to] , locations[0]
-                    swaped.append(0)
-                    swaped.append(talk_to)    
+                    swapped.append(0)
+                    swapped.append(talk_to)    
                     exchange[0] += 1
                     exchange[talk_to] += 1
                     rates [0] = exchange[0] / exchange_tries[0]
@@ -143,16 +164,16 @@ with oxpy.Context():
 
             # receive from everyone but me the updates
             for j in range(1, mpi_nprocs):
-                resut = comm.recv(source=j)
-                if resut:
-                    swap, im_responsible, im_rank, talk_to = resut
+                result = comm.recv(source=j)
+                if result:
+                    swap, im_responsible, im_rank, talk_to = result
                     if im_responsible:
                         exchange_tries[j] += 1
                         exchange_tries[talk_to] += 1
                         if swap: 
                             locations[j] , locations[talk_to] = locations[talk_to] , locations[j]
-                            swaped.append(j)
-                            swaped.append(talk_to)
+                            swapped.append(j)
+                            swapped.append(talk_to)
                             exchange[j] += 1
                             exchange[talk_to] += 1
                             rates [j] = exchange[0] / exchange_tries[j]
@@ -166,7 +187,7 @@ with oxpy.Context():
             remd_log(0, "rates:", rates)
         else:
             # notify 0 of update
-            if resut:
+            if result:
                 comm.send((swap, im_responsible, im_rank, talk_to), 0)
             else:
                 comm.send(None, 0)  # nothing happened for this round
