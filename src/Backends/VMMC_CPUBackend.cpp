@@ -420,17 +420,16 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, false);
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
-	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking*
-	// *the hybrid interaction is a second exception
-	if( (dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL) || (dynamic_cast<DRHInteraction *>(_interaction.get()) == NULL) ) {
+	// the DNA and RNA/RNA2 interactions use the original coaxial stacking term
+	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL) {
 		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
 	}
 
+	// the DNA2 and DRH interactions use DNA2's coaxial stacking term
 	if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DRHInteraction::COAXIAL_STACKING, p, q, false, false);
 		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
 	}
-	
 	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
 		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
