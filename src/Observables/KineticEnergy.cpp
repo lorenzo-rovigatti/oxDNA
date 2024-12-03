@@ -52,5 +52,5 @@ number KineticEnergy::get_kinetic_energy() {
 std::string KineticEnergy::get_output_string(llint curr_step) {
 	number K = get_kinetic_energy();
 
-	return Utils::sformat("% 10.6lf", K);
+	return Utils::sformat(_number_formatter, K);
 }

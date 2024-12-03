@@ -48,6 +48,8 @@ public:
 		res.y -= rintf(res.y / _Ly) * _Ly;
 		res.z -= rintf(res.z / _Lz) * _Lz;
 
+		res.w = 0.f;
+
 		return res;
 	}
 

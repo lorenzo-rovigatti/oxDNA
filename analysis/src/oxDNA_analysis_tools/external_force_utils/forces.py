@@ -1,4 +1,5 @@
 #see: https://dna.physics.ox.ac.uk/index.php/Documentation#External_Forces
+# TODO: "group_name" and "id" need to be added as optional parameters to forces
 from typing import Dict, List, Literal
 
 def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool, rate:float=0, stiff_rate:float=0) -> Dict:

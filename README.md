@@ -28,7 +28,7 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 
 **Q: Can oxDNA be run on multiple CPU cores or GPUs?**
 
-**A:** No, oxDNA can run simulations on single cores or single GPUs only.
+**A:** No, oxDNA can run simulations on single cores or single GPUs only. However, the Python bindings (`oxpy`) can be used to implement parallel algorithms on top of `oxDNA`. See for instance `examples/METADYNAMICS` and `examples/OXPY_REMD`.
 
 **Q: How is the oxDNA force field defined?**
 

@@ -369,7 +369,8 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 __forceinline__ __device__ c_number4 stably_normalised(const c_number4 &v) {
 	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));
 	c_number4 res = v / max;
-	return res / _module(res);
+	c_number res_mod = _module(res);
+	return (res_mod > 0.f) ? res / res_mod : res;
 }
 
 #endif /* CUDA_LR_COMMON */

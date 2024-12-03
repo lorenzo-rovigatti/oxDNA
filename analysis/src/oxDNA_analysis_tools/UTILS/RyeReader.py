@@ -161,7 +161,7 @@ def get_top_info_from_traj(traj : str) -> TopInfo:
             traj (str) : path to the trajectory file
 
         Returns:
-            (TopInfo, TrajInfo) : topology and trajectory info
+            TopInfo : topology info
     """
     with open(traj) as f:
         l = ''

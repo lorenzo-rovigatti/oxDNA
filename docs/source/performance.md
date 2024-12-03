@@ -45,6 +45,36 @@ When running CUDA-powered simulations, the box size has a non-trivial effect on 
 
 Since there is no dynamic memory on GPUs, in order to avoid crashing simulations oxDNA sets the size of the cells used to build neighbouring lists so that their memory footprint is not too high. If you want to optimise performance is sometimes worth to set `cells_auto_optimisation = false` so that oxDNA uses the smallest possible cells (at the cost of memory consumption). If the resulting memory footprint can be handled by your GPU you'll probably see some (possibly large) performance gains.
 
+There are some heuristics that attempt to limit the memory consumption of CUDA simulations. First of all, the given combination of parameters is used to evaluate the minimum size of the cells required to build neighbouring lists, $r_m$. In turn, $r_m$ is used to compute the number of cells along each coordinate $i$ (where $i = x, y, z$) as
+
+$$
+N_i = \max(\lfloor L_i / r_m \rfloor, 3),
+$$
+
+where $L_i$ is the length of the box edge along the $i$-th direction. This value of $N_i$ is the number of cells used for the simulation if `cells_auto_optimisation` is set to `false`. However, if it set to `true`, which is the default, then the code checks whether $N_i > \lceil f L_i \rceil$, and if it is then sets
+
+$$
+N_i = f L_i,
+$$
+
+where
+
+$$
+f = \left( \frac{2 N}{L_x L_y L_z} \right)^{1/3}.
+$$
+
+The maximum number of particles that are in each given cell, $M$, is another important parameter that can be, to some extent, tuned to avoid crashes. It is defined at the beginning of the simulation, and also each time the total number of cells changes while the simulation is running, as
+
+$$
+M = f_\rho M_\text{max},
+$$
+
+where $f_\rho$ is a factor that can be set with the `max_density_multiplier` option and defaults to 3, while $M_\text{max}$ is the number of particles found in the cell containing the largest amount of particles in the current configuration.
+
+:::{note}
+On newer versions of oxDNA (> 3.6.1), setting `debug = true` will report in the log file (or on screen if `log_file` is not set) the amount of memory that is requested by each allocation on the GPU.
+:::
+
 ## Monte Carlo
 
 When running Monte Carlo simulations the efficiency of the sampling depends on specific moves employed during the simulation. For regular Monte Carlo and VMMC simulations, the most important options are `delta_translation` and `delta_rotation`, which set the maximum displacement for translations and rotations. Optimal values depend very much on the system at hand, so it is hard to provide some guidelines, although often values around `0.1` given decent performance. Sometimes it may be worth to set [`adjust_moves = true` (together with `equilibration_steps > 0`)](input.md#monte-carlo-options) to let the code look for optimal values.

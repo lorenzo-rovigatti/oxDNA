@@ -1,4 +1,6 @@
 # This script is a skeleton for parallelized trajectory analysis
+import time
+start_time = time.time()
 import argparse
 import numpy as np
 from os import path
@@ -18,7 +20,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     return(np.arange(chunk_size)*pirate_stuff)
 
 # All oat scripts have a function with the same name as the script for import into other scripts
-def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpus:int=1):
+def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpus:int=1) -> np.ndarray:
     """
     This is the docstring that gets picked up by the api documentation builder.  You need to add this script to oxDNA/docs/source/oat/{api.md,cli.md}
 
@@ -29,7 +31,7 @@ def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpu
         ncpus (int) : (optional) How many cpus to parallelize the operation. default=1
 
     Returns:
-        output (np.ndarray): In this case just counting up to chunk_size
+        np.ndarray: In this case just counting up to 2*chunk_size by 2s
     """
     # The ctx is the arguments for the parallelized function
     ctx = ComputeContext(top_info, traj_info, optional_argument)
@@ -95,6 +97,8 @@ def main():
     with open(outfile, 'w+') as f:
         f.write(', '.join([str(o) for o in out]))
         log(f"Wrote output to file {outfile}")
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':
     main()
