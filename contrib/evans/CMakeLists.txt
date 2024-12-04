@@ -19,4 +19,20 @@ function(add_library_no_prefix target source)
 endfunction()
 
 # interactions
-add_library_no_prefix(RaspberryPatchyInteraction src/Interactions/RaspberryPatchyInteraction.cpp)
+add_library_no_prefix(RaspberryPatchyInteraction src/Interactions/RaspberryInteraction.cpp)
+
+# cuda stuff
+# first part copied from Lorenzo's CMakeLists.txt file
+IF(CUDA)
+    set(CMAKE_MODULE_LINKER_FLAGS  "${CMAKE_MODULE_LINKER_FLAGS} -rdynamic")
+    find_package("CUDA")
+
+    # same thing but for CUDA libs
+    function(cuda_add_library_no_prefix target source)
+        cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+        target_link_libraries(${target} ${CUDA_LIBRARIES})
+        set_target_properties(${target} PROPERTIES PREFIX "")
+    endfunction()
+    cuda_add_library_no_prefix(CUDARaspberryInteraction src/Interactions/RaspberryInteraction.cpp src/Interactions/CUDARaspberryInteraction.cu)
+    add_dependencies(evans CUDARaspberryInteraction)
+ENDIF ()

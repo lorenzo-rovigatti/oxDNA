@@ -1,0 +1,75 @@
+/snap/clion/305/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/305/bin/ninja/linux/x64/ninja -DCMAKE_BUILD_TYPE=Debug -DDebug=On -DCUDA=ON -DCMAKE_C_COMPILER=/usr/bin/gcc-8 -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -G Ninja -S /home/josh/git/oxDNA -B /home/josh/git/oxDNA/cmake-build-debug
+CMake Deprecation Warning at CMakeLists.txt:1 (CMAKE_MINIMUM_REQUIRED):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+CMake Deprecation Warning at CMakeLists.txt:8 (cmake_policy):
+  The OLD behavior for policy CMP0037 will be removed from a future version
+  of CMake.
+
+  The cmake-policies(7) manual explains that the OLD behaviors of all
+  policies are deprecated and that a policy should be set to OLD only under
+  specific short-term circumstances.  Projects should be ported to the NEW
+  behavior and not rely on setting a policy to OLD.
+
+
+-- Compiling in Debug mode
+fatal: No names found, cannot describe anything.
+CMake Warning (dev) at src/CMakeLists.txt:248 (FIND_PACKAGE):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Generating code for the following CUDA architectures: sm_35 sm_50 sm_53 sm_60 sm_61 sm_70 sm_75 compute_75
+-- -gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_53,code=sm_53;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_75,code=compute_75
+-- Adding the targets found in the /home/josh/git/oxDNA/contrib/evans folder
+CMake Warning (dev) at contrib/evans/CMakeLists.txt:28 (find_package):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Adding the targets found in the /home/josh/git/oxDNA/contrib/randisi folder
+CMake Deprecation Warning at contrib/randisi/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Adding the targets found in the /home/josh/git/oxDNA/contrib/romano folder
+CMake Deprecation Warning at contrib/romano/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Adding the targets found in the /home/josh/git/oxDNA/contrib/rovigatti folder
+CMake Warning (dev) at contrib/rovigatti/CMakeLists.txt:62 (find_package):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Adding the targets found in the /home/josh/git/oxDNA/contrib/tostiguerra folder
+CMake Warning (dev) at contrib/tostiguerra/CMakeLists.txt:24 (find_package):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/josh/git/oxDNA/cmake-build-debug

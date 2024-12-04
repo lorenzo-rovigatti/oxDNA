@@ -1,0 +1,83 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"ADD_CUSTOM_TARGET",
+			"ADD_DEPENDENCIES"
+		],
+		"files" : 
+		[
+			"contrib/randisi/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 8,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 20,
+				"parent" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "DNA2ModInteraction::@de42d6c4d7c5fab4b203"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "CUDADNA2ModInteraction::@de42d6c4d7c5fab4b203"
+		}
+	],
+	"id" : "randisi::@de42d6c4d7c5fab4b203",
+	"name" : "randisi",
+	"paths" : 
+	{
+		"build" : "contrib/randisi",
+		"source" : "contrib/randisi"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/randisi/CMakeFiles/randisi",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/randisi/CMakeFiles/randisi.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

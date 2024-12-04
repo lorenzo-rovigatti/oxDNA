@@ -1,0 +1,152 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "/home/josh/git/oxDNA/contrib/rovigatti/ConstructwiseBonds.so"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"add_library_no_prefix",
+			"add_definitions",
+			"include_directories",
+			"INCLUDE_DIRECTORIES"
+		],
+		"files" : 
+		[
+			"contrib/rovigatti/CMakeLists.txt",
+			"CMakeLists.txt",
+			"contrib/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 23,
+				"parent" : 1
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 120,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 91,
+				"parent" : 3
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 1,
+				"parent" : 6
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -D_FORCE_INLINES -g -std=gnu++14 -fPIC -fdiagnostics-color=always   -Wall -Wshadow -Wextra -Wno-unused-parameter -D'RELEASE=\"\"' -D'GIT_COMMIT=\"bfb393f3\"' -D'BUILD_TIME=\"03/12/24\"'"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "ConstructwiseBonds_EXPORTS"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "JSON_ENABLED"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "/home/josh/git/oxDNA/src/extern"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "/home/josh/git/oxDNA/src"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					2
+				],
+				"standard" : "14"
+			},
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "ConstructwiseBonds::@8c6a0a773379a755f49b",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-rdynamic",
+				"role" : "flags"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "ConstructwiseBonds",
+	"nameOnDisk" : "ConstructwiseBonds.so",
+	"paths" : 
+	{
+		"build" : "contrib/rovigatti",
+		"source" : "contrib/rovigatti"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "contrib/rovigatti/src/Observables/ConstructwiseBonds.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "MODULE_LIBRARY"
+}

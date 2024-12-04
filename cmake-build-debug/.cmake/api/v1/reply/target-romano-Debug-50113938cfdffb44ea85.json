@@ -1,0 +1,84 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"ADD_CUSTOM_TARGET"
+		],
+		"files" : 
+		[
+			"contrib/romano/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 15,
+				"parent" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "Reappear::@1b508556103eef181a9d"
+		},
+		{
+			"id" : "SideChange::@1b508556103eef181a9d"
+		},
+		{
+			"id" : "ClosestN::@1b508556103eef181a9d"
+		},
+		{
+			"id" : "NematicS::@1b508556103eef181a9d"
+		},
+		{
+			"id" : "ChargedCylInteraction::@1b508556103eef181a9d"
+		}
+	],
+	"id" : "romano::@1b508556103eef181a9d",
+	"name" : "romano",
+	"paths" : 
+	{
+		"build" : "contrib/romano",
+		"source" : "contrib/romano"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/romano/CMakeFiles/romano",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/romano/CMakeFiles/romano.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

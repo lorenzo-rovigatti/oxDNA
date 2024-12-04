@@ -1,0 +1,83 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"ADD_CUSTOM_TARGET",
+			"add_dependencies"
+		],
+		"files" : 
+		[
+			"contrib/evans/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 5,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 37,
+				"parent" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "CUDARaspberryInteraction::@2d304e29ca8bc3d02bb6"
+		},
+		{
+			"id" : "RaspberryPatchyInteraction::@2d304e29ca8bc3d02bb6"
+		}
+	],
+	"id" : "evans::@2d304e29ca8bc3d02bb6",
+	"name" : "evans",
+	"paths" : 
+	{
+		"build" : "contrib/evans",
+		"source" : "contrib/evans"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/evans/CMakeFiles/evans",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/evans/CMakeFiles/evans.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}
