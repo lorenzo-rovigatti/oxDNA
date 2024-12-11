@@ -230,8 +230,8 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
         Convert an oxDNA file to a PDB file.  Directly writes the file.
 
         Parameters:
-            top_file (str) : Filename of oxDNA topology
-            conf_file (str) : Filename of oxDNA configuration
+            conf (Configuration) : The Configuration to convert
+            system (System) : The system topology for the configuration to convert
             out_basename (str) : Filename(-.pdb) to write out to
             protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. Default: []
             reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). Default: False
