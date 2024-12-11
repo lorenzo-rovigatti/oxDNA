@@ -3,7 +3,7 @@ import argparse
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxpy
 
-def cli_parser(prog="generate_force.py"):
+def cli_parser(prog="generate_forces.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('configuration', type=str, nargs=1, help="The configuration to generate the forces from")

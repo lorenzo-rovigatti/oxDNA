@@ -83,7 +83,7 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool, r0:float=1.2, PBC:boo
 
     return force_list
 
-def cli_parser(prog="db_to_force.py"):
+def cli_parser(prog="db2forces.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('db_file', type=str, nargs=1, help="A text file containing dot-bracket notation of the base-pairing arrangement")
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the force list to')
