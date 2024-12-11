@@ -39,7 +39,7 @@ To run a REMD simulation execute the following commands:
 ```shell
 ./clean.sh
 
-mpirun -n 4  python3  remd.py  input_md
+mpirun -n 4 python3 remd.py input_md
 
 python3 reshuffle.py input_md history.json reshuffled
 ```
