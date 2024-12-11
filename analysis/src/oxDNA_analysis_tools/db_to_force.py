@@ -19,34 +19,33 @@ def parse_dot_bracket(input:str) -> np.ndarray:
     Returns:
         np.ndarray: A list where each index corresponds to a nucleotide.  Value is -1 is unpaired or another index if paired.
     """
+    open_symbols = "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    close_symbols = ")]}>abcdefghijklmnopqrstuvwxyz"
+
     output = np.full(len(input), -1)
-    paren_queue = []
-    square_queue = []
-    curly_queue = []
+    queue = []
 
     for i, c in enumerate(input.strip()):
         if c == '.':
             continue
-        elif c == '(':
-            paren_queue.append(i)
-        elif c == '[':
-            square_queue.append(i)
-        elif c == '{':
-            curly_queue.append(i)
-        elif c == ')':
-            pair = paren_queue.pop()
-            output[i] = pair
-            output[pair] = i
-        elif c == ']':
-            pair = square_queue.pop()
-            output[i] = pair
-            output[pair] = i
-        elif c == '}':
-            pair = curly_queue.pop()
-            output[i] = pair
-            output[pair] = i
+
+        depth = open_symbols.find(c)
+        is_open = True
+        if depth == -1:
+            depth = close_symbols.find(c)
+            is_open = False
+            if depth == -1:
+                raise RuntimeError("Encountered invalid character '{}' in dot bracket".format(c))
+                                
+        if depth >= len(queue):
+            queue.append([])
+        
+        if is_open:
+            queue[depth].append(i)
         else:
-            raise RuntimeError("Encountered invalid character '{}' in dot bracket".format(c))
+            pair = queue[depth].pop()
+            output[i] = pair
+            output[pair] = i
 
     return output
 
@@ -62,17 +61,15 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool, r0:float=1.2, PBC:boo
         Returns:
             List[Dict]: A list of force dictionaries
     """
+    open_symbols = "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    close_symbols = ")]}>abcdefghijklmnopqrstuvwxyz"
+    
     if reverse:
         db_str = db_str[::-1]
-        db_str = db_str.replace('(', '&')
-        db_str = db_str.replace(')', '(')
-        db_str = db_str.replace('&', ')')
-        db_str = db_str.replace('[', '&')
-        db_str = db_str.replace(']', '[')
-        db_str = db_str.replace('&', ']')
-        db_str = db_str.replace('{', '&')
-        db_str = db_str.replace('}', '{')
-        db_str = db_str.replace('&', '}')
+        for o, c in zip(open_symbols, close_symbols):
+            db_str = db_str.replace(o, '&')
+            db_str = db_str.replace(c, o)
+            db_str = db_str.replace('&', c)
 
     # convert the db string to an index list
     db_idx = parse_dot_bracket(db_str)
@@ -82,7 +79,7 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool, r0:float=1.2, PBC:boo
     #p is particle id, q is paired particle id
     for p, q in enumerate(db_idx):
         if q != -1:
-            force_list.append(mutual_trap(p, q, stiff, r0, True, rate=rate, stiff_rate=stiff_rate))
+            force_list.append(mutual_trap(p, q, stiff, r0, PBC=PBC, rate=rate, stiff_rate=stiff_rate))
 
     return force_list
 
@@ -105,6 +102,17 @@ def main():
 
     with open(args.db_file[0]) as f:
         db_str = f.read()
+
+    # The file isn't just a db
+    db_lines = db_str.split('\n')
+    if len(db_lines) > 1:
+        db_str = ''
+        for l in db_lines:
+            if l[0] == '(' or l[0] == '.':
+                db_str = l
+                break
+    if db_str == '':
+        raise RuntimeError("Dot-bracket strings must start with '.' or '('!  No dot-bracket string found in file")
 
     # Default trap stiffness is 0.09 which won't explode most simulations.
     if args.stiff:
