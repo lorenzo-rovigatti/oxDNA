@@ -195,10 +195,12 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 
 						if(r_p > _sigma_ss) {
 							p_bond.force = tmp_force;
+							p_bond.r = _computed_r;
 							p_bond.p_torque = p_torque;
 							p_bond.q_torque = q_torque;
 
 							q_bond.force = -tmp_force;
+							q_bond.r = -_computed_r;
 							q_bond.p_torque = -q_torque;
 							q_bond.q_torque = -p_torque;
 						}
@@ -315,10 +317,12 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 								q->torque += q_torque;
 
 								p_bond.force = (dist_surf < _sigma_ss) ? angular_force : tot_force;
+								p_bond.r = _computed_r;
 								p_bond.p_torque = p_torque;
 								p_bond.q_torque = q_torque;
 
 								q_bond.force = (dist_surf < _sigma_ss) ? -angular_force : -tot_force;
+								q_bond.r = -_computed_r;
 								q_bond.p_torque = -q_torque;
 								q_bond.q_torque = -p_torque;
 
