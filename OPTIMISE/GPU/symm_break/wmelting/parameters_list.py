@@ -245,9 +245,13 @@ par_index.append(PARS_LIST.index("CRST_THETA8_TC_55"))
 
 compl_symm_ids_2d = [0]
 compl_symm_ids_2d_no_TT_AA = [44]
+compl_symm_ids = [2] #leave it empty, and we break the comp symmetry
+"""
+#THESE ARE FENE AND STACKING
 compl_symm_ids = [1,2]
 for i in range(45,77) :
     compl_symm_ids.append(i)
+"""
 compl_symm_ids_no_TT_AA = []
 perm_symm_ids_4d = []
 perm_symm_ids_2d = []

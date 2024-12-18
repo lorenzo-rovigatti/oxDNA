@@ -112,7 +112,7 @@ print("cuts: "+str(rclow)+" "+str(rchigh))
 
 cg.Nreps = 1
 #fun.e3s = [[]*cg.Nseq]
-for l in range(cg.Nseq): fun.e3s.append([])
+for l in range(cg.Nseq): fun.e3s.append([]) 
 #print(fun.e3s)
 
 for l in range(cg.Nseq):
@@ -367,8 +367,8 @@ for n in range(len(low_bond)) :
         if ub > 0.42: up_bond[n] = ub
         else: up_bond[n] = 0.42
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
-        low_bond[n] = 2.96709
-        up_bond[n] = 3.31609
+        low_bond[n] = 2.880
+        up_bond[n] = 3.405
     elif cfun.OPT_PAR_LIST[n][0] == 55:
 
         lb = low_bond[n]*0.5
@@ -423,7 +423,7 @@ def Callback(sol):
 time_opti_start = time.time()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':10000,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':20000,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

@@ -63,3 +63,5 @@ T = 0.1 #300K
 weight_gs = 1.
 
 modelh = path_opticode+"/model.h"
+
+stck_fact_eps = 0.18 #for reweighting temperature
