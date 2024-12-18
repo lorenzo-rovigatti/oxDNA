@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import List, Dict
 import inspect
 import numpy as np
+#import numpy.typing as npt
 from typing import Union
 
 
@@ -66,7 +67,7 @@ class Configuration:
             a3s (numpy.ndarray) : the orientations of the stacking sites
     """
     time : int
-    box : np.ndarray
+    box : np.ndarray #np.ndarray[tuple[Literal[3]], np.dtype[np.float]] # This is possible in np > 2.1.0
     energy : np.ndarray
     positions : np.ndarray
     a1s : np.ndarray
@@ -95,7 +96,10 @@ class System:
             strands (List[Strand]) : A list of Strand objects
     """
 
-    def __init__(self, top_file:str='', strands:List = []):
+    top_file: str
+    strands: List[Strand]
+
+    def __init__(self, top_file:str='', strands:List[Strand] = []):
         self.top_file = top_file
         self.strands = strands
 
@@ -104,6 +108,9 @@ class System:
 
     def __iter__(self):
         return (s for s in self.strands)
+    
+    def __len__(self):
+        return len(self.strands)
 
     def append(self, strand:Strand):
         """
@@ -128,15 +135,21 @@ class Strand:
             **kwargs (dict) : Set addtional attributes of the strand object from key:value pairs.
 
         Attributes:
-            __from_old (bool) : Was this created from an old-style topology file? (default : False)
+            _from_old (bool) : Was this created from an old-style topology file? (default : False)
             id (int) : ID of this strand in the topology file
             monomers (list[Monomer]) : List of consitutent monomer objects (default : [])
             type (str) : Type of molecule this represents (default : DNA)
             circular (bool) : Is this a circular strand? (default : False)
     """
 
+    _from_old: bool
+    id: int
+    monomers: List[Monomer]
+    type: str
+    circular: bool
+
     def __init__(self, id, *initial_data, **kwargs):
-        self.__from_old = False
+        self._from_old = False
         self.id = id
         self.monomers = []
         self.type = 'DNA'
@@ -146,7 +159,11 @@ class Strand:
                 setattr(self, key, dictionary[key])
         for key in kwargs:
             setattr(self, key, kwargs[key])
+
+        # the initial values come in as strings, so ones with known types must be set.
         self.id = int(self.id)
+        if isinstance(self.circular, str):
+            self.circular = self.circular.lower() == "true"
 
     def __getitem__(self, key:int):
         return self.monomers[key]
@@ -157,6 +174,9 @@ class Strand:
     def __iter__(self):
         return (m for m in self.monomers)
     
+    def __len__(self):
+        return len(self.monomers)
+    
     # Attributes which should not be included file write out should start with '__'
     def get_kwdata(self) -> Dict[str,str]:
         """
@@ -165,7 +185,7 @@ class Strand:
         Used for writing out new-style topology files.
         """
         attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
-        attributes = [a for a in attributes if not(a[0].startswith('__') or a[0].endswith('__'))]
+        attributes = [a for a in attributes if not(a[0].startswith('_') or a[0].endswith('_'))]
         d = {k:str(v) for k,v in attributes if k != 'monomers'}
         return d
 
@@ -173,13 +193,13 @@ class Strand:
         """
         Returns whether this Strand came from an old-style topology file.
         """
-        return self.__from_old
+        return self._from_old
     
     def set_old(self, from_old):
         """
-        Sets the __from_old attribute read by `is_old`.
+        Sets the _from_old attribute read by `is_old`.
         """
-        self.__from_old = from_old
+        self._from_old = from_old
 
     def is_circular(self) -> bool:
         """
@@ -209,6 +229,16 @@ class Strand:
         for m, s, in zip(self, new_seq):
             m.btype = s
 
+    def append(self, monomer:Monomer):
+        """
+            Append a monomer to the strand.
+
+            Modifies this strand in-place.
+
+            Parameters:
+                monomer (Monomer) : The monomer to append
+        """
+        self.monomers.append(monomer)
 
 #No, you cannot make n3, n5 and pair refs to other Monomers
 #Scaffold strands are long enough that it would stack overflow while pickling for Pool processing
@@ -220,8 +250,11 @@ class Monomer:
     """
     id : int
     btype : str
-    strand : Union[Strand, None]
-    n3 : Union[int, None]
-    n5 : Union[int, None]
-    pair : Union[int, None]
+    strand : Union[Strand, None] = None
+    n3 : Union[int, None] = None
+    n5 : Union[int, None] = None
+    pair : Union[int, None] = None
+    pos : Union[np.ndarray, None] = None
+    a1 : Union[np.ndarray, None] = None
+    a3 : Union[np.ndarray, None] = None
     

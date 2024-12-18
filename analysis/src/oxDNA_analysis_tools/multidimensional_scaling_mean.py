@@ -37,6 +37,9 @@ def make_heatmap(contact_map:np.ndarray):
 
     Parameters:
         contact_map (numpy.array): An array of all pairwise distances between nucleotides.
+
+    Displays:
+        The distances between all nucleotides as a heatmap
     """
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots()
@@ -77,6 +80,9 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             ncpus (int): (optional) Number of CPUs to use.
+
+        Returns:
+            Tuple[Configuration, np.ndarray]: The average configuration and the distance matrix with all distances above the cutoff masked
     """
     example_conf = get_confs(top_info, traj_info, 1, 1)[0]
     
@@ -103,6 +109,9 @@ def distance_deviations(traj_info:TrajInfo, top_info:TopInfo, masked_mean:np.nda
             top_info (TopInfo): Information about the topology.
             masked_mean (np.ndarray): The mean contact map with values greater than a cutoff masked.
             ncpus (int): (optional) Number of CPUs to use.
+
+        Returns:
+            np.ndarray: The per-particle deviation from the mean distance map
     """
     # Compute the deviations from the mean
     ctx = DevsContext(traj_info, top_info, masked_mean)
@@ -127,8 +136,8 @@ def cli_parser(prog="multidimensional_scaling_mean.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-o', '--output', metavar='output', type=str, nargs=1, help='the name of the .dat file where the mean will be written')
     parser.add_argument('-d', '--dev_file', metavar='dev_file', type=str, nargs=1, help='the name of the .json file where the devs will be written')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

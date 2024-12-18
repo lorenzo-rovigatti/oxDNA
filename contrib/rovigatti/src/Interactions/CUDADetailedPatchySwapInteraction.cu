@@ -342,6 +342,7 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 				c_number4 tmp_force = b1.force * factor;
 				tmp_force.w = 0.f;
 
+				_update_stress_tensor<false>(p_st, b1.r, -tmp_force);
 				F -= tmp_force;
 				LR_atomicAddXYZ(forces + b1.q, tmp_force);
 
@@ -354,6 +355,7 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 				tmp_force = b2.force * factor;
 				tmp_force.w = 0.f;
 
+				_update_stress_tensor<false>(p_st, b2.r, -tmp_force);
 				F -= tmp_force;
 				LR_atomicAddXYZ(forces + b2.q, tmp_force);
 

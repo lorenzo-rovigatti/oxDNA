@@ -266,6 +266,7 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 ```
 
 ## File info
+
 ```{eval-rst}
 .. toctree::
    :maxdepth: 2
@@ -278,6 +279,22 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
     oxDNA_analysis_tools.file_info.file_info
     
 .. autofunction:: oxDNA_analysis_tools.file_info.file_info
+```
+
+## Forces to dot-bracket
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.forces2db.forces2db
+    
+.. autofunction:: oxDNA_analysis_tools.forces2db.forces2db
 ```
 
 ## Mean
@@ -346,7 +363,7 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autofunction:: oxDNA_analysis_tools.output_bonds.output_bonds
 ```
 
-## Principle component analysis
+## OxDNA to PDB
 
 ```{eval-rst}
 .. toctree::
@@ -357,15 +374,40 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.pca.align_positions
-    oxDNA_analysis_tools.pca.map_confs_to_pcs
-    oxDNA_analysis_tools.pca.make_heatmap
-    oxDNA_analysis_tools.pca.pca
+    oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
     
-.. autofunction:: oxDNA_analysis_tools.pca.align_positions
-.. autofunction:: oxDNA_analysis_tools.pca.map_confs_to_pcs
-.. autofunction:: oxDNA_analysis_tools.pca.make_heatmap
-.. autofunction:: oxDNA_analysis_tools.pca.pca
+.. autofunction:: oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
+```
+
+## Pairs to dot-bracket
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.pairs2db.pairs2db
+    
+.. autofunction:: oxDNA_analysis_tools.pairs2db.pairs2db
+```
+
+## PDB to oxDNA
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.PDB_oxDNA.PDB_oxDNA
+    
+.. autofunction:: oxDNA_analysis_tools.PDB_oxDNA.PDB_oxDNA
 ```
 
 ## Persistence length
@@ -386,6 +428,28 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autofunction:: oxDNA_analysis_tools.persistence_length.persistence_length
 .. autofunction:: oxDNA_analysis_tools.persistence_length.get_r
 .. autofunction:: oxDNA_analysis_tools.persistence_length.fit_PL
+```
+
+## Principle component analysis
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.pca.align_positions
+    oxDNA_analysis_tools.pca.map_confs_to_pcs
+    oxDNA_analysis_tools.pca.make_heatmap
+    oxDNA_analysis_tools.pca.pca
+    
+.. autofunction:: oxDNA_analysis_tools.pca.align_positions
+.. autofunction:: oxDNA_analysis_tools.pca.map_confs_to_pcs
+.. autofunction:: oxDNA_analysis_tools.pca.make_heatmap
+.. autofunction:: oxDNA_analysis_tools.pca.pca
 ```
 
 ## Subset trajectory

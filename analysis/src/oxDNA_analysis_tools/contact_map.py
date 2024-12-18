@@ -25,7 +25,7 @@ def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.ndarray:
         chunk_id (int): The id of the chunk to process.
     
     Returns:
-        distances (numpy.array): A NxN matrix containing pairwise distances between every pair of nucleotides.
+        np.ndarray: A NxN matrix containing pairwise distances between every pair of nucleotides.
     """
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
 
@@ -44,6 +44,9 @@ def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.ndarray:
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             ncpus (int): (optional) The number of cores to use.
+        
+        Returns:
+            np.ndarray: The average distance between all nucleotides in the structure over the trajectory
     """
     ctx = ComputeContext(traj_info, top_info)
 
@@ -64,10 +67,10 @@ def cli_parser(prog="contact_map.py"):
     #get commandline arguments
     parser = argparse.ArgumentParser(prog = prog, description="Calculate and display the contact map for a structure")
     parser.add_argument('trajectory', type=str, nargs=1, help="The file containing the configurations of which the contact map is needed")
-    parser.add_argument('-g', metavar='graph', dest='graph', nargs=1, type=str, help='Filename for the plot')
-    parser.add_argument('-d', metavar='data', dest='data', nargs=1, help='The name of the file to save the contact map as a pickle.')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-g', '--plot', metavar='graph', dest='graph', nargs=1, type=str, help='Filename for the plot')
+    parser.add_argument('-d', '--data', metavar='data', dest='data', nargs=1, help='The name of the file to save the contact map as a pickle.')
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

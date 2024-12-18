@@ -36,6 +36,7 @@ protected:
 	number _sqr_sigma[3];
 	number _epsilon[3];
 	number _sqr_LJ_rcut[3];
+	bool _only_repulsive[3] = {false, false, false};
 
 	inline number _lennard_jones(BaseParticle *p, BaseParticle *q, bool update_forces);
 

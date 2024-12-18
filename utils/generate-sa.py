@@ -29,15 +29,14 @@ def partition(s, d):
     else:
         return s, "", ""
 
+
 # every defined macro in model.h must be imported in this module
 def import_model_constants():
     PI = np.pi
     model = os.path.join(os.path.dirname(__file__), "../src/model.h")
     f = open(model)
     for line in f.readlines():
-        # line = line.strip().partition("//")[0].strip()
         line = (partition (line.strip (), "//")[0]).strip ()
-        #macro = line.partition("#define ")[2].strip().split(" ", 1)
         macro = (partition (line, "#define ")[2]).strip().split(" ", 1)
         if len(macro) > 1:
             key, val = [x.strip() for x in macro]
@@ -69,10 +68,14 @@ newpositions = []
 newa1s = []
 newa3s = []
 
-def add_strands (mynewpositions, mynewa1s, mynewa3s):
-    overlap = False
 
-    #print len (mynewpositions), "@@@"
+def add_strands (mynewpositions, mynewa1s, mynewa3s):
+    '''
+    Populates positions, a1s, a3s, with values from their respective mynewpos, mynewa1s, 
+    mynewa3s arrays
+    Ensures each nt doesn't overlap with any other upon generation
+    '''
+    overlap = False
 
     for i in range(len(positions)):
         p = positions[i]
@@ -89,7 +92,6 @@ def add_strands (mynewpositions, mynewa1s, mynewa3s):
 
             dr = p_pos_back - q_pos_back
             dr -= box * np.rint (dr / box)
-            #print RC2_BACK, np.dot (dr, dr)
             if np.dot(dr, dr) < RC2_BACK:
                 overlap = True
 
@@ -154,13 +156,15 @@ def get_rotation_matrix(axis, anglest):
                     [olc*x*y+st*z, olc*y*y+ct, olc*y*z-st*x],
                     [olc*x*z-st*y, olc*y*z+st*x, olc*z*z+ct]])
 
+
 class StrandGenerator (object):
     def generate(self, bp, sequence=None, start_pos=np.array([0, 0, 0]), dir=np.array([0, 0, 1]), perp=False, double=True, rot=0.):
         mynewpositions, mynewa1s, mynewa3s = [], [], []
-        #assert (len (newpositions) == 0)
-        # we need a numpy array for these
+
         start_pos = np.array(start_pos, dtype=float)
+
         dir = np.array(dir, dtype=float)
+        
         if sequence == None:
             sequence = np.random.randint(0, 4, bp)
         elif len(sequence) != bp:
@@ -184,29 +188,22 @@ class StrandGenerator (object):
             v1 -= dir * (np.dot(dir, v1))
             v1 /= np.sqrt(sum(v1*v1))
         else:
-            v1 = perp;
-
+            v1 = perp
+            
         # and we need to generate a rotational matrix
         R0 = get_rotation_matrix(dir, rot)
         #R = get_rotation_matrix(dir, np.deg2rad(35.9))
         R = get_rotation_matrix(dir, [1, "bp"])
-
-        #ns1 = base.Strand()
 
         a1 = v1
         a1 = np.dot (R0, a1)
         rb = np.array(start_pos)
         a3 = dir
         for i in range(bp):
-            #ns1.add_nucleotide(base.Nucleotide(rb - base.CM_CENTER_DS * a1, a1, a3, sequence[i]))
             rcdm = rb - CM_CENTER_DS * a1
             mynewpositions.append (rcdm)
             mynewa1s.append(a1)
             mynewa3s.append(a3)
-            #print >> outfile, rcdm[0], rcdm[1], rcdm[2],
-            #print >> outfile, a1[0], a1[1], a1[2],
-            #print >> outfile, a3[0], a3[1], a3[2],
-            #print >> outfile, 0., 0., 0., 0., 0., 0. # v and L
             if i != bp-1:
                 a1 = np.dot(R, a1)
                 rb += a3 * BASE_BASE
@@ -215,24 +212,104 @@ class StrandGenerator (object):
             a1 = -a1
             a3 = -dir
             R = R.transpose()
-            #ns2 = base.Strand()
-            for i in range(bp):
-                #ns2.add_nucleotide(base.Nucleotide(rb - base.CM_CENTER_DS * a1, a1, a3, sequence2[i]))
+            for _ in range(bp):
                 rcdm = rb - CM_CENTER_DS * a1
                 mynewpositions.append (rcdm)
                 mynewa1s.append (a1)
                 mynewa3s.append (a3)
-                #print >> outfile, rcdm[0], rcdm[1], rcdm[2],
-                #print >> outfile, a1[0], a1[1], a1[2],
-                #print >> outfile, a3[0], a3[1], a3[2],
-                #print >> outfile, 0., 0., 0., 0., 0., 0. # v and L
                 a1 = np.dot(R, a1)
                 rb += a3 * BASE_BASE
 
-        #print "eccoce", len(mynewpositions)
         assert (len (mynewpositions) > 0)
 
         return [mynewpositions, mynewa1s, mynewa3s]
+    
+
+    def generate_sticky(self, top_bp, bot_bp, bot_seq_start_nn, start_pos=np.array([0, 0, 0]), dir=np.array([0, 0, 1]), perp=False, rot=0.):
+        mynewpositions, mynewa1s, mynewa3s = [], [], []
+
+        start_pos = np.array(start_pos, dtype = float)
+
+        dir = np.array(dir, dtype = float)
+
+        # normal vector to the dir respect to top strand
+        dir_norm = np.sqrt(np.dot(dir, dir))
+        if dir_norm < 1e-10:
+            print("STICKY: direction must be a valid vector, defaulting to (0,0,1)", file = sys.stderr)
+            dir = np.array([0,0,1])
+        else:
+            dir /= dir_norm
+        
+        if perp is None or perp is False:
+            v1 = np.random.random_sample(3)
+            v1 -= dir * (np.dot(dir, v1))
+            v1 /= np.sqrt(sum(v1*v1))
+        else:
+            v1 = perp
+
+        # rotational matrix
+        R0 = get_rotation_matrix(dir, rot)
+        R = get_rotation_matrix(dir, [1, "bp"])
+
+        a1 = v1
+        a1 = np.dot(R0, a1)
+        rb = np.array(start_pos)
+        a3 = dir
+
+        # generates the position of all nt for the top stand seq
+        for _ in range(top_bp):
+            rcdm = rb - (CM_CENTER_DS * a1)
+            mynewpositions.append(rcdm)
+            mynewa1s.append(a1)
+            mynewa3s.append(a3)
+            a1 = np.dot(R, a1)
+            rb += a3 * BASE_BASE
+        
+        # adjusting the position such that we start at the end of the bottom strand seq's
+        # sticky end
+        for _ in range(int(bot_seq_start_nn) - 1):
+            rcdm = rb - (CM_CENTER_DS * a1)
+            a1 = np.dot(R, a1)
+            rb += a3 * BASE_BASE
+
+        # reversing the direction of generation to meet anti-parallel condition
+        a1 = -a1
+        a3 = -dir
+        R = R.transpose()
+
+        # generates the position of all nt for the bottom strand seq
+        for _ in range(bot_bp):
+            rcdm = rb - CM_CENTER_DS * a1
+            mynewpositions.append (rcdm)
+            mynewa1s.append (a1)
+            mynewa3s.append (a3)
+            a1 = np.dot(R, a1)
+            rb += a3 * (BASE_BASE)
+
+        assert (len (mynewpositions) > 0)
+
+        return [mynewpositions, mynewa1s, mynewa3s]
+
+
+# helper function to avoid code repeition in the read_strands() function
+def topo_file_helper(nt_count: int, strand_count: int, output_file, strand):
+    print(strand_count, strand[0], -1, nt_count + 1, file=output_file)
+    nt_count += 1
+    for i in range (1, len(strand) - 1):
+        print(strand_count, strand[i], nt_count - 1, nt_count + 1, file=output_file)
+        nt_count += 1
+    print(strand_count, strand[-1], nt_count - 1, -1, file=output_file)
+    nt_count += 1
+    strand_count += 1
+    return nt_count, strand_count
+
+
+# helper function to avoid code repeition in the read_strands() function
+def initial_strand_gen_randomizer():
+    cdm = np.random.random_sample(3) * box
+    axis = np.random.random_sample(3)
+    axis /= np.sqrt(np.dot(axis, axis))
+    return cdm, axis
 
 
 def read_strands(filename):
@@ -241,6 +318,8 @@ def read_strands(filename):
     Reads a text file with the following format:
     - Each line contains the sequence for a single strand (A,C,T,G)
     - Lines begining in DOUBLE produce double stranded DNA
+    - Lines beginning in STICKY produce a dsDNA with sticky ends, sticky ends have the same length
+        - We define sticky end as the end strand of a linear dsDNA without its complementary strand
 
     Ex: Two ssDNA (single stranded DNA)
     ATATATA
@@ -250,9 +329,20 @@ def read_strands(filename):
     DOUBLE AGGGCT
     CCTGTA
 
+    Ex: one sticky dsDNA
+    STICKY 4 TTTTGAGACACG AAAA
+
+    The number after STICKY denotes the length of the sticky end
+    
+    In the above example, the sticky ends are TTTT and AAAA (they must match in length), they
+    do not have to be the same sequence
+    
+    The code will automatically generate the complementary sequences making up the second strand
+    after the "sticky end" of the first strand
+    
+    The first strand in the above example is TTTTGAGACACG
+
     """
-    # prendiamo le sequenze da un file; ogni riga uno strand; se e' un
-    # double strand, ci deve essere DOUBLE davanti
 
     try:
         infile = open (filename)
@@ -277,6 +367,23 @@ def read_strands(filename):
             length = len(line)
             print("## Found duplex of %i bases" % (length), file=sys.stderr)
             nnucl += 2 * length
+            nstrands += 2
+        elif line[:6] == 'STICKY':
+            parsed_line = line.split()
+
+            top_strand_seq = parsed_line[2]
+            bot_strand_seq = parsed_line[3]
+            top_strand_len = len(top_strand_seq)
+            bot_strand_len = len(bot_strand_seq)
+
+            len_complement = 0
+            if int(parsed_line[1]) != 0:
+                len_complement = top_strand_len - (int(parsed_line[1]))
+
+            total_len = top_strand_len + bot_strand_len + len_complement
+
+            print("## Found sticky duplex of %i total bases" % (total_len), file = sys.stderr)
+            nnucl += total_len
             nstrands += 2
         else:
             line = line.split()[0]
@@ -304,38 +411,37 @@ def read_strands(filename):
             continue
         if line[:6] == 'DOUBLE':
             line = line.split()[1].upper()
-            print(myns, line[0], -1, mynn + 1, file=out)
-            mynn += 1
-            for i in range (1, len(line) - 1):
-                print(myns, line[i], mynn - 1, mynn + 1, file=out)
-                mynn += 1
-            print(myns, line[-1], mynn - 1, -1, file=out)
-            mynn += 1
-            myns += 1
+            mynn, myns = topo_file_helper(mynn, myns, out, line)
 
             # get the compl sequence in numbers
             seq = [3 - base_to_number[x] for x in line]
             # put it back in letters
             line = [number_to_base[x] for x in seq[::-1]]
 
-            print(myns, line[0], -1, mynn + 1, file=out)
-            mynn += 1
-            for i in range (1, len(line) - 1):
-                print(myns, line[i], mynn - 1, mynn + 1, file=out)
-                mynn += 1
-            print(myns, line[-1], mynn - 1, -1, file=out)
-            mynn += 1
-            myns += 1
+            mynn, myns = topo_file_helper(mynn, myns, out, line)
+
+        elif line[:6] == 'STICKY':
+            splited_line = line.split()
+            
+            bot_start_nn = int(splited_line[1])
+            assert bot_start_nn > 0, "bot strand nt start # must > 0, maybe use double?"
+            
+            top_strand_seq = splited_line[2].upper()
+            mynn, myns = topo_file_helper(mynn, myns, out, top_strand_seq)
+
+            # bottom seq
+            bot_strand_hang = list(splited_line[3].upper())
+            assert len(bot_strand_hang) == bot_start_nn, "the length of the stickey ends must be equal"
+
+            truncated_top_seq = splited_line[2][(bot_start_nn):]
+            bot_strand_seq_in_numbers = [3 - base_to_number[x] for x in truncated_top_seq]
+            bot_strand_seq = bot_strand_hang + [number_to_base[x] for x in bot_strand_seq_in_numbers[::-1]]
+
+            mynn, myns = topo_file_helper(mynn, myns, out, bot_strand_seq)
+
         else:
             line = line.split()[0].upper()
-            print(myns, line[0], -1, mynn + 1, file=out)
-            mynn += 1
-            for i in range (1, len(line) - 1):
-                print(myns, line[i], mynn - 1, mynn + 1, file=out)
-                mynn += 1
-            print(myns, line[-1], mynn -1, -1, file=out)
-            mynn += 1
-            myns += 1
+            mynn, myns = topo_file_helper(mynn, myns, out, line)
     out.close ()
     infile.seek (0)
 
@@ -345,40 +451,63 @@ def read_strands(filename):
     nlines = len(lines)
     i = 1
     for line in lines:
-        #print "AAA", i, len(positions)
         line = line.upper().strip()
         # skip empty lines
-        if len(line) == 0: continue
+        if len(line) == 0: 
+            continue
         if line[:6] == 'DOUBLE':
             line = line.split()[1]
             seq = [base_to_number[x] for x in line]
             length = len(line)
             print("## Adding duplex of %i bases" % (length), file=sys.stderr)
-            cdm = np.random.random_sample(3) * box
-            axis = np.random.random_sample(3)
-            axis /= np.sqrt(np.dot(axis, axis))
+
+            cdm, axis = initial_strand_gen_randomizer()
             newpositions, newa1s, newa3s = double.generate(len(line), sequence=seq, dir=axis, start_pos=cdm, double=True)
+            
             while not add_strands(newpositions, newa1s, newa3s):
-                cdm = np.random.random_sample(3) * box
-                axis = np.random.random_sample(3)
-                axis /= np.sqrt(np.dot(axis, axis))
+                cdm, axis = initial_strand_gen_randomizer()
                 newpositions, newa1s, newa3s = double.generate(len(line), sequence=seq, dir=axis, start_pos=cdm, double=True)
                 print("##  trying %i" % (i), file=sys.stderr)
-            #print >> sys.stderr, "##  done line %i / %i" % (i, nlines)
+
             print("##  done line %i / %i, now at %i/%i" % (i, nlines, len(positions), nnucl), file=sys.stderr)
+        elif line[:6] == 'STICKY':
+            splited_line = line.split()
+
+            bot_start_nn = splited_line[1]
+            top_strand_seq = splited_line[2]
+            bot_strand_seq = splited_line[3]
+
+            top_bp_len = len(top_strand_seq)
+            
+            len_complement = 0
+            if int(bot_start_nn) != 0:
+                len_complement = top_strand_len - (int(bot_start_nn))
+
+            bot_bp_len = len(bot_strand_seq) + len_complement
+            total_len = top_strand_len + bot_bp_len
+
+            print("## Adding sticky duplex of %i bases" % (total_len), file = sys.stderr)
+
+            cdm, axis = initial_strand_gen_randomizer()
+            newpositions, newa1s, newa3s = double.generate_sticky(top_bp_len, bot_bp_len, bot_start_nn, start_pos=cdm, dir=axis)
+            
+            while not add_strands(newpositions, newa1s, newa3s):
+                cdm, axis = initial_strand_gen_randomizer()
+                newpositions, newa1s, newa3s = double.generate_sticky(top_bp_len, bot_bp_len, bot_start_nn, start_pos=cdm, dir=axis)
+                print("## tryin %i" % i, file = sys.stderr)
+
+            print("## done line %i / %i, now at %i / %i" % (i, nlines, len(positions), nnucl), file = sys.stderr)
         else:
             seq = [base_to_number[x] for x in line]
-            cdm = np.random.random_sample(3) * box
-            axis = np.random.random_sample(3)
-            axis /= np.sqrt(np.dot(axis, axis))
+            cdm, axis = initial_strand_gen_randomizer()
             print("## Adding single strand of %i bases" % (len(line)), file=sys.stderr)
             newpositions, newa1s, newa3s = double.generate(len(line), sequence=seq, dir=axis, start_pos=cdm, double=False)
+            
             while not add_strands(newpositions, newa1s, newa3s):
-                cdm = np.random.random_sample(3) * box
-                axis = np.random.random_sample(3)
-                axis /= np.sqrt(np.dot(axis, axis))
+                cdm, axis = initial_strand_gen_randomizer()
                 newpositions, newa1s, newa3s = double.generate(len(line), sequence=seq, dir=axis, start_pos=cdm, double=False)
                 print("##  trying  %i" % (i), file=sys.stderr)
+
             print("##  done line %i / %i, now at %i/%i" % (i, nlines, len(positions), nnucl), file=sys.stderr)
 
         #print "AAA", i, len(positions)
@@ -396,6 +525,9 @@ def read_strands(filename):
         print("Could not open generated.dat for writing.  Aborting", file=sys.stderr)
         sys.exit(5)
 
+    # print("---")
+    # print(positions)
+
     print("t = 0", file=outfile)
     print("b = ", box_side, box_side, box_side, file=outfile)
     print("E = 0. 0. 0.", file=outfile)
@@ -410,4 +542,3 @@ def read_strands(filename):
 
 
 read_strands (infile)
-

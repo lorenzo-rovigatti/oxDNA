@@ -26,10 +26,7 @@ def get_RNA_axis(particles, d):
         
         Parameters:
             particles (oxpy.config_info): The positions/orientations of the particles
-            start1 (int): Particle ID of the first particle in the first strand
-            end1 (int): Particle ID of the last particle in the first strand
-            end2 (int): Particle ID of the particle complimentary to start1
-            start2 (int): Particle ID of the particle complimentary to end1    
+            d (duplex_list): A duplex_list object with members "start1", "end1", "end2", "start2" containing integer values of the corresponding particle IDs. 
     """
 
     nucA = particles[d.start1]
@@ -117,10 +114,7 @@ def get_DNA_axis (particles, d):
         
         Parameters:
             particles (oxpy.config_info): The positions/orientations of the particles
-            start1 (int): Particle ID of the first particle in the first strand
-            end1 (int): Particle ID of the last particle in the first strand
-            end2 (int): Particle ID of the particle complimentary to start1
-            start2 (int): Particle ID of the particle complimentary to end1    
+            d (duplex_list): A duplex_list object with members "start1", "end1", "end2", "start2" containing integer values of the corresponding particle IDs.    
     """
     vec = np.empty((d.end1-d.start1, 3))
     for i, j in zip(range(d.start1, d.end1), range(d.end2, d.start2, -1)):

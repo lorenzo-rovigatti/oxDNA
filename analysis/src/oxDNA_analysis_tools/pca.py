@@ -30,12 +30,12 @@ def align_positions(centered_ref_coords:np.ndarray, coords:np.ndarray) -> np.nda
 
     This one only considers positions, unlike the one in align which also handles the a vectors
 
-    Parameters
+    Parameters:
         centered_ref_coords (np.array): reference coordinates, centered on [0, 0, 0]
         coords (np.array): coordinates to be aligned
 
-    Returns
-        (np.array) : Aligned coordinates for the given conf
+    Returns:
+        np.ndarray: Aligned coordinates for the given conf
     """
     # center on centroid
     av1, reference_coords = np.zeros(3), centered_ref_coords.copy()
@@ -95,7 +95,7 @@ def map_confs_to_pcs(ctx:ComputeContext_map, chunk_size:int, chunk_id:int):
         cunk_id (int) : The id of the current chunk
 
     Returns:
-        coordinates (numpy.array): The positions of each frame of the trajectory in principal component space.
+        np.ndarray: The positions of each frame of the trajectory in principal component space.
     """
 
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
@@ -118,7 +118,7 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
             ncpus (int) : (optional) The number of CPUs to use for the computation
 
         Returns:
-            (np.ndarray, np.ndarray, np.ndarray) : The structures mapped to coordinate space, the eigenvalues and the eigenvectors
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: The structures mapped to coordinate space, the eigenvalues and the eigenvectors
 
     """
     
@@ -174,10 +174,10 @@ def cli_parser(prog="pca.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('meanfile', type=str, nargs=1, help='The mean structure from oat mean')
     parser.add_argument('outfile', type=str, nargs=1, help='the name of the oxView .json overlay file where the PCs will be written')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
-    parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
-    parser.add_argument('-n', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
+    parser.add_argument('-c', '--cluster', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
+    parser.add_argument('-n', '--view_comps', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -230,7 +230,7 @@ def main():
                         )
     log("Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N))
     for i in range(0, N): #how many eigenvalues do you want?
-        f = outfile.strip(".json")+str(i)+".json"
+        f = outfile.removesuffix(".json")+str(i)+".json"
         out = np.sqrt(evalues[i])*evectors[i]
 
         with catch_warnings(): #this produces an annoying warning about casting complex values to real values that is not relevant

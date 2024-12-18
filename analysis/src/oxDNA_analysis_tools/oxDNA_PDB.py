@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import os
+import re
 import numpy as np
 import copy
 import argparse
@@ -11,7 +11,7 @@ from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
-from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration
+from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration, System
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxDNA_analysis_tools.UTILS.utils as utils
 
@@ -225,65 +225,22 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
     return(atom_counter)
 
-def cli_parser(prog="oxDNA_PDB.py"):
-    parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
-    parser.add_argument('topology', type=str,
-                        help='the oxDNA topology file for the structure')
-    parser.add_argument('configuration', type=str,
-                        help='the configuration file you wish to convert')
-    parser.add_argument('direction', type=str,
-                        help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
-    parser.add_argument('pdbfiles', type=str, nargs='*',
-                        help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.')
-    parser.add_argument('-o', '--output', type=str, 
-                        help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
-    parser.add_argument('-d', '--output_direction', type=str,
-                        help='Direction to save nucleic acid strands in.  Should be "53" or "35".  Defaults to same as input direction.')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, 
-                        help="Don't print 'INFO' messages to stderr")
-    parser.add_argument('-H', '--hydrogen', action='store_true', default=True,
-                        help='if you want to include hydrogen atoms in the output PDB file')
-    parser.add_argument('-u', '--uniform-residue-names', action='store_true', default=False,
-                        help='if you want to use uniform residue names in the output PDB file')
-    parser.add_argument('-1', '--one_file_per_strand', action='store_true',
-                        default=False, help='if you want to have one PDB file per strand')
-    parser.add_argument('-r', '--rmsf-file', dest='rmsf_bfactor', type=str, nargs=1, 
-                        help='A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)')
-    return parser
+def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:List[str]=[], reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
+    """
+        Convert an oxDNA file to a PDB file.  Directly writes the file.
 
-def main():
-    parser = cli_parser(os.path.basename(__file__))
-    args = parser.parse_args()
+        Parameters:
+            conf (Configuration) : The Configuration to convert
+            system (System) : The system topology for the configuration to convert
+            out_basename (str) : Filename(-.pdb) to write out to
+            protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. Default: []
+            reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). Default: False
+            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). Default: True
+            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). Default: False
+            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). Default: False
+            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. Default: ''
 
-    # Parse positional arguments
-    logger_settings.set_quiet(args.quiet)
-    top_file = args.topology
-    conf_file = args.configuration
-    direction = args.direction
-    if direction not in ["35", "53"]:
-        raise RuntimeError("Error: Direction must be either 35 or 53")
-    if args.pdbfiles:
-        protein_pdb_files = args.pdbfiles
-    else:
-        protein_pdb_files = None
-
-    # Parse optional arguments
-    if args.output:
-        out_basename = args.output.rstrip('.pdb')
-    else:
-        out_basename = conf_file
-    reverse = False
-    if args.output_direction:
-        if args.output_direction not in ["35", "53"]:
-            raise RuntimeError("Error: Output direction must be either 35 or 53")
-        if args.output_direction != direction:
-            reverse = True
-
-    hydrogen = args.hydrogen
-    uniform_residue_names = args.uniform_residue_names
-    one_file_per_strand = args.one_file_per_strand
-    rmsf_file = args.rmsf_bfactor
-
+    """
     # Open PDB File of nice lookin duplexes to get base structures from
     DNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH))
     RNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), RNA_PDB_PATH))
@@ -291,11 +248,6 @@ def main():
     DNAbases = choose_reference_nucleotides(DNAnucleotides)
     RNAbases = choose_reference_nucleotides(RNAnucleotides)
 
-    # Read oxDNA configuration
-    system, _ = strand_describe(top_file)
-    ti, di = describe(top_file, conf_file)
-    conf = get_confs(ti, di, 0, 1)[0]
-    conf = inbox(conf, center=True)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
     # Handle RMSF -> bFactor conversion
@@ -336,8 +288,7 @@ def main():
             nucleotides_in_strand = strand.monomers
             sequence = [n.btype for n in nucleotides_in_strand]
             isDNA = True #This should be in the strand parser instead.
-            if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
-                isDNA = False
+            isDNA = strand.get_kwdata()['type'] == 'DNA'
 
             log("Converting strand {}".format(strand.id), end='\r')
 
@@ -391,12 +342,12 @@ def main():
                         if strand.is_old():
                             if nucleotide == strand.monomers[0] and not strand.is_circular():
                                 residue_type = "3"
-                            elif nucleotide == strand.monomers[-1]:
+                            elif nucleotide == strand.monomers[-1] and not strand.is_circular():
                                 residue_type = "5"
                         else:
                             if nucleotide == strand.monomers[0] and not strand.is_circular():
                                 residue_type = "5"
-                            elif nucleotide == strand.monomers[-1]:
+                            elif nucleotide == strand.monomers[-1] and not strand.is_circular():
                                 residue_type = "3"
 
                     nuc_data = {
@@ -450,6 +401,74 @@ def main():
     log("Wrote data to '{}'".format(out_name))
         
     log("DONE")
+
+
+def cli_parser(prog="oxDNA_PDB.py"):
+    parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
+    parser.add_argument('topology', type=str,
+                        help='the oxDNA topology file for the structure')
+    parser.add_argument('configuration', type=str,
+                        help='the configuration file you wish to convert')
+    parser.add_argument('direction', type=str,
+                        help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
+    parser.add_argument('pdbfiles', type=str, nargs='*',
+                        help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.')
+    parser.add_argument('-o', '--output', type=str, 
+                        help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
+    parser.add_argument('-d', '--output_direction', type=str,
+                        help='Direction to save nucleic acid strands in.  Should be "53" or "35".  Defaults to same as input direction.')
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, 
+                        help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-H', '--hydrogen', action='store_true', default=True,
+                        help='if you want to include hydrogen atoms in the output PDB file')
+    parser.add_argument('-u', '--uniform-residue-names', action='store_true', default=False,
+                        help='if you want to use uniform residue names in the output PDB file')
+    parser.add_argument('-1', '--one_file_per_strand', action='store_true',
+                        default=False, help='if you want to have one PDB file per strand')
+    parser.add_argument('-r', '--rmsf-file', dest='rmsf_bfactor', type=str, nargs=1, 
+                        help='A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)')
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
+    args = parser.parse_args()
+
+    # Parse positional arguments
+    logger_settings.set_quiet(args.quiet)
+    top_file = args.topology
+    conf_file = args.configuration
+    direction = args.direction
+    if direction not in ["35", "53"]:
+        raise RuntimeError("Error: Direction must be either 35 or 53")
+    if args.pdbfiles:
+        protein_pdb_files = args.pdbfiles
+    else:
+        protein_pdb_files = []
+
+    # Parse optional arguments
+    if args.output:
+        out_basename = re.sub(r"\.pdb$", "", args.output)
+    else:
+        out_basename = conf_file
+    reverse = False
+    if args.output_direction:
+        if args.output_direction not in ["35", "53"]:
+            raise RuntimeError("Error: Output direction must be either 35 or 53")
+        if args.output_direction != direction:
+            reverse = True
+
+    hydrogen = args.hydrogen
+    uniform_residue_names = args.uniform_residue_names
+    one_file_per_strand = args.one_file_per_strand
+    rmsf_file = args.rmsf_bfactor
+
+    # Read oxDNA configuration
+    system, _ = strand_describe(top_file)
+    ti, di = describe(top_file, conf_file)
+    conf = get_confs(ti, di, 0, 1)[0]
+    conf = inbox(conf, center=True)
+
+    oxDNA_PDB(conf, system, out_basename, protein_pdb_files, reverse, hydrogen, uniform_residue_names, one_file_per_strand, rmsf_file)
 
 if __name__ == '__main__':
     main()

@@ -113,6 +113,9 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 				LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 				p->force -= force;
 				q->force += force;
+
+				_update_stress_tensor(p->pos, -force);
+				_update_stress_tensor(p->pos + _computed_r, force);
 			}
 		}
 		else {
@@ -124,6 +127,9 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 					LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 					p->force -= force;
 					q->force += force;
+
+					_update_stress_tensor(p->pos, -force);
+					_update_stress_tensor(p->pos + _computed_r, force);
 				}
 			}
 		}
@@ -175,12 +181,17 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 						q->torque += q_torque;
 
 						p_bond.force = tmp_force;
+						p_bond.r = _computed_r;
 						p_bond.p_torque = p_torque;
 						p_bond.q_torque = q_torque;
 
 						q_bond.force = -tmp_force;
+						q_bond.r = -_computed_r;
 						q_bond.p_torque = -q_torque;
 						q_bond.q_torque = -p_torque;
+
+						_update_stress_tensor(p->pos, -tmp_force);
+						_update_stress_tensor(p->pos + _computed_r, tmp_force);
 					}
 
 					_particle_bonds(p).emplace_back(p_bond);
@@ -217,6 +228,7 @@ number FSInteraction::_three_body(BaseParticle *p, PatchyBond &new_bond, bool up
 					number factor = -_lambda * other_energy;
 					LR_vector tmp_force = factor * new_bond.force;
 
+					_update_stress_tensor(new_bond.r, -tmp_force);
 					p->force -= tmp_force;
 					other->force += tmp_force;
 
@@ -230,6 +242,7 @@ number FSInteraction::_three_body(BaseParticle *p, PatchyBond &new_bond, bool up
 					number factor = -_lambda * curr_energy;
 					LR_vector tmp_force = factor * other_bond.force;
 
+					_update_stress_tensor(other_bond.r, -tmp_force);
 					p->force -= tmp_force;
 					other->force += tmp_force;
 
@@ -269,8 +282,12 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compu
 		// vector by its module
 		number force_mod = -30. * _polymer_rfene_sqr / (_polymer_rfene_sqr - sqr_r);
 		force_mod *= _polymer_energy_scale / _polymer_length_scale_sqr;
-		p->force -= _computed_r * force_mod;
-		q->force += _computed_r * force_mod;
+		LR_vector force = _computed_r * force_mod;
+		p->force -= force;
+		q->force += force;
+
+		_update_stress_tensor(p->pos, -force);
+		_update_stress_tensor(p->pos + _computed_r, force);
 	}
 
 	energy *= _polymer_energy_scale;
@@ -305,8 +322,12 @@ number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	energy *= _polymer_energy_scale;
 
 	if(update_forces) {
-		p->force -= _computed_r * force_mod;
-		q->force += _computed_r * force_mod;
+		LR_vector force = _computed_r * force_mod;
+		p->force -= force;
+		q->force += force;
+
+		_update_stress_tensor(p->pos, -force);
+		_update_stress_tensor(p->pos + _computed_r, force);
 	}
 
 	return energy;

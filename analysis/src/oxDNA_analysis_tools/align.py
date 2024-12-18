@@ -15,32 +15,40 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "indexes",
                                               "center"])
 
-def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.ndarray=np.array([]), center:bool=True) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:np.ndarray, ref_center:np.ndarray=np.array([])) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Single-value decomposition-based alignment of configurations
 
     Parameters:
         ref_coords (numpy.ndarray): Reference coordinates.  Should be indexed before calling this function.
-        coords (numpy.ndarray): Coordinates to be aligned
-        indexes (List[int]): Indexes of the atoms to be aligned in the coords array
-        ref_center (numpy.ndarray): (optional) The center of mass of the reference configuration. If not provided, it will be calculated (slightly slower for many confss).
+        coords (numpy.ndarray): np.array containing [coordinates, a1s, a3s] for the structure to align
+        indexes (np.ndarray[int]): Indexes of the atoms to be aligned in the coords array
+        ref_center (numpy.ndarray): (optional) The center of mass of the reference configuration. If not provided, it will be calculated (slightly slower for many confs).
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray] A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
     """
+    # Center the ref
     if len(ref_center) == 0:
         ref_center = np.mean(ref_coords, axis=0)
     av1 = ref_center
+    ref_coords = ref_coords - av1
+
+    # Center the victim 
     av2 = np.mean(coords[0][indexes], axis=0)
     coords[0] = coords[0] - av2
-    # correlation matrix
-    a = np.dot(np.transpose(coords[0][indexes]), ref_coords - av1)
+
+    # Correlation matrix
+    a = np.dot(np.transpose(coords[0][indexes]), ref_coords)
     u, _, vt = np.linalg.svd(a)
     rot = np.transpose(np.dot(np.transpose(vt), np.transpose(u)))
-    # check if we have found a reflection
+
+    # Check if we have found a reflection
     if np.linalg.det(rot) < 0:
         vt[2] = -vt[2]
         rot = np.transpose(np.dot(np.transpose(vt), np.transpose(u)))
+    
+    # Apply transformation
     tran = av1
     return  (np.dot(coords[0], rot) + tran,
              np.dot(coords[1], rot),
@@ -54,7 +62,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
 
     # align
     for i, c in enumerate(np_coords):
-        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3), center=ctx.center)
+        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3))
         confs[i].positions = c[0]
         confs[i].a1s = c[1]
         confs[i].a3s = c[2]
@@ -112,11 +120,11 @@ def cli_parser(prog="align.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Aligns each frame in a trajectory to the first frame")    
     parser.add_argument('traj', type=str, nargs=1, help="The trajectory file to align")
     parser.add_argument('outfile', type=str, nargs=1, help='The name of the new trajectory file to write out')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
-    parser.add_argument('-r', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
-    parser.add_argument('-c', metavar='no_center', dest='no_center', action='store_const', const=True, default=False, help="Don't center the output.  Can avoid errors caused by small boxes.")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-i', '--index', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
+    parser.add_argument('-r', '--ref', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
+    parser.add_argument('-c', '--nocenter', metavar='no_center', dest='no_center', action='store_const', const=True, default=False, help="Don't center the output.  Can avoid errors caused by small boxes.")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
