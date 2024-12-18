@@ -283,7 +283,7 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
         atom_counter = 1
 
         # Iterate over strands in the oxDNA file
-        for strand in system.strands:
+        for i, strand in enumerate(system.strands):
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
             sequence = [n.btype for n in nucleotides_in_strand]
@@ -381,11 +381,13 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             # Either open a new file or increment chain ID
             # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
             if one_file_per_strand:
+                print("END", file=out) # Add the END identifier
                 out.close()
                 log("Wrote strand {}'s data to {}".format (strand.id, out_name))
                 chain_id = 'A'
-                if strand != system.strands[-1]:
-                    out_name = out_basename + "_{}.pdb".format(strand.id, )
+                if i < len(system) - 1:
+                    next_strand = system.strands[i + 1]
+                    out_name = out_basename + "_{}.pdb".format(next_strand.id, )
                     out = open(out_name, "w")
             else:
                 chain_id = chr(ord(chain_id)+1)
@@ -396,6 +398,10 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                 elif chain_id == chr(ord('0')+1):
                     log("More than 62 chains identified, looping chain identifier...", level='warning')
                     chain_id = 'A'
+        
+        # Add the END identifier at the end of the file
+        if not one_file_per_strand:
+            print("END", file=out)
         print()
 
     log("Wrote data to '{}'".format(out_name))
