@@ -615,7 +615,7 @@ def build_masks_and_symm_tensors() :
                         #sl.append(ID*256+TY)
                         sl.append(i)
                         sls.append(ID*256+TY_S)
-        if ID in parl.compl_symm_ids_2d_no_TT_AA :
+        elif ID in parl.compl_symm_ids_2d_no_TT_AA :
             ty0 = TY%4
             ty1 = (TY//4)%4
             ty2 = (TY//4//4)%4
@@ -630,7 +630,7 @@ def build_masks_and_symm_tensors() :
                         sl.append(i)
                         sls.append(ID*256+TY_S)
 
-        if ID in parl.compl_symm_ids :
+        elif ID in parl.compl_symm_ids :
             ty0 = TY%4
             ty1 = (TY//4)%4
             ty2 = (TY//4//4)%4
@@ -662,7 +662,7 @@ def build_masks_and_symm_tensors() :
                 sl.append(i)
                 sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
-        if ID in parl.perm_symm_ids_2d :
+        elif ID in parl.perm_symm_ids_2d :
             ty0 = TY%4
             ty1 = (TY//4)%4
             ty2 = (TY//4//4)%4
@@ -696,7 +696,7 @@ def build_masks_and_symm_tensors() :
                         sl.append(i)
                         sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
-        if ID in parl.perm_symm_ids_4d :
+        elif ID in parl.perm_symm_ids_4d :
             ty0 = TY%4
             ty1 = (TY//4)%4
             ty2 = (TY//4//4)%4
@@ -727,7 +727,7 @@ def build_masks_and_symm_tensors() :
                 sl.append(i)
                 sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
-        if ID in parl.perm_symm_ids :
+        elif ID in parl.perm_symm_ids :
             ty0 = TY%4
             ty1 = (TY//4)%4
             ty2 = (TY//4//4)%4
@@ -758,6 +758,24 @@ def build_masks_and_symm_tensors() :
                 #sl.append(256*ID+TY)
                 sl.append(i)
                 sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+
+        else :
+            ty0 = TY%4
+            ty1 = (TY//4)%4
+            ty2 = (TY//4//4)%4
+            ty3 = (TY//4//4//4)%4
+            if ID in parl.is_th2 :
+                #sl.append(ID*256+TY)
+                sl.append(i)
+                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+            if ID in parl.is_th5 :
+                #sl.append(ID*256+TY)
+                sl.append(i)
+                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+            if ID in parl.is_th7 :
+                #sl.append(256*ID+TY)
+                sl.append(i)
+                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
 
     UPDATE_MAP = torch.tensor(umap,device=device)
     SYMM_LIST = torch.tensor(sl,device=device)
@@ -1125,7 +1143,6 @@ def COST(PARS) :
     #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
 
     #Constraints - no continuity
-    """
     fene_r02_crst = torch.square(CURR_PARS[1][CRST_TETRA_TYPE_33])
     stck_r02_crst = torch.square(CURR_PARS[45][CRST_TETRA_TYPE_33])
 
@@ -1136,7 +1153,6 @@ def COST(PARS) :
     stck_r02_crst = torch.square(CURR_PARS[45][CRST_TETRA_TYPE_55])
 
     CURR_PARS[117] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-    """
 
     #Fix delta average
 

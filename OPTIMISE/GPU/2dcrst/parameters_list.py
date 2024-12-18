@@ -249,12 +249,11 @@ compl_symm_ids = [1,2]
 for i in range(45,77) :
     compl_symm_ids.append(i)
 compl_symm_ids_no_TT_AA = []
-perm_symm_ids_4d = []
 perm_symm_ids_2d = []
 for i in range(4,44) :
     perm_symm_ids_2d.append(i)
 for i in range(77,155) :
-    perm_symm_ids_4d.append(i)
+    perm_symm_ids_2d.append(i)
 perm_symm_ids = []
 
 is_th2 = [19,20,21,22,23,91,92,93,94,95,130,131,132,133,134]

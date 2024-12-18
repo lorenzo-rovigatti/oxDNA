@@ -56,8 +56,10 @@ SD_par_file.close()
 
 if stck_fact_eps_read :
     print("STCK_FACT_EPS read from SD parameters file")
+    cg.stck_fact_eps = stck_fact_eps
 else:
     print("WARNING: No STCK_FACT_EPS found in SD parameters file")
+    print("Using default: "+str(cg.stck_fact_eps))
 
 OXPS_zero, shifts = fun.init_oxpars(pars_from_modelh, vals_from_modelh, over_indices, over_vals, cg.T, stck_fact_eps)
 
@@ -226,7 +228,10 @@ for l in range(cg.Nseq) :
             th7[l][j].append(0.)
             th8[l][j].append(0.)
 
+
+
 #Test: plot unbn_types
+
 
 bases = ['A', 'C', 'G', 'T']
 
@@ -269,6 +274,9 @@ for l in range(cg.Nseq) :
     print(to_letters(types_unbn_55[l][20]),file=test_file)
 
 test_file.close()
+
+
+
 ###################################################################################################
 ############## SETUP TENSORS FOR COST FUNCTION ####################################################
 ###################################################################################################
@@ -314,6 +322,267 @@ cfun.compute_initial_energy()
 
 print("Computed initial energy")
 
+################################
+######### MELTING ##############
+################################
+
+#nbp = 5
+
+fene_r = []
+stck_r = []
+th4_bn = []
+th5 = []
+th6 = []
+cosphi1 = []
+cosphi2 = []
+types_bn = []
+hydr_r = []
+th1 = []
+th2 = []
+th3 = []
+th4_unbn = []
+th7 = []
+th8 = []
+types_unbn_33 = []
+types_unbn_55 = []
+
+tm_file = open("../Melting_Ts_nbp5.txt", 'r')
+seqs, mTs, en_offset, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+
+print("Melting Seqs n5:")
+print(seqs)
+print("mTs n5:")
+print(mTs)
+
+tm_file.close()
+
+Nseqs_n5 = len(mTs)
+
+for l in range(Nseqs_n5):
+
+    tr_file = open("Melting_data/nbp5/Melting_traj_seq"+str(l)+".txt",'r')
+
+	#oxdna distances, types and angles
+    fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun_33, tun_55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, seqs[l], False)
+
+    fene_r.append(fr)
+    stck_r.append(sr)
+    th4_bn.append(t4bn)
+    th5.append(t5)
+    th6.append(t6)
+    cosphi1.append(cp1)
+    cosphi2.append(cp2)
+    types_bn.append(tbn)
+    hydr_r.append(hr)
+    th1.append(t1)
+    th2.append(t2)
+    th3.append(t3)
+    th4_unbn.append(t4un)
+    th7.append(t7)
+    th8.append(t8)
+    types_unbn_33.append(tun_33)
+    types_unbn_55.append(tun_55)
+
+    tr_file.close()
+
+max_ints = 0
+for l in range(Nseqs_n5) :
+    for j in range(len(types_unbn_33[l])):
+        if len(types_unbn_33[l][j]) > max_ints:
+           max_ints = len(types_unbn_33[l][j])
+print("max unbn pairs: "+str(max_ints))
+for l in range(Nseqs_n5) :
+    for j in range(len(types_unbn_33[l])):
+        for z in range(len(types_unbn_33[l][j]), max_ints):
+            types_unbn_33[l][j].append(0)
+            types_unbn_55[l][j].append(0)
+            hydr_r[l][j].append(0.)
+
+            th1[l][j].append(0.)
+            th2[l][j].append(0.)
+            th3[l][j].append(0.)
+
+            th4_unbn[l][j].append(0.)
+            th7[l][j].append(0.)
+            th8[l][j].append(0.)
+
+cfun.init_tensors_melting_n5(device, fene_r, stck_r, th4_bn, th5, th6, cp1, cp2, types_bn, hydr_r, th1, th2, th3,\
+                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+
+#nbp = 8
+
+fene_r = []
+stck_r = []
+th4_bn = []
+th5 = []
+th6 = []
+cosphi1 = []
+cosphi2 = []
+types_bn = []
+hydr_r = []
+th1 = []
+th2 = []
+th3 = []
+th4_unbn = []
+th7 = []
+th8 = []
+types_unbn_33 = []
+types_unbn_55 = []
+
+tm_file = open("../Melting_Ts_nbp8.txt", 'r')
+seqs, mTs, en_offset, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+
+print("Melting Seqs n8:")
+print(seqs)
+print("mTs n8:")
+print(mTs)
+
+tm_file.close()
+
+Nseqs_n8 = len(mTs)
+
+for l in range(Nseqs_n8):
+
+    tr_file = open("Melting_data/nbp8/Melting_traj_seq"+str(l)+".txt",'r')
+
+	#oxdna distances, types and angles
+    fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun_33, tun_55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, seqs[l], False)
+
+    fene_r.append(fr)
+    stck_r.append(sr)
+    th4_bn.append(t4bn)
+    th5.append(t5)
+    th6.append(t6)
+    cosphi1.append(cp1)
+    cosphi2.append(cp2)
+    types_bn.append(tbn)
+    hydr_r.append(hr)
+    th1.append(t1)
+    th2.append(t2)
+    th3.append(t3)
+    th4_unbn.append(t4un)
+    th7.append(t7)
+    th8.append(t8)
+    types_unbn_33.append(tun_33)
+    types_unbn_55.append(tun_55)
+
+    tr_file.close()
+
+max_ints = 0
+for l in range(Nseqs_n8) :
+    for j in range(len(types_unbn_33[l])):
+        if len(types_unbn_33[l][j]) > max_ints:
+           max_ints = len(types_unbn_33[l][j])
+print("max unbn pairs: "+str(max_ints))
+for l in range(Nseqs_n8) :
+    for j in range(len(types_unbn_33[l])):
+        for z in range(len(types_unbn_33[l][j]), max_ints):
+            types_unbn_33[l][j].append(0)
+            types_unbn_55[l][j].append(0)
+            hydr_r[l][j].append(0.)
+
+            th1[l][j].append(0.)
+            th2[l][j].append(0.)
+            th3[l][j].append(0.)
+
+            th4_unbn[l][j].append(0.)
+            th7[l][j].append(0.)
+            th8[l][j].append(0.)
+
+cfun.init_tensors_melting_n8(device, fene_r, stck_r, th4_bn, th5, th6, cp1, cp2, types_bn, hydr_r, th1, th2, th3,\
+                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+
+#nbp = 15
+
+fene_r = []
+stck_r = []
+th4_bn = []
+th5 = []
+th6 = []
+cosphi1 = []
+cosphi2 = []
+types_bn = []
+hydr_r = []
+th1 = []
+th2 = []
+th3 = []
+th4_unbn = []
+th7 = []
+th8 = []
+types_unbn_33 = []
+types_unbn_55 = []
+
+tm_file = open("../Melting_Ts_nbp15.txt", 'r')
+seqs, mTs, en_offset, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+
+print("Melting Seqs n15:")
+print(seqs)
+print("mTs n15:")
+print(mTs)
+
+tm_file.close()
+
+Nseqs_n15 = len(mTs)
+
+for l in range(Nseqs_n15):
+
+    tr_file = open("Melting_data/nbp15/Melting_traj_seq"+str(l)+".txt",'r')
+
+	#oxdna distances, types and angles
+    fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun_33, tun_55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, seqs[l], False)
+
+    fene_r.append(fr)
+    stck_r.append(sr)
+    th4_bn.append(t4bn)
+    th5.append(t5)
+    th6.append(t6)
+    cosphi1.append(cp1)
+    cosphi2.append(cp2)
+    types_bn.append(tbn)
+    hydr_r.append(hr)
+    th1.append(t1)
+    th2.append(t2)
+    th3.append(t3)
+    th4_unbn.append(t4un)
+    th7.append(t7)
+    th8.append(t8)
+    types_unbn_33.append(tun_33)
+    types_unbn_55.append(tun_55)
+
+    tr_file.close()
+
+max_ints = 0
+for l in range(Nseqs_n15) :
+    for j in range(len(types_unbn_33[l])):
+        if len(types_unbn_33[l][j]) > max_ints:
+           max_ints = len(types_unbn_33[l][j])
+print("max unbn pairs: "+str(max_ints))
+for l in range(Nseqs_n15) :
+    for j in range(len(types_unbn_33[l])):
+        for z in range(len(types_unbn_33[l][j]), max_ints):
+            types_unbn_33[l][j].append(0)
+            types_unbn_55[l][j].append(0)
+            hydr_r[l][j].append(0.)
+
+            th1[l][j].append(0.)
+            th2[l][j].append(0.)
+            th3[l][j].append(0.)
+
+            th4_unbn[l][j].append(0.)
+            th7[l][j].append(0.)
+            th8[l][j].append(0.)
+
+cfun.init_tensors_melting_n15(device, fene_r, stck_r, th4_bn, th5, th6, cp1, cp2, types_bn, hydr_r, th1, th2, th3,\
+                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+
+#print(stck_r)
+
+#cfun.set_opt_parameters_melting(["HYDR", "STCK", "CRST_33", "CRST_55"])
+cfun.set_opt_parameters_melting(["STCK", "CRST_33", "CRST_55"])
+print(cfun.OPT_PAR_LIST_m)
+
+#build masks (for selecting optim parameters and marginalising mu and cov) and symm tensors (for imposing symmetries)
+cfun.build_masks_and_symm_tensors_melting()
 
 ###################################################################################################
 ############## OPTIMISE ###########################################################################
@@ -336,7 +605,6 @@ print("OPTIMISING")
 #While we compute the cost function on the gpu with pytorch
 #All the tensors necessary to the computation of the cost function are on the gpu
 
-cfun.PAR0 = torch.clone(cfun.CURR_PARS) #clone the initial values of the parameters to the gpu
 TMP = torch.tensor(OPTI_PAR,device='cpu') #copy opti parameters to the cpu.
 
 #X0 is a numpy array with the optimised parameters; it is initialised and handled by scypi.optim on the cpu
@@ -367,8 +635,8 @@ for n in range(len(low_bond)) :
         if ub > 0.42: up_bond[n] = ub
         else: up_bond[n] = 0.42
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
-        low_bond[n] = 2.96709
-        up_bond[n] = 3.31609
+        low_bond[n] = 2.880
+        up_bond[n] = 3.405
     elif cfun.OPT_PAR_LIST[n][0] == 55:
 
         lb = low_bond[n]*0.5
@@ -393,8 +661,60 @@ for n in range(len(low_bond)) :
 
 bnd = optimize.Bounds(low_bond,up_bond)
 
+#############
+# MELTING ###
+#############
+
+
+cfun.CURR_PARS_m = torch.clone(cfun.CURR_PARS) #clone the initial values of the parameters to the gpu
+cfun.CURR_SHIFT_ST_m = torch.clone(cfun.SHIFT_STCK)
+cfun.CURR_SHIFT_HY_m = torch.clone(cfun.SHIFT_HYDR)
+#print(cfun.CURR_SHIFT_ST_m)
+
+#read initial optim parameters values
+ids_m = []
+for i in range(len(cfun.OPT_PAR_LIST_m)) :
+    id = cfun.OPT_PAR_LIST_m[i][0]
+    ty = cfun.OPT_PAR_LIST_m[i][1]
+    ids_m.append(id*256+ty)
+
+IDS_OP_m = torch.tensor(ids_m,device=device)
+OPTI_PAR_m = torch.gather(torch.reshape(cfun.CURR_PARS_m,(-1,)),0,IDS_OP_m) #tensor with initial values of the opti parameters
+
+TMP_m = torch.tensor(OPTI_PAR_m,device='cpu') #copy opti parameters to the cpu.
+X0_m = TMP_m.numpy()
+
+#We impose bondaries on the optimisation parameters
+low_bond_m = torch.tensor(TMP_m, device='cpu').numpy()
+up_bond_m = torch.tensor(TMP_m, device='cpu').numpy()
+
+for n in range(len(low_bond_m)) :
+    if cfun.OPT_PAR_LIST_m[n][0] == 4:
+        lb = low_bond_m[n][m]*0.5
+        ub = up_bond_m[n][m]*1.5
+        if lb > 0.85: low_bond_m[n] = lb
+        else: low_bond_m[n] = 0.85
+        if ub > 1.3: up_bond_m[n] = ub
+        else: up_bond_m[n] = 1.3
+    elif cfun.OPT_PAR_LIST_m[n][0] == 44:
+        lb = low_bond_m[n]*0.5
+        ub = up_bond_m[n]*1.5
+        if lb > 1.0: low_bond_m[n] = lb
+        else: low_bond_m[n] = 1.0
+        if ub > 2.0: up_bond_m[n] = ub
+        else: up_bond_m[n] = 2.0
+    elif cfun.OPT_PAR_LIST_m[n][0] == 77 or cfun.OPT_PAR_LIST_m[n][0] == 116:
+        low_bond_m[n] = 0
+        up_bond_m[n] = 76
+
+bnd_m = optimize.Bounds(low_bond_m,up_bond_m)
+
+#print(cfun.UPDATE_MAP_m)
+#print(cfun.SYMM_LIST_m)
+#print(cfun.SYMM_LIST_SYMM_m)
+
 #Compute average delta. Average value of FENE_DELTA is ket fixed, so that lt is kept at ~220 nm
-cfun.AVE_DELTA = torch.mean(cfun.PAR0[2])
+cfun.AVE_DELTA = torch.mean(cfun.CURR_PARS_m[2])
 print("Ave delta:", cfun.AVE_DELTA)
 
 print("S0: "+str(cfun.COST(X0)))
@@ -402,9 +722,21 @@ print("lb0: ")
 print(cfun.LB)
 print("lt0: ")
 print(cfun.LT)
+#this is called at the end of evey melting opti iteration step
+def Callback_m(sol_m) :
+    print("x/x0: ")
+    """
+    tmp = []
+    for i in range(len(sol_m)):
+        tmp.append(sol_m[i]/X0_m[i])
+    """
+    #print(sol_m)
+    print("S_m: "+str(cfun.COST_m(sol_m)))
 
-#callback is called at the end of each optimisation step. It prints the ratio x/x0
-# and the current value of the cost function. x = current solution, x0 = initial parameters
+    return
+
+#callback is called at the end of every geometry opti iteration step
+#it perform the melting optimisation
 def Callback(sol):
     print("x/x0: ")
     tmp = []
@@ -419,11 +751,62 @@ def Callback(sol):
     print("Ave delta fixed at: ")
     print(cfun.CURR_AVE_DELTA)
 
+    print("Fixing potential strength, optimising melting.")
+
+    cfun.compute_energy_m_n5()
+    cfun.compute_energy_m_n8()
+    cfun.compute_energy_m_n15()
+    """
+    print("Ens 5")
+    print(cfun.EN_STCK_IN_m_n5)
+    print(cfun.EN_HYDR_IN_m_n5)
+    print(cfun.EN_CRST_33_IN_m_n5)
+    print(cfun.EN_CRST_55_IN_m_n5)
+    print(cfun.EN_FENE_IN_m_n5)
+    print("Ens 8")
+    print(cfun.EN_STCK_IN_m_n8)
+    print(cfun.EN_HYDR_IN_m_n8)
+    print(cfun.EN_CRST_33_IN_m_n8)
+    print(cfun.EN_CRST_55_IN_m_n8)
+    print(cfun.EN_FENE_IN_m_n8)
+    print("Ens 15")
+    print(cfun.EN_STCK_IN_m_n15)
+    print(cfun.EN_HYDR_IN_m_n15)
+    print(cfun.EN_CRST_33_IN_m_n15)
+    print(cfun.EN_CRST_55_IN_m_n15)
+    print(cfun.EN_FENE_IN_m_n15)
+    """
+
+    OPTI_PAR_m = torch.gather(torch.reshape(cfun.CURR_PARS_m,(-1,)),0,IDS_OP_m) #tensor with initial values of the melting opti parameters
+
+    TMP_m = torch.tensor(OPTI_PAR_m,device='cpu') #copy opti parameters to the cpu.
+    X0_m = TMP_m.numpy()
+
+    sol_m = optimize.minimize(cfun.COST_m,X0_m, method='L-BFGS-B', callback=Callback_m, bounds=bnd_m, options={'maxiter':1,'iprint': 1})
+
+    print("Optimised energies:")
+    print("n5")
+    print(cfun.EN_PER_NUCLEO_n5)
+    print("n8")
+    print(cfun.EN_PER_NUCLEO_n8)
+    print("n15")
+    print(cfun.EN_PER_NUCLEO_n15)
+
+    print(sol_m.x)
+    #update tensor with parameters
+    PARS_OPTI_m_fin = torch.tensor(sol_m.x,device=device)
+
+    cfun.CURR_PARS_m.put_(cfun.UPDATE_MAP_m, PARS_OPTI_m_fin)
+
+    VALS = torch.gather( torch.reshape(PARS_OPTI_m_fin,(-1,)),0,cfun.SYMM_LIST_m )
+    cfun.CURR_PARS_m.put_(cfun.SYMM_LIST_SYMM_m,VALS)
+
+    return
 
 time_opti_start = time.time()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':10000,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':3,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

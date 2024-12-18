@@ -5,15 +5,14 @@ sim_type = MD
 seed = 1
 
 ####    SIM PARAMETERS    ####
-steps = 2e5
-newtonian_steps = 103
-diff_coeff = 2.50
-#pt = 0.99
-thermostat = john
+steps = 1e5
 
 T = 300K	#cgna+ - 20C
-dt = 0.005
-verlet_skin = 0.1
+dt = 0.002
+verlet_skin = 0.05
+thermostat = bussi
+bussi_tau = 1000
+newtonian_steps = 53
 salt_concentration = 0.15	#same as in cgdna+
 interaction_type = DNA3
 
@@ -32,16 +31,17 @@ log_file = log.dat
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.dat
-#Autocorrelation time for 24bp ox3 ave is ~130 timesteps
-print_conf_interval = 200
-print_energy_every = 200
+print_conf_interval = 1e5
+print_energy_every = 1e4
 time_scale = linear
-external_forces = 0
-#max_backbone_force = 1
+external_forces = false
+
+max_backbone_force = 5
+max_backbone_force_far = 10
 
 data_output_1 = {
-name = split_energy.dat
-print_every = 200
+name = split_energy_relax2.dat
+print_every = 2e4
 col_1 = {
 type = step
 }

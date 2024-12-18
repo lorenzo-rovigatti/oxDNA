@@ -622,9 +622,11 @@ def read_pars_from_SD_file(SDfile) :
                          over_vals.append(float(vals[2]))
 
         elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" :
-            par_name = vals_cn[0]
-            for i in range(1,len(vals_cn)-4):
-                par_name += "_"+vals_cn[i]
+            if vals_cn[0] == "FENE" and vals_cn[1] == "EPS" : par_name = "FENE_EPS"
+            else:
+                par_name = vals_cn[0]
+                for i in range(1,len(vals_cn)-4):
+                    par_name += "_"+vals_cn[i]
             ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4    #from base 4 to base 10
             oi = [PARS_LIST.index(par_name),ty]
             over_indices.append(oi)
@@ -751,12 +753,69 @@ class nucleotide :
         self.stck = C + pos_stck[t]*BV
         self.hydr = C + pos_hydr[t]*BV
 
+def read_melting_seqs_and_mTs(ifile) :
+    mTs = []
+    seqs = []
+    en_offsets = []
+    en0 = []
 
-def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file):
+    for line in ifile.readlines():
+        vals = line.strip().split()
+        seqs.append(vals[0])
+        mTs.append(float(vals[1]))
+        en_offsets.append(float(vals[2]))
+        en0.append(float(vals[3]))
+
+    return seqs, mTs, en_offsets, en0
+
+def read_topology_from_file(topo_file) :
+
+    topology = []
+    counts = 0
+    nid = 0
+    Nb = 0
+    Ns = 0
+
+    for line in topo_file.readlines() :
+        counts+=1
+        vals = line.split()
+        if len(vals) == 2 :
+            Nb = int(vals[0])
+            Ns = int(vals[1])
+            if Ns != 2 :
+                print("Number of strands in not 2.")
+                exit(1)
+        else :
+           to = topo(nid, int(vals[0]), vals[1], int(vals[2]), int(vals[3]))
+           topology.append(to)
+           nid += 1
+
+    return topology, Nb, Ns
+
+def read_topology_from_list(topo_data) :
+
+    Nb = len(topo_data)*2
+    Ns = 2
+    topology = []
+    nid = 0
+    for l in range(len(topo_data)) :
+        if l < len(topo_data)-1 : to = topo(nid, 1, topo_data[l], nid-1,nid+1)
+        else : to = topo(nid, 1, topo_data[l], nid-1,-1)
+        nid+=1
+        topology.append(to)
+    for l in range(len(topo_data)) :
+        if l == 0: to = topo(nid, 2, cg.bases[3-cg.bases.index(topo_data[len(topo_data)-l-1])], -1,nid+1)
+        elif l < len(topo_data)-1 : to = topo(nid, 2, cg.bases[3-cg.bases.index(topo_data[len(topo_data)-l-1])], nid-1,nid+1)
+        else : to = topo(nid, 2, cg.bases[3-cg.bases.index(topo_data[len(topo_data)-l-1])], nid-1,-1)
+        nid+=1
+        topology.append(to)
+
+    return topology, Nb, Ns
+
+def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_data, isfile=True):
 
     rcut_sq_high = rcut_high*rcut_high
     rcut_sq_low = rcut_low*rcut_low
-
 
     #define tensors
 
@@ -785,22 +844,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     Nb = 0
     Ns = 0
     nid = 0
+    topology = None
 
-    topology = []
-    counts = 0
-    for line in topo_file.readlines() :
-        counts+=1
-        vals = line.split()
-        if len(vals) == 2 :
-            Nb = int(vals[0])
-            Ns = int(vals[1])
-            if Ns != 2 :
-                print("Number of strands in not 2.")
-                exit(1)
-        else :
-           to = topo(nid, int(vals[0]), vals[1], int(vals[2]), int(vals[3]))
-           topology.append(to)
-           nid += 1
+    if isfile : topology, Nb, Ns = read_topology_from_file(topo_data)
+    else: topology, Nb, Ns = read_topology_from_list(topo_data)
 
     counts = 0
     counts_b = -1
@@ -808,19 +855,17 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     nid = 0
     for line in tr_file.readlines():
         a = line.strip()[0]
-        if counts <= cg.in_snap :
+        if counts <= cg.in_snap and isfile == True:
             if a == 't': counts += 1
             continue
         if a == 't':
             nid = 0
             config = []
             counts+=1
-            #print(counts)
-            #if counts == 501:
-            #   break
             counts_b = -1
         else:
             if a != 'b' and a != 'E':
+                #if isfile == False: topology = topologies[counts-1]
                 counts_b += 1
                 vals = line.split()
                 c = np.array([float(vals[0]),float(vals[1]), float(vals[2])])
@@ -881,7 +926,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
 
                         fene_r_1conf.append( np.linalg.norm(n1.bb-n2.bb) )
                         stck_r_1conf.append( np.linalg.norm(n1.stck-n2.stck) )
-                        th4_bn_1conf.append( np.arccos(np.dot(n1.n,n2.n)) )
+                        prod = np.dot(n1.n,n2.n)
+                        if prod > 1: prod -= 1e-12  #this is for the 0th configurations
+                        if prod < -1: prod += 1e-12
+
+                        th4_bn_1conf.append( np.arccos(prod) )
 
 
             	        #note rbb is the distance between backbone sites  in oxdna1 (see standalone)!
@@ -965,12 +1014,23 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             #compute unbnd pair coordinates
                             hydr_r_1conf.append(np.linalg.norm((n1.hydr - n2.hydr)))
                             rhydr = (n1.hydr - n2.hydr)/np.linalg.norm((n1.hydr - n2.hydr))
+                            prod = -np.dot(n1.bv,n2.bv)
+                            if prod > 1: prod -= 1e-12  #this is for the 0th configurations
+                            if prod < -1: prod += 1e-12
+                            th1_1conf.append(np.arccos(prod))
+                            prod = -np.dot(n1.bv,rhydr)
+                            if prod > 1: prod -= 1e-12  #this is for the 0th configurations
+                            if prod < -1: prod += 1e-12
+                            th3_1conf.append(np.arccos(prod))
+                            prod = np.dot(n2.bv,rhydr)
+                            if prod > 1: prod -= 1e-12  #this is for the 0th configurations
+                            if prod < -1: prod += 1e-12
+                            th2_1conf.append(np.arccos(prod))
 
-                            th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
-                            th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
-                            th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
-
-                            th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
+                            prod = np.dot(n1.n,n2.n)
+                            if prod > 1: prod -= 1e-12  #this is for the 0th configurations
+                            if prod < -1: prod += 1e-12
+                            th4_unbn_1conf.append(np.arccos(prod))
                             th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
                             th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
 
@@ -1357,6 +1417,9 @@ def print_final_pfile(FOPARS,infile) :
         ids = np.append(ids,78)
         ids = np.append(ids,117)
 
+    #update melting as well
+    for id_m in cfun.OPT_PAR_LIST_m :
+        ids = np.append(ids,id_m[0])
 
     #Collect all par ids to update ( optimised + dependencies (e.g. continuity) )
     #NOTE: only f1 and f4 continuity are implemented!!
@@ -1461,7 +1524,7 @@ def print_final_pfile(FOPARS,infile) :
     #CREATE TENSOR WITH FINAL VALUES OF ALL PARAMETERS
     #we do that on the cpu and copy it to the cpu
 
-    CURR_PARS = torch.tensor(cfun.PAR0,device=cfun.device)
+    CURR_PARS = torch.tensor(cfun.CURR_PARS_m,device=cfun.device)
     PARS_OPTI = torch.tensor(FOPARS,device=cfun.device)
 
     CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
@@ -1489,16 +1552,18 @@ def print_final_pfile(FOPARS,infile) :
     #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
 
     #Constraints - no continuity
-    fene_r02_crst = torch.square(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33])
-    stck_r02_crst = torch.square(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33])
+    fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
+    stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
 
     #0.08 <- if hydr_r0 = 0.4. otherwise this has to be changed
-    CURR_PARS[78] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
+    CURR_PARS[78][cfun.CRST_TETRA_TYPE_33] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
+    CURR_PARS[78][cfun.CRST_TETRA_TYPE_33_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
 
-    fene_r02_crst = torch.square(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55])
-    stck_r02_crst = torch.square(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55])
+    fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55])+torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55_SYMM]))*0.25
+    stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55])+torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55_SYMM]))*0.25
 
-    CURR_PARS[117] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
+    CURR_PARS[117][cfun.CRST_TETRA_TYPE_55] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
+    CURR_PARS[117][cfun.CRST_TETRA_TYPE_55_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
 
     # constraints - continuity
     #f1
@@ -1559,9 +1624,11 @@ def print_final_pfile(FOPARS,infile) :
 
         #4D parameters
         if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
-            par_name = vals_cn[0]
-            for i in range(1,len(vals_cn)-4):
-                par_name+="_"+vals_cn[i]
+            if vals_cn[0] == "FENE" and vals_cn[1] == "EPS" : par_name = "FENE_EPS"
+            else:
+                par_name = vals_cn[0]
+                for i in range(1,len(vals_cn)-4):
+                    par_name+="_"+vals_cn[i]
             index = PARS_LIST.index(par_name)
 
             if index in ids_to_update:

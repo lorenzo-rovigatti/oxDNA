@@ -60,7 +60,7 @@ def read_config(cfile_name) :
     checklist = np.zeros(19, dtype = int) #check if some mandatory parameters are missing
 
     for line in cfile.readlines() :
-        vals = line.strip().split()
+        vals = line.split()
         if len(vals) == 0:
             continue
         if vals[0][0] == '#':
@@ -99,12 +99,14 @@ def read_config(cfile_name) :
 
             checklist[4] = 1
 
-        #Switch on and off lp optimisation.
-        #Default = False
-        if(vals[0] == 'LP') :
-            if vals[1] == "0" or vals[1] == "True" or vals[1] == "true" or vals[1] == "TRUE" :
-                cg.opti_lp = True
-                checklist[5] = 1
+        #read which coordinates to optimise (large m elstic moduli).
+        #Currently we optimise the persistence length, not the moduli.
+        if(vals[0] == 'IDS_LRS') :
+            for i in range(1,len(vals)) :
+                cg.ids_lrs.append(int(vals[i]))
+            cg.ids_lrs.sort()
+
+            checklist[5] = 1
 
         #read snapshots to discard (equilibration)
         if(vals[0] == "IN_SNAP") :
@@ -155,6 +157,12 @@ def read_config(cfile_name) :
         if(vals[0] == "WEIGHT_GS") :
             cg.weight_gs = int(vals[1])
             checklist[15] = 1
+
+        #optimise persistence lengths 0==true
+        if(vals[0] == "LPS") :
+            if int(vals[1]) != 0 :
+                cg.opti_lp = True
+                checklist[16] = 1
 
         #optimise persistence lengths 0==true
         if(vals[0] == "TEMPERATURE") :
@@ -288,13 +296,45 @@ def read_config(cfile_name) :
         print("ids_cov id1 id2 id3 ...")
 
 
+    if checklist[5] == 1:
+        print("IDS LONG RANGE STIFFNESS (q=0):")
+        print(cg.ids_lrs)
+        print("Optimising: ")
+        for i in range(len(cg.ids_cov)) :
+            if cg.ids_lrs[i] == 0:
+                print("Optimising buckle")
+            if cg.ids_lrs[i] == 1:
+                print("Optimising propeller")
+            if cg.ids_lrs[i] == 2:
+                print("Optimising opening")
+            if cg.ids_lrs[i] == 3:
+                print("Optimising shear")
+            if cg.ids_lrs[i] == 4:
+                print("Optimising stretch")
+            if cg.ids_lrs[i] == 5:
+                print("Optimising stagger")
+            if cg.ids_lrs[i] == 6:
+                print("Optimising tilt")
+            if cg.ids_lrs[i] == 7:
+                print("Optimising roll")
+            if cg.ids_lrs[i] == 8:
+                print("Optimising twist")
+            if cg.ids_lrs[i] == 9:
+                print("Optimising shift")
+            if cg.ids_lrs[i] == 10:
+                print("Optimising slide")
+            if cg.ids_lrs[i] == 11:
+                print("Optimising rise")
+
+
+
     if cg.opti_lp == True :
         print("Optimising persistence lengths (i.e. Ar and C)")
     else:
         print("Neglecting persistence lengths (i.e. Ar and C)")
         print("Usage:")
         print("LPS i")
-        print("i = 0 or i = true for optimising lps.")
+        print("i = 0 for optimising lps.")
 
 
     #collect all ids:
@@ -310,12 +350,13 @@ def read_config(cfile_name) :
             else :
                 cg.ids.append(cg.ids_cov[i])
 
-    if cg.opti_lp == True :
-        for i in range(len(cg.ids_lp)) :
-            if cg.ids_lp[i] in cg.ids :
+    if checklist[16] == 1 :
+        for i in range(len(cg.ids_inter_rot)) :
+            if cg.ids_inter_rot[i] in cg.ids :
                 continue
             else :
-                cg.ids.append(cg.ids_lp[i])
+                cg.ids.append(cg.ids_inter_rot[i])
+
 
     cg.ids.sort()
 
@@ -574,7 +615,7 @@ def read_pars_from_SD_file(SDfile) :
                     over_vals.append(float(vals[2]))
         elif vals_cn[0] == "HYDR" or vals_cn[0] == "CRST" :
             par_name = vals_cn[0]
-            if vals_cn[0] == "HYDR" or vals_cn[1] == "K":
+            if vals_cn[0] == "HYDR" or vals_cn[1] == "K" or vals_cn[1] == "THETA1" or vals_cn[1] == "THETA2" or vals_cn[1] == "THETA4" or vals_cn[1] == "THETA7":
                 for i in range(1,len(vals_cn)-2):
                     par_name += "_"+vals_cn[i]
                 for i in range(4):
@@ -599,7 +640,7 @@ def read_pars_from_SD_file(SDfile) :
                             oi = [PARS_LIST.index(par_name),ty]
                             over_indices.append(oi)
                             over_vals.append(float(vals[2]))
-            else :
+            else:
                 for i in range(1,len(vals_cn)-4):
                     par_name += "_"+vals_cn[i]
                 ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4
@@ -720,8 +761,7 @@ def find_cuts_for_lists(OXPS_zero) :
 
     return rcut_low , rcut_high
 
-#down id = bonded nucleotide, n3 direction
-#up id = bonded nucleotide, n5 direction
+
 class topo :
     def __init__(self, nid, sid, bty, do, up) :
         self.id = nid
@@ -779,8 +819,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     th4_unbn = []
     th7 = []
     th8 = []
-    types_unbn_33 = []
-    types_unbn_55 = []
+    types_unbn = []
 
     Nb = 0
     Ns = 0
@@ -803,14 +842,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
            nid += 1
 
     counts = 0
-    counts_b = -1
-    config = []
-    nid = 0
     for line in tr_file.readlines():
-        a = line.strip()[0]
-        if counts <= cg.in_snap :
-            if a == 't': counts += 1
+        if counts < cg.in_snap :
+            counts += 1
             continue
+        a = line.strip()[0]
         if a == 't':
             nid = 0
             config = []
@@ -912,25 +948,21 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th4_unbn_1conf = []
                     th7_1conf = []
                     th8_1conf = []
-                    types_unbn_1conf_33 = []
-                    types_unbn_1conf_55 = []
+                    types_unbn_1conf = []
 
                     #UNDBONDED
                     for i in range(len(topology)) :
-                        ty0_33 = 0
-                        ty0_55 = 0
+                        ty0 = 0
                         ty1 = 0
                         ty2 = 0
-                        ty3_33 = 0
-                        ty3_55 = 0
+                        ty3 = 0
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
                            if topology[z].id == topology[i].down_id:
-                              ty0_55 = base_to_id(topology[z].base_type)
-                           if topology[z].id == topology[i].up_id:
-                              ty0_33 = base_to_id(topology[z].base_type)
-
+                              ty0 = base_to_id(topology[z].base_type)
+                              break
+                        ty0 = base_to_id(topology[i].base_type)
                         for j in range(len(topology)) :
                             n2 = config[j]
                             if np.dot(n1.hydr - n2.hydr, n1.hydr - n2.hydr) < rcut_sq_low: continue #verlet cutoff
@@ -941,26 +973,19 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             ty2 = base_to_id(topology[j].base_type)
 
                             if topology[j].up_id == -1:
-                               ty3_33 = 0
-                            if topology[j].down_id == -1:
-                               ty3_55 = 0
+                               ty3 = ty0
                             else:
                                 for z in range(len(topology)) :
-                                   if topology[z].id == topology[j].down_id:
-                                      ty3_55 = base_to_id(topology[z].base_type)
                                    if topology[z].id == topology[j].up_id:
-                                      ty3_33 = base_to_id(topology[z].base_type)
+                                      ty3 = base_to_id(topology[z].base_type)
+                                      break
 
                             if topology[i].down_id == -1:
-                               ty0_55 = 0
-                            if topology[i].up_id == -1:
-                               ty0_33 = 0
+                               ty0 = ty3
 
-                            ty_33 = ty0_33+ty1*4+ty2*4*4+ty3_33*4*4*4 #tetramer type in base 10
-                            ty_55 = ty0_55+ty1*4+ty2*4*4+ty3_55*4*4*4 #tetramer type in base 10
+                            ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
 
-                            types_unbn_1conf_33.append(ty_33)
-                            types_unbn_1conf_55.append(ty_55)
+                            types_unbn_1conf.append(ty)
 
                             #compute unbnd pair coordinates
                             hydr_r_1conf.append(np.linalg.norm((n1.hydr - n2.hydr)))
@@ -975,9 +1000,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
 
 
-                    types_unbn_33.append(types_unbn_1conf_33)
-                    types_unbn_55.append(types_unbn_1conf_55)
-
+                    types_unbn.append(types_unbn_1conf)
                     hydr_r.append(hydr_r_1conf)
 
                     th1.append(th1_1conf)
@@ -988,7 +1011,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th7.append(th7_1conf)
                     th8.append(th8_1conf)
 
-    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55
+    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn
 
 
 ###################################################################################################
@@ -1082,105 +1105,6 @@ def ave_and_cov_sampled() :
 
 
     return mu_sampled, cov_sampled
-
-#compute sequence averaged ground state
-def Sequence_ave_GS(mu_sampled) :
-
-    mu_sdave_sampled = np.zeros((cg.Nseq,len(cg.ids)),dtype=float)
-
-    for l in range(cg.Nseq) :
-        for i in range(len(mu_sampled[l])) :
-            mu_sdave_sampled[l][i%len(cg.ids)] += mu_sampled[l][i]/len(mu_sampled[l])*len(cg.ids)
-
-    return mu_sdave_sampled
-
-#FROM INTERNAL COORDINATES, COMPUTE ANGLES FOR PERSISTENCE LENGTH, COSTHETAB and COSOMEGAT
-
-e3s = []
-
-#store normals of bps
-def store_normals(traj,seq,in_j,fin_j,in_snap,overwrite=True) :
-
-    global e3s
-
-    print(seq)
-
-    e3s_loc = []
-
-    Nsnaps = len(traj)
-    Njuns = len(traj[0])
-
-    for i in range(in_snap,Nsnaps) :
-        e3 = []
-        for j in range(Njuns) :
-            if j < in_j or j > fin_j :
-                continue
-            #print(traj[i][j].base_pair1.frame.orientation[:,2])
-            e3.append(traj[i][j].base_pair1.frame.orientation[:,2].real)
-
-        if overwrite == False :
-            e3s[seq].append(e3)
-        else :
-            e3s_loc.append(e3)
-
-    if overwrite == True :
-        e3s[seq] = e3s_loc
-
-    return
-
-#compute cos theta and cos omega3 for persistence lengths
-def plengths_angles() :
-
-    m = cg.lp_m
-
-
-    print(len(e3s))
-    print(len(e3s[0]))
-    print(len(e3s[0][0]))
-    print(len(e3s[0][0][0]))
-
-    costb = []
-    for l in range(cg.Nseq): costb.append([])
-
-    for l in range(cg.Nseq):    #loop sequences
-        N = int(len(cfun.internal_coords[l][0])/len(cg.ids))
-        for i in range(len(e3s[l])):	#loop sampled confs
-            ctb = 0.
-            counts = 0
-            for j in range(N-m):
-    	        #print(i,j)
-    	        #print(np.dot(e3s[i][j],e3s[i][j+m]))
-    	        ctb += np.dot(e3s[l][i][j],e3s[l][i][j+m])
-    	        counts+=1
-
-            costb[l].append(ctb/counts)
-
-    #print(costb)
-
-    cosot = []
-    for l in range(cg.Nseq): cosot.append([])
-
-    twist_idx = cg.ids.index(8)
-
-    for l in range(cg.Nseq):    #loop sequences
-        N = int(len(cfun.internal_coords[l][0])/len(cg.ids))
-        ave_twist = cfun.save_mu[l][twist_idx]
-        for i in range(len(e3s[l])):       #loop sampled confs
-            cot = 0.
-            counts = 0
-            for j in range(N-m):
-                om3 = 0.
-                for z in range(j,j+m):
-                    om3 += (cfun.internal_coords[l][i][z*len(cg.ids)+twist_idx]-ave_twist)
-
-                cot += math.cos(om3/5.) #/5. is from cgna to radiant
-                counts+=1
-
-            cosot[l].append(cot/counts)
-
-    #print(cosot)
-
-    return costb, cosot
 
 #PLOT SAMPLED GS AND STD
 
@@ -1473,17 +1397,8 @@ def print_final_pfile(FOPARS,infile) :
     #constraints - no continuity
 
     #delta
-    aveD = torch.mean(CURR_PARS[2])
-    #print("Old delta:", aveD)
-    CURR_PARS[2] = CURR_PARS[2] - aveD + cfun.AVE_DELTA
-    #print("New delta:", torch.mean(CURR_PARS[2]))
-
-    #Make STCK_THETA5A average
-
-    aveTH5A = torch.mean(CURR_PARS[60])
-    CURR_PARS[60] = aveTH5A
-
     CURR_PARS[3] = torch.square( CURR_PARS[2] )
+
 
     #crst r0
     #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
@@ -1597,61 +1512,3 @@ def print_final_pfile(FOPARS,infile) :
 
     ofile.close()
 
-
-###################################################################################################
-############## OPTIMISE ONLY AVERAGE (i.e. no SD) FOR GIVEN COORDINATE ############################
-###################################################################################################
-
-#makes gs of specified coordinates (e.g. propeller) flat (i.e. average). Must be called before initialising GPU tensors
-def make_it_flat_GS(ids) :
-
-    for l in range(cg.Nseq) :
-        ave_sampled = []
-        Ncoords = int(len(cfun.internal_coords[l][0])/len(cg.ids))
-        #print("check counts: ", Ncoords)
-
-        #make sampled specified coordinates flat (average)
-        for i in range(len(ids)):
-            ave_sampled.append(0.)
-            ave_target.append(0.)
-
-        for n in range(len(cfun.internal_coords[l])):
-           for i in range(len(ids)):
-               ave_sampled[i] = 0.
-
-           for i in range(len(cfun.internal_coords[l][n])) :
-               coord_type = cg.ids[i%len(cg.ids)]
-               if coord_type in ids:
-                   idx = ids.index(coord_type)
-                   ave_sampled[idx] += cfun.internal_coords[l][n][i]/Ncoords
-
-           for i in range(len(cfun.internal_coords[l][n])) :
-               coord_type = cg.ids[i%len(cg.ids)]
-               if coord_type in ids:
-                   idx = ids.index(coord_type)
-                   cfun.internal_coords[l][n][i] = ave_sampled[idx]
-
-    #make target coordinates flat
-    ave_target = []
-
-    for i in range(len(ids)):
-        ave_target.append(0.)
-
-    for l in range(cg.Nseq):
-        Ncoords += int(len(cfun.target_mu[l])/len(cg.ids))
-
-    for l in range(cg.Nseq):
-        for i in range(len(cfun.target_mu[l])) :
-           coord_type = cg.ids[i%len(cg.ids)]
-           if coord_type in ids:
-               idx = ids.index(coord_type)
-               ave_target[idx] += cfun.internal_coords[l][n][i]/Ncoords
-
-    for l in range(cg.Nseq):
-        for i in range(len(cfun.target_mu[l])) :
-           coord_type = cg.ids[i%len(cg.ids)]
-           if coord_type in ids:
-               idx = ids.index(coord_type)
-               cfun.target_mu[l][i] = ave_target[idx]
-
-    return
