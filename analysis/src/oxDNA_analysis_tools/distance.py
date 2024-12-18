@@ -30,7 +30,7 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
         box (float): The size of the box (assumes a cubic box)
 
     Returns:
-        (float): The distance between the two particles
+        float: The distance between the two particles
     """
     p1 = p1 - (np.floor(p1/box) * box)
     p2 = p2 - (np.floor(p2/box) * box)
@@ -48,7 +48,7 @@ def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarra
         box (float) : The size of the box (assumes a cubic box)
 
     returns:
-        (np.array) : the distances between the points (NxM array)
+        np.ndarray : the distances between the points (NxM array)
     """
 
     p1s = p1s - (np.floor(p1s/box) * box)
@@ -78,7 +78,7 @@ def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[
             p2ss (List[List[int]]): A list of particle indices for each trajectory
 
         Returns:
-            distances (List[List[float]]): A list of distances for each trajectory
+            List[List[float]]: A list of distances for each trajectory
     """
     distances = [[] for _ in traj_infos]
     for i, (traj_info, top_info, p1s, p2s) in enumerate(zip(traj_infos, top_infos, p1ss, p2ss)):
@@ -107,8 +107,8 @@ def cli_parser(prog="distance.py"):
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
     parser.add_argument('-n', '--names', metavar='names', nargs='+', action='append', help='Names of the data series.  Will default to particle ids if not provided')
     parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's distance?")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-c', '--cluster', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's distance?")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

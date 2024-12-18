@@ -89,6 +89,8 @@ public:
 
 template<typename T>
 cudaError_t GpuUtils::LR_cudaMalloc(T **devPtr, size_t size) {
+	OX_DEBUG("Allocating %lld bytes (%.2lf MB) on the GPU", size, size / 1000000.0);
+
 	GpuUtils::_allocated_dev_mem += size;
 	return cudaMalloc((void **) devPtr, size);
 }

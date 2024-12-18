@@ -28,6 +28,7 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 
 	getInputNumber(&inp, "DPS_lambda", &_lambda, 0);
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
+    getInputBool(&inp, "DPS_no_three_body", &no_three_body, 0);
 
 	getInputBool(&inp, "DPS_normalise_patches", &_normalise_patches, 0);
 
@@ -62,6 +63,9 @@ void DetailedPatchySwapInteraction::init() {
 			OX_LOG(Logger::LOG_INFO, "DPS: Custom patches will NOT be normalised");
 		}
 	}
+    if (no_three_body){
+        OX_LOG(Logger::LOG_INFO, "DPS: Three-body interaction is DISABLED");
+    }
 
 	if(_is_KF) {
 		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_KF);
@@ -191,10 +195,12 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 
 						if(r_p > _sigma_ss) {
 							p_bond.force = tmp_force;
+							p_bond.r = _computed_r;
 							p_bond.p_torque = p_torque;
 							p_bond.q_torque = q_torque;
 
 							q_bond.force = -tmp_force;
+							q_bond.r = -_computed_r;
 							q_bond.p_torque = -q_torque;
 							q_bond.q_torque = -p_torque;
 						}
@@ -311,10 +317,12 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 								q->torque += q_torque;
 
 								p_bond.force = (dist_surf < _sigma_ss) ? angular_force : tot_force;
+								p_bond.r = _computed_r;
 								p_bond.p_torque = p_torque;
 								p_bond.q_torque = q_torque;
 
 								q_bond.force = (dist_surf < _sigma_ss) ? -angular_force : -tot_force;
+								q_bond.r = -_computed_r;
 								q_bond.p_torque = -q_torque;
 								q_bond.q_torque = -p_torque;
 

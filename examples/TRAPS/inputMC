@@ -26,8 +26,8 @@ verlet_skin = 0.20
 ##############################
 ####    INPUT / OUTPUT    ####
 ##############################
-topology = generated.top 
-conf_file = generated.dat 
+topology = ssdna100.top
+conf_file = ssdna100.dat
 trajectory_file = trajectory.dat
 refresh_vel = 1
 # log_file = log.dat

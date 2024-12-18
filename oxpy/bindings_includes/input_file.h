@@ -67,18 +67,9 @@ To check if a specific option has been set you can use `in`::
 	)pbdoc");
 
 	input.def("get_bool", [](input_file &inp, std::string &key) {
-		bool found;
-		if (inp.true_values.find(inp.get_value(key, 0, found)) != inp.true_values.end()) {
-			return true;
-		}
-		else {
-			if (inp.false_values.find(inp.get_value(key, 0, found)) != inp.false_values.end()){
-				return false;
-			}
-			else {
-				throw std::invalid_argument("boolean key " + key + " is invalid");
-			}
-		}
+		bool res;
+		getInputBool(&inp, key.c_str(), &res, 0);
+		return res;
 	}, R"pbdoc(
 		Return the boolean value of an input option.
 

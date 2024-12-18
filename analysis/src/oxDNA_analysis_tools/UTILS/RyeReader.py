@@ -1,6 +1,7 @@
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import numpy as np
 import pickle
+import re
 from os.path import exists, abspath
 from typing import List, Tuple, Iterator, Union
 import os
@@ -160,7 +161,7 @@ def get_top_info_from_traj(traj : str) -> TopInfo:
             traj (str) : path to the trajectory file
 
         Returns:
-            (TopInfo, TrajInfo) : topology and trajectory info
+            TopInfo : topology info
     """
     with open(traj) as f:
         l = ''
@@ -410,12 +411,13 @@ def get_input_parameter(input_file, parameter) -> str:
     """
     fin = open(input_file)
     value = ''
-    for line in fin:
-        line = line.lstrip()
-        if not line.startswith('#'):
-            if parameter in line:
-                value = line.split('=')[1].replace(' ','').replace('\n','')
-    fin.close()
+    pattern = rf'^\s*{re.escape(parameter)}\s*=\s*([^#]*)' #regex pattern, handles starting whitespace and comments at end of line.
+    with open(input_file) as fin:
+        for line in fin:
+            match = re.match(pattern, line) #attempt to match line to pattern
+            if match:
+                value = match.group(1).strip() #store relevant contents of found match
+
     if value == '':
         raise RuntimeError("Key {} not found in input file {}".format(parameter, input_file))
     return value

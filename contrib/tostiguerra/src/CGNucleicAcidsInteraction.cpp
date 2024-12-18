@@ -66,6 +66,8 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
+	getInputNumber(&inp, "DPS_WCA_sigma_crossover", &_WCA_sigma_crossover, 0);
+	getInputString(&inp, "DPS_crossover_file", _crossover_file, 0);
 
 	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
 		_use_mbf = true;
@@ -82,6 +84,7 @@ void CGNucleicAcidsInteraction::init() {
 	_PS_sqr_rep_rcut = pow(2., 2. / _PS_n) * SQR(_WCA_sigma);
 	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // not disabled
 	_PS_sqr_rep_rcut_unbonded = pow(2., 2. / _PS_n) * SQR(_WCA_sigma_unbonded);
+	_PS_sqr_rep_rcut_crossover = pow(2., 2. / _PS_n) * SQR(_WCA_sigma_crossover);
 
 	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
@@ -215,9 +218,20 @@ number CGNucleicAcidsInteraction::_fene(BaseParticle *p, BaseParticle *q, bool u
 
 number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
-	
-	number sigma = p->is_bonded(q) ? _WCA_sigma : _WCA_sigma_unbonded;
-	number sqr_rcut = p->is_bonded(q) ? _PS_sqr_rep_rcut : _PS_sqr_rep_rcut_unbonded;
+
+	number sigma = _WCA_sigma;
+	number sqr_rcut = _PS_sqr_rep_rcut;
+
+	if(!p->is_bonded(q)) {
+		if(crossovers[p->index] || crossovers[q->index]) {
+			sigma = _WCA_sigma_crossover;
+			sqr_rcut = _PS_sqr_rep_rcut_crossover;
+		}
+		else {
+			sigma = _WCA_sigma_unbonded;
+			sqr_rcut = _PS_sqr_rep_rcut_unbonded;
+		}
+	}
 
 	if(sqr_r > sqr_rcut) {
 		return (number) 0.;
@@ -226,8 +240,6 @@ number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool up
 	number energy = 0;
 	// this number is the module of the force over r, so we don't have to divide the distance vector for its module
 	number force_mod = 0;
-
-	
 
 	// cut-off for all the repulsive interactions
 	if(sqr_r < sqr_rcut) {
@@ -241,13 +253,6 @@ number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool up
 			force_mod += 4. * _PS_n * part * (2. * part - 1.) / sqr_r;
 		}
 	}
-	// attraction
-	/*else if(int_type == 0 && _PS_alpha != 0.) {
-	 energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
-	 if(update_forces) {
-	 force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
-	 }
-	 }*/
 
 	if(update_forces) {
 		auto force = -_computed_r * force_mod;
@@ -371,7 +376,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 			energy += prefactor * curr_energy * other_energy;
 
 			if(update_forces) {
-				// if(new_bond.r_mod > _3b_sigma)
 				{
 					BaseParticle *other = new_bond.other;
 
@@ -393,7 +397,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 					_update_stress_tensor(p->pos + new_bond.r, -tmp_force);
 				}
 
-				// if(other_bond.r_mod > _3b_sigma)
 				{
 					BaseParticle *other = other_bond.other;
 
@@ -584,20 +587,7 @@ number CGNucleicAcidsInteraction::pair_nonbonded_WCA(BaseParticle *p, BasePartic
 	number energy = _WCA(p, q, update_forces);
 
 	return energy;
-}	// switch(N_int_centers()) {
-// case 0:
-// 	break;
-// case 1: {
-// 	_base_patches[0] = LR_vector(1, 0, 0);
-// 	break;
-// }
-// default:
-// 	throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
-// }
-// for(uint i = 0; i < N_int_centers(); i++) {
-//   _base_patches[i].normalize();
-//   _base_patches[i] *= deltaPM;
-// }
+}
 
 number CGNucleicAcidsInteraction::pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
@@ -638,7 +628,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 	const number _kB_ = 1.9872036;
 	number _mu = _t37_ / (_tC+273.15);
 	if(inter_matrix_file.state == ERROR) {
-			throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
+		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
 	}
 
 	_interaction_matrix_size = _N_attractive_types + 1;
@@ -647,20 +637,20 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 	ofstream myfile;
 	myfile.open("beta_eps_matrix.dat");
 	for(int i = 1; i <= _N_attractive_types; i++) {
-			for(int j = 1; j <= _N_attractive_types; j++) {
-					number valueH;
-					number valueS;
-					std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
-					std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
-					if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
-							number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
-							number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
-							if(beta_dG<bdG_threshold && abs(i - j) > 1) {
-									_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
-									myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
-							}
-					}
+		for(int j = 1; j <= _N_attractive_types; j++) {
+			number valueH;
+			number valueS;
+			std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
+			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
+			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
+				number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
+				number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
+				if(beta_dG<bdG_threshold && abs(i - j) > 1) {
+					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
+					myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
+				}
 			}
+		}
 	}
 	myfile.close();
 }
@@ -669,6 +659,33 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 	std::string line;
 	unsigned int N_from_conf = particles.size();
 	BaseInteraction::read_topology(N_strands, particles);
+
+	crossovers = std::vector<int>(N_from_conf, 0);
+	if(_crossover_file.size() > 0) {
+		std::ifstream c_file(_crossover_file.c_str());
+		if(!c_file) {
+			throw oxDNAException("The crossover file '%s' does not exist or is unreadable", _crossover_file.c_str());
+		}
+
+		int crossover_read = 0;
+		while(c_file.good()) {
+			std::getline(c_file, line);
+			auto spl = Utils::split(line);
+			if(spl.size() == 1) {
+				unsigned int idx = std::atoi(spl[0].c_str());
+				if(idx >= N_from_conf) {
+					throw oxDNAException("The index %u found in the crossover file exceeds the number of particles %u", idx, N_from_conf);
+				}
+				crossovers[idx] = 1;
+				crossover_read++;
+			}
+			else if(spl.size() > 1) {
+				throw oxDNAException("Malformed crossover file: each line should have no more than one column");
+			}
+		}
+		OX_LOG(Logger::LOG_INFO, "Read %d crossovers from the file", crossover_read);
+		c_file.close();
+	}
 
 	std::ifstream topology;
 	topology.open(_topology_filename, std::ios::in);
@@ -767,7 +784,7 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 	_N_chains = *N_strands;
 
 	_parse_interaction_matrix();
-
+	
 	return;
 }
 

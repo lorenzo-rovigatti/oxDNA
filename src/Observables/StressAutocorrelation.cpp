@@ -113,6 +113,9 @@ void StressAutocorrelation::update_data(llint curr_step) {
 	}
 
 	StressTensor stress_tensor = _config_info->interaction->stress_tensor();
+	for(uint i = 0; i < stress_tensor.size(); i++) {
+		_st_avg[i] += stress_tensor[i];
+	}
 	double P = (stress_tensor[0] + stress_tensor[1] + stress_tensor[2]) / 3.;
 
 	_sigma_P->add_value(P);
@@ -126,10 +129,18 @@ void StressAutocorrelation::update_data(llint curr_step) {
 	_N_xy->add_value(stress_tensor[0] - stress_tensor[1]);
 	_N_xz->add_value(stress_tensor[0] - stress_tensor[2]);
 	_N_yz->add_value(stress_tensor[1] - stress_tensor[2]);
+
+	_times_updated++;
 }
 
 std::string StressAutocorrelation::get_output_string(llint curr_step) {
 	std::stringstream ss;
+
+	ss << "# t = " << curr_step << " st_avg =";
+	for(uint i = 0; i < _st_avg.size(); i++) {
+		ss  << " " << _st_avg[i] / _times_updated;
+	}
+	ss << std::endl;
 
 	std::vector<double> times;
 	_sigma_xy->get_times(_delta_t, times);

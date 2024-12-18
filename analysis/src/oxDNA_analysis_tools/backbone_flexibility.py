@@ -88,8 +88,9 @@ def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncp
             ncpus (int): (optional) Number of CPUs to use
 
         Returns:
-            torsions (np.array): Torsion angles
-            dihedrals (np.array): Dihedral angles
+            Tuple[np.ndarray, np.ndarray]:
+            | Torsion angles
+            | Dihedral angles
 
     '''
     # Create a ComputeContext which defines the problem to pass to the worker processes 
@@ -115,10 +116,10 @@ def cli_parser(prog="backbone_flexibility.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Computes the deviations in the backbone torsion angles")
     parser.add_argument('topology', type=str, nargs=1, help="The topology file associated with the trajectory file")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-o', metavar='output_file', nargs=1, type=str, dest='output', help="(optional) The name of the file to write the graph to")
-    parser.add_argument('-d', metavar='data_file', nargs=1, type=str, dest='data', help="(optional) The name of the file to write the data to")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-o', '--output', metavar='output_file', nargs=1, type=str, dest='output', help="(optional) The name of the file to write the graph to")
+    parser.add_argument('-d', '--data', metavar='data_file', nargs=1, type=str, dest='data', help="(optional) The name of the file to write the data to")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

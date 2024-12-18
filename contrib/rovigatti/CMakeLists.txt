@@ -1,12 +1,12 @@
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(rovigatti
-	DEPENDS PolymerSwapInteraction TSPInteraction MGAssemblyConf PolymerInteraction 
+	DEPENDS PolymerSwapInteraction MGAssemblyConf 
 			DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure 
 			MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction 
-			GenericGrByInsertion VoidPercolation Remoteness CPAnalysis Widom LevyDelta 
-			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
-			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
+			GenericGrByInsertion VoidPercolation Remoteness CPAnalysis Widom 
+			CPMixtureInteraction StarrInteraction mWInteraction 
+			FSInteraction StarrConf ConstructwiseBonds 
 			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
 			PatchyBonds Bonds DetailedPolymerSwapInteraction
 )
@@ -32,9 +32,7 @@ add_library_no_prefix(EmptyVolume src/Observables/EmptyVolume.cpp)
 add_library_no_prefix(FSConf src/Observables/FSConf.cpp src/Interactions/FSInteraction.cpp)
 add_library_no_prefix(Gyradius src/Observables/Gyradius.cpp)
 add_library_no_prefix(StarrConf src/Observables/StarrConf.cpp)
-add_library_no_prefix(TSPAnalysis src/Observables/TSPAnalysis.cpp)
 add_library_no_prefix(Widom src/Observables/Widom.cpp)
-add_library_no_prefix(LevyDelta src/Observables/LevyDelta.cpp src/Interactions/LevyInteraction.cpp)
 add_library_no_prefix(CPAnalysis src/Observables/CPAnalysis.cpp)
 add_library_no_prefix(Remoteness src/Observables/Remoteness.cpp)
 add_library_no_prefix(VoidPercolation src/Observables/VoidPercolation.cpp)
@@ -47,14 +45,10 @@ add_library_no_prefix(DensityPressureProfile src/Observables/DensityPressureProf
 add_library_no_prefix(MGAssemblyConf src/Observables/MGAssemblyConf.cpp src/Interactions/FSInteraction.cpp)
 
 # Interactions
-add_library_no_prefix(TSPInteraction src/Interactions/TSPInteraction.cpp)
-add_library_no_prefix(PolymerInteraction src/Interactions/PolymerInteraction.cpp src/Interactions/TSPInteraction.cpp)
 add_library_no_prefix(FSInteraction src/Interactions/FSInteraction.cpp)
-add_library_no_prefix(GraftedInteraction src/Interactions/GraftedInteraction.cpp src/Interactions/TSPInteraction.cpp)
 add_library_no_prefix(mWInteraction src/Interactions/mWInteraction.cpp)
 add_library_no_prefix(StarrInteraction src/Interactions/StarrInteraction.cpp)
 add_library_no_prefix(CPMixtureInteraction src/Interactions/CPMixtureInteraction.cpp)
-add_library_no_prefix(LevyInteraction src/Interactions/LevyInteraction.cpp)
 add_library_no_prefix(MGInteraction src/Interactions/MGInteraction.cpp)
 add_library_no_prefix(AOInteraction src/Interactions/AOInteraction.cpp)
 add_library_no_prefix(PolydisperseLTInteraction src/Interactions/PolydisperseLTInteraction.cpp)
@@ -62,15 +56,6 @@ add_library_no_prefix(PolymerSwapInteraction src/Interactions/PolymerSwapInterac
 add_library_no_prefix(PatchySwapInteraction src/Interactions/PatchySwapInteraction.cpp)
 add_library_no_prefix(DetailedPatchySwapInteraction src/Interactions/DetailedPatchySwapInteraction.cpp)
 add_library_no_prefix(DetailedPolymerSwapInteraction src/Interactions/DetailedPolymerSwapInteraction.cpp)
-
-FIND_PACKAGE(PkgConfig)
-IF(PkgConfig_FOUND)
-	PKG_CHECK_MODULES(GSL gsl)
-	IF(GSL_FOUND)
-		add_library_no_prefix(NathanNeighs src/Observables/NathanNeighs.cpp)
-		target_link_libraries(NathanNeighs ${GSL_LIBRARIES})
-	ENDIF(GSL_FOUND)
-ENDIF(PkgConfig_FOUND)
 
 IF(CUDA)
 	set(CMAKE_MODULE_LINKER_FLAGS  "${CMAKE_MODULE_LINKER_FLAGS} -rdynamic")
@@ -88,14 +73,11 @@ IF(CUDA)
 	cuda_add_library_no_prefix(CUDAFSInteraction src/Interactions/CUDAFSInteraction.cu src/Interactions/FSInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAmWInteraction src/Interactions/CUDAmWInteraction.cu src/Interactions/mWInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAStarrInteraction src/Interactions/CUDAStarrInteraction.cu src/Interactions/StarrInteraction.cpp)
-	cuda_add_library_no_prefix(CUDALevyInteraction src/Interactions/CUDALevyInteraction.cu src/Interactions/LevyInteraction.cpp)
 	cuda_add_library_no_prefix(CUDACPMixtureInteraction src/Interactions/CUDACPMixtureInteraction.cu src/Interactions/CPMixtureInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAMGInteraction src/Interactions/CUDAMGInteraction.cu src/Interactions/MGInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAAOInteraction src/Interactions/CUDAAOInteraction.cu src/Interactions/AOInteraction.cpp)
-	cuda_add_library_no_prefix(CUDAPolymerInteraction src/Interactions/CUDAPolymerInteraction.cu src/Interactions/PolymerInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAPolymerSwapInteraction src/Interactions/CUDAPolymerSwapInteraction.cu src/Interactions/PolymerSwapInteraction.cpp)
 	cuda_add_library_no_prefix(CUDADetailedPolymerSwapInteraction src/Interactions/CUDADetailedPolymerSwapInteraction.cu src/Interactions/DetailedPolymerSwapInteraction.cpp)
-	cuda_add_library_no_prefix(CUDATSPInteraction src/Interactions/CUDATSPInteraction.cu src/Interactions/TSPInteraction.cpp)
 	
-	ADD_DEPENDENCIES(rovigatti CUDADetailedPolymerSwapInteraction CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
+	ADD_DEPENDENCIES(rovigatti CUDADetailedPolymerSwapInteraction CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDAPolymerSwapInteraction)
 ENDIF(CUDA)

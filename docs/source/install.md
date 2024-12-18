@@ -26,7 +26,7 @@ make -j4         # compile oxDNA. The -jX make option makes it compile the code 
 
 At the end of the compilation three executables (*oxDNA*, *DNAnalysis* and *confGenerator*) will be placed in the `build/bin` directory. 
 
-Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package (as well as `oxDNA_analysis_tools`) to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
+Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package (as well as `oxDNA_analysis_tools`) to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/) or [conda](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html)) to avoid conflicts with other packages and/or dependency and permission issues.
 
 ### Updating a local copy
 
@@ -39,7 +39,7 @@ cd build        # enter the build folder (see above)
 make -j4        # compile the updated source
 ```
 
-If you also want to update `oxpy` don't forget to run `make install` after the compilation.
+If you also want to update `oxpy` and `OAT` don't forget to run `make install` after the compilation.
 
 ### CMake options
 
@@ -104,6 +104,8 @@ cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUD
 ## Known issues
 
 * An `illegal instruction` is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with `-DNATIVE_COMPILATION=Off` and re-compile the code to fix the issue.
+* When compiling oxDNA with Python support on Microsoft's WSL, if the local repository is downloaded in Windows (*i.e.*, outside WSL), tests and analysis scripts may fail (see [this issue](https://github.com/lorenzo-rovigatti/oxDNA/issues/122#issue-2499923060)). To avoid these problems, clone the repository directly within the WSL environment.
+* The `oxpy` installation may fail with a `Built wheel for oxpy is invalid: Wheel has unexpected file name` warning in some specific cases (see [here](https://github.com/lorenzo-rovigatti/oxDNA/issues/137) for an example, where updating `setuptools` solved the issue).
 * A list of other known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
 
 

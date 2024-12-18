@@ -1,4 +1,5 @@
 #see: https://dna.physics.ox.ac.uk/index.php/Documentation#External_Forces
+# TODO: "group_name" and "id" need to be added as optional parameters to forces
 from typing import Dict, List, Literal
 
 def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool, rate:float=0, stiff_rate:float=0) -> Dict:
@@ -105,6 +106,25 @@ def repulsion_plane(particle:int, stiff:float, direction:List[float], position:L
     """
     return({
         "type" : "repulsion_plane",
+        "particle" : particle,
+        "stiff" : stiff,
+        "dir" : direction,
+        "position" : position
+    })
+
+
+def attraction_plane(particle:int, stiff:float, direction:List[float], position:List[float]) -> Dict:
+    """
+    A plane that pulls the affected particle towards it while staying on one side.
+
+    Parameters:
+        particle (int): the particle that the force acts upon.  -1 will act on whole system.
+        stiff (float): the stiffness of the trap (force = stiff * distance below plane)
+        direction ([float, float, float]): the normal vector to the plane
+        position ([float, float, float]): position of the plane (plane is d0*x + d1*y + d2*z + position = 0)
+    """
+    return({
+        "type" : "attraction_plane",
         "particle" : particle,
         "stiff" : stiff,
         "dir" : direction,

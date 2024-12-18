@@ -31,7 +31,7 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"
         "numpy": "numpy.org", 
         "matplotlib": "matplotlib.org",
         "sklearn": "scikit-learn.org",
-        "oxpy": "https://github.com/lorenzo-rovigatti/oxDNA"
+        "oxpy": "https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options"
     }
 
     #get version of this package
@@ -112,7 +112,7 @@ def get_chunk_size():
 def cli_parser(prog="config.py"):
     parser = argparse.ArgumentParser(prog = prog, description='Configure oxDNA_analysis_tools')
     parser.add_argument('-n', '--chunk_size', type=int, help='Number of configurations to per chunk.  Persistent across analyses.')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

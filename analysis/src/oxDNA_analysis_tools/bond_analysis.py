@@ -2,6 +2,7 @@ import argparse
 from os import path
 from collections import namedtuple
 from typing import Tuple, Dict
+from json import dump
 import numpy as np
 import matplotlib.pyplot as plt
 import oxpy
@@ -18,26 +19,36 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "designed_pairs",
                                               "input_file"])
 
+# This is the function which gets parallelized
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # Create the oxpy context
     with oxpy.Context():
-        inp = oxpy.InputFile()
-        inp.init_from_filename(ctx.input_file)
-        inp["list_type"] = "cells"
+        inp = oxpy.InputFile()                      # Create an empty input file
+        inp.init_from_filename(ctx.input_file)      # Fill in input file with the provided input
+
+        # Modify the input file to analyze the target trajectory and select a chunk to analyze
+        inp["list_type"] = "cells"                   
         inp["trajectory_file"] = ctx.traj_info.path
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
         inp["confs_to_analyse"] = str(chunk_size)
+
+        # Use oxDNA's observables interface to define what parameter we want to measure
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = hb_list \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
             log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
 
+        # Start up an analysis backend with the input file we just made
         backend = oxpy.analysis.AnalysisBackend(inp)
     
+        # The parameters we're going to read from the trajectory
         i = 0
         count_correct_bonds = []
         count_incorrect_bonds = []
         tot_bonds = []
         out_array = np.zeros(ctx.top_info.nbases, dtype=int)
+
+        # Iterate over configurations in the target chunk and process the hydrogen bonds at each step
         while backend.read_next_configuration():
             conf_corr_bonds = 0
             conf_incorr_bonds = 0
@@ -61,7 +72,8 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarra
             count_incorrect_bonds.append(conf_incorr_bonds)
             tot_bonds.append(conf_tot_bonds)
 
-        return(np.array(tot_bonds), np.array(count_correct_bonds), np.array(count_incorrect_bonds), out_array)
+    # Send the processed data back to the main process
+    return(np.array(tot_bonds), np.array(count_correct_bonds), np.array(count_incorrect_bonds), out_array)
 
 
 def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], inputfile:str, ncpus:int=1) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -76,18 +88,22 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
             ncpus (int): (optional) number of cores to use
 
         Returns:
-            total_bonds (np.ndarray): Number of formed bonds among the specified nucleotides at each step in the simulation
-            incorrect_bonds (np.ndarray): Number of missbonds among specified nucleotides at each step in the simulation
-            correct_bonds (np.ndarray): Number of correct bonds among specified nucleotides at each step in the simulation
-            nt_array (np.ndarray): per-nucleotide correct bond occupancy
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            | Number of formed bonds among the specified nucleotides at each step in the simulation
+            | Number of missbonds among specified nucleotides at each step in the simulation
+            | Number of correct bonds among specified nucleotides at each step in the simulation
+            | Per-nucleotide correct bond occupancy
     '''
+    # oat_multiprocessor requires all arguments to compute be passed as a single variable.  We use a namedtuple for this.
     ctx = ComputeContext(traj_info, top_info, pairs, inputfile)
 
+    # Pre-allocate the arrays where the results will be stored
     total_bonds = np.empty(traj_info.nconfs)
     correct_bonds = np.empty(traj_info.nconfs)
     incorrect_bonds = np.empty(traj_info.nconfs)
     nt_array = np.zeros(ctx.top_info.nbases, dtype=int)
 
+    # The callback function defines what to do with the returned data when a chunk is finished processing
     chunk_size = get_chunk_size()
     def callback(i, r):
         nonlocal total_bonds, correct_bonds, incorrect_bonds, nt_array
@@ -96,6 +112,7 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
         incorrect_bonds[i*chunk_size:i*chunk_size+len(r[2])] = r[2]
         nt_array += r[3]
 
+    # Run the <compute> function on <ncpus> over <nconfs> with arguments <ctx> and catch the return with <callback>
     oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
 
     nt_array  = nt_array / traj_info.nconfs
@@ -130,10 +147,11 @@ def cli_parser(prog="bond_analysis.py"):
     parser.add_argument('inputfile', type=str, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, help="The trajecotry file to compare against the designed pairs")
     parser.add_argument('designed_pairs', type=str, help="The file containing the desired nucleotides pairings in the format `a b`")
-    parser.add_argument('-o', metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
-    parser.add_argument('-t', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
-    parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-o', '--output',metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
+    parser.add_argument('-t', '--plot', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
+    parser.add_argument('-d', '--data', metavar='data_file', type=str, dest='data_file', help="If set, save the data used to make the plot to a json file.")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -143,7 +161,7 @@ def main():
     #run system checks
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "numpy"])
+    check(["python", "numpy", "oxpy"])
 
     # Parse CLI input
     inputfile = args.inputfile
@@ -151,13 +169,13 @@ def main():
     designfile = args.designed_pairs
     if args.outfile:
         outfile = args.outfile
-        outfile = outfile.strip(".json")+".json"
+        outfile = outfile.removesuffix(".json")+".json"
     else:
         outfile = 'bonds.json'
         log("No oxView name provided, defaulting to \"{}\"".format(outfile))
     if args.traj_plot:
         plotfile = args.traj_plot
-        plotfile = plotfile.strip(".png")+".png"
+        plotfile = plotfile.removesuffix(".png")+".png"
     else:
         plotfile = 'bonds.png'
         log("No bond plot name provided, defaulting to \"{}\"".format(plotfile))
@@ -186,6 +204,18 @@ def main():
     # Summarize output and generate output filess
     print("\nSummary:\navg bonds: {}\navg correct bonds: {}/{}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds), len(pairs), np.mean(incorrect_bonds)))
 
+    if args.data_file:
+        data_file = args.data_file.removesuffix(".json")+".json"
+        with open(data_file, 'w+') as f:
+            dump(
+                {
+                    "total_bonds" : total_bonds.tolist(),
+                    "correct_bonds" : correct_bonds.tolist(),
+                    "incorrect_bonds" : incorrect_bonds.tolist()
+                }, f
+            )
+            log(f"Wrote per-step and per-nucleotide bond data to {data_file}")
+    
     oxView_overlay(nt_array, outfile)
 
     plot_trajectories(correct_bonds, incorrect_bonds, len(pairs), plotfile)

@@ -32,7 +32,7 @@ def anm_parameterize(particles_array:np.ndarray, trajectory:str, ref_conf:Config
             ref_conf (Configuration): The reference configuration.
 
         Returns:
-            np.array : The RMSF for each super particle.
+            np.ndarray: The RMSF for each super particle.
     """
     
     ref_conf = inbox(ref_conf, center=True)

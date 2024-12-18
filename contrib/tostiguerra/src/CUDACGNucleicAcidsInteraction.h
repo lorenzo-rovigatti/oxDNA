@@ -19,6 +19,7 @@ private:
 	c_number4 *_d_three_body_forces = nullptr;
 	c_number4 *_d_three_body_torques = nullptr;
 	float *_d_3b_epsilon = nullptr;
+	int *_d_crossovers = nullptr;
 
 	cudaTextureObject_t _tex_eps = 0;
 

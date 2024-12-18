@@ -16,6 +16,7 @@ LJInteraction::LJInteraction() :
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;
 	_n[0] = _n[1] = _n[2] = 6;
 	_N_A = _N_B = 0;
+	_rcut = 2.5;
 }
 
 LJInteraction::~LJInteraction() {
@@ -32,15 +33,19 @@ void LJInteraction::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "LJ_kob_andersen", &_is_ka_mixture, 0);
 
-	double sigma;
-	if(getInputDouble(&inp, "LJ_sigma[2]", &sigma, 0) == KEY_FOUND) {
-		_sigma[2] = sigma;
+	getInputNumber(&inp, "LJ_epsilon[0]", _epsilon, 0);
+	getInputNumber(&inp, "LJ_epsilon[1]", _epsilon + 1, 0);
+	getInputNumber(&inp, "LJ_epsilon[2]", _epsilon + 2, 0);
+
+	getInputBool(&inp, "LJ_only_repulsive[0]", _only_repulsive, 0);
+	getInputBool(&inp, "LJ_only_repulsive[1]", _only_repulsive + 1, 0);
+	getInputBool(&inp, "LJ_only_repulsive[2]", _only_repulsive + 2, 0);
+
+	if(getInputNumber(&inp, "LJ_sigma[2]", _sigma + 2, 0) == KEY_FOUND) {
 		_sigma[1] = 0.5 * (1. + _sigma[2]);
 	}
 
-	float rcut = 2.5f;
-	getInputFloat(&inp, "LJ_rcut", &rcut, 0);
-	_rcut = (number) rcut;
+	getInputNumber(&inp, "LJ_rcut", &_rcut, 0);
 }
 
 void LJInteraction::init() {
@@ -52,7 +57,7 @@ void LJInteraction::init() {
 	}
 
 	for(int i = 0; i < 3; i++) {
-		number rcut = _rcut * _sigma[i];
+		number rcut = (_only_repulsive[i]) ? pow(2.0, 1. / _n[i]) * _sigma[i] : _rcut * _sigma[i];
 		_sqr_LJ_rcut[i] = SQR(rcut);
 		_E_cut[i] = 4. * _epsilon[i] * (pow(_sigma[i] / rcut, (number) 2 * _n[i]) - pow(_sigma[i] / rcut, (number) _n[i]));
 		_sqr_sigma[i] = SQR(_sigma[i]);

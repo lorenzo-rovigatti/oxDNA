@@ -3,14 +3,14 @@ import argparse
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxpy
 
-def cli_parser(prog="generate_force.py"):
+def cli_parser(prog="generate_forces.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('configuration', type=str, nargs=1, help="The configuration to generate the forces from")
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the forces to. Defaults to forces.txt')
     parser.add_argument('-f', '--pairs', type=str, nargs=1, help='Name of the file to write the designed pairs list to')
     parser.add_argument('-s', '--stiff', type=float, nargs=1, help='Stiffness of the mutual trap')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -22,6 +22,9 @@ def main():
     logger_settings.set_quiet(args.quiet)
     inputfile = args.inputfile[0]
     conf_file = args.configuration[0]
+
+    from oxDNA_analysis_tools.config import check
+    check(["oxpy"])
 
     #-o names the output file
     if args.output:
