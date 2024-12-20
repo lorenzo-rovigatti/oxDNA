@@ -14,7 +14,7 @@ LR_vector const DNANucleotide::third_axis(0, 1, 0);
 
 //DNANucleotide::DNANucleotide(enum grooving) :
 DNANucleotide::DNANucleotide(int grooving) :
-				BaseParticle() 
+				BaseParticle()
 {
 	// _stack_axis definition has been changed for the major-minor grooving addition to the code and third_axis definition added;
 	// _stack_axis is not used anywhere in the code apart from for major-minor grooving so the change should not affect anything
@@ -36,29 +36,29 @@ bool DNANucleotide::is_bonded(BaseParticle *q) {
 void DNANucleotide::set_positions() {
         if(_grooving==2) {
 	        if (btype==0){
-        	        _POS_MM_BACK1 = -0.3400f;
-                	_POS_MM_BACK2 = 0.3408f ;
-	                _POS_STACK = 0.34f ;
-        	        _POS_BASE =  0.4f;
+        	        _POS_MM_BACK1 = POS_MM_BACK1_A;
+                	_POS_MM_BACK2 = POS_MM_BACK2_A;
+	                _POS_STACK = POS_STACK_A;
+        	        _POS_BASE =  POS_BASE_A;
 		}
 	        else if (btype==1){
-        	        _POS_MM_BACK1 = -0.3400f;
-                	_POS_MM_BACK2 = 0.3408f ;
-	                _POS_STACK = 0.34f ;
-        	        _POS_BASE =  0.4f;
+                        _POS_MM_BACK1 = POS_MM_BACK1_G;
+                        _POS_MM_BACK2 = POS_MM_BACK2_G;
+                        _POS_STACK = POS_STACK_G;
+                        _POS_BASE =  POS_BASE_G;
 		}
 	        else if (btype==2){
-        	        _POS_MM_BACK1 = -0.3400f;
-                	_POS_MM_BACK2 = 0.3408f ;
-	                _POS_STACK = 0.34f ;
-        	        _POS_BASE =  0.4f;
-		}
+                        _POS_MM_BACK1 = POS_MM_BACK1_C;
+                        _POS_MM_BACK2 = POS_MM_BACK2_C;
+                        _POS_STACK = POS_STACK_C;
+                        _POS_BASE =  POS_BASE_C;
+        	}
         	else if (btype==3){
-                	_POS_MM_BACK1 = -0.3400f;
-	                _POS_MM_BACK2 = 0.3408f ;
-        	        _POS_STACK = 0.34f ;
-                	_POS_BASE =  0.4f;
-		}
+                        _POS_MM_BACK1 = POS_MM_BACK1_T;
+                        _POS_MM_BACK2 = POS_MM_BACK2_T;
+                        _POS_STACK = POS_STACK_T;
+                        _POS_BASE =  POS_BASE_T;
+        	}
         	else if (btype==4){
                 	_POS_MM_BACK1 = -0.3400f;
 	                _POS_MM_BACK2 = 0.3408f ;

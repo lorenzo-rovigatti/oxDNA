@@ -3,7 +3,7 @@
  * @date    Jun 2, 2011
  * @author  fromano
  *
- *
+ * 
  */
 
 #ifndef MODEL_H_
@@ -19,26 +19,7 @@
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
 
-// oxDNA3
-#define POS_MM_BACK1_A -0.3400f
-#define POS_MM_BACK2_A 0.3408f
-#define POS_STACK_A 0.34f
-#define POS_BASE_A  0.4f
 
-#define POS_MM_BACK1_G -0.3400f
-#define POS_MM_BACK2_G 0.3408f
-#define POS_STACK_G 0.34f
-#define POS_BASE_G  0.4f
-
-#define POS_MM_BACK1_C -0.3400f
-#define POS_MM_BACK2_C 0.3408f
-#define POS_STACK_C 0.34f
-#define POS_BASE_C  0.4f
-
-#define POS_MM_BACK1_T -0.3400f
-#define POS_MM_BACK2_T 0.3408f
-#define POS_STACK_T 0.34f
-#define POS_BASE_T  0.4f
 
 
 /// POS_STACK - POS_BACK
@@ -85,7 +66,6 @@
 #define EXCL_RC5 0.335388426126f
 #define EXCL_RC6 0.52329943261f
 #define EXCL_RC7 0.52329943261f
-
 /**
  * HYDROGEN BONDING
  */
@@ -431,5 +411,6 @@
 #define CXST_T4_MESH_POINTS 6   // perfetto
 #define CXST_T5_MESH_POINTS 6   // perfetto
 #define CXST_T6_MESH_POINTS CXST_T5_MESH_POINTS
+
 
 #endif /* MODEL_H_ */
