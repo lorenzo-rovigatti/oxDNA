@@ -1486,7 +1486,7 @@ rule CXX_MODULE_LIBRARY_LINKER__CUDACGNucleicAcidsInteraction_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /snap/clion/305/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/josh/git/oxDNA -B/home/josh/git/oxDNA/cmake-build-debug
+  command = /snap/clion/310/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/josh/git/oxDNA -B/home/josh/git/oxDNA/cmake-build-debug
   description = Re-running CMake...
   generator = 1
 
@@ -1495,7 +1495,7 @@ rule RERUN_CMAKE
 # Rule for cleaning all built files.
 
 rule CLEAN
-  command = /snap/clion/305/bin/ninja/linux/x64/ninja $FILE_ARG -t clean $TARGETS
+  command = /snap/clion/310/bin/ninja/linux/x64/ninja $FILE_ARG -t clean $TARGETS
   description = Cleaning all built files...
 
 
@@ -1503,6 +1503,6 @@ rule CLEAN
 # Rule for printing all primary targets available.
 
 rule HELP
-  command = /snap/clion/305/bin/ninja/linux/x64/ninja -t targets
+  command = /snap/clion/310/bin/ninja/linux/x64/ninja -t targets
   description = All primary targets available:
 

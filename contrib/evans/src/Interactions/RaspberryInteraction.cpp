@@ -78,20 +78,29 @@ LR_vector RaspberryInteraction::getParticleInteractionSitePosition(BaseParticle 
     return p->int_centers[int_site_idx + 2 * std::get<1>(*particleType).size() ];
 }
 
-number
-RaspberryInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    return 0;
+number RaspberryInteraction::pair_interaction(BaseParticle *p,
+                                              BaseParticle *q,
+                                              bool compute_r,
+                                              bool update_forces) {
+    return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number RaspberryInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r,
+number RaspberryInteraction::pair_interaction_bonded(BaseParticle *p,
+                                                     BaseParticle *q,
+                                                     bool compute_r,
                                                      bool update_forces) {
-    // going off Lorenzo's example we are treating all particles
+    // going off Lorenzo's example we are treating all particles as nonbonded
     return 0.;
 }
 
-number RaspberryInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,
+number RaspberryInteraction::pair_interaction_nonbonded(BaseParticle *p,
+                                                        BaseParticle *q,
+                                                        bool compute_r,
                                                         bool update_forces) {
-    return 0;
+    number e = 0.;
+    e += repulsive_pt_interaction(p, q, update_forces);
+
+    return e;
 }
 
 /**
@@ -225,6 +234,13 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
         }
         m_RepulsionPoints[i] = {i, position, r};
     }
+    // cache sums of all possible repulsion point pairs
+    // todo: warn if this is too big?
+    for (int i = 0; i < m_RepulsionPoints.size(); i++){
+        for (int j = i; j < m_RepulsionPoints.size(); j++){
+            m_RSums[{i, j}] = std::get<2>(m_RepulsionPoints[i]) + std::get<2>(m_RepulsionPoints[j]);
+        }
+    }
 
     // read particle types
     m_ParticleTypes.resize(particle_type_lines.size());
@@ -270,12 +286,18 @@ void RaspberryInteraction::check_input_sanity(std::vector<BaseParticle *> &parti
  * @param update_forces
  * @return
  */
+
 number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParticle *q, bool update_forces) {
     int p_type = m_ParticleList[p->get_index()];
     int q_type = m_ParticleList[q->get_index()];
 
+    number e_lj;
     number energy = 0.;
-
+    number sigma, rstar, b, rc, rsum;
+    LR_vector force;
+    LR_vector p_torque, q_torque;
+    int ppidx, qqidx;
+    number r_patch;
     // TODO: make this combinatorics problem less shit
     for (int pp = 0; pp < std::get<PTYPE_REP_PTS>(m_ParticleTypes[p_type]).size(); pp++){
         for (int qq = 0; qq < std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type]).size(); qq++) {
@@ -284,99 +306,72 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             LR_vector qpos = getParticleInteractionSitePosition(q, qq);
             // repulsive spheres have variable sizes,
             // we precompute the rmaxes-squareds for each pair of interaction types
-            number rmax_dist_sqr = get_r_max_sqr(
-                    std::get<PTYPE_REP_PTS>(m_ParticleTypes[p_type])[pp],
-                    std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq]
-            );
+            ppidx = std::get<PTYPE_REP_PTS>(m_ParticleTypes[p_type])[pp];
+            qqidx = std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq];
+            number rmax_dist_sqr = get_r_max_sqr(ppidx, qqidx);
 
             LR_vector patch_dist = _computed_r + qpos - ppos;
             number r_patch_sqr = patch_dist.norm();
             // if the distance between the two interaction points is greater than the cutoff
             if (r_patch_sqr < rmax_dist_sqr) {
                 // unlike in other impls our model does not assume repulsive spheres have radius=0.5
+                // r-factor = the sum of the radii of the repulsive interaction spheres, minus 1
+                rsum = get_r_sum(ppidx, qqidx);
 
-                number lj_rfac = get_r_lj_offset(
-                        std::get<PTYPE_REP_PTS>(m_ParticleTypes[p_type])[pp],
-                        std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq]
-                );
+                // we use a Lennard Jones function with quadatic smoothin
+                // sigma
+                sigma = PLEXCL_S;
 
-                // this is a bit faster than calling r.norm()
-                number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
-                number energy = (number) 0;
+                // radial cutoff
+                rc = PLEXCL_RC * r_patch_sqr;
 
+                // if the normalized radius is less than the interaction cutoff
+                if (r_patch_sqr < SQR(rc)) {
+                    // is this even correct??
+                    b = PLEXCL_B / rsum;
+                    // compute quadratic smoothing cutoff rstar
+                    rstar = PLEXCL_R * rsum;
+                    // if r is less than rstar, use the lennard-jones equation
+                    if(r_patch_sqr < SQR(rstar)) {
+                        // partial lennard-jones value
+                        number lj_partial = (sigma / (sqrt(r_patch_sqr) - rsum - 1));
+                        // lj partial = (sigma/r)^6
+                        lj_partial = lj_partial * lj_partial * lj_partial;
 
-                sigma *= (2*lj_rfac);
-                rstar *= (2*lj_rfac);
-                b /= SQR(2*lj_rfac);
-                rc *= (2*lj_rfac);
-
-                if(rnorm < SQR(rc)) {
-                    if(rnorm > SQR(rstar)) {
-                        number rmod = sqrt(rnorm);
-                        number rrc = rmod - rc;
-                        energy = PLEXCL_EPS * b * SQR(rrc);
-                        if(update_forces) force = -r * (2 * PLEXCL_EPS * b * rrc / rmod);
+                        // compute lennard-jones interaction energy
+                        e_lj = 8 * (lj_partial * lj_partial - lj_partial);
+                        // update energy
+                        energy += e_lj;
+                        if(update_forces) {
+                            // compute forces
+                            // i really hope this is correct
+                            force = -patch_dist * (24 * PLEXCL_EPS * (lj_partial - 2*SQR(lj_partial)) / r_patch_sqr);
+                        }
                     }
                     else {
-                        number tmp = SQR(sigma) / rnorm;
-                        number lj_part = tmp * tmp * tmp;
-                        energy = 4 * PLEXCL_EPS * (SQR(lj_part) - lj_part);
-                        if(update_forces) force = -r * (24 * PLEXCL_EPS * (lj_part - 2*SQR(lj_part)) / rnorm);
+                        // if r > rstar, use quadratic smoothing
+                        // Vsmooth = b(xc - x)^2
+                        // actual distance value, computed by taking the square root of rsquared
+                        r_patch = sqrt(r_patch_sqr);
+                        number rrc = r_patch - rc;
+                        energy += PLEXCL_EPS * b * SQR(rrc);
+                        if(update_forces) force = -patch_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
+                    }
+
+                    if (update_forces){
+                        // update particle force vectors
+                        p->force -= force;
+                        q->force += force;
+                        // compute torques
+                        // i grabbed this eqn from Lorenzo's code
+                        p_torque = -p->orientationT * ppos.cross(force);
+                        q_torque =  q->orientationT * qpos.cross(force);
+                        // update particle torque vectors
+                        p->torque += p_torque;
+                        q->torque += q_torque;
                     }
                 }
-
-                if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
-
-                return energy;
-
-                // check that the center-center distance isn't less than the sum of the radii; this should not be allowed
-                assert((r_patch_sqr - int_site_rad_sum_sqr) > 0 );
-
-                // very much stole the force calculations from Lorenzo, because there is no way i get those right
-
-                // inverse square of the radius
-                number inv_sqr_r = 1. / (r_patch_sqr - int_site_rad_sum_sqr);
-                // compute 1 / r ^ 6 by computing (1/(r ^ 2))^3
-                number lj_part = inv_sqr_r * inv_sqr_r * inv_sqr_r;
-                // energy from lennard-jones potential
-                number e_lj = 4 * (SQR(lj_part) - lj_part) + 1.0;
-
-                // update energy
-                energy += e_lj;
-
-                number ir2 = 1. / sqr_r;
-                number lj_part = ir2 * ir2 * ir2;
-                energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
-                if(update_forces) {
-                    LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
-                    p->force -= force;
-                    q->force += force;
-
-                    _update_stress_tensor(p->pos, -force);
-                    _update_stress_tensor(p->pos + _computed_r, force);
-                }
-
-                if (update_forces) {
-                    // force is the derivitive of energy w/ respect to time
-                    //
-                    LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
-
-                    // compute torque from force vectors
-                    LR_vector p_torque = p->orientationT * ppos.cross(tmp_force);
-                    LR_vector q_torque = q->orientationT * qpos.cross(tmp_force);
-
-                    // update forces for particles
-                    p->force -= tmp_force;
-                    q->force += tmp_force;
-
-                    // update torque for particles
-                    p->torque -= p_torque;
-                    q->torque += q_torque;
-
-                    // no idea what this does
-                    _update_stress_tensor(p->pos, -tmp_force);
-                    _update_stress_tensor(p->pos + _computed_r, tmp_force);
-                }
+                // if the radius is greater than the cutoff, we can just ignore it
             }
         }
     }
@@ -400,27 +395,26 @@ number RaspberryInteraction::patchy_pt_like_interaction(BaseParticle *p, BasePar
 
 
 /**
- * retrieves the "lennard jones scale factor" (named after Dr. John Scalefactor)
- * the default lennard-jones potential assumes a energy y-intercept at r=1
- * to offset that we need to add the sum of the radii
- * @param intSite1
- * @param intSite2
+ * returns the sum of the two radii of the interaction sites given
+ * @param intSite1 type ID of first interaction point
+ * @param intSite1 type ID of first interaction point
  * @return
  */
-number RaspberryInteraction::get_r_lj_offset(int intSite1, int intSite2) const {
-    return 0;
+number RaspberryInteraction::get_r_sum(const int &intSite1, const int &intSite2) const {
+    return m_RSums.at({intSite1, intSite2});
 }
 
 /**
- * retrieves the matimum distance at which two repulsive interaction point types (that's a mouthful!)
+ * retrieves the maximum distance at which two repulsive interaction point types (that's a mouthful!)
  * will interact
  * @param intSite1 type ID of first interaction point
  * @param intSite2 type ID of second interaction point
  * @return
  */
-number RaspberryInteraction::get_r_max_sqr(int intSite1, int intSite2) const {
-    return 0;
+number RaspberryInteraction::get_r_max_sqr(const int &intSite1, const int &intSite2) const {
+    return 1.2 * get_r_sum(intSite1, intSite2);
 }
+
 
 
 std::string readLineNoComment(std::istream& inp){

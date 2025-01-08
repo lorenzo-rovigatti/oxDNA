@@ -57,12 +57,12 @@ if(NOT generated_file)
 endif()
 
 # Set these up as variables to make reading the generated file easier
-set(CMAKE_COMMAND "/snap/clion/305/bin/cmake/linux/x64/bin/cmake") # path
+set(CMAKE_COMMAND "/snap/clion/310/bin/cmake/linux/x64/bin/cmake") # path
 set(source_file "/home/josh/git/oxDNA/src/CUDA/Lists/CUDASimpleVerletList.cu") # path
 set(NVCC_generated_dependency_file "/home/josh/git/oxDNA/cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDASimpleVerletList.cu.o.NVCC-depend") # path
 set(cmake_dependency_file "/home/josh/git/oxDNA/cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDASimpleVerletList.cu.o.depend") # path
-set(CUDA_make2cmake "/snap/clion/305/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/make2cmake.cmake") # path
-set(CUDA_parse_cubin "/snap/clion/305/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/parse_cubin.cmake") # path
+set(CUDA_make2cmake "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/make2cmake.cmake") # path
+set(CUDA_parse_cubin "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/parse_cubin.cmake") # path
 set(build_cubin OFF) # bool
 set(CUDA_HOST_COMPILER "/usr/bin/gcc-8") # path
 # We won't actually use these variables for now, but we need to set this, in

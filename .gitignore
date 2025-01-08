@@ -74,3 +74,4 @@ MANIFEST
 .DS_Store
 
 select_compute_arch_laptop.cmake
+cmake-build-debug

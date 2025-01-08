@@ -1,4 +1,4 @@
-/snap/clion/305/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/305/bin/ninja/linux/x64/ninja -DCMAKE_BUILD_TYPE=Debug -DDebug=On -DCUDA=ON -DCMAKE_C_COMPILER=/usr/bin/gcc-8 -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -G Ninja -S /home/josh/git/oxDNA -B /home/josh/git/oxDNA/cmake-build-debug
+/snap/clion/310/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/310/bin/ninja/linux/x64/ninja -DCMAKE_BUILD_TYPE=Debug -DDebug=On -DCUDA=ON -DCMAKE_C_COMPILER=/usr/bin/gcc-8 -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -G Ninja -S /home/josh/git/oxDNA -B /home/josh/git/oxDNA/cmake-build-debug
 CMake Deprecation Warning at CMakeLists.txt:1 (CMAKE_MINIMUM_REQUIRED):
   Compatibility with CMake < 3.5 will be removed from a future version of
   CMake.
@@ -17,8 +17,22 @@ CMake Deprecation Warning at CMakeLists.txt:8 (cmake_policy):
   behavior and not rely on setting a policy to OLD.
 
 
+-- The C compiler identification is GNU 8.4.0
+-- The CXX compiler identification is GNU 8.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc-8 - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++-8 - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
 -- Compiling in Debug mode
+-- Found Git: /usr/bin/git (found version "2.25.1")
 fatal: No names found, cannot describe anything.
+-- Found Doxygen: /usr/bin/doxygen (found version "1.8.17") found components: doxygen dot
 CMake Warning (dev) at src/CMakeLists.txt:248 (FIND_PACKAGE):
   Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
   --help-policy CMP0146" for policy details.  Use the cmake_policy command to
@@ -26,6 +40,14 @@ CMake Warning (dev) at src/CMakeLists.txt:248 (FIND_PACKAGE):
 
 This warning is for project developers.  Use -Wno-dev to suppress it.
 
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found CUDA: /usr (found version "10.1")
 -- Generating code for the following CUDA architectures: sm_35 sm_50 sm_53 sm_60 sm_61 sm_70 sm_75 compute_75
 -- -gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_53,code=sm_53;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_75,code=compute_75
 -- Adding the targets found in the /home/josh/git/oxDNA/contrib/evans folder
@@ -70,6 +92,6 @@ CMake Warning (dev) at contrib/tostiguerra/CMakeLists.txt:24 (find_package):
 
 This warning is for project developers.  Use -Wno-dev to suppress it.
 
--- Configuring done (0.1s)
--- Generating done (0.1s)
+-- Configuring done (1.2s)
+-- Generating done (0.2s)
 -- Build files have been written to: /home/josh/git/oxDNA/cmake-build-debug

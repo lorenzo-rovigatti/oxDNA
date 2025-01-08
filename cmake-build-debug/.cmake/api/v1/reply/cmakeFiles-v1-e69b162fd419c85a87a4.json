@@ -1,0 +1,903 @@
+{
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.30.5/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.30.5/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Compiler/GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux-GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Compiler/GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux-GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindDoxygen.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "docs/Doxyfile_oxDNA"
+		},
+		{
+			"path" : "docs/oxDNA.css"
+		},
+		{
+			"path" : "src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/select_compute_arch.cmake"
+		},
+		{
+			"path" : "select_compute_arch.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/oxdna_common_generated_CUDA_sort.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/oxdna_common_generated_CUDAUtils.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/cuda_utils/oxdna_common_generated_cuda_device_utils.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_CUDABaseBackend.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_MD_CUDABackend.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDABaseInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDADNAInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDALJInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDARNAInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDAPatchyInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDATEPInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDAInteractionFactory.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDAListFactory.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDANoList.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDASimpleVerletList.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDABinVerletList.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABaseThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDANoThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDAThermostatFactory.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABrownianThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDASRDThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDALangevinThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABussiThermostat.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_MD_CUDAMixedBackend.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_FFS_MD_CUDAMixedBackend.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/oxdna_common_generated_CUDA_sort.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/oxdna_common_generated_CUDAUtils.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/cuda_utils/oxdna_common_generated_cuda_device_utils.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_CUDABaseBackend.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_MD_CUDABackend.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDABaseInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDADNAInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDALJInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDARNAInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDAPatchyInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDATEPInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Interactions/oxdna_common_generated_CUDAInteractionFactory.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDAListFactory.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDANoList.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDASimpleVerletList.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Lists/oxdna_common_generated_CUDABinVerletList.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABaseThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDANoThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDAThermostatFactory.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABrownianThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDASRDThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDALangevinThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Thermostats/oxdna_common_generated_CUDABussiThermostat.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_MD_CUDAMixedBackend.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/src/CMakeFiles/oxdna_common.dir/CUDA/Backends/oxdna_common_generated_FFS_MD_CUDAMixedBackend.cu.o.cmake.pre-gen"
+		},
+		{
+			"path" : "contrib/CMakeLists.txt"
+		},
+		{
+			"path" : "contrib/evans/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/select_compute_arch.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/evans/CMakeFiles/CUDARaspberryInteraction.dir/src/Interactions/CUDARaspberryInteraction_generated_CUDARaspberryInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/evans/CMakeFiles/CUDARaspberryInteraction.dir/src/Interactions/CUDARaspberryInteraction_generated_CUDARaspberryInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"path" : "contrib/randisi/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/randisi/CMakeFiles/CUDADNA2ModInteraction.dir/src/Interactions/CUDADNA2ModInteraction_generated_CUDADNA2ModInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/randisi/CMakeFiles/CUDADNA2ModInteraction.dir/src/Interactions/CUDADNA2ModInteraction_generated_CUDADNA2ModInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"path" : "contrib/romano/CMakeLists.txt"
+		},
+		{
+			"path" : "contrib/rovigatti/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/select_compute_arch.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDADetailedPatchySwapInteraction.dir/src/Interactions/CUDADetailedPatchySwapInteraction_generated_CUDADetailedPatchySwapInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAPatchySwapInteraction.dir/src/Interactions/CUDAPatchySwapInteraction_generated_CUDAPatchySwapInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAFSInteraction.dir/src/Interactions/CUDAFSInteraction_generated_CUDAFSInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAmWInteraction.dir/src/Interactions/CUDAmWInteraction_generated_CUDAmWInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAStarrInteraction.dir/src/Interactions/CUDAStarrInteraction_generated_CUDAStarrInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDACPMixtureInteraction.dir/src/Interactions/CUDACPMixtureInteraction_generated_CUDACPMixtureInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAMGInteraction.dir/src/Interactions/CUDAMGInteraction_generated_CUDAMGInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAAOInteraction.dir/src/Interactions/CUDAAOInteraction_generated_CUDAAOInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAPolymerSwapInteraction.dir/src/Interactions/CUDAPolymerSwapInteraction_generated_CUDAPolymerSwapInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDADetailedPolymerSwapInteraction.dir/src/Interactions/CUDADetailedPolymerSwapInteraction_generated_CUDADetailedPolymerSwapInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDADetailedPatchySwapInteraction.dir/src/Interactions/CUDADetailedPatchySwapInteraction_generated_CUDADetailedPatchySwapInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAPatchySwapInteraction.dir/src/Interactions/CUDAPatchySwapInteraction_generated_CUDAPatchySwapInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAFSInteraction.dir/src/Interactions/CUDAFSInteraction_generated_CUDAFSInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAmWInteraction.dir/src/Interactions/CUDAmWInteraction_generated_CUDAmWInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAStarrInteraction.dir/src/Interactions/CUDAStarrInteraction_generated_CUDAStarrInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDACPMixtureInteraction.dir/src/Interactions/CUDACPMixtureInteraction_generated_CUDACPMixtureInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAMGInteraction.dir/src/Interactions/CUDAMGInteraction_generated_CUDAMGInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAAOInteraction.dir/src/Interactions/CUDAAOInteraction_generated_CUDAAOInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDAPolymerSwapInteraction.dir/src/Interactions/CUDAPolymerSwapInteraction_generated_CUDAPolymerSwapInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/rovigatti/CMakeFiles/CUDADetailedPolymerSwapInteraction.dir/src/Interactions/CUDADetailedPolymerSwapInteraction_generated_CUDADetailedPolymerSwapInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"path" : "contrib/tostiguerra/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/select_compute_arch.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/tostiguerra/CMakeFiles/CUDACGNucleicAcidsInteraction.dir/src/CUDACGNucleicAcidsInteraction_generated_CUDACGNucleicAcidsInteraction.cu.o.depend"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/snap/clion/310/bin/cmake/linux/x64/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/contrib/tostiguerra/CMakeFiles/CUDACGNucleicAcidsInteraction.dir/src/CUDACGNucleicAcidsInteraction_generated_CUDACGNucleicAcidsInteraction.cu.o.cmake.pre-gen"
+		},
+		{
+			"path" : "oxpy/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/home/josh/git/oxDNA/cmake-build-debug",
+		"source" : "/home/josh/git/oxDNA"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}

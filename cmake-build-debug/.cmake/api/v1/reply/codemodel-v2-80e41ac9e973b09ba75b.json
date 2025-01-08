@@ -1,0 +1,953 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						8
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						74,
+						82,
+						83,
+						84
+					]
+				},
+				{
+					"build" : "src",
+					"jsonFile" : "directory-src-Debug-b6cf2213fc5053b67c22.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src",
+					"targetIndexes" : 
+					[
+						27,
+						73,
+						77,
+						78
+					]
+				},
+				{
+					"build" : "contrib",
+					"childIndexes" : 
+					[
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"jsonFile" : "directory-contrib-Debug-341bdebe30af16482086.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "contrib"
+				},
+				{
+					"build" : "contrib/evans",
+					"jsonFile" : "directory-contrib.evans-Debug-f890ee21e288ed177210.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "contrib/evans",
+					"targetIndexes" : 
+					[
+						16,
+						63,
+						75
+					]
+				},
+				{
+					"build" : "contrib/randisi",
+					"jsonFile" : "directory-contrib.randisi-Debug-7f30de37830abacec003.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "contrib/randisi",
+					"targetIndexes" : 
+					[
+						9,
+						26,
+						79
+					]
+				},
+				{
+					"build" : "contrib/romano",
+					"jsonFile" : "directory-contrib.romano-Debug-617df9114ab8cb412722.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "contrib/romano",
+					"targetIndexes" : 
+					[
+						1,
+						19,
+						20,
+						21,
+						22,
+						25,
+						29,
+						30,
+						33,
+						34,
+						35,
+						36,
+						38,
+						41,
+						42,
+						44,
+						46,
+						47,
+						48,
+						53,
+						54,
+						55,
+						57,
+						58,
+						64,
+						66,
+						69,
+						70,
+						80
+					]
+				},
+				{
+					"build" : "contrib/rovigatti",
+					"jsonFile" : "directory-contrib.rovigatti-Debug-1ea9ba00707da2aba22b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "contrib/rovigatti",
+					"targetIndexes" : 
+					[
+						0,
+						2,
+						4,
+						5,
+						6,
+						8,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						17,
+						18,
+						23,
+						24,
+						28,
+						31,
+						32,
+						37,
+						39,
+						40,
+						43,
+						45,
+						49,
+						50,
+						51,
+						52,
+						56,
+						59,
+						60,
+						61,
+						62,
+						65,
+						67,
+						68,
+						71,
+						72,
+						76,
+						81
+					]
+				},
+				{
+					"build" : "contrib/tostiguerra",
+					"jsonFile" : "directory-contrib.tostiguerra-Debug-314e11856ff71510d004.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "contrib/tostiguerra",
+					"targetIndexes" : 
+					[
+						3,
+						7,
+						85
+					]
+				},
+				{
+					"build" : "oxpy",
+					"jsonFile" : "directory-oxpy-Debug-87b20babcacf4ce63d1d.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "oxpy"
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					],
+					"name" : "oxDNA",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						30,
+						31,
+						32,
+						33,
+						34,
+						35,
+						36,
+						37,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						44,
+						45,
+						46,
+						47,
+						48,
+						49,
+						50,
+						51,
+						52,
+						53,
+						54,
+						55,
+						56,
+						57,
+						58,
+						59,
+						60,
+						61,
+						62,
+						63,
+						64,
+						65,
+						66,
+						67,
+						68,
+						69,
+						70,
+						71,
+						72,
+						73,
+						74,
+						75,
+						76,
+						77,
+						78,
+						79,
+						80,
+						81,
+						82,
+						83,
+						84,
+						85
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 6,
+					"id" : "AOInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-AOInteraction-Debug-18c6c9278af9939eeb3d.json",
+					"name" : "AOInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "AVBDepletion::@1b508556103eef181a9d",
+					"jsonFile" : "target-AVBDepletion-Debug-6c8d0816ace9ab6fab3a.json",
+					"name" : "AVBDepletion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "Bonds::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-Bonds-Debug-8bd648e3f8d7d448aa61.json",
+					"name" : "Bonds",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "CGNucleicAcidsInteraction::@af8d7aa699fd64416102",
+					"jsonFile" : "target-CGNucleicAcidsInteraction-Debug-6c17d36e460f4ad9f8bd.json",
+					"name" : "CGNucleicAcidsInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CPAnalysis::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CPAnalysis-Debug-7a8519c5709cf3045cc9.json",
+					"name" : "CPAnalysis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CPMixtureInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CPMixtureInteraction-Debug-9092b8c8ec900e7f693d.json",
+					"name" : "CPMixtureInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAAOInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAAOInteraction-Debug-4aec1f26833a3c36930f.json",
+					"name" : "CUDAAOInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "CUDACGNucleicAcidsInteraction::@af8d7aa699fd64416102",
+					"jsonFile" : "target-CUDACGNucleicAcidsInteraction-Debug-ac2ac7e6890ea11bf277.json",
+					"name" : "CUDACGNucleicAcidsInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDACPMixtureInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDACPMixtureInteraction-Debug-9150c80965c479f75846.json",
+					"name" : "CUDACPMixtureInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "CUDADNA2ModInteraction::@de42d6c4d7c5fab4b203",
+					"jsonFile" : "target-CUDADNA2ModInteraction-Debug-f1d426719352be66fa67.json",
+					"name" : "CUDADNA2ModInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDADetailedPatchySwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDADetailedPatchySwapInteraction-Debug-e99d90a19ec7e30f9a40.json",
+					"name" : "CUDADetailedPatchySwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDADetailedPolymerSwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDADetailedPolymerSwapInteraction-Debug-94b9745e24b390f8c71d.json",
+					"name" : "CUDADetailedPolymerSwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAFSInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAFSInteraction-Debug-2d3423caa4101d41a490.json",
+					"name" : "CUDAFSInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAMGInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAMGInteraction-Debug-063b3a14f9540db7d457.json",
+					"name" : "CUDAMGInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAPatchySwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAPatchySwapInteraction-Debug-704bad18d42204b0553b.json",
+					"name" : "CUDAPatchySwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAPolymerSwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAPolymerSwapInteraction-Debug-936fabddcd5f75c8a283.json",
+					"name" : "CUDAPolymerSwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "CUDARaspberryInteraction::@2d304e29ca8bc3d02bb6",
+					"jsonFile" : "target-CUDARaspberryInteraction-Debug-5ce3db95aaa4438be3af.json",
+					"name" : "CUDARaspberryInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAStarrInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAStarrInteraction-Debug-bc5c9f791e3e150103b5.json",
+					"name" : "CUDAStarrInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "CUDAmWInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-CUDAmWInteraction-Debug-15483692c2c5f6ad5898.json",
+					"name" : "CUDAmWInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ChargedCylInteraction::@1b508556103eef181a9d",
+					"jsonFile" : "target-ChargedCylInteraction-Debug-09e29034409586f6a382.json",
+					"name" : "ChargedCylInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ChiralRodExplicit::@1b508556103eef181a9d",
+					"jsonFile" : "target-ChiralRodExplicit-Debug-26345751e98fcddb95c8.json",
+					"name" : "ChiralRodExplicit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ChiralRodInteraction::@1b508556103eef181a9d",
+					"jsonFile" : "target-ChiralRodInteraction-Debug-6a6d64e9146e942a5433.json",
+					"name" : "ChiralRodInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ClosestN::@1b508556103eef181a9d",
+					"jsonFile" : "target-ClosestN-Debug-1e0a87683af845e8e279.json",
+					"name" : "ClosestN",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "ConstructwiseBonds::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-ConstructwiseBonds-Debug-686ec4db492ef983a34a.json",
+					"name" : "ConstructwiseBonds",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "ConstructwisePressure::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-ConstructwisePressure-Debug-eadd618c3855e3dbe17a.json",
+					"name" : "ConstructwisePressure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "CutVolume::@1b508556103eef181a9d",
+					"jsonFile" : "target-CutVolume-Debug-7fc1c92c8c1b846ba53d.json",
+					"name" : "CutVolume",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "DNA2ModInteraction::@de42d6c4d7c5fab4b203",
+					"jsonFile" : "target-DNA2ModInteraction-Debug-9fe3de5aeea40abdfc7a.json",
+					"name" : "DNA2ModInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "DNAnalysis::@145eef247bfb46b6828c",
+					"jsonFile" : "target-DNAnalysis-Debug-13d1f8d2d782f3307577.json",
+					"name" : "DNAnalysis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "DensityPressureProfile::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-DensityPressureProfile-Debug-a4bef021415ae71a9bd4.json",
+					"name" : "DensityPressureProfile",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Depletion::@1b508556103eef181a9d",
+					"jsonFile" : "target-Depletion-Debug-cd1ba3862052cdb2ab1c.json",
+					"name" : "Depletion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "DepletionVolume::@1b508556103eef181a9d",
+					"jsonFile" : "target-DepletionVolume-Debug-16bf294e47f0d9142934.json",
+					"name" : "DepletionVolume",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "DetailedPatchySwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-DetailedPatchySwapInteraction-Debug-48ca9aec347d2b97f48c.json",
+					"name" : "DetailedPatchySwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "DetailedPolymerSwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-DetailedPolymerSwapInteraction-Debug-cfbb6be0c5d4ae8695e2.json",
+					"name" : "DetailedPolymerSwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "DirkInteraction::@1b508556103eef181a9d",
+					"jsonFile" : "target-DirkInteraction-Debug-283d58fca46fb60dc9e5.json",
+					"name" : "DirkInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "DirkInteraction2::@1b508556103eef181a9d",
+					"jsonFile" : "target-DirkInteraction2-Debug-61334ab116b2cac03387.json",
+					"name" : "DirkInteraction2",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "DirkInteractionBias::@1b508556103eef181a9d",
+					"jsonFile" : "target-DirkInteractionBias-Debug-91db06a6bd5a34c4068a.json",
+					"name" : "DirkInteractionBias",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "DirkInteractionSin::@1b508556103eef181a9d",
+					"jsonFile" : "target-DirkInteractionSin-Debug-c8c0ca5bf6874bdaea9f.json",
+					"name" : "DirkInteractionSin",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "EmptyVolume::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-EmptyVolume-Debug-524755675702798604e2.json",
+					"name" : "EmptyVolume",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Exhaust::@1b508556103eef181a9d",
+					"jsonFile" : "target-Exhaust-Debug-bd3f7a20c3e7d76ec1d9.json",
+					"name" : "Exhaust",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "FSConf::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-FSConf-Debug-51ccbbd4e917a4de563c.json",
+					"name" : "FSConf",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "FSInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-FSInteraction-Debug-948f3e74061f9f43cfb8.json",
+					"name" : "FSInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "FakePressure::@1b508556103eef181a9d",
+					"jsonFile" : "target-FakePressure-Debug-ef38b22473be2c27c577.json",
+					"name" : "FakePressure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "FreeVolume::@1b508556103eef181a9d",
+					"jsonFile" : "target-FreeVolume-Debug-24600628b633cfe9ab62.json",
+					"name" : "FreeVolume",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "GenericGrByInsertion::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-GenericGrByInsertion-Debug-384ec3619c7742e41ae1.json",
+					"name" : "GenericGrByInsertion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Grow::@1b508556103eef181a9d",
+					"jsonFile" : "target-Grow-Debug-ffcc2132febd45f94bf8.json",
+					"name" : "Grow",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "Gyradius::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-Gyradius-Debug-59fcee55402bf723b88d.json",
+					"name" : "Gyradius",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "HardIcoInteraction::@1b508556103eef181a9d",
+					"jsonFile" : "target-HardIcoInteraction-Debug-cc7b6dd16f92dd393151.json",
+					"name" : "HardIcoInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Icosahedron::@1b508556103eef181a9d",
+					"jsonFile" : "target-Icosahedron-Debug-3d26672c70d55b582296.json",
+					"name" : "Icosahedron",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "MCMovePatchyShape::@1b508556103eef181a9d",
+					"jsonFile" : "target-MCMovePatchyShape-Debug-96b7461dcb8a1debf804.json",
+					"name" : "MCMovePatchyShape",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "MGAnalysis::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-MGAnalysis-Debug-80657f62f9cd4beb24d3.json",
+					"name" : "MGAnalysis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "MGAssemblyConf::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-MGAssemblyConf-Debug-682fa76bfbc78caaac6c.json",
+					"name" : "MGAssemblyConf",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "MGInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-MGInteraction-Debug-fbdaff7a73b46dec6cfa.json",
+					"name" : "MGInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "MicrogelElasticity::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-MicrogelElasticity-Debug-583b4f293d9d92676ed4.json",
+					"name" : "MicrogelElasticity",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "NDepletion::@1b508556103eef181a9d",
+					"jsonFile" : "target-NDepletion-Debug-b9c14a2146b400636a3d.json",
+					"name" : "NDepletion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "NematicS::@1b508556103eef181a9d",
+					"jsonFile" : "target-NematicS-Debug-40a6cb184f9865bc3f86.json",
+					"name" : "NematicS",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "PLCluster::@1b508556103eef181a9d",
+					"jsonFile" : "target-PLCluster-Debug-63eed860e6c4459f7085.json",
+					"name" : "PLCluster",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "PatchyBonds::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-PatchyBonds-Debug-63ec077759a9ddea5acf.json",
+					"name" : "PatchyBonds",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "PatchyShapeInteraction::@1b508556103eef181a9d",
+					"jsonFile" : "target-PatchyShapeInteraction-Debug-bfe5c429bac3143f77b3.json",
+					"name" : "PatchyShapeInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "PatchyShapeParticle::@1b508556103eef181a9d",
+					"jsonFile" : "target-PatchyShapeParticle-Debug-a76250b6b91c9bee69b1.json",
+					"name" : "PatchyShapeParticle",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "PatchySwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-PatchySwapInteraction-Debug-dfc185a448f502c50c49.json",
+					"name" : "PatchySwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "PolydisperseLTInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-PolydisperseLTInteraction-Debug-72ac2ab6c20354ef5dbc.json",
+					"name" : "PolydisperseLTInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "PolymerSwapInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-PolymerSwapInteraction-Debug-6371a2ab843577a333cb.json",
+					"name" : "PolymerSwapInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "RadialDensityProfile::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-RadialDensityProfile-Debug-af947daec09ed4df1b0f.json",
+					"name" : "RadialDensityProfile",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "RaspberryPatchyInteraction::@2d304e29ca8bc3d02bb6",
+					"jsonFile" : "target-RaspberryPatchyInteraction-Debug-eaf7f29d164901105a51.json",
+					"name" : "RaspberryPatchyInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Reappear::@1b508556103eef181a9d",
+					"jsonFile" : "target-Reappear-Debug-d6ed80b80aa5545a0f02.json",
+					"name" : "Reappear",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "Remoteness::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-Remoteness-Debug-db9ff47f5366dc355ab6.json",
+					"name" : "Remoteness",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "SideChange::@1b508556103eef181a9d",
+					"jsonFile" : "target-SideChange-Debug-551f1d5eb5c0cfbe7983.json",
+					"name" : "SideChange",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "StarrConf::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-StarrConf-Debug-d881bcb4dab6dfd27d8f.json",
+					"name" : "StarrConf",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "StarrInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-StarrInteraction-Debug-f60384b6728e27f9a4a2.json",
+					"name" : "StarrInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Swap::@1b508556103eef181a9d",
+					"jsonFile" : "target-Swap-Debug-703b0887fb986c8c39eb.json",
+					"name" : "Swap",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Swim::@1b508556103eef181a9d",
+					"jsonFile" : "target-Swim-Debug-23020438de78c8a5c81d.json",
+					"name" : "Swim",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "VoidPercolation::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-VoidPercolation-Debug-0b162a85295f3ed4fc0b.json",
+					"name" : "VoidPercolation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "Widom::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-Widom-Debug-dd503f257aa9643cc081.json",
+					"name" : "Widom",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "confGenerator::@145eef247bfb46b6828c",
+					"jsonFile" : "target-confGenerator-Debug-4bed5912c26be4931788.json",
+					"name" : "confGenerator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "docs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-docs-Debug-d1cd00114123a848122e.json",
+					"name" : "docs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "evans::@2d304e29ca8bc3d02bb6",
+					"jsonFile" : "target-evans-Debug-54edd6fb96e3468805e1.json",
+					"name" : "evans",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "mWInteraction::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-mWInteraction-Debug-188bae1d3f5dffa7c7b9.json",
+					"name" : "mWInteraction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "oxDNA_debug::@145eef247bfb46b6828c",
+					"jsonFile" : "target-oxDNA_debug-Debug-9840f1b13bdbb06690d4.json",
+					"name" : "oxDNA_debug",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "oxdna_common::@145eef247bfb46b6828c",
+					"jsonFile" : "target-oxdna_common-Debug-21ec4b288b04e3af66a9.json",
+					"name" : "oxdna_common",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "randisi::@de42d6c4d7c5fab4b203",
+					"jsonFile" : "target-randisi-Debug-6a956adf8d5c2d9eb41e.json",
+					"name" : "randisi",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "romano::@1b508556103eef181a9d",
+					"jsonFile" : "target-romano-Debug-e4b3d6a1754ec2bddfd3.json",
+					"name" : "romano",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "rovigatti::@8c6a0a773379a755f49b",
+					"jsonFile" : "target-rovigatti-Debug-5dd8f8c2ac41828a9e35.json",
+					"name" : "rovigatti",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test-Debug-e3faff7bd1df6cb208cd.json",
+					"name" : "test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_quick::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_quick-Debug-761bc801587913b70e07.json",
+					"name" : "test_quick",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_run::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_run-Debug-2f7ef072e014151f1d59.json",
+					"name" : "test_run",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "tostiguerra::@af8d7aa699fd64416102",
+					"jsonFile" : "target-tostiguerra-Debug-8da2a0e26db98b75f88e.json",
+					"name" : "tostiguerra",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/josh/git/oxDNA/cmake-build-debug",
+		"source" : "/home/josh/git/oxDNA"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

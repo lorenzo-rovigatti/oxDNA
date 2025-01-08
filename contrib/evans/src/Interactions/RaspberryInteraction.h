@@ -8,8 +8,37 @@
 #ifndef ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
 #define ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
 
-
 #include "Interactions/BaseInteraction.h"
+#include <unordered_map>
+
+// constants from Flavio Romano's PatchyShapeInteraction
+// i'm not 100% sure why r and rc aren't 1
+#define PLEXCL_S   1.0f
+#define PLEXCL_R   0.9053f
+#define PLEXCL_B   677.505671539f
+#define PLEXCL_RC  0.99888f
+#define PLEXCL_EPS 2.0f
+
+// hash unordered pairs
+struct UnorderedPairHash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        // Ensure that (a, b) and (b, a) have the same hash value
+        int a = std::min(p.first, p.second);
+        int b = std::max(p.first, p.second);
+        // Use a simple hash combination technique
+        return std::hash<int>()(a) ^ (std::hash<int>()(b) << 1);
+    }
+};
+
+
+// Custom equality function for unordered pairs
+struct UnorderedPairEqual {
+    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) const {
+        // Since the pair is unordered, (a, b) == (b, a)
+        return (p1.first == p2.first && p1.second == p2.second) ||
+               (p1.first == p2.second && p1.second == p2.first);
+    }
+};
 
 /**
 * @brief interaction between patchy particles with multiple repulsive points
@@ -78,6 +107,7 @@ protected:
 
     // runtime variables
     std::vector<std::vector<int>> m_ParticleStates; // todo
+    std::unordered_map<std::pair<int, int>, number, UnorderedPairHash, UnorderedPairEqual> m_RSums;
 
 public:
     enum {
@@ -98,8 +128,9 @@ public:
     LR_vector getParticlePatchPosition(BaseParticle* p, int patch_idx);
     LR_vector getParticlePatchAlign(BaseParticle* p, int patch_idx);
     LR_vector getParticleInteractionSitePosition(BaseParticle* p, int int_site_idx);
-    number get_r_max_sqr(int intSite1, int intSite2) const;
-    number get_r_lj_offset(int intSite1, int intSite2) const;
+    number get_r_max_sqr(const int &intSite1, const int &intSite2) const;
+    number get_r_sum(const int &intSite1, const int &intSite2) const;
+    number get_int_sites_b(const int &intSite1, const int &intSite2) const;
 
     // pair interaction functions
     virtual number pair_interaction(BaseParticle *p,
@@ -118,7 +149,7 @@ public:
     virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-    virtual void begin_energy_computation() ;
+//    virtual void begin_energy_computation() ;
 
     // interaction functions
     number repulsive_pt_interaction(BaseParticle *p, BaseParticle *q, bool update_forces);
