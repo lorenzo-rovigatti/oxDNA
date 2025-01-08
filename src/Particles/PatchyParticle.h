@@ -15,6 +15,7 @@ struct PatchyBond {
 	number r_p;
 	int p_patch, q_patch;
 	number energy;
+	LR_vector r;
 	LR_vector force;
 	LR_vector p_torque, q_torque;
 

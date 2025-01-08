@@ -19,45 +19,45 @@ def pairs2db(n_bases:int, pairs:Dict[int, int]) -> str:
         str: The pairs as a dot-bracket string, including any nested bases
     """
 
-    n = n_bases
-    dotbracket = ['.'] * n  # Initialize dotbracket list
+    dotbracket = ['.'] * n_bases  # Initialize dotbracket list
 
     bracket_open_avail = "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     bracket_close_avail = ")]}>abcdefghijklmnopqrstuvwxyz"
 
     stack = []
-    stack_cnt = 0
     bracket_count = 0
     recheck = True
 
     while recheck:
         recheck = False
-        for i in range(n):
+        for i in range(n_bases):
+            # i is unpaired
             if i not in pairs.keys():
                 continue
+
+            # i is open bracket
             if pairs[i] > i:
-                # Check for clash
-                if stack_cnt > 0 and pairs[i] > stack[-1]:
+                # Check for crossing pairs
+                if len(stack) > 0 and pairs[i] > stack[-1]:
                     recheck = True
                     continue
                 else:
                     stack.append(pairs[i])
                     dotbracket[i] = bracket_open_avail[bracket_count]
                     dotbracket[pairs[i]] = bracket_close_avail[bracket_count]
-            if stack_cnt == 0:
+            if len(stack) == 0:
                 continue
             if i == stack[-1]:
-                # Remove pair from pair table
-                pairs.pop(pairs[pairs[i]])
-                pairs.pop(pairs[i])
+                # Remove pair from stack and pairdict
+                pairs.pop(pairs.pop(i))
                 stack.pop()
-                stack_cnt -= 1
-            stack_cnt = len(stack)
 
+        # Repeat again with next bracket
         bracket_count += 1
 
         if bracket_count >= 30:
-            print("Not enough bracket types available! Skipping remaining base pairs!")
+            log("Not enough bracket types available! Skipping remaining base pairs!", level=1)
+            log("If you think this shouldn't be the case, you might not have a 1:1 correspondence in your pairs.", level=1)
             break
 
     return ''.join(dotbracket)
