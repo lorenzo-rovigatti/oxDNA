@@ -19,26 +19,26 @@
 #define PLEXCL_RC  0.99888f
 #define PLEXCL_EPS 2.0f
 
-// hash unordered pairs
-struct UnorderedPairHash {
-    std::size_t operator()(const std::pair<int, int>& p) const {
-        // Ensure that (a, b) and (b, a) have the same hash value
-        int a = std::min(p.first, p.second);
-        int b = std::max(p.first, p.second);
-        // Use a simple hash combination technique
-        return std::hash<int>()(a) ^ (std::hash<int>()(b) << 1);
-    }
-};
-
-
-// Custom equality function for unordered pairs
-struct UnorderedPairEqual {
-    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) const {
-        // Since the pair is unordered, (a, b) == (b, a)
-        return (p1.first == p2.first && p1.second == p2.second) ||
-               (p1.first == p2.second && p1.second == p2.first);
-    }
-};
+//// hash unordered pairs
+//struct UnorderedPairHash {
+//    std::size_t operator()(const std::pair<int, int>& p) const {
+//        // Ensure that (a, b) and (b, a) have the same hash value
+//        int a = std::min(p.first, p.second);
+//        int b = std::max(p.first, p.second);
+//        // Use a simple hash combination technique
+//        return std::hash<int>()(a) ^ (std::hash<int>()(b) << 1);
+//    }
+//};
+//
+//
+//// Custom equality function for unordered pairs
+//struct UnorderedPairEqual {
+//    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) const {
+//        // Since the pair is unordered, (a, b) == (b, a)
+//        return (p1.first == p2.first && p1.second == p2.second) ||
+//               (p1.first == p2.second && p1.second == p2.first);
+//    }
+//};
 
 /**
 * @brief interaction between patchy particles with multiple repulsive points
@@ -62,6 +62,7 @@ protected:
             LR_vector, // position
             LR_vector, // orientation
             int, // color
+            float, //strength
             int, //state variable
             int, //activation variable
             unsigned int, // polyT
@@ -87,13 +88,13 @@ protected:
     /**
      * particle type
      * - number of instances
-     * - list of repulsion point ids
      * - list of patch ids
+     * - list of repulsion point ids
      */
-    using ParticleType = std::tuple<int, std::vector<int>, std::vector<int> >;
+    using ParticleType = std::tuple<int, std::vector<int>, std::vector<int>>;
 #define PTYPE_ID  0
-#define PTYPE_REP_PTS 1
-#define PTYPE_PATCH_IDS  2
+#define PTYPE_PATCH_IDS  1
+#define PTYPE_REP_PTS 2
 
 
     // repulsion points
@@ -107,7 +108,8 @@ protected:
 
     // runtime variables
     std::vector<std::vector<int>> m_ParticleStates; // todo
-    std::unordered_map<std::pair<int, int>, number, UnorderedPairHash, UnorderedPairEqual> m_RSums;
+
+//    std::unordered_map<std::pair<int, int>, number, UnorderedPairHash, UnorderedPairEqual> m_RSums;
 
 public:
     enum {
@@ -128,8 +130,8 @@ public:
     LR_vector getParticlePatchPosition(BaseParticle* p, int patch_idx);
     LR_vector getParticlePatchAlign(BaseParticle* p, int patch_idx);
     LR_vector getParticleInteractionSitePosition(BaseParticle* p, int int_site_idx);
-    number get_r_max_sqr(const int &intSite1, const int &intSite2) const;
-    number get_r_sum(const int &intSite1, const int &intSite2) const;
+//    number get_r_max_sqr(const int &intSite1, const int &intSite2) const;
+//    number get_r_sum(const int &intSite1, const int &intSite2) const;
     number get_int_sites_b(const int &intSite1, const int &intSite2) const;
 
     // pair interaction functions
@@ -147,6 +149,7 @@ public:
                                               bool update_forces = false);
 
     virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+    virtual int get_N_from_topology();
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
 //    virtual void begin_energy_computation() ;
@@ -156,9 +159,13 @@ public:
     number patchy_kf_interaction(BaseParticle* p, BaseParticle* q, bool compute_r = true, bool update_forces = false);
     number patchy_lj_interaction(BaseParticle* p, BaseParticle* q, bool compute_r = true, bool update_forces = false);
     number patchy_pt_like_interaction(BaseParticle* p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+
+    void readPatchString(const std::string &patch_line);
 };
 
 std::string readLineNoComment(std::istream& inp);
 LR_vector parseVector(const std::string& sz);
+
+
 
 #endif //ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
