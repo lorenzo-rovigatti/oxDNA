@@ -184,19 +184,25 @@ class Simulation:
         return (ti,di), get_confs(ti, di, 0,1)[0]
         
     
-    def view_init(self):
+    def view_init(self, inbox_settings = ["Monomer", "Origin"], height=500):
         """
             opens the initial configuration in an embeded oxDNA viewer window
+
+            inbox_settings: a list of strings, the inbox settings to use
+            height: height of the view
         """
         (ti,di), conf = self.get_init_conf()        
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
                           
-    def view_last(self):
+    def view_last(self, inbox_settings = ["Monomer", "Origin"], height=500):
         """
             opens the last configuration in an embeded oxDNA viewer window
+
+            inbox_settings: a list of strings, the inbox settings to use
+            height: height of the view
         """
         (ti,di), conf = self.get_last_conf()
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
     
     @path_decorator
     def get_conf_count(self):
@@ -221,20 +227,25 @@ class Simulation:
         else:
             raise Exception("You requested a conf out of bounds.")
 
-    def view_conf(self, id:int):
+    def view_conf(self, id:int, inbox_settings =  ["Monomer", "Origin"], height=500):
         """ 
             opens the configuration at the given index in the trajectory as an embeded oxDNA viewer window
+
+            inbox_settings: a list of strings, the inbox settings to use
+            height: height of the view
         """
         (ti,di), conf = self.get_conf(id)
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
     
 
-    def view_traj(self,  init = 0, op=None):
+    def view_traj(self,  init = 0, op=None, inbox_settings =  ["Monomer", "Origin"], height=500):
         """
             opens the trajectory in an embeded oxDNA viewer window
 
             init: the initial configuration to start the trajectory from
             op: an optional observable to plot along side the trajectory
+            inbox_settings: a list of strings, the inbox settings to use
+            height: height of the view
         """
         # get the initial conf and the reference to the trajectory 
         (ti,di), cur_conf = self.get_conf(init)
@@ -263,7 +274,7 @@ class Simulation:
                     print(init)
                     plt.plot([slider.value,slider.value],[min_v, max_v], color="r")
                     plt.show()
-                oxdna_conf(ti,conf)
+                oxdna_conf(ti,conf, inbox_settings=inbox_settings, height=height)
                 
         slider.observe(handle)
         display(slider,output)
