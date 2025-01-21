@@ -33,8 +33,9 @@ protected:
 	number _f4_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
 	number _f4D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
 	number _f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-	number _f5_SD(number f, int type, int n3, int n5);
-	number _f5D_SD(number f, int type, int n3, int n5);
+	number _f5_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+	number _f5D_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+
 
 	number _fakef4_SD(number t, void * par);
 	number _fakef4D_SD(number t, void * par);
@@ -84,10 +85,10 @@ public:
 	number F4_SD_THETA_TS[21][5][5][5][5];
 	number F4_SD_THETA_TC[21][5][5][5][5];
 
-	number F5_SD_PHI_A[4][5][5];
-	number F5_SD_PHI_B[4][5][5];
-	number F5_SD_PHI_XC[4][5][5];
-	number F5_SD_PHI_XS[4][5][5];
+	number F5_SD_PHI_A[4][5][5][5][5];
+	number F5_SD_PHI_B[4][5][5][5][5];
+	number F5_SD_PHI_XC[4][5][5][5][5];
+	number F5_SD_PHI_XS[4][5][5][5][5];
 
         number _excl_s[7][5][5][5][5];
 	number _excl_r[7][5][5][5][5];
@@ -95,6 +96,10 @@ public:
 	number _excl_rc[7][5][5][5][5];
 
 	number MESH_F4_SD_POINTS[21][5][5][5][5];
+	
+	number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD[ty1][ty2][ty3][ty4]; }
+	number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD[ty1][ty2][ty3][ty4]; }
+	number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD[ty1][ty2][ty3][ty4]; }
 
 
         ~DNA3Interaction();
