@@ -16,6 +16,7 @@ from IPython.display import display, IFrame
 import numpy as np
 from functools import wraps
 import subprocess
+from typing import List
 
 default_input_file = {
     "T" :"20C",
@@ -62,12 +63,12 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
     """
         sets up a simulation in the given output directory
         
-        top_path: path to the topology file
-        dat_path: path to the initial configuration
-        out_dir: path to the output directory
-        parameters: dictionary of parameters to set
-        force_dict: dictionary of forces to set (if empty no forces are set)
-        kill_out_dir: if true, the output directory will be deleted if present
+        top_path (str): path to the topology file
+        dat_path (str): path to the initial configuration
+        out_dir (str): path to the output directory
+        parameters (dict[str,str]): dictionary of parameters to set
+        force_dict (dict): dictionary of forces to set (if empty no forces are set)
+        kill_out_dir (bool): if true, the output directory will be deleted if present
     """
     if(exists(out_dir) and not kill_out_dir):
         raise Exception("the output dir is already present, use kill_out_dir to override")
@@ -157,7 +158,7 @@ class Simulation:
         """
             creates a simulation object from the given input file path
 
-            input_file_path: path to the input file
+            input_file_path (str): path to the input file
         """
         self.input_file = InputFile()
         self.input_file.init_from_filename(input_file_path)
@@ -184,22 +185,22 @@ class Simulation:
         return (ti,di), get_confs(ti, di, 0,1)[0]
         
     
-    def view_init(self, inbox_settings = ["Monomer", "Origin"], height=500):
+    def view_init(self, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the initial configuration in an embeded oxDNA viewer window
 
-            inbox_settings: a list of strings, the inbox settings to use
-            height: height of the view
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_init_conf()        
         oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
                           
-    def view_last(self, inbox_settings = ["Monomer", "Origin"], height=500):
+    def view_last(self, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the last configuration in an embeded oxDNA viewer window
 
-            inbox_settings: a list of strings, the inbox settings to use
-            height: height of the view
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_last_conf()
         oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
@@ -227,25 +228,25 @@ class Simulation:
         else:
             raise Exception("You requested a conf out of bounds.")
 
-    def view_conf(self, id:int, inbox_settings =  ["Monomer", "Origin"], height=500):
+    def view_conf(self, id:int, inbox_settings:List[str] =  ["Monomer", "Origin"], height:int = 500):
         """ 
             opens the configuration at the given index in the trajectory as an embeded oxDNA viewer window
 
-            inbox_settings: a list of strings, the inbox settings to use
-            height: height of the view
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_conf(id)
         oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
     
 
-    def view_traj(self,  init = 0, op=None, inbox_settings =  ["Monomer", "Origin"], height=500):
+    def view_traj(self,  init:int = 0, op=None, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the trajectory in an embeded oxDNA viewer window
 
-            init: the initial configuration to start the trajectory from
+            init (int): the initial configuration to start the trajectory from
             op: an optional observable to plot along side the trajectory
-            inbox_settings: a list of strings, the inbox settings to use
-            height: height of the view
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         # get the initial conf and the reference to the trajectory 
         (ti,di), cur_conf = self.get_conf(init)
