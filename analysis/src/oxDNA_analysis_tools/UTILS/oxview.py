@@ -18,7 +18,7 @@ def __fetch_file_from_path(path):
         top_string = file.read()
         return top_string.replace("\n", "\\n")  
 
-def display_files(system_list,  inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/", height=500):
+def display_files(system_list,  inbox_settings: List[str] =  ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/", height:int = 500):
     """
         Generate an iframe displaying the provided files in oxview
 
