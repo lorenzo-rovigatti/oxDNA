@@ -64,7 +64,7 @@ echo -n "Testing forces2db.py..."
 test "../src/oxDNA_analysis_tools/forces2db.py rna_tile.top forces.txt -o db.txt"
 
 echo -n "Testing pairs2db.py..."
-test "../src/oxDNA_snslysis_tools/pairs2db.py rna_tile.top test_pairs.txt -o db2.txt"
+test "../src/oxDNA_analysis_tools/pairs2db.py rna_tile.top test_pairs.txt -o db2.txt"
 
 echo -n "Testing db2forces.py..."
 test "../src/oxDNA_analysis_tools/db2forces.py -o db_forces.txt db.txt"
