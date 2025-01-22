@@ -1018,7 +1018,16 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 				}
 			}
 
-			int N_in_strand = sequence.size();
+			//Needed here to read custom bases
+			std::vector<int> btypes;
+			try {
+				btypes = Utils::btypes_from_sequence(sequence);
+			}
+			catch(oxDNAException &e) {
+				throw oxDNAException("topology file, strand %d (line %d): %s", ns, ns + 1, e.what());
+			}
+
+			int N_in_strand = btypes.size();
 				for(int i = 0; i < N_in_strand; i++, current_idx++) {
 					if(current_idx == parser.N()) {
 						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
