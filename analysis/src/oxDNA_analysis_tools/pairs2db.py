@@ -32,6 +32,7 @@ def pairs2db(n_bases:int, pairs:Dict[int, int]) -> str:
         recheck = False
         for i in range(n_bases):
             # i is unpaired
+            # Note that this requires pairs to be bidirectional!
             if i not in pairs.keys():
                 continue
 
@@ -90,6 +91,10 @@ def main():
         pairs_txt = file.readlines()
 
     pairs = {int(p[0]) : int(p[1]) for p in [p.split() for p in pairs_txt]}
+    # pairs2db requires a bidirectional list
+    for k, v in [list(x) for x in pairs.items()]:
+        if v not in pairs.keys():
+            pairs[v] = k
     db = pairs2db(len(elems), pairs)
 
     if args.output:
