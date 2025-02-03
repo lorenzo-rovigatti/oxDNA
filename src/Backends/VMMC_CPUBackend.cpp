@@ -456,7 +456,7 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
 	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL || dynamic_cast<DNA3Interaction *>(_interaction.get()) == NULL)
+	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL && dynamic_cast<DNA3Interaction *>(_interaction.get()) == NULL)
 	energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
 
 	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL || dynamic_cast<DNA3Interaction *>(_interaction.get()) != NULL) {

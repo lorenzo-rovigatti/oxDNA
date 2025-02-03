@@ -29,17 +29,17 @@ DNA3Interaction::DNA3Interaction() :
                                         _excl_s[1][i][j][k][l] = EXCL_S2;
                                         _excl_s[2][i][j][k][l] = EXCL_S3;
                                         _excl_s[3][i][j][k][l] = EXCL_S4;
-                                        _excl_s[4][i][j][k][l] = EXCL_S2;
-                                        _excl_s[5][i][j][k][l] = EXCL_S3;
-                                        _excl_s[6][i][j][k][l] = EXCL_S4;
+                                        _excl_s[4][i][j][k][l] = EXCL_S5;
+                                        _excl_s[5][i][j][k][l] = EXCL_S6;
+                                        _excl_s[6][i][j][k][l] = EXCL_S7;
 
                                         _excl_r[0][i][j][k][l] = EXCL_R1;
                                         _excl_r[1][i][j][k][l] = EXCL_R2;
                                         _excl_r[2][i][j][k][l] = EXCL_R3;
                                         _excl_r[3][i][j][k][l] = EXCL_R4;
-                                        _excl_r[4][i][j][k][l] = EXCL_R2;
-                                        _excl_r[5][i][j][k][l] = EXCL_R3;
-                                        _excl_r[6][i][j][k][l] = EXCL_R4;
+                                        _excl_r[4][i][j][k][l] = EXCL_R5;
+                                        _excl_r[5][i][j][k][l] = EXCL_R6;
+                                        _excl_r[6][i][j][k][l] = EXCL_R7;
 
                                         _excl_b[0][i][j][k][l] = EXCL_B1;
                                         _excl_b[1][i][j][k][l] = EXCL_B2;
