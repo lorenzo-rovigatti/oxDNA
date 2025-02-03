@@ -464,25 +464,31 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, false);
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
-	// the DNA and RNA/RNA2 interactions use the original coaxial stacking term
+        // NOTE: We extended these statements to work for oxDNA3, but the comments below are unclear and misleading.
+        //       According to the IF statements DRH is included in both the first and the second clause, while the comments suggest it is not.
+        //       The logic should be reworked to simplify extension and avoid the unnecessary introduction of bugs.
+
+        // the DNA and RNA/RNA2 interactions use the original coaxial stacking term
 	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL && dynamic_cast<DNA3Interaction *>(_interaction.get()) == NULL) {
-                energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
-        }
+		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	}
 
-        // the DNA2, DNA3 and DRH interactions use DNA2's coaxial stacking term
-        if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
-                energy += _interaction->pair_interaction_term(DRHInteraction::COAXIAL_STACKING, p, q, false, false);
-                energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
-        }
-	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL || dynamic_cast<DNA3Interaction *>(_interaction.get()) != NULL) {
-
+	// the DNA2, DNA3 and DRH interactions use DNA2's coaxial stacking term
+	if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DRHInteraction::COAXIAL_STACKING, p, q, false, false);
+		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
+	}
+	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
+		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
+	}
+	else if(dynamic_cast<DNA3Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
 		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
 	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
-
 
 
 	return energy;
