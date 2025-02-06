@@ -244,18 +244,28 @@ par_index.append(PARS_LIST.index("CRST_THETA8_TC_55"))
 
 
 compl_symm_ids_2d = [0]
-compl_symm_ids_2d_no_TT_AA = [44]
+compl_symm_ids_2d_no_TT_AA = []
 compl_symm_ids = [1,2]
+"""
 for i in range(45,77) :
     compl_symm_ids.append(i)
 compl_symm_ids_no_TT_AA = []
 perm_symm_ids_4d = []
-perm_symm_ids_2d = []
+"""
+perm_symm_ids_2d = [77,116]
+
 for i in range(4,44) :
     perm_symm_ids_2d.append(i)
-for i in range(77,155) :
+
+perm_symm_ids_4d = []
+
+for i in range(78,116) :
     perm_symm_ids_4d.append(i)
-perm_symm_ids = []
+
+for i in range(117,155) :
+    perm_symm_ids_4d.append(i)
+
+nosymm_ids_2d = [44]
 
 is_th2 = [19,20,21,22,23,91,92,93,94,95,130,131,132,133,134]
 is_th3 = [24,25,26,27,28,96,97,98,99,100,135,136,137,138,139]

@@ -10,6 +10,11 @@ import os
 path_opticode=os.path.dirname(os.path.realpath(__file__))
 
 
+print_energy_to_file = False
+print_coords_to_file = False
+read_energy_from_file = True
+read_coords_from_file = True
+
 bases = ['A','C','G','T']
 
 Nseq_n5 = 0 #number of sequences
@@ -87,6 +92,10 @@ Ct_n8 = [] #total single strand concentration (in M (mol/L)) -- for a single dou
 Cs_n8 = [] #salt concentartion (in M)
 Ct_n15 = [] #total single strand concentration (in M (mol/L)) -- for a single double helix: 2/box_size^3*2.6868 M, where the 2 accounts for the two strands. 
 Cs_n15 = [] #salt concentartion (in M)
+
+boxes_n5 = []
+boxes_n8 = []
+boxes_n15 = []
 
 current_mT_n5 = 0.
 current_mT_n8 = 0.

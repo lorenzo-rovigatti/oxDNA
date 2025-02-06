@@ -189,97 +189,21 @@ def init_tensors_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     SHIFT_STCK_n5 = torch.tensor(shifts[1], device=device)
     SHIFT_HYDR_n5 = torch.tensor(shifts[0], device=device)
 
-    EN_OFFSET_n5 = torch.tensor(en_offset_n5,device=device)
+    """
+    ZEROS_BN_n5 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ONES_BN_n5 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ZEROS_UNBN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device,dtype=torch.float64)
 
-    SIM_Ts_n5 = torch.tensor(sim_Ts_n5,device=device)
-    REW_Ts_n5 = torch.tensor(rew_Ts_n5,device=device)
-    TARGET_mTs_n5 = torch.tensor(target_Tms_n5,device=device)
-    BIAS_WEIGHTS_n5 = torch.tensor(weights_n5,device=device)
-    HBS_SAMPLED_n5 = torch.tensor(hbs_sampled_n5,device=device)
-
-    del hbs_sampled_n5   #free memory from junk
-
-    for l in range(len(n_Ts_n5)):
-        if (n_Ts_n5[l])%2 == 0 :
-            lrs_n5.append(-int((n_Ts_n5[l])/2-1))
-            urs_n5.append(int((n_Ts_n5[l])/2+1))
-        else :
-            lrs_n5.append(-int((n_Ts_n5[l]-1)/2))
-            urs_n5.append(int((n_Ts_n5[l]-1)/2+1))
-
-    return
-
-#initailise tensors with coordinates from files
-def init_tensors_from_file_n5(dev, shifts, OXPS_zero) :
-
-    global device
-    global PARS_IN
-    global CURR_PARS
-
-    global FENE_R_n5
-    global STCK_R_n5
-    global TH4_BN_n5
-    global TH5_n5
-    global TH6_n5
-    global COSPHI1_n5
-    global COSPHI2_n5
-    global TYPES_BN_n5
-
-    global HYDR_R_n5
-    global TH1_n5
-    global TH2_n5
-    global TH3_n5
-    global TH4_UNBN_n5
-    global TH7_n5
-    global TH8_n5
-    global TYPES_UNBN_33_n5
-    global TYPES_UNBN_55_n5
-
-    global SHIFT_STCK_n5
-    global SHIFT_HYDR_n5
-
-    global EN_OFFSET_n5
-
-    global SIM_Ts_n5
-    global REW_Ts_n5
-    global TARGET_mTs_n5
-    global BIAS_WEIGHTS_n5
-
-    global hbs_sampled_n5
-    global HBS_SAMPLED_n5
-
-    global lrs_n5
-    global urs_n5
-
-    device = dev
-
-    PARS_IN = torch.tensor(OXPS_zero,device=device)
-    CURR_PARS = torch.tensor(OXPS_zero,device=device)
-
-    #initialise tensors
-    FENE_R_n5 = torch.load("FENE_R_n5.pt", map_location=device)
-    STCK_R_n5 = torch.load("STCK_R_n5.pt", map_location=device)
-    TH4_BN_n5 = torch.load("TH4_BN_n5.pt", map_location=device)
-    TH5_n5 = torch.load("TH5_n5.pt", map_location=device)
-    TH6_n5 = torch.load("TH6_n5.pt", map_location=device)
-    COSPHI1_n5 = torch.load("COSPHI1_n5.pt", map_location=device)
-    COSPHI2_n5 = torch.load("COSPHI2_n5.pt", map_location=device)
-
-    TYPES_BN_n5 = torch.load("TYPES_BN_n5.pt", map_location=device)
-
-    HYDR_R_n5 = torch.load("HYDR_R_n5.pt", map_location=device)
-    TH1_n5 = torch.load("TH1_n5.pt", map_location=device)
-    TH2_n5 = torch.load("TH2_n5.pt", map_location=device)
-    TH3_n5 = torch.load("TH3_n5.pt", map_location=device)
-    TH4_UNBN_n5 = torch.load("TH4_UNBN_n5.pt", map_location=device)
-    TH7_n5 = torch.load("TH7_n5.pt", map_location=device)
-    TH8_n5 = torch.load("TH8_n5.pt", map_location=device)
-
-    TYPES_UNBN_33_n5 = torch.load("TYPES_UNBN_33_n5.pt", map_location=device)
-    TYPES_UNBN_55_n5 = torch.load("TYPES_UNBN_55_n5.pt", map_location=device)
-
-    SHIFT_STCK_n5 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n5 = torch.tensor(shifts[0], device=device)
+    EN_FENE_IN_n5 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_STCK_IN_n5 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    STCK_MOD_IN_n5 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_HYDR_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    HYDR_MOD_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_33_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_33_MOD_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_55_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_55_MOD_IN_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    """
 
     EN_OFFSET_n5 = torch.tensor(en_offset_n5,device=device)
 
@@ -300,34 +224,9 @@ def init_tensors_from_file_n5(dev, shifts, OXPS_zero) :
             urs_n5.append(int((n_Ts_n5[l]-1)/2+1))
 
     return
-
 
 
 def print_dists_and_angles_n5(ofile) :
-
-    if cg.print_coords_to_file:
-
-        torch.save(FENE_R_n5, "FENE_R_n5.pt")
-        torch.save(STCK_R_n5, "STCK_R_n5.pt")
-        torch.save(TH4_BN_n5, "TH4_BN_n5.pt")
-        torch.save(TH5_n5, "TH5_n5.pt")
-        torch.save(TH6_n5, "TH6_n5.pt")
-        torch.save(COSPHI1_n5, "COSPHI1_n5.pt")
-        torch.save(COSPHI2_n5, "COSPHI2_n5.pt")
-        torch.save(TYPES_BN_n5, "TYPES_BN_n5.pt")
-
-        torch.save(HYDR_R_n5, "HYDR_R_n5.pt")
-        torch.save(TH1_n5, "TH1_n5.pt")
-        torch.save(TH2_n5, "TH2_n5.pt")
-        torch.save(TH3_n5, "TH3_n5.pt")
-        torch.save(TH4_UNBN_n5, "TH4_UNBN_n5.pt")
-        torch.save(TH7_n5,"TH7_n5.pt" )
-        torch.save(TH8_n5, "TH8_n5.pt")
-        torch.save(TYPES_UNBN_33_n5, "TYPES_UNBN_33_n5.pt")
-        torch.save(TYPES_UNBN_55_n5, "TYPES_UNBN_55_n5.pt")
-
-
-    torch.set_printoptions(threshold=float('10'))
 
     print("FENE_R:", file=ofile)
     print(FENE_R_n5, file=ofile)
@@ -427,14 +326,28 @@ def print_melting_things_n5(ofile) :
 def print_energy_n5(ofile, ofile_ave) :
 
     if cg.print_energy_to_file:
+        torch.set_printoptions(threshold=float('inf'))
 
-        torch.save(EN_FENE_IN_n5.sum(dim=2), "EN_FENE_IN0_n5.pt")
-        torch.save(EN_STCK_IN_n5.sum(dim=2), "EN_STCK_IN0_n5.pt")
-        torch.save(EN_HYDR_IN_n5.sum(dim=2), "EN_HYDR_IN0_n5.pt")
-        torch.save(EN_CRST_33_IN_n5.sum(dim=2), "EN_CRST_33_IN0_n5.pt")
-        torch.save(EN_CRST_55_IN_n5.sum(dim=2), "EN_CRST_55_IN0_n5.pt")
+        efile = open("EN_FENE_IN0_n5.dat", 'w')
+        print(EN_FENE_IN_n5, file=efile)
+        efile.close()
 
-    torch.set_printoptions(threshold=float('10'))
+        efile = open("EN_STCK_IN0_n5.dat", 'w')
+        print(EN_STCK_IN_n5, file=efile)
+        efile.close()
+
+        efile = open("EN_HYDR_IN0_n5.dat", 'w')
+        print(EN_HYDR_IN_n5, file=efile)
+        efile.close()
+
+        efile = open("EN_CRST_33_IN0_n5.dat", 'w')
+        print(EN_CRST_33_IN_n5, file=efile)
+        efile.close()
+
+        efile = open("EN_CRST_55_IN0_n5.dat", 'w')
+        print(EN_CRST_55_IN_n5, file=efile)
+        efile.close()
+
 
     print("FENE:", file=ofile)
 
@@ -461,7 +374,7 @@ def print_energy_n5(ofile, ofile_ave) :
     print(EN_OFFSET_n5, file=ofile)
     print("",file=ofile)
 
-    EN = EN_FENE_IN_n5.sum(dim=2)/10
+    EN = EN_FENE_IN_n5/10
 
     print("FENE",file=ofile_ave)
 
@@ -472,7 +385,7 @@ def print_energy_n5(ofile, ofile_ave) :
                 print(str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
 
-    EN = EN_STCK_IN_n5.sum(dim=2)/10
+    EN = EN_STCK_IN_n5/10
 
     print("STCK",file=ofile_ave)
 
@@ -483,7 +396,7 @@ def print_energy_n5(ofile, ofile_ave) :
                 print(str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
 
-    EN = EN_HYDR_IN_n5.sum(dim=2)/10
+    EN = EN_HYDR_IN_n5/10
 
     print("HYDR",file=ofile_ave)
 
@@ -494,7 +407,7 @@ def print_energy_n5(ofile, ofile_ave) :
                 print(str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
 
-    EN = (EN_CRST_33_IN_n5+EN_CRST_55_IN_n5).sum(dim=2)/10
+    EN = (EN_CRST_33_IN_n5+EN_CRST_55_IN_n5)/10
 
     print("CRST=CRST_33+CRST_55",file=ofile_ave)
 
@@ -653,6 +566,22 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     SHIFT_HYDR_n8 = torch.tensor(shifts[0], device=device)
 
 
+    """
+    ZEROS_BN_n8 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ONES_BN_n8 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ZEROS_UNBN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device,dtype=torch.float64)
+
+    EN_FENE_IN_n8 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_STCK_IN_n8 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    STCK_MOD_IN_n8 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_HYDR_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    HYDR_MOD_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_33_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_33_MOD_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_55_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_55_MOD_IN_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    """
+
     EN_OFFSET_n8 = torch.tensor(en_offset_n8,device=device)
 
     SIM_Ts_n8 = torch.tensor(sim_Ts_n8,device=device)
@@ -661,7 +590,7 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     BIAS_WEIGHTS_n8 = torch.tensor(weights_n8,device=device)
     HBS_SAMPLED_n8 = torch.tensor(hbs_sampled_n8,device=device)
 
-    del hbs_sampled_n8
+    del hbs_smapled_n8
 
     for l in range(len(n_Ts_n8)):
         if (n_Ts_n8[l])%2 == 0 :
@@ -674,96 +603,7 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     return
 
 
-#initailise tensors with coordinates from files
-def init_tensors_from_file_n8(dev, shifts) :
-
-    global FENE_R_n8
-    global STCK_R_n8
-    global TH4_BN_n8
-    global TH5_n8
-    global TH6_n8
-    global COSPHI1_n8
-    global COSPHI2_n8
-    global TYPES_BN_n8
-
-    global HYDR_R_n8
-    global TH1_n8
-    global TH2_n8
-    global TH3_n8
-    global TH4_UNBN_n8
-    global TH7_n8
-    global TH8_n8
-    global TYPES_UNBN_33_n8
-    global TYPES_UNBN_55_n8
-
-    global SHIFT_STCK_n8
-    global SHIFT_HYDR_n8
-
-    global EN_OFFSET_n8
-
-    global SIM_Ts_n8
-    global REW_Ts_n8
-    global TARGET_mTs_n8
-    global BIAS_WEIGHTS_n8
-
-    global hbs_sampled_n8
-    global HBS_SAMPLED_n8
-
-    global lrs_n8
-    global urs_n8
-
-    #initialise tensors
-
-    FENE_R_n8 = torch.load("FENE_R_n8.pt", map_location=device)
-    STCK_R_n8 = torch.load("STCK_R_n8.pt", map_location=device)
-    TH4_BN_n8 = torch.load("TH4_BN_n8.pt", map_location=device)
-    TH5_n8 = torch.load("TH5_n8.pt", map_location=device)
-    TH6_n8 = torch.load("TH6_n8.pt", map_location=device)
-    COSPHI1_n8 = torch.load("COSPHI1_n8.pt", map_location=device)
-    COSPHI2_n8 = torch.load("COSPHI2_n8.pt", map_location=device)
-
-    TYPES_BN_n8 = torch.load("TYPES_BN_n8.pt", map_location=device)
-
-    HYDR_R_n8 = torch.load("HYDR_R_n8.pt", map_location=device)
-    TH1_n8 = torch.load("TH1_n8.pt", map_location=device)
-    TH2_n8 = torch.load("TH2_n8.pt", map_location=device)
-    TH3_n8 = torch.load("TH3_n8.pt", map_location=device)
-    TH4_UNBN_n8 = torch.load("TH4_UNBN_n8.pt", map_location=device)
-    TH7_n8 = torch.load("TH7_n8.pt", map_location=device)
-    TH8_n8 = torch.load("TH8_n8.pt", map_location=device)
-
-    TYPES_UNBN_33_n8 = torch.load("TYPES_UNBN_33_n8.pt", map_location=device)
-    TYPES_UNBN_55_n8 = torch.load("TYPES_UNBN_55_n8.pt", map_location=device)
-
-    SHIFT_STCK_n8 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n8 = torch.tensor(shifts[0], device=device)
-
-    EN_OFFSET_n8 = torch.tensor(en_offset_n8,device=device)
-
-    SIM_Ts_n8 = torch.tensor(sim_Ts_n8,device=device)
-    REW_Ts_n8 = torch.tensor(rew_Ts_n8,device=device)
-    TARGET_mTs_n8 = torch.tensor(target_Tms_n8,device=device)
-    BIAS_WEIGHTS_n8 = torch.tensor(weights_n8,device=device)
-    HBS_SAMPLED_n8 = torch.tensor(hbs_sampled_n8,device=device)
-
-    del hbs_sampled_n8   #free memory from junk
-
-    for l in range(len(n_Ts_n8)):
-        if (n_Ts_n8[l])%2 == 0 :
-            lrs_n8.append(-int((n_Ts_n8[l])/2-1))
-            urs_n8.append(int((n_Ts_n8[l])/2+1))
-        else :
-            lrs_n8.append(-int((n_Ts_n8[l]-1)/2))
-            urs_n8.append(int((n_Ts_n8[l]-1)/2+1))
-
-    return
-
-
-
-
-def print_energy_n8_short(ofile, ofile_ave) :
-
-    torch.set_printoptions(threshold=float('4'))
+def print_energy_n8(ofile, ofile_ave) :
 
     print("FENE:", file=ofile)
     print(EN_FENE_IN_n8, file=ofile)
@@ -828,46 +668,6 @@ def print_energy_n8_short(ofile, ofile_ave) :
             if (j+1)%10 == 0:
                 print(str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
-
-    return
-
-
-def print_dists_and_angles_n8() :
-
-    if cg.print_coords_to_file:
-
-        torch.save(FENE_R_n8, "FENE_R_n8.pt")
-        torch.save(STCK_R_n8, "STCK_R_n8.pt")
-        torch.save(TH4_BN_n8, "TH4_BN_n8.pt")
-        torch.save(TH5_n8, "TH5_n8.pt")
-        torch.save(TH6_n8, "TH6_n8.pt")
-        torch.save(COSPHI1_n8, "COSPHI1_n8.pt")
-        torch.save(COSPHI2_n8, "COSPHI2_n8.pt")
-        torch.save(TYPES_BN_n8, "TYPES_BN_n8.pt")
-
-        torch.save(HYDR_R_n8, "HYDR_R_n8.pt")
-        torch.save(TH1_n8, "TH1_n8.pt")
-        torch.save(TH2_n8, "TH2_n8.pt")
-        torch.save(TH3_n8, "TH3_n8.pt")
-        torch.save(TH4_UNBN_n8, "TH4_UNBN_n8.pt")
-        torch.save(TH7_n8,"TH7_n8.pt" )
-        torch.save(TH8_n8, "TH8_n8.pt")
-        torch.save(TYPES_UNBN_33_n8, "TYPES_UNBN_33_n8.pt")
-        torch.save(TYPES_UNBN_55_n8, "TYPES_UNBN_55_n8.pt")
-
-
-    return
-
-
-def print_energy_n8(ofile, ofile_ave) :
-
-    if cg.print_energy_to_file:
-
-        torch.save(EN_FENE_IN_n8.sum(dim=2), "EN_FENE_IN0_n8.pt")
-        torch.save(EN_STCK_IN_n8.sum(dim=2), "EN_STCK_IN0_n8.pt")
-        torch.save(EN_HYDR_IN_n8.sum(dim=2), "EN_HYDR_IN0_n8.pt")
-        torch.save(EN_CRST_33_IN_n8.sum(dim=2), "EN_CRST_33_IN0_n8.pt")
-        torch.save(EN_CRST_55_IN_n8.sum(dim=2), "EN_CRST_55_IN0_n8.pt")
 
     return
 
@@ -1014,6 +814,23 @@ def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ty
     SHIFT_STCK_n15 = torch.tensor(shifts[1], device=device)
     SHIFT_HYDR_n15 = torch.tensor(shifts[0], device=device)
 
+    """
+    ZEROS_BN_n15 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ONES_BN_n15 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device,dtype=torch.float64)
+    ZEROS_UNBN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device,dtype=torch.float64)
+
+    EN_FENE_IN_n15 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_STCK_IN_n15 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    STCK_MOD_IN_n15 = torch.zeros(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
+    EN_HYDR_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    HYDR_MOD_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_33_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_33_MOD_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    EN_CRST_55_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    CRST_55_MOD_IN_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
+    """
+
+
     EN_OFFSET_n15 = torch.tensor(en_offset_n15,device=device)
 
     SIM_Ts_n15 = torch.tensor(sim_Ts_n15,device=device)
@@ -1034,127 +851,6 @@ def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ty
 
     return
 
-
-#initailise tensors with coordinates from files
-def init_tensors_from_file_n15(dev, shifts) :
-
-    global FENE_R_n15
-    global STCK_R_n15
-    global TH4_BN_n15
-    global TH5_n15
-    global TH6_n15
-    global COSPHI1_n15
-    global COSPHI2_n15
-    global TYPES_BN_n15
-
-    global HYDR_R_n15
-    global TH1_n15
-    global TH2_n15
-    global TH3_n15
-    global TH4_UNBN_n15
-    global TH7_n15
-    global TH8_n15
-    global TYPES_UNBN_33_n15
-    global TYPES_UNBN_55_n15
-
-    global SHIFT_STCK_n15
-    global SHIFT_HYDR_n15
-
-    global EN_OFFSET_n15
-
-    global SIM_Ts_n15
-    global REW_Ts_n15
-    global TARGET_mTs_n15
-    global BIAS_WEIGHTS_n15
-
-    global hbs_sampled_n15
-    global HBS_SAMPLED_n15
-
-    global lrs_n15
-    global urs_n15
-
-    FENE_R_n15 = torch.load("FENE_R_n15.pt", map_location=device)
-    STCK_R_n15 = torch.load("STCK_R_n15.pt", map_location=device)
-    TH4_BN_n15 = torch.load("TH4_BN_n15.pt", map_location=device)
-    TH5_n15 = torch.load("TH5_n15.pt", map_location=device)
-    TH6_n15 = torch.load("TH6_n15.pt", map_location=device)
-    COSPHI1_n15 = torch.load("COSPHI1_n15.pt", map_location=device)
-    COSPHI2_n15 = torch.load("COSPHI2_n15.pt", map_location=device)
-
-    TYPES_BN_n15 = torch.load("TYPES_BN_n15.pt", map_location=device)
-
-    HYDR_R_n15 = torch.load("HYDR_R_n15.pt", map_location=device)
-    TH1_n15 = torch.load("TH1_n15.pt", map_location=device)
-    TH2_n15 = torch.load("TH2_n15.pt", map_location=device)
-    TH3_n15 = torch.load("TH3_n15.pt", map_location=device)
-    TH4_UNBN_n15 = torch.load("TH4_UNBN_n15.pt", map_location=device)
-    TH7_n15 = torch.load("TH7_n15.pt", map_location=device)
-    TH8_n15 = torch.load("TH8_n15.pt", map_location=device)
-
-    TYPES_UNBN_33_n15 = torch.load("TYPES_UNBN_33_n15.pt", map_location=device)
-    TYPES_UNBN_55_n15 = torch.load("TYPES_UNBN_55_n15.pt", map_location=device)
-
-    SHIFT_STCK_n15 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n15 = torch.tensor(shifts[0], device=device)
-
-    EN_OFFSET_n15 = torch.tensor(en_offset_n15,device=device)
-
-    SIM_Ts_n15 = torch.tensor(sim_Ts_n15,device=device)
-    REW_Ts_n15 = torch.tensor(rew_Ts_n15,device=device)
-    TARGET_mTs_n15 = torch.tensor(target_Tms_n15,device=device)
-    BIAS_WEIGHTS_n15 = torch.tensor(weights_n15,device=device)
-    HBS_SAMPLED_n15 = torch.tensor(hbs_sampled_n15,device=device)
-
-    del hbs_sampled_n15   #free memory from junk
-
-    for l in range(len(n_Ts_n15)):
-        if (n_Ts_n15[l])%2 == 0 :
-            lrs_n15.append(-int((n_Ts_n15[l])/2-1))
-            urs_n15.append(int((n_Ts_n15[l])/2+1))
-        else :
-            lrs_n15.append(-int((n_Ts_n15[l]-1)/2))
-            urs_n15.append(int((n_Ts_n15[l]-1)/2+1))
-
-    return
-
-
-def print_dists_and_angles_n15() :
-
-    if cg.print_coords_to_file:
-
-        torch.save(FENE_R_n15, "FENE_R_n15.pt")
-        torch.save(STCK_R_n15, "STCK_R_n15.pt")
-        torch.save(TH4_BN_n15, "TH4_BN_n15.pt")
-        torch.save(TH5_n15, "TH5_n15.pt")
-        torch.save(TH6_n15, "TH6_n15.pt")
-        torch.save(COSPHI1_n15, "COSPHI1_n15.pt")
-        torch.save(COSPHI2_n15, "COSPHI2_n15.pt")
-        torch.save(TYPES_BN_n15, "TYPES_BN_n15.pt")
-
-        torch.save(HYDR_R_n15, "HYDR_R_n15.pt")
-        torch.save(TH1_n15, "TH1_n15.pt")
-        torch.save(TH2_n15, "TH2_n15.pt")
-        torch.save(TH3_n15, "TH3_n15.pt")
-        torch.save(TH4_UNBN_n15, "TH4_UNBN_n15.pt")
-        torch.save(TH7_n15,"TH7_n15.pt" )
-        torch.save(TH8_n15, "TH8_n15.pt")
-        torch.save(TYPES_UNBN_33_n15, "TYPES_UNBN_33_n15.pt")
-        torch.save(TYPES_UNBN_55_n15, "TYPES_UNBN_55_n15.pt")
-
-
-    return
-
-def print_energy_n15(ofile, ofile_ave) :
-
-    if cg.print_energy_to_file:
-
-        torch.save(EN_FENE_IN_n15.sum(dim=2), "EN_FENE_IN0_n15.pt")
-        torch.save(EN_STCK_IN_n15.sum(dim=2), "EN_STCK_IN0_n15.pt")
-        torch.save(EN_HYDR_IN_n15.sum(dim=2), "EN_HYDR_IN0_n15.pt")
-        torch.save(EN_CRST_33_IN_n15.sum(dim=2), "EN_CRST_33_IN0_n15.pt")
-        torch.save(EN_CRST_55_IN_n15.sum(dim=2), "EN_CRST_55_IN0_n15.pt")
-
-    return
 
 def convert_Ts_to_ox_units() :
 
@@ -1734,107 +1430,107 @@ def compute_energy_n5() :
     STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
     f1 = F1(STCK_R_n5, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n5], CURR_PARS[par_index[46]][TYPES_BN_n5], CURR_PARS[par_index[48]][TYPES_BN_n5],\
-            CURR_PARS[par_index[49]][TYPES_BN_n5], CURR_PARS[par_index[50]][TYPES_BN_n5], CURR_PARS[par_index[51]][TYPES_BN_n5], CURR_PARS[par_index[52]][TYPES_BN_n5], CURR_PARS[par_index[53]][TYPES_BN_n5], STCK_SH)
+            CURR_PARS[par_index[49]][TYPES_BN_n5], CURR_PARS[par_index[50]][TYPES_BN_n5], CURR_PARS[par_index[51]][TYPES_BN_n5], CURR_PARS[par_index[52]][TYPES_BN_n5], CURR_PARS[par_index[53]][TYPES_BN_n5], STCK_SH, ZEROS_BN_n5)
 
     #th4, th5, th6 Angular modulations
 
 
     f4_th4 = F4(TH4_BN_n5,CURR_PARS[par_index[54]][TYPES_BN_n5],CURR_PARS[par_index[55]][TYPES_BN_n5],CURR_PARS[par_index[56]][TYPES_BN_n5],\
-                CURR_PARS[par_index[57]][TYPES_BN_n5],CURR_PARS[par_index[58]][TYPES_BN_n5])
+                CURR_PARS[par_index[57]][TYPES_BN_n5],CURR_PARS[par_index[58]][TYPES_BN_n5],ZEROS_BN_n5)
     f4_th5 = F4(TH5_n5,CURR_PARS[par_index[59]][TYPES_BN_n5],CURR_PARS[par_index[60]][TYPES_BN_n5],CURR_PARS[par_index[61]][TYPES_BN_n5],\
-                CURR_PARS[par_index[62]][TYPES_BN_n5],CURR_PARS[par_index[63]][TYPES_BN_n5])
+                CURR_PARS[par_index[62]][TYPES_BN_n5],CURR_PARS[par_index[63]][TYPES_BN_n5],ZEROS_BN_n5)
 
     f4_th6 = F4(TH6_n5,CURR_PARS[par_index[64]][TYPES_BN_n5],CURR_PARS[par_index[65]][TYPES_BN_n5],CURR_PARS[par_index[66]][TYPES_BN_n5],\
-                CURR_PARS[par_index[67]][TYPES_BN_n5],CURR_PARS[par_index[68]][TYPES_BN_n5])
+                CURR_PARS[par_index[67]][TYPES_BN_n5],CURR_PARS[par_index[68]][TYPES_BN_n5],ZEROS_BN_n5)
 
     #cosphi1, cosphi2 angular modulations
 
-    f5_phi1 = F5(COSPHI1_n5,CURR_PARS[par_index[69]][TYPES_BN_n5],CURR_PARS[par_index[70]][TYPES_BN_n5],CURR_PARS[par_index[71]][TYPES_BN_n5],CURR_PARS[par_index[72]][TYPES_BN_n5])
+    f5_phi1 = F5(COSPHI1_n5,CURR_PARS[par_index[69]][TYPES_BN_n5],CURR_PARS[par_index[70]][TYPES_BN_n5],CURR_PARS[par_index[71]][TYPES_BN_n5],CURR_PARS[par_index[72]][TYPES_BN_n5],ZEROS_BN_n5,ONES_BN_n5)
 
-    f5_phi2 = F5(COSPHI2_n5,CURR_PARS[par_index[73]][TYPES_BN_n5],CURR_PARS[par_index[74]][TYPES_BN_n5],CURR_PARS[par_index[75]][TYPES_BN_n5],CURR_PARS[par_index[76]][TYPES_BN_n5])
+    f5_phi2 = F5(COSPHI2_n5,CURR_PARS[par_index[73]][TYPES_BN_n5],CURR_PARS[par_index[74]][TYPES_BN_n5],CURR_PARS[par_index[75]][TYPES_BN_n5],CURR_PARS[par_index[76]][TYPES_BN_n5],ZEROS_BN_n5,ONES_BN_n5)
 
     EN_STCK_IN_n5 = f1*f4_th4*f4_th5*f4_th6*f5_phi1*f5_phi2
 
     #HYDROGEN
     #TYPES_UNBN_33_n5 and TYPES_UNBN_55_n5 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n5, CURR_PARS[par_index[4]][TYPES_UNBN_33_n5], CURR_PARS[par_index[5]][TYPES_UNBN_33_n5], CURR_PARS[par_index[6]][TYPES_UNBN_33_n5],CURR_PARS[par_index[8]][TYPES_UNBN_33_n5],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n5], CURR_PARS[par_index[10]][TYPES_UNBN_33_n5], CURR_PARS[par_index[11]][TYPES_UNBN_33_n5], CURR_PARS[par_index[12]][TYPES_UNBN_33_n5], CURR_PARS[par_index[13]][TYPES_UNBN_33_n5], SHIFT_HYDR_n5[TYPES_UNBN_33_n5])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n5], CURR_PARS[par_index[10]][TYPES_UNBN_33_n5], CURR_PARS[par_index[11]][TYPES_UNBN_33_n5], CURR_PARS[par_index[12]][TYPES_UNBN_33_n5], CURR_PARS[par_index[13]][TYPES_UNBN_33_n5], SHIFT_HYDR_n5[TYPES_UNBN_33_n5], ZEROS_UNBN_n5)
 
     f4_th1 = F4(TH1_n5,CURR_PARS[par_index[14]][TYPES_UNBN_33_n5],CURR_PARS[par_index[15]][TYPES_UNBN_33_n5],CURR_PARS[par_index[16]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[17]][TYPES_UNBN_33_n5],CURR_PARS[par_index[18]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[17]][TYPES_UNBN_33_n5],CURR_PARS[par_index[18]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th2 = F4(TH2_n5,CURR_PARS[par_index[19]][TYPES_UNBN_33_n5],CURR_PARS[par_index[20]][TYPES_UNBN_33_n5],CURR_PARS[par_index[21]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[22]][TYPES_UNBN_33_n5],CURR_PARS[par_index[23]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[22]][TYPES_UNBN_33_n5],CURR_PARS[par_index[23]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th3 = F4(TH3_n5,CURR_PARS[par_index[24]][TYPES_UNBN_33_n5],CURR_PARS[par_index[25]][TYPES_UNBN_33_n5],CURR_PARS[par_index[26]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[27]][TYPES_UNBN_33_n5],CURR_PARS[par_index[28]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[27]][TYPES_UNBN_33_n5],CURR_PARS[par_index[28]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th4 = F4(TH4_UNBN_n5,CURR_PARS[par_index[29]][TYPES_UNBN_33_n5],CURR_PARS[par_index[30]][TYPES_UNBN_33_n5],CURR_PARS[par_index[31]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[32]][TYPES_UNBN_33_n5],CURR_PARS[par_index[33]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[32]][TYPES_UNBN_33_n5],CURR_PARS[par_index[33]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th7 = F4(TH7_n5,CURR_PARS[par_index[34]][TYPES_UNBN_33_n5],CURR_PARS[par_index[35]][TYPES_UNBN_33_n5],CURR_PARS[par_index[36]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[37]][TYPES_UNBN_33_n5],CURR_PARS[par_index[38]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[37]][TYPES_UNBN_33_n5],CURR_PARS[par_index[38]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th8 = F4(TH8_n5,CURR_PARS[par_index[39]][TYPES_UNBN_33_n5],CURR_PARS[par_index[40]][TYPES_UNBN_33_n5],CURR_PARS[par_index[41]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[42]][TYPES_UNBN_33_n5],CURR_PARS[par_index[43]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[42]][TYPES_UNBN_33_n5],CURR_PARS[par_index[43]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
     EN_HYDR_IN_n5 = f1*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
     #CROSS STACKING
     #33
     f2 = F2(HYDR_R_n5, CURR_PARS[par_index[77]][TYPES_UNBN_33_n5], CURR_PARS[par_index[78]][TYPES_UNBN_33_n5], CURR_PARS[par_index[79]][TYPES_UNBN_33_n5], CURR_PARS[par_index[80]][TYPES_UNBN_33_n5], CURR_PARS[par_index[81]][TYPES_UNBN_33_n5],\
-            CURR_PARS[par_index[82]][TYPES_UNBN_33_n5], CURR_PARS[par_index[83]][TYPES_UNBN_33_n5], CURR_PARS[par_index[84]][TYPES_UNBN_33_n5], CURR_PARS[par_index[85]][TYPES_UNBN_33_n5])
+            CURR_PARS[par_index[82]][TYPES_UNBN_33_n5], CURR_PARS[par_index[83]][TYPES_UNBN_33_n5], CURR_PARS[par_index[84]][TYPES_UNBN_33_n5], CURR_PARS[par_index[85]][TYPES_UNBN_33_n5], ZEROS_UNBN_n5)
 
     f4_th1 = F4(TH1_n5,CURR_PARS[par_index[86]][TYPES_UNBN_33_n5],CURR_PARS[par_index[87]][TYPES_UNBN_33_n5],CURR_PARS[par_index[88]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[89]][TYPES_UNBN_33_n5],CURR_PARS[par_index[90]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[89]][TYPES_UNBN_33_n5],CURR_PARS[par_index[90]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th2 = F4(TH2_n5,CURR_PARS[par_index[91]][TYPES_UNBN_33_n5],CURR_PARS[par_index[92]][TYPES_UNBN_33_n5],CURR_PARS[par_index[93]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[94]][TYPES_UNBN_33_n5],CURR_PARS[par_index[95]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[94]][TYPES_UNBN_33_n5],CURR_PARS[par_index[95]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th3 = F4(TH3_n5,CURR_PARS[par_index[96]][TYPES_UNBN_33_n5],CURR_PARS[par_index[97]][TYPES_UNBN_33_n5],CURR_PARS[par_index[98]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[99]][TYPES_UNBN_33_n5],CURR_PARS[par_index[100]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[99]][TYPES_UNBN_33_n5],CURR_PARS[par_index[100]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th4 = F4(TH4_UNBN_n5,CURR_PARS[par_index[101]][TYPES_UNBN_33_n5],CURR_PARS[par_index[102]][TYPES_UNBN_33_n5],CURR_PARS[par_index[103]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[104]][TYPES_UNBN_33_n5],CURR_PARS[par_index[105]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[104]][TYPES_UNBN_33_n5],CURR_PARS[par_index[105]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th7 = F4(TH7_n5,CURR_PARS[par_index[106]][TYPES_UNBN_33_n5],CURR_PARS[par_index[107]][TYPES_UNBN_33_n5],CURR_PARS[par_index[108]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[109]][TYPES_UNBN_33_n5],CURR_PARS[par_index[110]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[109]][TYPES_UNBN_33_n5],CURR_PARS[par_index[110]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     f4_th8 = F4(TH8_n5,CURR_PARS[par_index[111]][TYPES_UNBN_33_n5],CURR_PARS[par_index[112]][TYPES_UNBN_33_n5],CURR_PARS[par_index[113]][TYPES_UNBN_33_n5],\
-                CURR_PARS[par_index[114]][TYPES_UNBN_33_n5],CURR_PARS[par_index[115]][TYPES_UNBN_33_n5])
+                CURR_PARS[par_index[114]][TYPES_UNBN_33_n5],CURR_PARS[par_index[115]][TYPES_UNBN_33_n5],ZEROS_UNBN_n5)
 
     EN_CRST_33_IN_n5 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
 
     #55
     f2 = F2(HYDR_R_n5, CURR_PARS[par_index[116]][TYPES_UNBN_55_n5], CURR_PARS[par_index[117]][TYPES_UNBN_55_n5], CURR_PARS[par_index[118]][TYPES_UNBN_55_n5], CURR_PARS[par_index[119]][TYPES_UNBN_55_n5], CURR_PARS[par_index[120]][TYPES_UNBN_55_n5],\
-            CURR_PARS[par_index[121]][TYPES_UNBN_55_n5], CURR_PARS[par_index[122]][TYPES_UNBN_55_n5], CURR_PARS[par_index[123]][TYPES_UNBN_55_n5], CURR_PARS[par_index[124]][TYPES_UNBN_55_n5])
+            CURR_PARS[par_index[121]][TYPES_UNBN_55_n5], CURR_PARS[par_index[122]][TYPES_UNBN_55_n5], CURR_PARS[par_index[123]][TYPES_UNBN_55_n5], CURR_PARS[par_index[124]][TYPES_UNBN_55_n5], ZEROS_UNBN_n5)
 
     f4_th1 = F4(TH1_n5,CURR_PARS[par_index[125]][TYPES_UNBN_55_n5],CURR_PARS[par_index[126]][TYPES_UNBN_55_n5],CURR_PARS[par_index[127]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[128]][TYPES_UNBN_55_n5],CURR_PARS[par_index[129]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[128]][TYPES_UNBN_55_n5],CURR_PARS[par_index[129]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
     f4_th2 = F4(TH2_n5,CURR_PARS[par_index[130]][TYPES_UNBN_55_n5],CURR_PARS[par_index[131]][TYPES_UNBN_55_n5],CURR_PARS[par_index[132]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[133]][TYPES_UNBN_55_n5],CURR_PARS[par_index[134]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[133]][TYPES_UNBN_55_n5],CURR_PARS[par_index[134]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
 
     f4_th3 = F4(TH3_n5,CURR_PARS[par_index[135]][TYPES_UNBN_55_n5],CURR_PARS[par_index[136]][TYPES_UNBN_55_n5],CURR_PARS[par_index[137]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[138]][TYPES_UNBN_55_n5],CURR_PARS[par_index[139]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[138]][TYPES_UNBN_55_n5],CURR_PARS[par_index[139]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
 
     f4_th4 = F4(TH4_UNBN_n5,CURR_PARS[par_index[140]][TYPES_UNBN_55_n5],CURR_PARS[par_index[141]][TYPES_UNBN_55_n5],CURR_PARS[par_index[142]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[143]][TYPES_UNBN_55_n5],CURR_PARS[par_index[144]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[143]][TYPES_UNBN_55_n5],CURR_PARS[par_index[144]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
 
     f4_th7 = F4(TH7_n5,CURR_PARS[par_index[145]][TYPES_UNBN_55_n5],CURR_PARS[par_index[146]][TYPES_UNBN_55_n5],CURR_PARS[par_index[147]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[148]][TYPES_UNBN_55_n5],CURR_PARS[par_index[149]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[148]][TYPES_UNBN_55_n5],CURR_PARS[par_index[149]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
 
     f4_th8 = F4(TH8_n5,CURR_PARS[par_index[150]][TYPES_UNBN_55_n5],CURR_PARS[par_index[151]][TYPES_UNBN_55_n5],CURR_PARS[par_index[152]][TYPES_UNBN_55_n5],\
-                CURR_PARS[par_index[153]][TYPES_UNBN_55_n5],CURR_PARS[par_index[154]][TYPES_UNBN_55_n5])
+                CURR_PARS[par_index[153]][TYPES_UNBN_55_n5],CURR_PARS[par_index[154]][TYPES_UNBN_55_n5],ZEROS_UNBN_n5)
 
     EN_CRST_55_IN_n5 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
     if cg.read_energy_from_file :
 
-        EN_FENE_IN0_n5 = torch.load("EN_FENE_IN0_n5.pt", map_location=device)
-        EN_STCK_IN0_n5 = torch.load("EN_STCK_IN0_n5.pt", map_location=device)
-        EN_HYDR_IN0_n5 = torch.load("EN_HYDR_IN0_n5.pt", map_location=device)
-        EN_CRST_33_IN0_n5 = torch.load("EN_CRST_33_IN0_n5.pt", map_location=device)
-        EN_CRST_55_IN0_n5 = torch.load("EN_CRST_55_IN0_n5.pt", map_location=device)
+        EN_FENE_IN0_n5 = torch.load("EN_FENE_IN0_n5.dat", map_location=device)
+        EN_STCK_IN0_n5 = torch.load("EN_STCK_IN0_n5.dat", map_location=device)
+        EN_HYDR_IN0_n5 = torch.load("EN_HYDR_IN0_n5.dat", map_location=device)
+        EN_CRST_33_IN0_n5 = torch.load("EN_CRST_33_IN0_n5.dat", map_location=device)
+        EN_CRST_55_IN0_n5 = torch.load("EN_CRST_55_IN0_n5.dat", map_location=device)
 
     else:
 
@@ -1866,117 +1562,99 @@ def compute_energy_n8() :
 
 
     f1 = F1(STCK_R_n8, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n8], CURR_PARS[par_index[46]][TYPES_BN_n8], CURR_PARS[par_index[48]][TYPES_BN_n8],\
-            CURR_PARS[par_index[49]][TYPES_BN_n8], CURR_PARS[par_index[50]][TYPES_BN_n8], CURR_PARS[par_index[51]][TYPES_BN_n8], CURR_PARS[par_index[52]][TYPES_BN_n8], CURR_PARS[par_index[53]][TYPES_BN_n8], STCK_SH)
+            CURR_PARS[par_index[49]][TYPES_BN_n8], CURR_PARS[par_index[50]][TYPES_BN_n8], CURR_PARS[par_index[51]][TYPES_BN_n8], CURR_PARS[par_index[52]][TYPES_BN_n8], CURR_PARS[par_index[53]][TYPES_BN_n8], STCK_SH, ZEROS_BN_n8)
 
     #th4, th5, th6 Angular modulations
 
 
     f4_th4 = F4(TH4_BN_n8,CURR_PARS[par_index[54]][TYPES_BN_n8],CURR_PARS[par_index[55]][TYPES_BN_n8],CURR_PARS[par_index[56]][TYPES_BN_n8],\
-                CURR_PARS[par_index[57]][TYPES_BN_n8],CURR_PARS[par_index[58]][TYPES_BN_n8])
+                CURR_PARS[par_index[57]][TYPES_BN_n8],CURR_PARS[par_index[58]][TYPES_BN_n8],ZEROS_BN_n8)
     f4_th5 = F4(TH5_n8,CURR_PARS[par_index[59]][TYPES_BN_n8],CURR_PARS[par_index[60]][TYPES_BN_n8],CURR_PARS[par_index[61]][TYPES_BN_n8],\
-                CURR_PARS[par_index[62]][TYPES_BN_n8],CURR_PARS[par_index[63]][TYPES_BN_n8])
+                CURR_PARS[par_index[62]][TYPES_BN_n8],CURR_PARS[par_index[63]][TYPES_BN_n8],ZEROS_BN_n8)
 
     f4_th6 = F4(TH6_n8,CURR_PARS[par_index[64]][TYPES_BN_n8],CURR_PARS[par_index[65]][TYPES_BN_n8],CURR_PARS[par_index[66]][TYPES_BN_n8],\
-                CURR_PARS[par_index[67]][TYPES_BN_n8],CURR_PARS[par_index[68]][TYPES_BN_n8])
+                CURR_PARS[par_index[67]][TYPES_BN_n8],CURR_PARS[par_index[68]][TYPES_BN_n8],ZEROS_BN_n8)
 
     #cosphi1, cosphi2 angular modulations
 
-    f5_phi1 = F5(COSPHI1_n8,CURR_PARS[par_index[69]][TYPES_BN_n8],CURR_PARS[par_index[70]][TYPES_BN_n8],CURR_PARS[par_index[71]][TYPES_BN_n8],CURR_PARS[par_index[72]][TYPES_BN_n8])
+    f5_phi1 = F5(COSPHI1_n8,CURR_PARS[par_index[69]][TYPES_BN_n8],CURR_PARS[par_index[70]][TYPES_BN_n8],CURR_PARS[par_index[71]][TYPES_BN_n8],CURR_PARS[par_index[72]][TYPES_BN_n8],ZEROS_BN_n8,ONES_BN_n8)
 
-    f5_phi2 = F5(COSPHI2_n8,CURR_PARS[par_index[73]][TYPES_BN_n8],CURR_PARS[par_index[74]][TYPES_BN_n8],CURR_PARS[par_index[75]][TYPES_BN_n8],CURR_PARS[par_index[76]][TYPES_BN_n8])
+    f5_phi2 = F5(COSPHI2_n8,CURR_PARS[par_index[73]][TYPES_BN_n8],CURR_PARS[par_index[74]][TYPES_BN_n8],CURR_PARS[par_index[75]][TYPES_BN_n8],CURR_PARS[par_index[76]][TYPES_BN_n8],ZEROS_BN_n8,ONES_BN_n8)
 
     EN_STCK_IN_n8 = f1*f4_th4*f4_th5*f4_th6*f5_phi1*f5_phi2
 
     #HYDROGEN
     #TYPES_UNBN_33_n8 and TYPES_UNBN_55_n8 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n8, CURR_PARS[par_index[4]][TYPES_UNBN_33_n8], CURR_PARS[par_index[5]][TYPES_UNBN_33_n8], CURR_PARS[par_index[6]][TYPES_UNBN_33_n8],CURR_PARS[par_index[8]][TYPES_UNBN_33_n8],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n8], CURR_PARS[par_index[10]][TYPES_UNBN_33_n8], CURR_PARS[par_index[11]][TYPES_UNBN_33_n8], CURR_PARS[par_index[12]][TYPES_UNBN_33_n8], CURR_PARS[par_index[13]][TYPES_UNBN_33_n8], SHIFT_HYDR_n8[TYPES_UNBN_33_n8])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n8], CURR_PARS[par_index[10]][TYPES_UNBN_33_n8], CURR_PARS[par_index[11]][TYPES_UNBN_33_n8], CURR_PARS[par_index[12]][TYPES_UNBN_33_n8], CURR_PARS[par_index[13]][TYPES_UNBN_33_n8], SHIFT_HYDR_n8[TYPES_UNBN_33_n8], ZEROS_UNBN_n8)
 
     f4_th1 = F4(TH1_n8,CURR_PARS[par_index[14]][TYPES_UNBN_33_n8],CURR_PARS[par_index[15]][TYPES_UNBN_33_n8],CURR_PARS[par_index[16]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[17]][TYPES_UNBN_33_n8],CURR_PARS[par_index[18]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[17]][TYPES_UNBN_33_n8],CURR_PARS[par_index[18]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th2 = F4(TH2_n8,CURR_PARS[par_index[19]][TYPES_UNBN_33_n8],CURR_PARS[par_index[20]][TYPES_UNBN_33_n8],CURR_PARS[par_index[21]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[22]][TYPES_UNBN_33_n8],CURR_PARS[par_index[23]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[22]][TYPES_UNBN_33_n8],CURR_PARS[par_index[23]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th3 = F4(TH3_n8,CURR_PARS[par_index[24]][TYPES_UNBN_33_n8],CURR_PARS[par_index[25]][TYPES_UNBN_33_n8],CURR_PARS[par_index[26]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[27]][TYPES_UNBN_33_n8],CURR_PARS[par_index[28]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[27]][TYPES_UNBN_33_n8],CURR_PARS[par_index[28]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th4 = F4(TH4_UNBN_n8,CURR_PARS[par_index[29]][TYPES_UNBN_33_n8],CURR_PARS[par_index[30]][TYPES_UNBN_33_n8],CURR_PARS[par_index[31]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[32]][TYPES_UNBN_33_n8],CURR_PARS[par_index[33]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[32]][TYPES_UNBN_33_n8],CURR_PARS[par_index[33]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th7 = F4(TH7_n8,CURR_PARS[par_index[34]][TYPES_UNBN_33_n8],CURR_PARS[par_index[35]][TYPES_UNBN_33_n8],CURR_PARS[par_index[36]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[37]][TYPES_UNBN_33_n8],CURR_PARS[par_index[38]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[37]][TYPES_UNBN_33_n8],CURR_PARS[par_index[38]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th8 = F4(TH8_n8,CURR_PARS[par_index[39]][TYPES_UNBN_33_n8],CURR_PARS[par_index[40]][TYPES_UNBN_33_n8],CURR_PARS[par_index[41]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[42]][TYPES_UNBN_33_n8],CURR_PARS[par_index[43]][TYPES_UNBN_33_n8])
-
+                CURR_PARS[par_index[42]][TYPES_UNBN_33_n8],CURR_PARS[par_index[43]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
     EN_HYDR_IN_n8 = f1*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
     #CROSS STACKING
     #33
     f2 = F2(HYDR_R_n8, CURR_PARS[par_index[77]][TYPES_UNBN_33_n8], CURR_PARS[par_index[78]][TYPES_UNBN_33_n8], CURR_PARS[par_index[79]][TYPES_UNBN_33_n8], CURR_PARS[par_index[80]][TYPES_UNBN_33_n8], CURR_PARS[par_index[81]][TYPES_UNBN_33_n8],\
-            CURR_PARS[par_index[82]][TYPES_UNBN_33_n8], CURR_PARS[par_index[83]][TYPES_UNBN_33_n8], CURR_PARS[par_index[84]][TYPES_UNBN_33_n8], CURR_PARS[par_index[85]][TYPES_UNBN_33_n8])
+            CURR_PARS[par_index[82]][TYPES_UNBN_33_n8], CURR_PARS[par_index[83]][TYPES_UNBN_33_n8], CURR_PARS[par_index[84]][TYPES_UNBN_33_n8], CURR_PARS[par_index[85]][TYPES_UNBN_33_n8], ZEROS_UNBN_n8)
 
     f4_th1 = F4(TH1_n8,CURR_PARS[par_index[86]][TYPES_UNBN_33_n8],CURR_PARS[par_index[87]][TYPES_UNBN_33_n8],CURR_PARS[par_index[88]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[89]][TYPES_UNBN_33_n8],CURR_PARS[par_index[90]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[89]][TYPES_UNBN_33_n8],CURR_PARS[par_index[90]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th2 = F4(TH2_n8,CURR_PARS[par_index[91]][TYPES_UNBN_33_n8],CURR_PARS[par_index[92]][TYPES_UNBN_33_n8],CURR_PARS[par_index[93]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[94]][TYPES_UNBN_33_n8],CURR_PARS[par_index[95]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[94]][TYPES_UNBN_33_n8],CURR_PARS[par_index[95]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th3 = F4(TH3_n8,CURR_PARS[par_index[96]][TYPES_UNBN_33_n8],CURR_PARS[par_index[97]][TYPES_UNBN_33_n8],CURR_PARS[par_index[98]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[99]][TYPES_UNBN_33_n8],CURR_PARS[par_index[100]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[99]][TYPES_UNBN_33_n8],CURR_PARS[par_index[100]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th4 = F4(TH4_UNBN_n8,CURR_PARS[par_index[101]][TYPES_UNBN_33_n8],CURR_PARS[par_index[102]][TYPES_UNBN_33_n8],CURR_PARS[par_index[103]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[104]][TYPES_UNBN_33_n8],CURR_PARS[par_index[105]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[104]][TYPES_UNBN_33_n8],CURR_PARS[par_index[105]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th7 = F4(TH7_n8,CURR_PARS[par_index[106]][TYPES_UNBN_33_n8],CURR_PARS[par_index[107]][TYPES_UNBN_33_n8],CURR_PARS[par_index[108]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[109]][TYPES_UNBN_33_n8],CURR_PARS[par_index[110]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[109]][TYPES_UNBN_33_n8],CURR_PARS[par_index[110]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     f4_th8 = F4(TH8_n8,CURR_PARS[par_index[111]][TYPES_UNBN_33_n8],CURR_PARS[par_index[112]][TYPES_UNBN_33_n8],CURR_PARS[par_index[113]][TYPES_UNBN_33_n8],\
-                CURR_PARS[par_index[114]][TYPES_UNBN_33_n8],CURR_PARS[par_index[115]][TYPES_UNBN_33_n8])
+                CURR_PARS[par_index[114]][TYPES_UNBN_33_n8],CURR_PARS[par_index[115]][TYPES_UNBN_33_n8],ZEROS_UNBN_n8)
 
     EN_CRST_33_IN_n8 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
 
     #55
     f2 = F2(HYDR_R_n8, CURR_PARS[par_index[116]][TYPES_UNBN_55_n8], CURR_PARS[par_index[117]][TYPES_UNBN_55_n8], CURR_PARS[par_index[118]][TYPES_UNBN_55_n8], CURR_PARS[par_index[119]][TYPES_UNBN_55_n8], CURR_PARS[par_index[120]][TYPES_UNBN_55_n8],\
-            CURR_PARS[par_index[121]][TYPES_UNBN_55_n8], CURR_PARS[par_index[122]][TYPES_UNBN_55_n8], CURR_PARS[par_index[123]][TYPES_UNBN_55_n8], CURR_PARS[par_index[124]][TYPES_UNBN_55_n8])
+            CURR_PARS[par_index[121]][TYPES_UNBN_55_n8], CURR_PARS[par_index[122]][TYPES_UNBN_55_n8], CURR_PARS[par_index[123]][TYPES_UNBN_55_n8], CURR_PARS[par_index[124]][TYPES_UNBN_55_n8], ZEROS_UNBN_n8)
 
     f4_th1 = F4(TH1_n8,CURR_PARS[par_index[125]][TYPES_UNBN_55_n8],CURR_PARS[par_index[126]][TYPES_UNBN_55_n8],CURR_PARS[par_index[127]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[128]][TYPES_UNBN_55_n8],CURR_PARS[par_index[129]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[128]][TYPES_UNBN_55_n8],CURR_PARS[par_index[129]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
     f4_th2 = F4(TH2_n8,CURR_PARS[par_index[130]][TYPES_UNBN_55_n8],CURR_PARS[par_index[131]][TYPES_UNBN_55_n8],CURR_PARS[par_index[132]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[133]][TYPES_UNBN_55_n8],CURR_PARS[par_index[134]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[133]][TYPES_UNBN_55_n8],CURR_PARS[par_index[134]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
 
     f4_th3 = F4(TH3_n8,CURR_PARS[par_index[135]][TYPES_UNBN_55_n8],CURR_PARS[par_index[136]][TYPES_UNBN_55_n8],CURR_PARS[par_index[137]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[138]][TYPES_UNBN_55_n8],CURR_PARS[par_index[139]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[138]][TYPES_UNBN_55_n8],CURR_PARS[par_index[139]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
 
     f4_th4 = F4(TH4_UNBN_n8,CURR_PARS[par_index[140]][TYPES_UNBN_55_n8],CURR_PARS[par_index[141]][TYPES_UNBN_55_n8],CURR_PARS[par_index[142]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[143]][TYPES_UNBN_55_n8],CURR_PARS[par_index[144]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[143]][TYPES_UNBN_55_n8],CURR_PARS[par_index[144]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
 
     f4_th7 = F4(TH7_n8,CURR_PARS[par_index[145]][TYPES_UNBN_55_n8],CURR_PARS[par_index[146]][TYPES_UNBN_55_n8],CURR_PARS[par_index[147]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[148]][TYPES_UNBN_55_n8],CURR_PARS[par_index[149]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[148]][TYPES_UNBN_55_n8],CURR_PARS[par_index[149]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
 
     f4_th8 = F4(TH8_n8,CURR_PARS[par_index[150]][TYPES_UNBN_55_n8],CURR_PARS[par_index[151]][TYPES_UNBN_55_n8],CURR_PARS[par_index[152]][TYPES_UNBN_55_n8],\
-                CURR_PARS[par_index[153]][TYPES_UNBN_55_n8],CURR_PARS[par_index[154]][TYPES_UNBN_55_n8])
+                CURR_PARS[par_index[153]][TYPES_UNBN_55_n8],CURR_PARS[par_index[154]][TYPES_UNBN_55_n8],ZEROS_UNBN_n8)
 
     EN_CRST_55_IN_n8 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
-
-    if cg.read_energy_from_file :
-
-        EN_FENE_IN0_n8 = torch.load("EN_FENE_IN0_n8.pt", map_location=device)
-        EN_STCK_IN0_n8 = torch.load("EN_STCK_IN0_n8.pt", map_location=device)
-        EN_HYDR_IN0_n8 = torch.load("EN_HYDR_IN0_n8.pt", map_location=device)
-        EN_CRST_33_IN0_n8 = torch.load("EN_CRST_33_IN0_n8.pt", map_location=device)
-        EN_CRST_55_IN0_n8 = torch.load("EN_CRST_55_IN0_n8.pt", map_location=device)
-
-    else:
-
-        EN_FENE_IN0_n8 = torch.clone(EN_FENE_IN_n8.sum(dim=2))
-        EN_STCK_IN0_n8 = torch.clone(EN_STCK_IN_n8.sum(dim=2))
-        EN_HYDR_IN0_n8 = torch.clone(EN_HYDR_IN_n8.sum(dim=2))
-        EN_CRST_33_IN0_n8 = torch.clone(EN_CRST_33_IN_n8.sum(dim=2))
-        EN_CRST_55_IN0_n8 = torch.clone(EN_CRST_55_IN_n8.sum(dim=2))
-
 
     return
 
@@ -2001,116 +1679,99 @@ def compute_initial_energy_n15() :
     STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
     f1 = F1(STCK_R_n15, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n15], CURR_PARS[par_index[46]][TYPES_BN_n15], CURR_PARS[par_index[48]][TYPES_BN_n15],\
-            CURR_PARS[par_index[49]][TYPES_BN_n15], CURR_PARS[par_index[50]][TYPES_BN_n15], CURR_PARS[par_index[51]][TYPES_BN_n15], CURR_PARS[par_index[52]][TYPES_BN_n15], CURR_PARS[par_index[53]][TYPES_BN_n15], STCK_SH)
+            CURR_PARS[par_index[49]][TYPES_BN_n15], CURR_PARS[par_index[50]][TYPES_BN_n15], CURR_PARS[par_index[51]][TYPES_BN_n15], CURR_PARS[par_index[52]][TYPES_BN_n15], CURR_PARS[par_index[53]][TYPES_BN_n15], STCK_SH, ZEROS_BN_n15)
 
     #th4, th5, th6 Angular modulations
 
 
     f4_th4 = F4(TH4_BN_n15,CURR_PARS[par_index[54]][TYPES_BN_n15],CURR_PARS[par_index[55]][TYPES_BN_n15],CURR_PARS[par_index[56]][TYPES_BN_n15],\
-                CURR_PARS[par_index[57]][TYPES_BN_n15],CURR_PARS[par_index[58]][TYPES_BN_n15])
+                CURR_PARS[par_index[57]][TYPES_BN_n15],CURR_PARS[par_index[58]][TYPES_BN_n15],ZEROS_BN_n15)
     f4_th5 = F4(TH5_n15,CURR_PARS[par_index[59]][TYPES_BN_n15],CURR_PARS[par_index[60]][TYPES_BN_n15],CURR_PARS[par_index[61]][TYPES_BN_n15],\
-                CURR_PARS[par_index[62]][TYPES_BN_n15],CURR_PARS[par_index[63]][TYPES_BN_n15])
+                CURR_PARS[par_index[62]][TYPES_BN_n15],CURR_PARS[par_index[63]][TYPES_BN_n15],ZEROS_BN_n15)
 
     f4_th6 = F4(TH6_n15,CURR_PARS[par_index[64]][TYPES_BN_n15],CURR_PARS[par_index[65]][TYPES_BN_n15],CURR_PARS[par_index[66]][TYPES_BN_n15],\
-                CURR_PARS[par_index[67]][TYPES_BN_n15],CURR_PARS[par_index[68]][TYPES_BN_n15])
+                CURR_PARS[par_index[67]][TYPES_BN_n15],CURR_PARS[par_index[68]][TYPES_BN_n15],ZEROS_BN_n15)
 
     #cosphi1, cosphi2 angular modulations
 
-    f5_phi1 = F5(COSPHI1_n15,CURR_PARS[par_index[69]][TYPES_BN_n15],CURR_PARS[par_index[70]][TYPES_BN_n15],CURR_PARS[par_index[71]][TYPES_BN_n15],CURR_PARS[par_index[72]][TYPES_BN_n15])
+    f5_phi1 = F5(COSPHI1_n15,CURR_PARS[par_index[69]][TYPES_BN_n15],CURR_PARS[par_index[70]][TYPES_BN_n15],CURR_PARS[par_index[71]][TYPES_BN_n15],CURR_PARS[par_index[72]][TYPES_BN_n15],ZEROS_BN_n15,ONES_BN_n15)
 
-    f5_phi2 = F5(COSPHI2_n15,CURR_PARS[par_index[73]][TYPES_BN_n15],CURR_PARS[par_index[74]][TYPES_BN_n15],CURR_PARS[par_index[75]][TYPES_BN_n15],CURR_PARS[par_index[76]][TYPES_BN_n15])
+    f5_phi2 = F5(COSPHI2_n15,CURR_PARS[par_index[73]][TYPES_BN_n15],CURR_PARS[par_index[74]][TYPES_BN_n15],CURR_PARS[par_index[75]][TYPES_BN_n15],CURR_PARS[par_index[76]][TYPES_BN_n15],ZEROS_BN_n15,ONES_BN_n15)
 
     EN_STCK_IN_n15 = f1*f4_th4*f4_th5*f4_th6*f5_phi1*f5_phi2
 
     #HYDROGEN
     #TYPES_UNBN_33_n15 and TYPES_UNBN_55_n15 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n15, CURR_PARS[par_index[4]][TYPES_UNBN_33_n15], CURR_PARS[par_index[5]][TYPES_UNBN_33_n15], CURR_PARS[par_index[6]][TYPES_UNBN_33_n15],CURR_PARS[par_index[8]][TYPES_UNBN_33_n15],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n15], CURR_PARS[par_index[10]][TYPES_UNBN_33_n15], CURR_PARS[par_index[11]][TYPES_UNBN_33_n15], CURR_PARS[par_index[12]][TYPES_UNBN_33_n15], CURR_PARS[par_index[13]][TYPES_UNBN_33_n15], SHIFT_HYDR_n15[TYPES_UNBN_33_n15])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n15], CURR_PARS[par_index[10]][TYPES_UNBN_33_n15], CURR_PARS[par_index[11]][TYPES_UNBN_33_n15], CURR_PARS[par_index[12]][TYPES_UNBN_33_n15], CURR_PARS[par_index[13]][TYPES_UNBN_33_n15], SHIFT_HYDR_n15[TYPES_UNBN_33_n15], ZEROS_UNBN_n15)
 
     f4_th1 = F4(TH1_n15,CURR_PARS[par_index[14]][TYPES_UNBN_33_n15],CURR_PARS[par_index[15]][TYPES_UNBN_33_n15],CURR_PARS[par_index[16]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[17]][TYPES_UNBN_33_n15],CURR_PARS[par_index[18]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[17]][TYPES_UNBN_33_n15],CURR_PARS[par_index[18]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th2 = F4(TH2_n15,CURR_PARS[par_index[19]][TYPES_UNBN_33_n15],CURR_PARS[par_index[20]][TYPES_UNBN_33_n15],CURR_PARS[par_index[21]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[22]][TYPES_UNBN_33_n15],CURR_PARS[par_index[23]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[22]][TYPES_UNBN_33_n15],CURR_PARS[par_index[23]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th3 = F4(TH3_n15,CURR_PARS[par_index[24]][TYPES_UNBN_33_n15],CURR_PARS[par_index[25]][TYPES_UNBN_33_n15],CURR_PARS[par_index[26]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[27]][TYPES_UNBN_33_n15],CURR_PARS[par_index[28]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[27]][TYPES_UNBN_33_n15],CURR_PARS[par_index[28]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th4 = F4(TH4_UNBN_n15,CURR_PARS[par_index[29]][TYPES_UNBN_33_n15],CURR_PARS[par_index[30]][TYPES_UNBN_33_n15],CURR_PARS[par_index[31]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[32]][TYPES_UNBN_33_n15],CURR_PARS[par_index[33]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[32]][TYPES_UNBN_33_n15],CURR_PARS[par_index[33]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th7 = F4(TH7_n15,CURR_PARS[par_index[34]][TYPES_UNBN_33_n15],CURR_PARS[par_index[35]][TYPES_UNBN_33_n15],CURR_PARS[par_index[36]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[37]][TYPES_UNBN_33_n15],CURR_PARS[par_index[38]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[37]][TYPES_UNBN_33_n15],CURR_PARS[par_index[38]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th8 = F4(TH8_n15,CURR_PARS[par_index[39]][TYPES_UNBN_33_n15],CURR_PARS[par_index[40]][TYPES_UNBN_33_n15],CURR_PARS[par_index[41]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[42]][TYPES_UNBN_33_n15],CURR_PARS[par_index[43]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[42]][TYPES_UNBN_33_n15],CURR_PARS[par_index[43]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
     EN_HYDR_IN_n15 = f1*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
     #CROSS STACKING
     #33
     f2 = F2(HYDR_R_n15, CURR_PARS[par_index[77]][TYPES_UNBN_33_n15], CURR_PARS[par_index[78]][TYPES_UNBN_33_n15], CURR_PARS[par_index[79]][TYPES_UNBN_33_n15], CURR_PARS[par_index[80]][TYPES_UNBN_33_n15], CURR_PARS[par_index[81]][TYPES_UNBN_33_n15],\
-            CURR_PARS[par_index[82]][TYPES_UNBN_33_n15], CURR_PARS[par_index[83]][TYPES_UNBN_33_n15], CURR_PARS[par_index[84]][TYPES_UNBN_33_n15], CURR_PARS[par_index[85]][TYPES_UNBN_33_n15])
+            CURR_PARS[par_index[82]][TYPES_UNBN_33_n15], CURR_PARS[par_index[83]][TYPES_UNBN_33_n15], CURR_PARS[par_index[84]][TYPES_UNBN_33_n15], CURR_PARS[par_index[85]][TYPES_UNBN_33_n15], ZEROS_UNBN_n15)
 
     f4_th1 = F4(TH1_n15,CURR_PARS[par_index[86]][TYPES_UNBN_33_n15],CURR_PARS[par_index[87]][TYPES_UNBN_33_n15],CURR_PARS[par_index[88]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[89]][TYPES_UNBN_33_n15],CURR_PARS[par_index[90]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[89]][TYPES_UNBN_33_n15],CURR_PARS[par_index[90]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th2 = F4(TH2_n15,CURR_PARS[par_index[91]][TYPES_UNBN_33_n15],CURR_PARS[par_index[92]][TYPES_UNBN_33_n15],CURR_PARS[par_index[93]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[94]][TYPES_UNBN_33_n15],CURR_PARS[par_index[95]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[94]][TYPES_UNBN_33_n15],CURR_PARS[par_index[95]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th3 = F4(TH3_n15,CURR_PARS[par_index[96]][TYPES_UNBN_33_n15],CURR_PARS[par_index[97]][TYPES_UNBN_33_n15],CURR_PARS[par_index[98]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[99]][TYPES_UNBN_33_n15],CURR_PARS[par_index[100]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[99]][TYPES_UNBN_33_n15],CURR_PARS[par_index[100]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th4 = F4(TH4_UNBN_n15,CURR_PARS[par_index[101]][TYPES_UNBN_33_n15],CURR_PARS[par_index[102]][TYPES_UNBN_33_n15],CURR_PARS[par_index[103]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[104]][TYPES_UNBN_33_n15],CURR_PARS[par_index[105]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[104]][TYPES_UNBN_33_n15],CURR_PARS[par_index[105]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th7 = F4(TH7_n15,CURR_PARS[par_index[106]][TYPES_UNBN_33_n15],CURR_PARS[par_index[107]][TYPES_UNBN_33_n15],CURR_PARS[par_index[108]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[109]][TYPES_UNBN_33_n15],CURR_PARS[par_index[110]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[109]][TYPES_UNBN_33_n15],CURR_PARS[par_index[110]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     f4_th8 = F4(TH8_n15,CURR_PARS[par_index[111]][TYPES_UNBN_33_n15],CURR_PARS[par_index[112]][TYPES_UNBN_33_n15],CURR_PARS[par_index[113]][TYPES_UNBN_33_n15],\
-                CURR_PARS[par_index[114]][TYPES_UNBN_33_n15],CURR_PARS[par_index[115]][TYPES_UNBN_33_n15])
+                CURR_PARS[par_index[114]][TYPES_UNBN_33_n15],CURR_PARS[par_index[115]][TYPES_UNBN_33_n15],ZEROS_UNBN_n15)
 
     EN_CRST_33_IN_n15 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
 
 
     #55
     f2 = F2(HYDR_R_n15, CURR_PARS[par_index[116]][TYPES_UNBN_55_n15], CURR_PARS[par_index[117]][TYPES_UNBN_55_n15], CURR_PARS[par_index[118]][TYPES_UNBN_55_n15], CURR_PARS[par_index[119]][TYPES_UNBN_55_n15], CURR_PARS[par_index[120]][TYPES_UNBN_55_n15],\
-            CURR_PARS[par_index[121]][TYPES_UNBN_55_n15], CURR_PARS[par_index[122]][TYPES_UNBN_55_n15], CURR_PARS[par_index[123]][TYPES_UNBN_55_n15], CURR_PARS[par_index[124]][TYPES_UNBN_55_n15])
+            CURR_PARS[par_index[121]][TYPES_UNBN_55_n15], CURR_PARS[par_index[122]][TYPES_UNBN_55_n15], CURR_PARS[par_index[123]][TYPES_UNBN_55_n15], CURR_PARS[par_index[124]][TYPES_UNBN_55_n15], ZEROS_UNBN_n15)
 
     f4_th1 = F4(TH1_n15,CURR_PARS[par_index[125]][TYPES_UNBN_55_n15],CURR_PARS[par_index[126]][TYPES_UNBN_55_n15],CURR_PARS[par_index[127]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[128]][TYPES_UNBN_55_n15],CURR_PARS[par_index[129]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[128]][TYPES_UNBN_55_n15],CURR_PARS[par_index[129]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
     f4_th2 = F4(TH2_n15,CURR_PARS[par_index[130]][TYPES_UNBN_55_n15],CURR_PARS[par_index[131]][TYPES_UNBN_55_n15],CURR_PARS[par_index[132]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[133]][TYPES_UNBN_55_n15],CURR_PARS[par_index[134]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[133]][TYPES_UNBN_55_n15],CURR_PARS[par_index[134]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
 
     f4_th3 = F4(TH3_n15,CURR_PARS[par_index[135]][TYPES_UNBN_55_n15],CURR_PARS[par_index[136]][TYPES_UNBN_55_n15],CURR_PARS[par_index[137]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[138]][TYPES_UNBN_55_n15],CURR_PARS[par_index[139]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[138]][TYPES_UNBN_55_n15],CURR_PARS[par_index[139]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
 
     f4_th4 = F4(TH4_UNBN_n15,CURR_PARS[par_index[140]][TYPES_UNBN_55_n15],CURR_PARS[par_index[141]][TYPES_UNBN_55_n15],CURR_PARS[par_index[142]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[143]][TYPES_UNBN_55_n15],CURR_PARS[par_index[144]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[143]][TYPES_UNBN_55_n15],CURR_PARS[par_index[144]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
 
     f4_th7 = F4(TH7_n15,CURR_PARS[par_index[145]][TYPES_UNBN_55_n15],CURR_PARS[par_index[146]][TYPES_UNBN_55_n15],CURR_PARS[par_index[147]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[148]][TYPES_UNBN_55_n15],CURR_PARS[par_index[149]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[148]][TYPES_UNBN_55_n15],CURR_PARS[par_index[149]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
 
     f4_th8 = F4(TH8_n15,CURR_PARS[par_index[150]][TYPES_UNBN_55_n15],CURR_PARS[par_index[151]][TYPES_UNBN_55_n15],CURR_PARS[par_index[152]][TYPES_UNBN_55_n15],\
-                CURR_PARS[par_index[153]][TYPES_UNBN_55_n15],CURR_PARS[par_index[154]][TYPES_UNBN_55_n15])
+                CURR_PARS[par_index[153]][TYPES_UNBN_55_n15],CURR_PARS[par_index[154]][TYPES_UNBN_55_n15],ZEROS_UNBN_n15)
 
     EN_CRST_55_IN_n15 = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
-
-    if cg.read_energy_from_file :
-
-        EN_FENE_IN0_n15 = torch.load("EN_FENE_IN0_n15.pt", map_location=device)
-        EN_STCK_IN0_n15 = torch.load("EN_STCK_IN0_n15.pt", map_location=device)
-        EN_HYDR_IN0_n15 = torch.load("EN_HYDR_IN0_n15.pt", map_location=device)
-        EN_CRST_33_IN0_n15 = torch.load("EN_CRST_33_IN0_n15.pt", map_location=device)
-        EN_CRST_55_IN0_n15 = torch.load("EN_CRST_55_IN0_n15.pt", map_location=device)
-
-    else:
-
-        EN_FENE_IN0_n15 = torch.clone(EN_FENE_IN_n15.sum(dim=2))
-        EN_STCK_IN0_n15 = torch.clone(EN_STCK_IN_n15.sum(dim=2))
-        EN_HYDR_IN0_n15 = torch.clone(EN_HYDR_IN_n15.sum(dim=2))
-        EN_CRST_33_IN0_n15 = torch.clone(EN_CRST_33_IN_n15.sum(dim=2))
-        EN_CRST_55_IN0_n15 = torch.clone(EN_CRST_55_IN_n15.sum(dim=2))
-
 
     return
 

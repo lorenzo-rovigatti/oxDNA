@@ -42,19 +42,30 @@
 #define EXCL_S2 0.33f
 #define EXCL_S3 0.515f
 #define EXCL_S4 0.515f
+#define EXCL_S5 0.33f
+#define EXCL_S6 0.515f
+#define EXCL_S7 0.515f
 #define EXCL_R1 0.675f
 #define EXCL_R2 0.32f
 #define EXCL_R3 0.50f
 #define EXCL_R4 0.50f
+#define EXCL_R5 0.32f
+#define EXCL_R6 0.50f
+#define EXCL_R7 0.50f
 #define EXCL_B1 892.016223343f
 #define EXCL_B2 4119.70450017f
 #define EXCL_B3 1707.30627298f
 #define EXCL_B4 1707.30627298f
+#define EXCL_B5 4119.70450017f
+#define EXCL_B6 1707.30627298f
+#define EXCL_B7 1707.30627298f
 #define EXCL_RC1 0.711879214356f
 #define EXCL_RC2 0.335388426126f
 #define EXCL_RC3 0.52329943261f
 #define EXCL_RC4 0.52329943261f
-
+#define EXCL_RC5 0.335388426126f
+#define EXCL_RC6 0.52329943261f
+#define EXCL_RC7 0.52329943261f
 /**
  * HYDROGEN BONDING
  */
