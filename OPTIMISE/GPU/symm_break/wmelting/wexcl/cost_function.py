@@ -270,6 +270,81 @@ def init_tensors(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_
 
     return
 
+
+
+def print_initial_energy() :
+
+    EN = EN_EXCL_BN_IN.sum(dim=2)/48
+
+    ofile_ave = open("EN_EXCL_BN_IN.dat", 'w')
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    EN = EN_EXCL_UNBN_IN.sum(dim=2)/48
+
+    ofile_ave = open("EN_UNEXCL_BN_IN.dat", 'w')
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " +str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    EN = EN_FENE_IN.sum(dim=2)/48
+
+    ofile_ave = open("EN_FENE_IN.dat", 'w')
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    EN = EN_STCK_IN.sum(dim=2)/48
+
+    ofile_ave = open("EN_STCK_IN.dat", 'w')
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    EN = EN_HYDR_IN.sum(dim=2)/48
+
+    ofile_ave = open("EN_HYDR_IN.dat", 'w')
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    ofile_ave = open("EN_CRST_IN.dat", 'w')
+
+    EN = (EN_CRST_33_IN+EN_CRST_55_IN).sum(dim=2)/48
+
+    print("CRST=CRST_33+CRST_55",file=ofile_ave)
+
+    for i in range(cg.Nseq) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%1 == 0:
+                print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+    return
+
+
 def MORSE(R,EPS,R0,A) :
     return EPS*torch.square(1.-torch.exp(-(R-R0)*A))
 
@@ -672,6 +747,12 @@ def build_masks_and_symm_tensors() :
             ty3 = (TY//4//4//4)%4
             for l in range(4) :
                 for m in range(4) :
+                    TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+                    if TY != TY_S:
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(ID*256+TY_S)
+
                     TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
@@ -686,6 +767,11 @@ def build_masks_and_symm_tensors() :
                 continue
             for l in range(4) :
                 for m in range(4) :
+                    TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+                    if TY != TY_S:
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(ID*256+TY_S)
                     TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
@@ -731,6 +817,33 @@ def build_masks_and_symm_tensors() :
             ty3 = (TY//4//4//4)%4
             for l in range(4) :
                 for m in range(4) :
+                    TY_S = m+(ty1)*4+(ty2)*4*4+l*4*4*4
+                    if TY != TY_S:
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(ID*256+TY_S)
+                    if ID in parl.is_th2 :
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                    if ID in parl.is_th5 :
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                        #sl.append(ID*256+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                    if ID in parl.is_th7 :
+                        #sl.append(256*ID+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                        #sl.append(256*ID+TY)
+                        sl.append(i)
+                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+
                     TY_S = m+(ty2)*4+(ty1)*4*4+l*4*4*4
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
@@ -983,10 +1096,10 @@ def compute_initial_energy() :
                     F3(EXCL_BB_BA_R_BN,PARS_IN[par_index[179]][TYPES_BN],PARS_IN[par_index[180]][TYPES_BN],PARS_IN[par_index[181]][TYPES_BN],PARS_IN[par_index[182]][TYPES_BN])
 
     #EXCL_UNBN
-    EN_EXCL_UNBN_IN = F3(HYDR_R,PARS_IN[par_index[155]][TYPES_UNBN_33],PARS_IN[par_index[156]][TYPES_UNBN_33],PARS_IN[par_index[157]][TYPES_UNBN_33],PARS_IN[par_index[158]][TYPES_UNBN_33]) +\
-                      F3(EXCL_BA_BA_R_UNBN,PARS_IN[par_index[159]][TYPES_UNBN_33],PARS_IN[par_index[160]][TYPES_UNBN_33],PARS_IN[par_index[161]][TYPES_UNBN_33],PARS_IN[par_index[162]][TYPES_UNBN_33]) +\
+    EN_EXCL_UNBN_IN = F3(EXCL_BB_BB_R_UNBN,PARS_IN[par_index[155]][TYPES_UNBN_33],PARS_IN[par_index[156]][TYPES_UNBN_33],PARS_IN[par_index[157]][TYPES_UNBN_33],PARS_IN[par_index[158]][TYPES_UNBN_33]) +\
+                      F3(HYDR_R,PARS_IN[par_index[159]][TYPES_UNBN_33],PARS_IN[par_index[160]][TYPES_UNBN_33],PARS_IN[par_index[161]][TYPES_UNBN_33],PARS_IN[par_index[162]][TYPES_UNBN_33]) +\
                       F3(EXCL_BA_BB_R_UNBN,PARS_IN[par_index[163]][TYPES_UNBN_33],PARS_IN[par_index[164]][TYPES_UNBN_33],PARS_IN[par_index[165]][TYPES_UNBN_33],PARS_IN[par_index[166]][TYPES_UNBN_33]) +\
-                      F3(EXCL_BB_BA_R_UNBN,PARS_IN[par_index[167]][TYPES_UNBN_33],PARS_IN[par_index[168]][TYPES_UNBN_33],PARS_IN[par_index[169]][TYPES_UNBN_33],PARS_IN[par_index[170]][TYPES_UNBN_33]
+                      F3(EXCL_BB_BA_R_UNBN,PARS_IN[par_index[167]][TYPES_UNBN_33],PARS_IN[par_index[168]][TYPES_UNBN_33],PARS_IN[par_index[169]][TYPES_UNBN_33],PARS_IN[par_index[170]][TYPES_UNBN_33])
 
     #STACKING
     #radial part
@@ -1245,6 +1358,10 @@ def COST(PARS) :
     #crst r0 ####
     #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
 
+    #We include this in the optimisation
+
+    """
+
     fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[1][CRST_TETRA_TYPE_33_SYMM]))*0.25 #we do this because we break the bonded symmetry
     stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[45][CRST_TETRA_TYPE_33_SYMM]))*0.25
 
@@ -1257,6 +1374,8 @@ def COST(PARS) :
 
     CURR_PARS[117][CRST_TETRA_TYPE_55] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
     CURR_PARS[117][CRST_TETRA_TYPE_55_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
+
+    """
 
     #Fix delta average ###
 
@@ -2032,10 +2151,10 @@ def compute_energy_m_n5() :
                     F3(EXCL_BB_BA_R_BN_m_n5,CURR_PARS_m[par_index[179]][TYPES_BN_m_n5],CURR_PARS_m[par_index[180]][TYPES_BN_m_n5],CURR_PARS_m[par_index[181]][TYPES_BN_m_n5],CURR_PARS_m[par_index[182]][TYPES_BN_m_n5])
 
     #EXCL_UNBN
-    EN_EXCL_UNBN_IN_m_n5 = F3(HYDR_R_m_n5,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n5]) +\
-                      F3(EXCL_BA_BA_R_UNBN_m_n5,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n5]) +\
+    EN_EXCL_UNBN_IN_m_n5 = F3(EXCL_BB_BB_UNBN_n5,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n5]) +\
+                      F3(HYDR_R_m_n5,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n5]) +\
                       F3(EXCL_BA_BB_R_UNBN_m_n5,CURR_PARS_m[par_index[163]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[164]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[165]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[166]][TYPES_UNBN_33_m_n5]) +\
-                      F3(EXCL_BB_BA_R_UNBN_m_n5,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n5]
+                      F3(EXCL_BB_BA_R_UNBN_m_n5,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n5])
 
     #STACKING
     #radial part
@@ -2161,10 +2280,10 @@ def compute_energy_m_n8() :
                     F3(EXCL_BB_BA_R_BN_m_n8,CURR_PARS_m[par_index[179]][TYPES_BN_m_n8],CURR_PARS_m[par_index[180]][TYPES_BN_m_n8],CURR_PARS_m[par_index[181]][TYPES_BN_m_n8],CURR_PARS_m[par_index[182]][TYPES_BN_m_n8])
 
     #EXCL_UNBN
-    EN_EXCL_UNBN_IN_m_n8 = F3(HYDR_R_m_n8,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n8]) +\
-                      F3(EXCL_BA_BA_R_UNBN_m_n8,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n8]) +\
+    EN_EXCL_UNBN_IN_m_n8 = F3(EXCL_BB_BB_R_UNBN_m_n8,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n8]) +\
+                      F3(HYDR_R_m_n8,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n8]) +\
                       F3(EXCL_BA_BB_R_UNBN_m_n8,CURR_PARS_m[par_index[163]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[164]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[165]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[166]][TYPES_UNBN_33_m_n8]) +\
-                      F3(EXCL_BB_BA_R_UNBN_m_n8,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n8]
+                      F3(EXCL_BB_BA_R_UNBN_m_n8,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n8],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n8])
 
 
     #STACKING
@@ -2287,10 +2406,10 @@ def compute_energy_m_n15() :
                     F3(EXCL_BB_BA_R_BN_m_n15,CURR_PARS_m[par_index[179]][TYPES_BN_m_n15],CURR_PARS_m[par_index[180]][TYPES_BN_m_n15],CURR_PARS_m[par_index[181]][TYPES_BN_m_n15],CURR_PARS_m[par_index[182]][TYPES_BN_m_n15])
 
     #EXCL_UNBN
-    EN_EXCL_UNBN_IN_m_n15 = F3(HYDR_R_m_n15,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n15]) +\
-                      F3(EXCL_BA_BA_R_UNBN_m_n15,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n15]) +\
+    EN_EXCL_UNBN_IN_m_n15 = F3(EXCL_BB_BB_R_UNBN_m_n15,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n15]) +\
+                      F3(HYDR_R_m_n15,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n15]) +\
                       F3(EXCL_BA_BB_R_UNBN_m_n15,CURR_PARS_m[par_index[163]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[164]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[165]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[166]][TYPES_UNBN_33_m_n15]) +\
-                      F3(EXCL_BB_BA_R_UNBN_m_n15,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n15]
+                      F3(EXCL_BB_BA_R_UNBN_m_n15,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n15],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n15])
 
     #STACKING
     #radial part

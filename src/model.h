@@ -19,7 +19,8 @@
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
 
-// oxDNA3
+/*
+// oxDNA3 - oxDNA2 bases
 #define POS_MM_BACK1_A -0.3400f
 #define POS_MM_BACK2_A 0.3408f
 #define POS_STACK_A 0.34f
@@ -39,7 +40,27 @@
 #define POS_MM_BACK2_T 0.3408f
 #define POS_STACK_T 0.34f
 #define POS_BASE_T  0.4f
+*/
 
+#define POS_MM_BACK1_A -0.3400f
+#define POS_MM_BACK2_A 0.3408f
+#define POS_STACK_A 0.37f
+#define POS_BASE_A  0.43f
+
+#define POS_MM_BACK1_G -0.3400f
+#define POS_MM_BACK2_G 0.3408f
+#define POS_STACK_G 0.37f
+#define POS_BASE_G  0.43f
+
+#define POS_MM_BACK1_C -0.3400f
+#define POS_MM_BACK2_C 0.3408f
+#define POS_STACK_C 0.37f
+#define POS_BASE_C  0.37f
+
+#define POS_MM_BACK1_T -0.3400f
+#define POS_MM_BACK2_T 0.3408f
+#define POS_STACK_T 0.37f
+#define POS_BASE_T  0.37f
 
 /// POS_STACK - POS_BACK
 #define GAMMA 0.74f

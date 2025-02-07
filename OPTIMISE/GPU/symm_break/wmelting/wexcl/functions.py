@@ -621,7 +621,7 @@ def read_pars_from_SD_file(SDfile) :
                          over_indices.append(oi)
                          over_vals.append(float(vals[2]))
 
-        elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" or vals_cn[0] = "EXCL":
+        elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL":
             if vals_cn[0] == "FENE" and vals_cn[1] == "EPS" : par_name = "FENE_EPS"
             else:
                 par_name = vals_cn[0]
@@ -736,11 +736,11 @@ class topo :
 pos_bb1 = [-0.34,-0.34,-0.34,-0.34]
 pos_bb2 = [0.3408,0.3408,0.3408,0.3408]
 #note: oxdna2
-pos_stck = [0.34,0.34,0.34,0.34]
-pos_hydr = [0.4,0.4,0.4,0.4]
+#pos_stck = [0.34,0.34,0.34,0.34]
+#pos_hydr = [0.4,0.4,0.4,0.4]
 #note: oxdna3
-#pos_stck = [0.37,0.37,0.37,0.37]
-#pos_hydr = [0.43,0.37,0.43,0.37]
+pos_stck = [0.37,0.37,0.37,0.37]
+pos_hydr = [0.43,0.37,0.43,0.37]
 class nucleotide :
     def __init__(self, C, BV, N, ty) :
         t = base_to_id(ty)
@@ -895,17 +895,17 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     cosphi1_1conf = []
                     cosphi2_1conf = []
                     types_1conf = []
-                    ba_ba_bn_1conf = []
-                    ba_bb_bn_1conf = []
-                    bb_ba_bn_1conf = []
+                    ba_ba_r_bn_1conf = []
+                    ba_bb_r_bn_1conf = []
+                    bb_ba_r_bn_1conf = []
 
                     #bonded basepairs
                     #find pairs and tetramer type
                     for i in range(len(topology)) :
-                        ty0 = 0
-                        ty1 = 0
-                        ty2 = 0
-                        ty3 = 0
+                        ty0 = 1
+                        ty1 = 1
+                        ty2 = 1
+                        ty3 = 1
                         if topology[i].up_id == -1: continue
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
@@ -920,16 +920,16 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             if topology[j].id == topology[i].up_id:
                                ty2 = base_to_id(topology[j].base_type)
                                n2 = config[j]
-                               if topology[j].up_id == -1:
-                                   ty3 = ty0
-                               else:
+                               if topology[j].up_id != -1:
                                    for z in range(len(topology)) :
                                        if topology[z].id == topology[j].up_id:
                                           ty3 = base_to_id(topology[z].base_type)
                                           break
                                break
+                        """
                         if topology[i].down_id == -1:
                             ty0 = ty3
+                        """
 
                         ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
 
@@ -984,15 +984,19 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     th8_1conf = []
                     types_unbn_1conf_33 = []
                     types_unbn_1conf_55 = []
+                    bb_bb_r_unbn_1conf = []
+                    ba_bb_r_unbn_1conf = []
+                    bb_ba_r_unbn_1conf = []
+
 
                     #UNDBONDED
                     for i in range(len(topology)) :
-                        ty0_33 = 0
-                        ty0_55 = 0
-                        ty1 = 0
-                        ty2 = 0
-                        ty3_33 = 0
-                        ty3_55 = 0
+                        ty0_33 = 1
+                        ty0_55 = 1
+                        ty1 = 1
+                        ty2 = 1
+                        ty3_33 = 1
+                        ty3_55 = 1
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
@@ -1010,21 +1014,30 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
 
                             ty2 = base_to_id(topology[j].base_type)
 
+                            """
                             if topology[j].up_id == -1:
                                ty3_33 = 0
                             if topology[j].down_id == -1:
                                ty3_55 = 0
-                            else:
+                            """
+
+                            if topology[j].down_id != -1:
                                 for z in range(len(topology)) :
                                    if topology[z].id == topology[j].down_id:
                                       ty3_55 = base_to_id(topology[z].base_type)
+                                      break
+                            if topology[j].up_id != -1:
+                                for z in range(len(topology)) :
                                    if topology[z].id == topology[j].up_id:
                                       ty3_33 = base_to_id(topology[z].base_type)
+                                      break
 
+                            """
                             if topology[i].down_id == -1:
                                ty0_55 = 0
                             if topology[i].up_id == -1:
                                ty0_33 = 0
+                            """
 
                             ty_33 = ty0_33+ty1*4+ty2*4*4+ty3_33*4*4*4 #tetramer type in base 10
                             ty_55 = ty0_55+ty1*4+ty2*4*4+ty3_55*4*4*4 #tetramer type in base 10
@@ -1079,7 +1092,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
 
 
     return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_r_bn, ba_bb_r_bn, bb_ba_r_bn, types_bn, \
-           bb_bb_r_bn, ba_bb_r_unbn, bb_ba_r_unbn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55
+           hydr_r, th1, th2, th3, th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55
 
 
 ###################################################################################################
@@ -1455,7 +1468,7 @@ def print_final_pfile(FOPARS,infile) :
 
     #add enslaved excluded volume
 
-    for i in range(155:182) :
+    for i in range(155,182) :
         ids = np.append(ids,i)
 
     #Collect all par ids to update ( optimised + dependencies (e.g. continuity) )
@@ -1588,6 +1601,7 @@ def print_final_pfile(FOPARS,infile) :
     #crst r0
     #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
 
+    """
     #Constraints - no continuity
     fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
     stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
@@ -1601,7 +1615,7 @@ def print_final_pfile(FOPARS,infile) :
 
     CURR_PARS[117][cfun.CRST_TETRA_TYPE_55] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
     CURR_PARS[117][cfun.CRST_TETRA_TYPE_55_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-
+    """
 
     #Excluded volume
     #fixing base-base bonded interaction according to the stacking resting distance
@@ -1676,7 +1690,7 @@ def print_final_pfile(FOPARS,infile) :
         vals_cn = vals[0].split("_")
 
         #4D parameters
-        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or (vals_cn[0] == "CRST" and len(vals_cn) > 6) or vals_cn[0] == "EXCL":
             if vals_cn[0] == "FENE" and vals_cn[1] == "EPS" : par_name = "FENE_EPS"
             else:
                 par_name = vals_cn[0]
