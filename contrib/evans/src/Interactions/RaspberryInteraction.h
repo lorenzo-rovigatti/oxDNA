@@ -69,12 +69,12 @@ protected:
             float, //strength
             int, //state variable
             int, //activation variable
-            unsigned int, // polyT
+            number, // polyT (aka sigma)
             std::string // sticky sequence
             >;
 #define PPATCH_COLOR 3
 #define PPATCH_STATE 5
-
+#define PPATCH_INT_DIST 7
     /**
      * get in loser we're doing native multidentate patches
      * this is mostly an organizational thing
@@ -125,12 +125,25 @@ protected:
     std::vector<std::vector<ParticlePatch>> m_PatchyBonds;
 
     // patch color interactions
+
+//    std::unordered_map<std::pair<int, int>, number,  UnorderedPairHash, UnorderedPairEqual> m_PatchColorInteractions;
+
+    // a PatchPatch object describes how two patches interact
+    // there is - by design - very redundant, to minimize required calculations at runtime
+    // order: sigma_ss, rcut_ss a_part, b_part, eps
+    using PatchPatch = std::tuple<number, number, number, number, number>;
+#define PP_INT_RCUT_SS  0
+#define PP_INT_SIGMA_SS 1
+#define PP_INT_A_PART   2
+#define PP_INT_B_PART   3
+#define PP_INT_EPS      4
     // i've gone back and forth a LOT about how to work these, settled on this method, for now
     // i don't think this hash or equal function are very fast
     // in this case for speed i am using patch type ids as my hash, color should not be discussed
     // outside initialization
-    std::unordered_map<std::pair<int, int>, number,  UnorderedPairHash, UnorderedPairEqual> m_PatchColorInteractions;
+    std::unordered_map<std::pair<int,int>, PatchPatch, UnorderedPairHash, UnorderedPairEqual> m_PatchPatchInteractions;
 
+    number m_nPatchyBondEnergyCutoff;
 public:
     RaspberryInteraction();
     virtual ~RaspberryInteraction();
@@ -167,6 +180,10 @@ public:
     virtual int get_N_from_topology();
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
+    int getPatchBondEnergyCutoff() const {
+        return m_nPatchyBondEnergyCutoff;
+    }
+
 //    virtual void begin_energy_computation() ;
 
     // interaction functions
@@ -181,14 +198,15 @@ public:
                               int ppatch_idx, int qpatch_idx) const;
     bool patch_is_active(BaseParticle* p, const Patch& patch_type) const;
     bool patch_types_interact(const Patch &ppatch_type, const Patch &qpatch_type) const;
-    number patch_types_eps(const Patch &ppatch_type, const Patch &qpatch_type) const;
-    const ParticlePatch& patch_locked_to(BaseParticle* p, int patch_idx) const;
-    bool patch_locked(BaseParticle* p, int patch_idx) const;
+//    number patch_types_eps(const Patch &ppatch_type, const Patch &qpatch_type) const;
+
 
     // methods for handling locking
     bool is_bound_to(int p, int ppatch_idx, int q, int qpatch_idx) const;
+    const ParticlePatch& patch_bound_to(BaseParticle* p, int patch_idx) const;
+    bool patch_bound(BaseParticle* p, int patch_idx) const;
     void set_bound_to(int p, int ppatch_idx, int q, int qpatch_idx);
-    bool clear_bound_to(int p, int ppatch_idx);
+    void clear_bound_to(int p, int ppatch_idx);
 };
 
 std::string readLineNoComment(std::istream& inp);

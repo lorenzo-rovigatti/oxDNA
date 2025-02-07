@@ -23,12 +23,13 @@ RaspberryInteraction::~RaspberryInteraction() {
  * function to allocate particles
  */
 void RaspberryInteraction::init() {
-    _A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _rcut_ss / _sigma_ss));
-    _B_part = B_ss * pow(_sigma_ss, 4.);
+
 }
 
 void RaspberryInteraction::get_settings(input_file &inp) {
     BaseInteraction::get_settings(inp);
+    m_nPatchyBondEnergyCutoff = -0.1;
+    getInputNumber(&inp, "PATCHY_bond_energy", &m_nPatchyBondEnergyCutoff, 0);
 }
 
 
@@ -324,24 +325,29 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
     for (int pi = 0; pi < m_PatchesTypes.size(); pi++){
         assert(std::get<0>(m_ParticleTypes[pi]) == pi);
         int pi_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pi]);
+        number pi_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]);
         for (int pj = 0; pj < m_PatchesTypes.size(); pj++){
             assert(std::get<0>(m_ParticleTypes[pj]) == pj);
             int pj_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pj]);
             // use petr + flavio version of default color interactions
-            if (abs(pi_color) > 20){
-                if (pi_color + pj_color == 0){
-                    // todo: patch strengths? ugh
-                    m_PatchColorInteractions[{pi, pj}] = 1.0;
-                }
-            }
-            else {
-                if (pi_color == pj_color){
-                    m_PatchColorInteractions[{pi, pj}] = 1.0;
-                }
+            number pj_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pj]);
+            if (((abs(pi_color) > 20) && (pi_color + pj_color == 0)) || ((abs(pi_color) <= 20) && (pi_color == pj_color))){
+                // todo: patch strengths? ugh
+                number sigma_ss = pi_dist + pj_dist;
+                number rcut_ss = 1.5 * sigma_ss;
+                number B_ss = 1. / (1. + 4. * SQR(1. - rcut_ss / sigma_ss));
+                number a_part = -1. / (B_ss - 1.) / exp(1. / (1. - rcut_ss / sigma_ss));
+                number b_part = B_ss * pow(sigma_ss, 4.);
+                m_PatchPatchInteractions[{pi, pj}] = {
+                    sigma_ss, // sigma_ss
+                    1.5 * sigma_ss, // rcut_ss
+                    a_part, // a_part
+                    b_part, //b_part
+                    1. //epsilon
+                };
             }
         }
     }
-
     allocate_particles(particles);
 }
 
@@ -539,14 +545,15 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
             // note: do NOT use the position from this, since it's not rotated
             int qpatch_tid = std::get<PTYPE_PATCH_IDS>(p_type)[qpatch_idx];
 
+            number e_2patch = 0.;
+
             // if patches can interact based on color, and both patches are active and not bound to another patch
             if (patches_can_interact(p, q,
                                      ppatch_idx,
                                      qpatch_idx))
             {
                 LR_vector qpatch = getParticlePatchPosition(p, ppatch_idx);
-
-                number int_energy = m_PatchColorInteractions[{ppatch_tid, qpatch_tid}];
+                number eps = std::get<PP_INT_EPS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
 
 
                 // get displacement vector between patches p and q
@@ -565,59 +572,52 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
                     LR_vector ppatch_a1 = getParticlePatchAlign(p, ppatch_idx);
 
 
+
                     number r_p = sqrt(patch_dist_sqr);
-                    number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
-                    number tmp_energy = int_energy * _A_part * exp_part * (_B_part / patch_dist_sqr - 1.);
+                    number sigma_ss = std::get<PP_INT_SIGMA_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                    number rcut_ss = std::get<PP_INT_RCUT_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                    number b_part = std::get<PP_INT_B_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                    number a_part = std::get<PP_INT_A_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                    number exp_part = exp(sigma_ss / (r_p - rcut_ss));
+                    number tmp_energy = eps * a_part * exp_part * (b_part / patch_dist_sqr - 1.);
 
-                    energy += tmp_energy;
+                    e_2patch += tmp_energy;
 
-                    number tb_energy = (r_p < _sigma_ss) ? epsilon : -tmp_energy;
-
-                    PatchyBond p_bond(q, r_p, p_patch_idx, q_patch_idx, tb_energy);
-                    PatchyBond q_bond(p, r_p, q_patch_idx, p_patch_idx, tb_energy);
-
-//                        if (pp->patches[p_patch_idx].bound != qq->patches[q_patch_idx].bound) {
-//                            OX_LOG(Logger::LOG_WARNING,
-//                                   "Mismatch between binding states between patch %d on particle %d and patch %d on particle %d.",
-//                                   p->index, p_patch_idx, q->index, q_patch_idx);
-//                        }
-                    // if the two patches are not already bound
-                    if (!is_bound_to(p->index, ppatch_idx, q->index, qpatch_idx)){
-                        // set bound
-                        set_bound_to(p->index, ppatch_idx, q->index, qpatch_idx);
-                        set_bound_to(q->index, qpatch_idx, p->index, ppatch_idx);
-                    }
 
                     if (update_forces) {
-                        number force_mod = int_energy * _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) +
-                                           _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
+                        // i gotta deal with this
+                        number force_mod = eps * a_part * exp_part * (4. * b_part / (SQR(r_p) * r_p)) +
+                                           sigma_ss * tmp_energy / SQR(r_p - rcut_ss);
                         LR_vector tmp_force = patch_dist * (force_mod / r_p);
 
-                        LR_vector p_torque = p->orientationT * p_patch_pos.cross(tmp_force);
-                        LR_vector q_torque = q->orientationT * q_patch_pos.cross(tmp_force);
+                        LR_vector p_torque = p->orientationT * ppatch.cross(tmp_force);
+                        LR_vector q_torque = q->orientationT * qpatch.cross(tmp_force);
 
                         p->force -= tmp_force;
                         q->force += tmp_force;
 
                         p->torque -= p_torque;
                         q->torque += q_torque;
-
-                        if (r_p > _sigma_ss) {
-                            p_bond.force = tmp_force;
-                            p_bond.p_torque = p_torque;
-                            p_bond.q_torque = q_torque;
-
-                            q_bond.force = -tmp_force;
-                            q_bond.p_torque = -q_torque;
-                            q_bond.q_torque = -p_torque;
-                        }
                     }
-
-                    _particle_bonds(p).emplace_back(p_bond);
-                    _particle_bonds(q).emplace_back(q_bond);
 
                 }
             }
+            // if energy is great large enough for bond
+            if (e_2patch > getPatchBondEnergyCutoff()) {
+                // if bond does not alread exist
+                if (!is_bound_to(p->index, ppatch_idx, q->index, qpatch_idx)) {
+                    // set bound
+                    set_bound_to(p->index, ppatch_idx, q->index, qpatch_idx);
+                }
+            }
+            // if energy is not small enough for a bond, but one exists
+            else if (is_bound_to(p->index, ppatch_idx, q->index, qpatch_idx)){
+                // if patches are bound, but shouldn't be
+                clear_bound_to(p->index, ppatch_idx);
+                clear_bound_to(q->index, qpatch_idx);
+
+            }
+            energy += e_2patch;
         }
     }
     return energy;
@@ -648,25 +648,17 @@ bool RaspberryInteraction::patches_can_interact(BaseParticle *p,
     if (!patch_is_active(q, qpatch_type)){
         return false;
     }
-    if (patch_locked(p, ppatch_idx) && patch_locked_to(p, ppatch_idx) != std::pair<int,int>(q->index, qpatch_idx))){
+    if (patch_bound(p, ppatch_idx) && patch_bound_to(p, ppatch_idx) != std::pair<int,int>(q->index, qpatch_idx))){
         return false;
     }
     // if q patch is already locked (we can assume if it's locked, it's not to p patch)
-    if (patch_locked(q, qpatch_idx)){
+    if (patch_bound(q, qpatch_idx)){
         return false;
     }
     // todo: find and report asymmetric locks
     return true;
 }
-/**
- * @param p
- * @param patch_idx index WITHIN THE PARTICLE TYPE, NOT PATCH TYPE ID
- * @return
- */
-const RaspberryInteraction::ParticlePatch& RaspberryInteraction::patch_locked_to(BaseParticle *p,
-                                                          int patch_idx) const {
-    return m_PatchyBonds[p->get_index()][patch_idx];
-}
+
 
 bool RaspberryInteraction::patch_is_active(BaseParticle* p, const Patch& patch_type) const {
     int state_var = std::get<PPATCH_STATE>(patch_type);
@@ -684,30 +676,60 @@ bool RaspberryInteraction::patch_is_active(BaseParticle* p, const Patch& patch_t
 
 bool RaspberryInteraction::patch_types_interact(const RaspberryInteraction::Patch &ppatch_type,
                                                 const RaspberryInteraction::Patch &qpatch_type) const {
-    return m_PatchColorInteractions.count(
+    return m_PatchPatchInteractions.count(
             {
                 std::get<3>(ppatch_type),
                 std::get<3>(qpatch_type)
             }) > 0 &&
-        m_PatchColorInteractions.at(
+            std::get<PP_INT_EPS>(m_PatchPatchInteractions.at(
             {
                 std::get<3>(ppatch_type),
                 std::get<3>(qpatch_type)
             }
-        ) != 0.;
+        )) != 0.;
 }
 
-number RaspberryInteraction::patch_types_eps(const RaspberryInteraction::Patch &ppatch_type,
-                                             const RaspberryInteraction::Patch &qpatch_type) const {
-    return  m_PatchColorInteractions.at(
-            {
-                    std::get<3>(ppatch_type),
-                    std::get<3>(qpatch_type)
-            });
+/**
+ * checks if patch is bound to anything
+ * @param p
+ * @param patch_idx
+ * @return
+ */
+bool RaspberryInteraction::patch_bound(BaseParticle *p, int patch_idx) const {
+    return patch_bound_to(p, patch_idx).first != -1;
 }
 
-bool RaspberryInteraction::patch_locked(BaseParticle *p, int patch_idx) const {
-    return patch_locked_to(p, patch_idx).first != -1;
+/**
+ * @param p
+ * @param patch_idx index WITHIN THE PARTICLE TYPE, NOT PATCH TYPE ID
+ * @return
+ */
+const RaspberryInteraction::ParticlePatch& RaspberryInteraction::patch_bound_to(BaseParticle *p,
+                                                                                int patch_idx) const {
+    return m_PatchyBonds[p->get_index()][patch_idx];
+}
+
+bool RaspberryInteraction::is_bound_to(int p, int ppatch_idx, int q, int qpatch_idx) const {
+    assert(p < m_PatchyBonds.size());
+    assert(ppatch_idx < m_PatchyBonds[p].size());
+    assert(p < m_PatchyBonds.size());
+    assert(qpatch_idx < m_PatchyBonds[q].size());
+    return m_PatchyBonds[p][ppatch_idx] == ParticlePatch(q, qpatch_idx);
+}
+
+void RaspberryInteraction::set_bound_to(int p, int ppatch_idx, int q, int qpatch_idx) {
+    assert(p < m_PatchyBonds.size());
+    assert(ppatch_idx < m_PatchyBonds[p].size());
+    assert(p < m_PatchyBonds.size());
+    assert(qpatch_idx < m_PatchyBonds[q].size());
+    m_PatchyBonds[p][ppatch_idx] = {q,qpatch_idx};
+    m_PatchyBonds[q][qpatch_idx] = {p,ppatch_idx};
+}
+
+void RaspberryInteraction::clear_bound_to(int p, int ppatch_idx) {
+    assert(p < m_PatchyBonds.size());
+    assert(ppatch_idx < m_PatchyBonds[p].size());
+    m_PatchyBonds[p][ppatch_idx] = {-1,-1};
 }
 
 ///**
@@ -730,8 +752,6 @@ bool RaspberryInteraction::patch_locked(BaseParticle *p, int patch_idx) const {
 //number RaspberryInteraction::get_r_max_sqr(const int &intSite1, const int &intSite2) const {
 //    return 1.2 * SQR(get_r_sum(intSite1, intSite2));
 //}
-
-
 
 std::string readLineNoComment(std::istream& inp){
     std::string sz;
