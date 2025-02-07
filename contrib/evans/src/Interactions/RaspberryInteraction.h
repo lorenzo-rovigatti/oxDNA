@@ -19,26 +19,30 @@
 #define PLEXCL_RC  0.99888f
 #define PLEXCL_EPS 2.0f
 
-//// hash unordered pairs
-//struct UnorderedPairHash {
-//    std::size_t operator()(const std::pair<int, int>& p) const {
-//        // Ensure that (a, b) and (b, a) have the same hash value
-//        int a = std::min(p.first, p.second);
-//        int b = std::max(p.first, p.second);
-//        // Use a simple hash combination technique
-//        return std::hash<int>()(a) ^ (std::hash<int>()(b) << 1);
-//    }
-//};
-//
-//
-//// Custom equality function for unordered pairs
-//struct UnorderedPairEqual {
-//    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) const {
-//        // Since the pair is unordered, (a, b) == (b, a)
-//        return (p1.first == p2.first && p1.second == p2.second) ||
-//               (p1.first == p2.second && p1.second == p2.first);
-//    }
-//};
+// todo: make this dynamic or smth!!!! or at least warn when it will cause issues
+#define PATCHY_CUTOFF 0.18f
+
+
+// hash unordered pairs
+struct UnorderedPairHash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        // Ensure that (a, b) and (b, a) have the same hash value
+        int a = std::min(p.first, p.second);
+        int b = std::max(p.first, p.second);
+        // Use a simple hash combination technique
+        return std::hash<int>()(a) ^ (std::hash<int>()(b) << 1);
+    }
+};
+
+
+// Custom equality function for unordered pairs
+struct UnorderedPairEqual {
+    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) const {
+        // Since the pair is unordered, (a, b) == (b, a)
+        return (p1.first == p2.first && p1.second == p2.second) ||
+               (p1.first == p2.second && p1.second == p2.first);
+    }
+};
 
 /**
 * @brief interaction between patchy particles with multiple repulsive points
@@ -68,6 +72,8 @@ protected:
             unsigned int, // polyT
             std::string // sticky sequence
             >;
+#define PPATCH_COLOR 3
+#define PPATCH_STATE 5
 
     /**
      * get in loser we're doing native multidentate patches
@@ -90,12 +96,13 @@ protected:
      * - number of instances
      * - list of patch ids
      * - list of repulsion point ids
+     * - state size
      */
-    using ParticleType = std::tuple<int, std::vector<int>, std::vector<int>>;
+    using ParticleType = std::tuple<int, std::vector<int>, std::vector<int>, int>;
 #define PTYPE_ID  0
 #define PTYPE_PATCH_IDS  1
 #define PTYPE_REP_PTS 2
-
+#define PTYPE_STATE_SIZE 3
 
     // repulsion points
     std::vector<RepulsionPoint> m_RepulsionPoints;
@@ -109,13 +116,22 @@ protected:
     // runtime variables
     std::vector<std::vector<int>> m_ParticleStates; // todo
 
-//    std::unordered_map<std::pair<int, int>, number, UnorderedPairHash, UnorderedPairEqual> m_RSums;
+    // bonds. this is tricky
+    // use this name here for clarity
+    using ParticlePatch = std::pair<int,int>;
+
+    // list of lists
+    // each item in the outer list of particles, the inner list is of patches on the particles
+    std::vector<std::vector<ParticlePatch>> m_PatchyBonds;
+
+    // patch color interactions
+    // i've gone back and forth a LOT about how to work these, settled on this method, for now
+    // i don't think this hash or equal function are very fast
+    // in this case for speed i am using patch type ids as my hash, color should not be discussed
+    // outside initialization
+    std::unordered_map<std::pair<int, int>, number,  UnorderedPairHash, UnorderedPairEqual> m_PatchColorInteractions;
 
 public:
-    enum {
-        PATCHY, // patch-patch interaction
-        SPHERICAL // spherical repulsive interaction
-    };
     RaspberryInteraction();
     virtual ~RaspberryInteraction();
 
@@ -132,7 +148,6 @@ public:
     LR_vector getParticleInteractionSitePosition(BaseParticle* p, int int_site_idx);
 //    number get_r_max_sqr(const int &intSite1, const int &intSite2) const;
 //    number get_r_sum(const int &intSite1, const int &intSite2) const;
-    number get_int_sites_b(const int &intSite1, const int &intSite2) const;
 
     // pair interaction functions
     virtual number pair_interaction(BaseParticle *p,
@@ -156,11 +171,24 @@ public:
 
     // interaction functions
     number repulsive_pt_interaction(BaseParticle *p, BaseParticle *q, bool update_forces);
-    number patchy_kf_interaction(BaseParticle* p, BaseParticle* q, bool compute_r = true, bool update_forces = false);
-    number patchy_lj_interaction(BaseParticle* p, BaseParticle* q, bool compute_r = true, bool update_forces = false);
-    number patchy_pt_like_interaction(BaseParticle* p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+
+    number patchy_pt_interaction(BaseParticle *p, BaseParticle *q, bool update_forces);
 
     void readPatchString(const std::string &patch_line);
+
+    // better to pass refs to objects for speed reasons
+    bool patches_can_interact(BaseParticle *p, BaseParticle *q,
+                              int ppatch_idx, int qpatch_idx) const;
+    bool patch_is_active(BaseParticle* p, const Patch& patch_type) const;
+    bool patch_types_interact(const Patch &ppatch_type, const Patch &qpatch_type) const;
+    number patch_types_eps(const Patch &ppatch_type, const Patch &qpatch_type) const;
+    const ParticlePatch& patch_locked_to(BaseParticle* p, int patch_idx) const;
+    bool patch_locked(BaseParticle* p, int patch_idx) const;
+
+    // methods for handling locking
+    bool is_bound_to(int p, int ppatch_idx, int q, int qpatch_idx) const;
+    void set_bound_to(int p, int ppatch_idx, int q, int qpatch_idx);
+    bool clear_bound_to(int p, int ppatch_idx);
 };
 
 std::string readLineNoComment(std::istream& inp);
