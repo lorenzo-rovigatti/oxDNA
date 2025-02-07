@@ -32,6 +32,7 @@ def pairs2db(n_bases:int, pairs:Dict[int, int]) -> str:
         recheck = False
         for i in range(n_bases):
             # i is unpaired
+            # Note that this requires pairs to be bidirectional!
             if i not in pairs.keys():
                 continue
 
@@ -65,8 +66,8 @@ def pairs2db(n_bases:int, pairs:Dict[int, int]) -> str:
 def cli_parser(prog="forces2pairs"):
     parser = argparse.ArgumentParser(prog = prog, description="Convert a pair file to dot-bracket notation")
     parser.add_argument('topology', type=str, help="Topology file for the structure")
-    parser.add_argument('pair_file', type=str, nargs=1, help="The pair file to generate the dot-bracket from")
-    parser.add_argument('-o', '--output', type=str, nargs=1, help='If set, print the dot-bracket to a file, otherwise to the screen')
+    parser.add_argument('pair_file', type=str, help="The pair file to generate the dot-bracket from")
+    parser.add_argument('-o', '--output', type=str, help='If set, print the dot-bracket to a file, otherwise to the screen')
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
@@ -90,6 +91,10 @@ def main():
         pairs_txt = file.readlines()
 
     pairs = {int(p[0]) : int(p[1]) for p in [p.split() for p in pairs_txt]}
+    # pairs2db requires a bidirectional list
+    for k, v in [list(x) for x in pairs.items()]:
+        if v not in pairs.keys():
+            pairs[v] = k
     db = pairs2db(len(elems), pairs)
 
     if args.output:
