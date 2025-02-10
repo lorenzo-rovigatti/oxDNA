@@ -6,7 +6,7 @@ import config as cg
 import cost_function as cfun
 import matplotlib.pyplot as plt
 import torch
-
+import cmath
 
 PARS_LIST = parl.PARS_LIST
 par_index = parl.par_index
@@ -1064,7 +1064,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             prod = np.dot(n1.n,n2.n)
                             if prod > 1: prod -= 1e-12  #this is for the 0th configurations
                             if prod < -1: prod += 1e-12
-                            th4_unbn_1conf.append(np.arccos(prod))
+                            #th4_unbn_1conf.append(np.arccos(prod))
+                            th4_unbn_1conf.append(cmath.acos(prod).real)
                             th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
                             th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
 

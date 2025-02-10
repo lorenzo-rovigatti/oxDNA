@@ -956,6 +956,13 @@ def build_masks_and_symm_tensors() :
     SYMM_LIST = torch.tensor(sl,device=device)
     SYMM_LIST_SYMM = torch.tensor(sls,device=device)
 
+    print("UPDAE MAP:")
+    print(UPDATE_MAP)
+    print("SYMM_LIST:")
+    print(SYMM_LIST)
+    print("SYMM_LIST_SYMM:")
+    print(SYMM_LIST_SYMM)
+
 
     # Nota:
     # stacking - qn3, q, p, pn5
@@ -1184,6 +1191,19 @@ def compute_initial_energy() :
     CRST_33_MOD_IN  = f2*f4_th4
     CRST_33_MOD_FIX  = f4_th1*f4_th2*f4_th3*f4_th7*f4_th8
 
+    """
+    mfile = open("CRST_F2_33.txt", 'w')
+    print(f2[0][0], file=mfile)
+    mfile.close()
+
+    mfile = open("CRST_F4TH4_33.txt", 'w')
+    print(f4_th4[0][0], file=mfile)
+    mfile.close()
+
+    mfile = open("TH4_UNBN.txt", 'w')
+    print(TH4_UNBN[0][0], file=mfile)
+    mfile.close()
+    """
 
     #55
     f2 = F2(HYDR_R, PARS_IN[par_index[116]][TYPES_UNBN_55], PARS_IN[par_index[117]][TYPES_UNBN_55], PARS_IN[par_index[118]][TYPES_UNBN_55], PARS_IN[par_index[119]][TYPES_UNBN_55], PARS_IN[par_index[120]][TYPES_UNBN_55],\
@@ -1207,6 +1227,16 @@ def compute_initial_energy() :
     f4_th8 = F4(TH8,PARS_IN[par_index[150]][TYPES_UNBN_55],PARS_IN[par_index[151]][TYPES_UNBN_55],PARS_IN[par_index[152]][TYPES_UNBN_55],\
                 PARS_IN[par_index[153]][TYPES_UNBN_55],PARS_IN[par_index[154]][TYPES_UNBN_55],ZEROS_UNBN)
 
+    """
+    mfile = open("CRST_F2_55.txt", 'w')
+    print(f2[0][0], file=mfile)
+    mfile.close()
+
+    mfile = open("CRST_F4TH4_55.txt", 'w')
+    print(f4_th4[0][0], file=mfile)
+    mfile.close()
+    """
+
     EN_CRST_55_IN = f2*f4_th1*f4_th2*f4_th3*f4_th4*f4_th7*f4_th8
     CRST_55_MOD_IN = f2*f4_th4
     CRST_55_MOD_FIX  = f4_th1*f4_th2*f4_th3*f4_th7*f4_th8
@@ -1222,9 +1252,9 @@ def compute_rew_factor(PARS,SH_ST) :
 
 
     #EXCL_BN
-    EN_EXCL_BN_REW = F3(EXCL_BA_BA_R_BN,PARS_IN[par_index[171]][TYPES_BN],PARS_IN[par_index[172]][TYPES_BN],PARS_IN[par_index[173]][TYPES_BN],PARS_IN[par_index[174]][TYPES_BN]) +\
-                     F3(EXCL_BA_BB_R_BN,PARS_IN[par_index[175]][TYPES_BN],PARS_IN[par_index[176]][TYPES_BN],PARS_IN[par_index[177]][TYPES_BN],PARS_IN[par_index[178]][TYPES_BN]) +\
-                     F3(EXCL_BB_BA_R_BN,PARS_IN[par_index[179]][TYPES_BN],PARS_IN[par_index[180]][TYPES_BN],PARS_IN[par_index[181]][TYPES_BN],PARS_IN[par_index[182]][TYPES_BN])
+    EN_EXCL_BN_REW = F3(EXCL_BA_BA_R_BN,PARS[par_index[171]][TYPES_BN],PARS[par_index[172]][TYPES_BN],PARS[par_index[173]][TYPES_BN],PARS[par_index[174]][TYPES_BN]) +\
+                     F3(EXCL_BA_BB_R_BN,PARS[par_index[175]][TYPES_BN],PARS[par_index[176]][TYPES_BN],PARS[par_index[177]][TYPES_BN],PARS[par_index[178]][TYPES_BN]) +\
+                     F3(EXCL_BB_BA_R_BN,PARS[par_index[179]][TYPES_BN],PARS[par_index[180]][TYPES_BN],PARS[par_index[181]][TYPES_BN],PARS[par_index[182]][TYPES_BN])
 
     #FENE_ENERGY+CONTINUITY-TO AVOID DIVERGENT ENERGY
 
@@ -1271,8 +1301,8 @@ def compute_rew_factor(PARS,SH_ST) :
     #CROSS STACKING
     #33
 
-    f2 = F2(HYDR_R, PARS_IN[par_index[77]][TYPES_UNBN_33], PARS_IN[par_index[78]][TYPES_UNBN_33], PARS_IN[par_index[79]][TYPES_UNBN_33], PARS_IN[par_index[80]][TYPES_UNBN_33], PARS_IN[par_index[81]][TYPES_UNBN_33],\
-            PARS_IN[par_index[82]][TYPES_UNBN_33], PARS_IN[par_index[83]][TYPES_UNBN_33], PARS_IN[par_index[84]][TYPES_UNBN_33], PARS_IN[par_index[85]][TYPES_UNBN_33], ZEROS_UNBN)
+    f2 = F2(HYDR_R, PARS[par_index[77]][TYPES_UNBN_33], PARS[par_index[78]][TYPES_UNBN_33], PARS[par_index[79]][TYPES_UNBN_33], PARS[par_index[80]][TYPES_UNBN_33], PARS[par_index[81]][TYPES_UNBN_33],\
+            PARS[par_index[82]][TYPES_UNBN_33], PARS[par_index[83]][TYPES_UNBN_33], PARS[par_index[84]][TYPES_UNBN_33], PARS[par_index[85]][TYPES_UNBN_33], ZEROS_UNBN)
 
     f4_th4 = F4(TH4_UNBN,PARS[par_index[101]][TYPES_UNBN_33],PARS[par_index[102]][TYPES_UNBN_33],PARS[par_index[103]][TYPES_UNBN_33],\
                 PARS[par_index[104]][TYPES_UNBN_33],PARS[par_index[105]][TYPES_UNBN_33],ZEROS_UNBN)
@@ -1280,8 +1310,8 @@ def compute_rew_factor(PARS,SH_ST) :
     CRST_33_MOD_REW = f2*f4_th4
 
 
-    f2 = F2(HYDR_R, PARS_IN[par_index[116]][TYPES_UNBN_55], PARS_IN[par_index[117]][TYPES_UNBN_55], PARS_IN[par_index[118]][TYPES_UNBN_55], PARS_IN[par_index[119]][TYPES_UNBN_55], PARS_IN[par_index[120]][TYPES_UNBN_55],\
-            PARS_IN[par_index[121]][TYPES_UNBN_55], PARS_IN[par_index[122]][TYPES_UNBN_55], PARS_IN[par_index[123]][TYPES_UNBN_55], PARS_IN[par_index[124]][TYPES_UNBN_55], ZEROS_UNBN)
+    f2 = F2(HYDR_R, PARS[par_index[116]][TYPES_UNBN_55], PARS[par_index[117]][TYPES_UNBN_55], PARS[par_index[118]][TYPES_UNBN_55], PARS[par_index[119]][TYPES_UNBN_55], PARS[par_index[120]][TYPES_UNBN_55],\
+            PARS[par_index[121]][TYPES_UNBN_55], PARS[par_index[122]][TYPES_UNBN_55], PARS[par_index[123]][TYPES_UNBN_55], PARS[par_index[124]][TYPES_UNBN_55], ZEROS_UNBN)
 
     f4_th4 = F4(TH4_UNBN,PARS[par_index[140]][TYPES_UNBN_55],PARS[par_index[141]][TYPES_UNBN_55],PARS[par_index[142]][TYPES_UNBN_55],\
                 PARS[par_index[143]][TYPES_UNBN_55],PARS[par_index[144]][TYPES_UNBN_55],ZEROS_UNBN)
@@ -1356,7 +1386,7 @@ def COST(PARS) :
     #ENSLAVED PARAMETERS
 
     #crst r0 ####
-    #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
+    #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2*asin(sqrt(fene_ro^2-stck_r0^2)))) )
 
     #We include this in the optimisation
 

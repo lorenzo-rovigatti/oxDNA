@@ -335,8 +335,6 @@ cfun.print_initial_energy()
 
 print(fene_r[0][0])
 
-excl_ba_ba_r_bn
-
 """
 print("conf 79")
 for l in range(len(types_bn[0][80])) :
@@ -399,9 +397,6 @@ OPTI_PAR = torch.gather(torch.reshape(cfun.CURR_PARS,(-1,)),0,IDS_OP) #tensor wi
 
 print(cfun.OPT_PAR_LIST)
 
-print(cfun.CURR_PARS_m[78])
-print(cfun.CURR_PARS_m[117])
-
 print("OPTIMISING")
 
 #We use scipy to handle the optimisation algorithm
@@ -421,18 +416,18 @@ up_bond = torch.tensor(TMP, device='cpu').numpy()
 
 for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 1:
-        lb = low_bond[n]*0.98
-        ub = up_bond[n]*1.02
+        lb = low_bond[n]*0.97
+        ub = up_bond[n]*1.03
         if lb > 0.6: low_bond[n] = lb
         else: low_bond[n] = 0.6
         if ub > 0.9: up_bond[n] = ub
         else: up_bond[n] = 0.9
     elif cfun.OPT_PAR_LIST[n][0] == 78 or cfun.OPT_PAR_LIST[n][0] == 117:
-        low_bond[n] = low_bond[n]*0.98
-        up_bond[n] = up_bond[n]*1.02
+        low_bond[n] = low_bond[n]*0.97
+        up_bond[n] = up_bond[n]*1.03
     elif cfun.OPT_PAR_LIST[n][0] == 2:
-        low_bond[n] = low_bond[n]*0.98
-        up_bond[n] = up_bond[n]*1.02
+        low_bond[n] = low_bond[n]*0.97
+        up_bond[n] = up_bond[n]*1.03
     elif cfun.OPT_PAR_LIST[n][0] == 45:
         lb = low_bond[n]*0.98
         ub = up_bond[n]*1.02
@@ -472,12 +467,41 @@ bnd = optimize.Bounds(low_bond,up_bond)
 cfun.AVE_DELTA = torch.mean(cfun.CURR_PARS_m[2])
 print("Ave delta:", cfun.AVE_DELTA)
 
+print("Initial parameters:")
+counts = 0
+string = ""
+while counts < len(X0) :
+    string += "{:.4f}".format(X0[counts]) + " "
+    if counts % 20 == 0 :
+        print(string)
+        string = ""
+    counts += 1
+
+
+
+tfile = open("PARS_TEST.txt", 'w')
+for i in range(256) :
+    string = type_to_base4(i) + " " + str(float(cfun.CURR_PARS[101][i])) + " " + str(float(cfun.CURR_PARS[102][i])) + " " + str(float(cfun.CURR_PARS[103][i])) + " " + str(float(cfun.CURR_PARS[104][i])) + " " + str(float(cfun.CURR_PARS[105][i]))
+    print(string, file=tfile)
+tfile.close()
+
 print("S0: "+str(cfun.COST(X0)))
 print("lb0: ")
 print(cfun.LB)
 print("lt0: ")
 print(cfun.LT)
 
+"""
+print("Test1:")
+X0 += 0.02
+print("S0: "+str(cfun.COST(X0)))
+
+print("Test2:")
+X0 -= 0.04
+print("S0: "+str(cfun.COST(X0)))
+
+X0 += 0.02
+"""
 
 #callback is called at the end of every geometry opti iteration step
 #it perform the melting optimisation
@@ -486,7 +510,28 @@ def Callback(sol):
     tmp = []
     for i in range(len(sol)):
         tmp.append(sol[i]/X0[i])
-    print(tmp)
+    counts = 0
+    string = ""
+    while counts < len(sol) :
+        string += "{:.4f}".format(tmp[counts]) + " "
+        if counts % 20 == 0 :
+            print(string)
+            string = ""
+        counts += 1
+
+    print(string)
+
+    counts = 0
+    string = ""
+    while counts < len(sol) :
+        string += "{:.4f}".format(sol[counts]) + " "
+        if counts % 20 == 0 :
+            print(string)
+            string = ""
+        counts += 1
+
+    print(string)
+
     print("S: "+str(cfun.COST(sol)))
     print("lb: ")
     print(cfun.LB)
@@ -500,7 +545,7 @@ def Callback(sol):
 time_opti_start = time.time()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':5,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':8,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

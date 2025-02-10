@@ -302,8 +302,8 @@
 #define CRST_F4_THETA2_33 14
 #define CRST_F4_THETA3_33 14
 #define CRST_F4_THETA4_33 15
-#define CRST_F4_THETA7_33 16 
-#define CRST_F4_THETA8_33 16 
+#define CRST_F4_THETA7_33 16
+#define CRST_F4_THETA8_33 16
 #define CRST_F4_THETA1_55 17
 #define CRST_F4_THETA2_55 18
 #define CRST_F4_THETA3_55 18
@@ -393,8 +393,8 @@
 /// angular part;
 #define CXST_F4_THETA1 10
 #define CXST_F4_THETA4 11
-#define CXST_F4_THETA5 12 
-#define CXST_F4_THETA6 12 
+#define CXST_F4_THETA5 12
+#define CXST_F4_THETA6 12
 #define CXST_THETA1_A   2.f
 #define CXST_THETA1_B   10.9032f
 #define CXST_THETA1_T0_OXDNA (PI - 0.60f)
@@ -409,12 +409,12 @@
 #define CXST_THETA4_TS  0.8f
 #define CXST_THETA4_TC  0.961538f
 #define CXST_THETA5_A   0.9f
-#define CXST_THETA5_B 	3.89361f  
+#define CXST_THETA5_B 	3.89361f
 #define CXST_THETA5_T0  0.f
 #define CXST_THETA5_TS  0.95f
 #define CXST_THETA5_TC  1.16959f
 #define CXST_THETA6_A   0.9f
-#define CXST_THETA6_B 	3.89361f  
+#define CXST_THETA6_B 	3.89361f
 #define CXST_THETA6_T0  0.f
 #define CXST_THETA6_TS  0.95f
 #define CXST_THETA6_TC  1.16959f
@@ -447,6 +447,9 @@
 #define CRST_T4_MESH_POINTS 6   // perfect
 #define CRST_T7_MESH_POINTS 250 // good enough
 #define CRST_T8_MESH_POINTS CRST_T7_MESH_POINTS
+
+#define CRST_T4_33_MESH_POINTS 100   // Andrea: good enough?
+#define CRST_T4_55_MESH_POINTS 100   // Andrea: good enough?
 
 #define CXST_T1_MESH_POINTS 250 // perfetto
 #define CXST_T4_MESH_POINTS 6   // perfetto
