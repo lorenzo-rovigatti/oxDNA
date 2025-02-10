@@ -179,7 +179,7 @@ for l in range(cg.Nseq):
             for z in range(len(t4un)): th4_unbn[l].append(t4un[z])
             for z in range(len(t7)): th7[l].append(t7[z])
             for z in range(len(t8)): th8[l].append(t8[z])
-            for z in range(len(bnbnunbn)): excl_bb_bb_r_unbn[l].append(bbbbunbn[z])
+            for z in range(len(bbbbunbn)): excl_bb_bb_r_unbn[l].append(bbbbunbn[z])
             for z in range(len(babbunbn)): excl_ba_bb_r_unbn[l].append(babbunbn[z])
             for z in range(len(bbbaunbn)): excl_bb_ba_r_unbn[l].append(bbbaunbn[z])
             for z in range(len(tun_33)): types_unbn_33[l].append(tun_33[z])
@@ -345,11 +345,6 @@ print("Targets reduced")
 #compute initial energy and modulation factors
 cfun.compute_initial_energy()
 
-ofile = "excl_v.txt"
-print(cfun.EN_EXCL_BN_IN[0])
-print(cfun.EN_EXCL_UNBN_IN[0])
-ofile.close()
-
 print("Computed initial energy")
 
 ################################
@@ -379,11 +374,11 @@ th8 = []
 types_unbn_33 = []
 types_unbn_55 = []
 excl_bb_bb_r_unbn = []
-excl_ba_bb_r_bn = []
+excl_ba_bb_r_unbn = []
 excl_bb_ba_r_unbn = []
 
 tm_file = open("../Melting_Ts_nbp5.txt", 'r')
-seqs, mTs, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+seqs, mTs, ent = fun.read_melting_seqs_and_mTs(tm_file)
 
 print("Melting Seqs n5:")
 print(seqs)
@@ -394,11 +389,15 @@ tm_file.close()
 
 Nseqs_n5 = len(mTs)
 
-en_offset = []
+en_sampled = []
+en0 = []
+
 for l in range(Nseqs_n5):
     e_file = open("Melting_data/nbp5/Energy_seq"+str(l)+".txt",'r')
     data = np.loadtxt(e_file, dtype=float)
-    en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    #en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    en_sampled.append(data[1:,9])
+    en0.append(data[1:,1]+data[1:,3]+data[1:,5]+data[1:,6])
     e_file.close()
 
 
@@ -461,7 +460,7 @@ for l in range(Nseqs_n5) :
             excl_bb_ba_r_unbn[l][j].append(10.)
 
 cfun.init_tensors_melting_n5(device, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, excl_ba_ba_r_bn, excl_ba_bb_r_bn, excl_bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_sampled, ent, en0)
 
 #nbp = 8
 fene_r = []
@@ -485,11 +484,11 @@ th8 = []
 types_unbn_33 = []
 types_unbn_55 = []
 excl_bb_bb_r_unbn = []
-excl_ba_bb_r_bn = []
+excl_ba_bb_r_unbn = []
 excl_bb_ba_r_unbn = []
 
 tm_file = open("../Melting_Ts_nbp8.txt", 'r')
-seqs, mTs, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+seqs, mTs, ent = fun.read_melting_seqs_and_mTs(tm_file)
 
 print("Melting Seqs n8:")
 print(seqs)
@@ -500,12 +499,16 @@ tm_file.close()
 
 Nseqs_n8 = len(mTs)
 
-en_offset = []
+en_sampled = []
+en0 = []
 for l in range(Nseqs_n8):
     e_file = open("Melting_data/nbp8/Energy_seq"+str(l)+".txt",'r')
     data = np.loadtxt(e_file, dtype=float)
-    en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    #en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    en_sampled.append(data[1:,9])
+    en0.append(data[1:,1]+data[1:,3]+data[1:,5]+data[1:,6])
     e_file.close()
+
 
 for l in range(Nseqs_n8):
 
@@ -568,7 +571,7 @@ for l in range(Nseqs_n8) :
 
 
 cfun.init_tensors_melting_n8(device, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, excl_ba_ba_r_bn, excl_ba_bb_r_bn, excl_bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_sampled, ent, en0)
 
 #nbp = 15
 
@@ -593,11 +596,12 @@ th8 = []
 types_unbn_33 = []
 types_unbn_55 = []
 excl_bb_bb_r_unbn = []
-excl_ba_bb_r_bn = []
+excl_ba_bb_r_unbn = []
 excl_bb_ba_r_unbn = []
 
+
 tm_file = open("../Melting_Ts_nbp15.txt", 'r')
-seqs, mTs, en0 = fun.read_melting_seqs_and_mTs(tm_file)
+seqs, mTs, ent = fun.read_melting_seqs_and_mTs(tm_file)
 
 print("Melting Seqs n15:")
 print(seqs)
@@ -608,12 +612,17 @@ tm_file.close()
 
 Nseqs_n15 = len(mTs)
 
-en_offset = []
+en_sampled = []
+en0 = []
 for l in range(Nseqs_n15):
     e_file = open("Melting_data/nbp15/Energy_seq"+str(l)+".txt",'r')
     data = np.loadtxt(e_file, dtype=float)
-    en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    #en_offset.append( np.mean(data[:,7]+data[:,8]) ) #coaxial+deby
+    en_sampled.append(data[1:,9])
+    en0.append(data[1:,1]+data[1:,3]+data[1:,5]+data[1:,6])
     e_file.close()
+
+
 
 for l in range(Nseqs_n15):
 
@@ -675,7 +684,7 @@ for l in range(Nseqs_n15) :
 
 
 cfun.init_tensors_melting_n15(device, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, excl_ba_ba_r_bn, excl_ba_bb_r_bn, excl_bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_offset, en0)
+                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, en_sampled, ent, en0)
 
 #print(stck_r)
 
@@ -720,18 +729,18 @@ up_bond = torch.tensor(TMP, device='cpu').numpy()
 
 for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 1:
-        lb = low_bond[n]*0.98
-        ub = up_bond[n]*1.02
+        lb = low_bond[n]*0.97
+        ub = up_bond[n]*1.03
         if lb > 0.6: low_bond[n] = lb
         else: low_bond[n] = 0.6
         if ub > 0.9: up_bond[n] = ub
         else: up_bond[n] = 0.9
     elif cfun.OPT_PAR_LIST[n][0] == 78 or cfun.OPT_PAR_LIST[n][0] == 117:
-        low_bond[n] = low_bond[n]*0.98
-        up_bond[n] = up_bond[n]*1.02
+        low_bond[n] = low_bond[n]*0.97
+        up_bond[n] = up_bond[n]*1.03
     elif cfun.OPT_PAR_LIST[n][0] == 2:
-        low_bond[n] = low_bond[n]*0.98
-        up_bond[n] = up_bond[n]*1.02
+        low_bond[n] = low_bond[n]*0.97
+        up_bond[n] = up_bond[n]*1.03
     elif cfun.OPT_PAR_LIST[n][0] == 45:
         lb = low_bond[n]*0.98
         ub = up_bond[n]*1.02
@@ -795,22 +804,27 @@ up_bond_m = torch.tensor(TMP_m, device='cpu').numpy()
 
 for n in range(len(low_bond_m)) :
     if cfun.OPT_PAR_LIST_m[n][0] == 4:
-        lb = low_bond_m[n][m]*0.5
-        ub = up_bond_m[n][m]*1.5
+        lb = low_bond_m[n][m]*0.97
+        ub = up_bond_m[n][m]*1.03
         if lb > 0.85: low_bond_m[n] = lb
         else: low_bond_m[n] = 0.85
         if ub > 1.3: up_bond_m[n] = ub
         else: up_bond_m[n] = 1.3
     elif cfun.OPT_PAR_LIST_m[n][0] == 44:
-        lb = low_bond_m[n]*0.5
-        ub = up_bond_m[n]*1.5
+        lb = low_bond_m[n]*0.97
+        ub = up_bond_m[n]*1.03
         if lb > 1.0: low_bond_m[n] = lb
         else: low_bond_m[n] = 1.0
         if ub > 2.0: up_bond_m[n] = ub
         else: up_bond_m[n] = 2.0
     elif cfun.OPT_PAR_LIST_m[n][0] == 77 or cfun.OPT_PAR_LIST_m[n][0] == 116:
-        low_bond_m[n] = 0
-        up_bond_m[n] = 76
+        lb = low_bond_m[n]*0.9
+        ub = up_bond_m[n]*1.1
+        if lb > 56: low_bond_m[n] = lb
+        else: low_bond_m[n] = 56
+        if ub > 76: up_bond_m[n] = ub
+        else: up_bond_m[n] = 76
+
 
 bnd_m = optimize.Bounds(low_bond_m,up_bond_m)
 
@@ -827,6 +841,21 @@ print("lb0: ")
 print(cfun.LB)
 print("lt0: ")
 print(cfun.LT)
+
+
+#save En0
+
+cfun.compute_energy_m_n5()
+cfun.EN0_m_n5 = torch.clone( torch.sum( cfun.EN_STCK_IN_m_n5*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))+cfun.EN_FENE_IN_m_n5,dim=2 )+\
+                             torch.sum( cfun.EN_HYDR_IN_m_n5+ cfun.EN_CRST_33_IN_m_n5+cfun.EN_CRST_55_IN_m_n5,dim=2 ) )
+cfun.compute_energy_m_n8()
+cfun.EN0_m_n8 = torch.clone( torch.sum( cfun.EN_STCK_IN_m_n8*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))+cfun.EN_FENE_IN_m_n8,dim=2 )+\
+                             torch.sum( cfun.EN_HYDR_IN_m_n8+cfun.EN_CRST_33_IN_m_n8+cfun.EN_CRST_55_IN_m_n8,dim=2 ) )
+cfun.compute_energy_m_n15()
+cfun.EN0_m_n15 = torch.clone( torch.sum( cfun.EN_STCK_IN_m_n15*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))+cfun.EN_FENE_IN_m_n15,dim=2 )+\
+                             torch.sum( cfun.EN_HYDR_IN_m_n15+cfun.EN_CRST_33_IN_m_n15+cfun.EN_CRST_55_IN_m_n15,dim=2 ) )
+
+
 #this is called at the end of evey melting opti iteration step
 def Callback_m(sol_m) :
     print("x/x0: ")

@@ -5,7 +5,7 @@ sim_type = MD
 seed = 1
 
 ####    SIM PARAMETERS    ####
-steps = 2e5
+steps = 1e6
 newtonian_steps = 103
 diff_coeff = 2.50
 #pt = 0.99
@@ -33,15 +33,15 @@ no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.dat
 #Autocorrelation time for 24bp ox3 ave is ~130 timesteps
-print_conf_interval = 200
-print_energy_every = 200
+print_conf_interval = 1000
+print_energy_every = 1000
 time_scale = linear
 external_forces = 0
 #max_backbone_force = 1
 
 data_output_1 = {
 name = split_energy.dat
-print_every = 200
+print_every = 1000
 col_1 = {
 type = step
 }

@@ -1094,8 +1094,8 @@ def compute_initial_energy() :
     global EN_EXCL_UNBN_IN
 
     #FENE
-    EN_FENE_IN = -PARS_IN[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS_IN[par_index[1]][TYPES_BN] )/PARS_IN[par_index[3]][TYPES_BN])
-
+    TMP = -PARS_IN[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS_IN[par_index[1]][TYPES_BN] )/PARS_IN[par_index[3]][TYPES_BN])
+    EN_FENE_IN = torch.where(torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001,TMP,0.5)
 
     #EXCL_BN
     EN_EXCL_BN_IN = F3(EXCL_BA_BA_R_BN,PARS_IN[par_index[171]][TYPES_BN],PARS_IN[par_index[172]][TYPES_BN],PARS_IN[par_index[173]][TYPES_BN],PARS_IN[par_index[174]][TYPES_BN]) +\
@@ -1248,8 +1248,8 @@ def compute_initial_energy() :
 def compute_rew_factor(PARS,SH_ST) :
 
     #FENE
-    EN_FENE_REW = -PARS[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS[par_index[1]][TYPES_BN] )/PARS[par_index[2]][TYPES_BN]/PARS[par_index[2]][TYPES_BN])
-
+    TMP = -PARS[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS[par_index[1]][TYPES_BN] )/PARS[par_index[2]][TYPES_BN]/PARS[par_index[2]][TYPES_BN])
+    EN_FENE_REW = torch.where(torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001,TMP,0.5)
 
     #EXCL_BN
     EN_EXCL_BN_REW = F3(EXCL_BA_BA_R_BN,PARS[par_index[171]][TYPES_BN],PARS[par_index[172]][TYPES_BN],PARS[par_index[173]][TYPES_BN],PARS[par_index[174]][TYPES_BN]) +\
@@ -1473,9 +1473,9 @@ def COST(PARS) :
     lj_x = torch.clone( torch.pow(CURR_PARS[f3_S_ID]/CURR_PARS[f3_R_ID], 6) )
 
     g1 = 4*( torch.square(lj_x) - lj_x )
-    g2 = 12/CURR_PARS[f3_S_ID]*( 2*torch.square(lj_x)-lj_x )
+    g2 = 12/CURR_PARS[f3_R_ID]*( 2*torch.square(lj_x)-lj_x )
 
-    CURR_PARS[f3_RC_ID] = g1/g2
+    CURR_PARS[f3_RC_ID] = g1/g2 + CURR_PARS[f3_R_ID]
     CURR_PARS[f3_B_ID] = torch.square(g2)/g1
 
     #f4
@@ -1501,7 +1501,10 @@ def COST(PARS) :
     #D3 = torch.where(CRST_33_MOD_IN > 0, EN_CRST_33_IN*(1-CRST_33_MOD_REW/(CRST_33_MOD_IN+1e-12)), ZEROS_UNBN)
     #D4 = torch.where(CRST_55_MOD_IN > 0, EN_CRST_55_IN*(1-CRST_55_MOD_REW/(CRST_55_MOD_IN+1e-12)), ZEROS_UNBN)
 
-    WEIGHTS = torch.exp( 10*torch.sum( D1,dim=2 ) + 10*torch.sum( D2+D3+D4,dim=2 ) )
+
+    ARG = 10*torch.sum( D1,dim=2 ) + 10*torch.sum( D2+D3+D4,dim=2 )
+    WEIGHTS = torch.exp( torch.where(ARG < 20, ARG, 20) ) #cutoff on max energy difference
+    #WEIGHTS = torch.exp( 10*torch.sum( D1,dim=2 ) + 10*torch.sum( D2+D3+D4,dim=2 ) )
 
     #normailise weights
     NORM = 1/WEIGHTS.sum(dim=1)
@@ -1691,9 +1694,10 @@ EN_HYDR_IN_m_n5 = None
 EN_CRST_33_IN_m_n5 = None
 EN_CRST_55_IN_m_n5 = None
 
-EN_OFFSET_m_n5 = None
-ENT_m_n5 = None
-MTS_m_n5 = None
+ENS_m_n5 = None #energy sampled
+ENT_m_n5 = None #ave target energy
+EN0_m_n5 = None #sampled energy to reweight
+MTS_m_n5 = None #melting temperature
 
 EXCL_BA_BA_R_BN_m_n5 = None
 EXCL_BA_BB_R_BN_m_n5 = None
@@ -1706,7 +1710,7 @@ EXCL_BB_BA_R_UNBN_m_n5 = None
 
 #initailise tensors with coordinates and
 def init_tensors_melting_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_r_bn, ba_bb_r_bn, bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, offset, ent) :
+                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, ens, ent, en0) :
 
     global FENE_R_m_n5
     global STCK_R_m_n5
@@ -1741,9 +1745,10 @@ def init_tensors_melting_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosp
     global EN_CRST_55_IN_m_n5
     global CRST_55_MOD_IN_m_n5
 
-    global EN_OFFSET_m_n5
+    global ENS_m_n5
     global ENT_m_n5
     global MTS_m_n5
+    global EN0_m_n5
 
     global EXCL_BA_BA_R_BN_m_n5
     global EXCL_BA_BB_R_BN_m_n5
@@ -1778,11 +1783,11 @@ def init_tensors_melting_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosp
     ONES_BN_m_n5 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
     ZEROS_UNBN_m_n5 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
 
-    EN_OFFSET_m_n5 = torch.tensor(offset, device=device)
+    ENS_m_n5 = torch.tensor(ens, device=device)
     MTS_m_n5 = torch.tensor(mTs, device=device)
     ENT_m_n5 = torch.tensor(ent, device=device)
 
-    EXCL_BB_BB_R_BN_m_n5 = torch.tensor(ba_ba_r_bn,device=device)
+    EXCL_BA_BA_R_BN_m_n5 = torch.tensor(ba_ba_r_bn,device=device)
     EXCL_BA_BB_R_BN_m_n5 = torch.tensor(ba_bb_r_bn,device=device)
     EXCL_BB_BA_R_BN_m_n5 = torch.tensor(bb_ba_r_bn,device=device)
 
@@ -1823,9 +1828,10 @@ EN_HYDR_IN_m_n8 = None
 EN_CRST_33_IN_m_n8 = None
 EN_CRST_55_IN_m_n8 = None
 
-EN_OFFSET_m_n8 = None
+ENS_m_n8 = None
 ENT_m_n8 = None
 MTS_m_n8 = None
+EN0_m_n8 = None
 
 EXCL_BA_BA_R_BN_m_n8 = None
 EXCL_BA_BB_R_BN_m_n8 = None
@@ -1837,7 +1843,7 @@ EXCL_BB_BA_R_UNBN_m_n8 = None
 
 #initailise tensors with coordinates and
 def init_tensors_melting_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_r_bn, ba_bb_r_bn, bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, offset, ent) :
+                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, ens, ent, en0) :
 
     global FENE_R_m_n8
     global STCK_R_m_n8
@@ -1872,9 +1878,10 @@ def init_tensors_melting_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosp
     global EN_CRST_55_IN_m_n8
     global CRST_55_MOD_IN_m_n8
 
-    global EN_OFFSET_m_n8
+    global ENS_m_n8
     global ENT_m_n8
     global MTS_m_n8
+    global EN0_m_n8
 
     global EXCL_BA_BA_R_BN_m_n8
     global EXCL_BA_BB_R_BN_m_n8
@@ -1909,11 +1916,12 @@ def init_tensors_melting_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosp
     ONES_BN_m_n8 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
     ZEROS_UNBN_m_n8 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
 
-    EN_OFFSET_m_n8 = torch.tensor(offset, device=device)
+    ENS_m_n8 = torch.tensor(ens, device=device)
     MTS_m_n8 = torch.tensor(mTs, device=device)
     ENT_m_n8 = torch.tensor(ent, device=device)
+    #EN0_m_n8 = torch.tensor(en0, device=device)
 
-    EXCL_BB_BB_R_BN_m_n8 = torch.tensor(ba_ba_r_bn,device=device)
+    EXCL_BA_BA_R_BN_m_n8 = torch.tensor(ba_ba_r_bn,device=device)
     EXCL_BA_BB_R_BN_m_n8 = torch.tensor(ba_bb_r_bn,device=device)
     EXCL_BB_BA_R_BN_m_n8 = torch.tensor(bb_ba_r_bn,device=device)
 
@@ -1954,9 +1962,10 @@ EN_HYDR_IN_m_n15 = None
 EN_CRST_33_IN_m_n15 = None
 EN_CRST_55_IN_m_n15 = None
 
-EN_OFFSET_m_n15 = None
+ENS_m_n15 = None
 ENT_m_n15 = None
 MTS_m_n15 = None
+EN0_m_n15 = None
 
 EXCL_BA_BA_R_BN_m_n15 = None
 EXCL_BA_BB_R_BN_m_n15 = None
@@ -1969,7 +1978,7 @@ EXCL_BB_BA_R_UNBN_m_n15 = None
 
 #initailise tensors with coordinates and
 def init_tensors_melting_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_r_bn, ba_bb_r_bn, bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, offset, ent) :
+                  th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, mTs, ens, ent, en0) :
 
     global FENE_R_m_n15
     global STCK_R_m_n15
@@ -2004,9 +2013,10 @@ def init_tensors_melting_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cos
     global EN_CRST_55_IN_m_n15
     global CRST_55_MOD_IN_m_n15
 
-    global EN_OFFSET_m_n15
+    global ENS_m_n15
     global ENT_m_n15
     global MTS_m_n15
+    global EN0_m_n15
 
     global EXCL_BA_BA_R_BN_m_n15
     global EXCL_BA_BB_R_BN_m_n15
@@ -2041,11 +2051,12 @@ def init_tensors_melting_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cos
     ONES_BN_m_n15 = torch.ones(len(types_bn),len(types_bn[0]),len(types_bn[0][0]),device=device)
     ZEROS_UNBN_m_n15 = torch.zeros(len(types_unbn_33),len(types_unbn_33[0]),len(types_unbn_33[0][0]),device=device)
 
-    EN_OFFSET_m_n15 = torch.tensor(offset, device=device)
+    ENS_m_n15 = torch.tensor(ens, device=device)
     MTS_m_n15 = torch.tensor(mTs, device=device)
     ENT_m_n15 = torch.tensor(ent, device=device)
+    #EN0_m_n15 = torch.tensor(en0, device=device)
 
-    EXCL_BB_BB_R_BN_m_n15 = torch.tensor(ba_ba_r_bn,device=device)
+    EXCL_BA_BA_R_BN_m_n15 = torch.tensor(ba_ba_r_bn,device=device)
     EXCL_BA_BB_R_BN_m_n15 = torch.tensor(ba_bb_r_bn,device=device)
     EXCL_BB_BA_R_BN_m_n15 = torch.tensor(bb_ba_r_bn,device=device)
 
@@ -2172,8 +2183,10 @@ def compute_energy_m_n5() :
     CRST_K_55_IN = torch.clone(CURR_PARS_m[par_index[116]])
 
 
+
     #FENE
-    EN_FENE_IN_m_n5 = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n5]/2.*torch.log( 1.-torch.square( FENE_R_m_n5-CURR_PARS_m[par_index[1]][TYPES_BN_m_n5] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n5])
+    TMP = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n5]/2.*torch.log( 1.-torch.square( FENE_R_m_n5-CURR_PARS_m[par_index[1]][TYPES_BN_m_n5] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n5])
+    EN_FENE_IN_m_n5 = torch.where(torch.square(FENE_R_m_n5-CURR_PARS_m[par_index[1]][TYPES_BN_m_n5])<CURR_PARS_m[par_index[3]][TYPES_BN_m_n5]-0.001,TMP,0.5)
 
     #EXCL_BN
     EN_EXCL_BN_IN_m_n5 = F3(EXCL_BA_BA_R_BN_m_n5,CURR_PARS_m[par_index[171]][TYPES_BN_m_n5],CURR_PARS_m[par_index[172]][TYPES_BN_m_n5],CURR_PARS_m[par_index[173]][TYPES_BN_m_n5],CURR_PARS_m[par_index[174]][TYPES_BN_m_n5]) +\
@@ -2181,7 +2194,7 @@ def compute_energy_m_n5() :
                     F3(EXCL_BB_BA_R_BN_m_n5,CURR_PARS_m[par_index[179]][TYPES_BN_m_n5],CURR_PARS_m[par_index[180]][TYPES_BN_m_n5],CURR_PARS_m[par_index[181]][TYPES_BN_m_n5],CURR_PARS_m[par_index[182]][TYPES_BN_m_n5])
 
     #EXCL_UNBN
-    EN_EXCL_UNBN_IN_m_n5 = F3(EXCL_BB_BB_UNBN_n5,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n5]) +\
+    EN_EXCL_UNBN_IN_m_n5 = F3(EXCL_BB_BB_R_UNBN_m_n5,CURR_PARS_m[par_index[155]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[156]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[157]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[158]][TYPES_UNBN_33_m_n5]) +\
                       F3(HYDR_R_m_n5,CURR_PARS_m[par_index[159]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[160]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[161]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[162]][TYPES_UNBN_33_m_n5]) +\
                       F3(EXCL_BA_BB_R_UNBN_m_n5,CURR_PARS_m[par_index[163]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[164]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[165]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[166]][TYPES_UNBN_33_m_n5]) +\
                       F3(EXCL_BB_BA_R_UNBN_m_n5,CURR_PARS_m[par_index[167]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[168]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[169]][TYPES_UNBN_33_m_n5],CURR_PARS_m[par_index[170]][TYPES_UNBN_33_m_n5])
@@ -2301,8 +2314,10 @@ def compute_energy_m_n8() :
     global EN_EXCL_BN_IN_m_n8
     global EN_EXCL_UNBN_IN_m_n8
 
+
     #FENE
-    EN_FENE_IN_m_n8 = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n8]/2.*torch.log( 1.-torch.square( FENE_R_m_n8-CURR_PARS_m[par_index[1]][TYPES_BN_m_n8] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n8])
+    TMP = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n8]/2.*torch.log( 1.-torch.square( FENE_R_m_n8-CURR_PARS_m[par_index[1]][TYPES_BN_m_n8] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n8])
+    EN_FENE_IN_m_n8 = torch.where(torch.square(FENE_R_m_n8-CURR_PARS_m[par_index[1]][TYPES_BN_m_n8])<CURR_PARS_m[par_index[3]][TYPES_BN_m_n8]-0.001,TMP,0.5)
 
     #EXCL_BN
     EN_EXCL_BN_IN_m_n8 = F3(EXCL_BA_BA_R_BN_m_n8,CURR_PARS_m[par_index[171]][TYPES_BN_m_n8],CURR_PARS_m[par_index[172]][TYPES_BN_m_n8],CURR_PARS_m[par_index[173]][TYPES_BN_m_n8],CURR_PARS_m[par_index[174]][TYPES_BN_m_n8]) +\
@@ -2427,8 +2442,10 @@ def compute_energy_m_n15() :
     global EN_EXCL_BN_IN_m_n15
     global EN_EXCL_UNBN_IN_m_n15
 
+
     #FENE
-    EN_FENE_IN_m_n15 = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n15]/2.*torch.log( 1.-torch.square( FENE_R_m_n15-CURR_PARS_m[par_index[1]][TYPES_BN_m_n15] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n15])
+    TMP = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n15]/2.*torch.log( 1.-torch.square( FENE_R_m_n15-CURR_PARS_m[par_index[1]][TYPES_BN_m_n15] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n15])
+    EN_FENE_IN_m_n15 = torch.where(torch.square(FENE_R_m_n15-CURR_PARS_m[par_index[1]][TYPES_BN_m_n15])<CURR_PARS_m[par_index[3]][TYPES_BN_m_n15]-0.001,TMP,0.5)
 
     #EXCL_BN
     EN_EXCL_BN_IN_m_n15 = F3(EXCL_BA_BA_R_BN_m_n15,CURR_PARS_m[par_index[171]][TYPES_BN_m_n15],CURR_PARS_m[par_index[172]][TYPES_BN_m_n15],CURR_PARS_m[par_index[173]][TYPES_BN_m_n15],CURR_PARS_m[par_index[174]][TYPES_BN_m_n15]) +\
@@ -2570,97 +2587,92 @@ def COST_m(PARS) :
     #print(CURR_PARS[par_index[4]])
     #print(CURR_PARS[par_index[44]])
 
-    # 0.09605 = 10C
+    # 0.092717 = 5C
+    # betha = 1/0.092717 = 10.78551
 
     #nbp = 5
 
+    """
     EN_STCK_m_n5 = EN_STCK_IN_m_n5*(1-cg.stck_fact_eps+(0.09271*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*CURR_PARS[par_index[44]][TYPES_BN_m_n5]/STCK_EPS_IN[TYPES_BN_m_n5]
-    #print( EN_HYDR_IN_m_n5)
-    #print(HYDR_EPS_IN)
     EN_HYDR_m_n5 = EN_HYDR_IN_m_n5*CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n5]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n5]+1e-12)
     EN_CRST_33_m_n5 = EN_CRST_33_IN_m_n5*CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n5]/CRST_K_33_IN[TYPES_UNBN_33_m_n5]
     EN_CRST_55_m_n5 = EN_CRST_55_IN_m_n5*CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n5]/CRST_K_55_IN[TYPES_UNBN_55_m_n5]
 
     dx,dy,dz = EN_HYDR_m_n5.size()
 
-    EN_PER_NUCLEO = (((EN_FENE_IN_m_n5+EN_STCK_m_n5).sum(dim=2) + (EN_HYDR_m_n5+EN_CRST_33_m_n5+EN_CRST_55_m_n5+EN_EXCL_BN_IN_m_n5+EN_EXCL_UNBN_IN_m_n5).sum(dim=2))/10.).sum(dim=1)/dy + EN_OFFSET_m_n5
-    #print(EN_PER_NUCLEO)
+    #EN_PER_NUCLEO = (((EN_FENE_IN_m_n5+EN_STCK_m_n5+EN_EXCL_BN_IN_m_n5).sum(dim=2) + (EN_HYDR_m_n5+EN_CRST_33_m_n5+EN_CRST_55_m_n5+EN_EXCL_UNBN_IN_m_n5).sum(dim=2))/10.).sum(dim=1)/dy + EN_OFFSET_m_n5
+    EN_PER_NUCLEO = (((EN_FENE_IN_m_n5+EN_STCK_m_n5).sum(dim=2) + (EN_HYDR_m_n5+EN_CRST_33_m_n5+EN_CRST_55_m_n5).sum(dim=2))/10.).sum(dim=1)/dy + EN_OFFSET_m_n5
 
     global EN_PER_NUCLEO_n5
     EN_PER_NUCLEO_n5 = torch.clone(EN_PER_NUCLEO)
 
     #S = torch.square( EN_PER_NUCLEO + 1.3975+0.00324*MTS_m_n5 ).sum(dim=0)
     S = torch.square( EN_PER_NUCLEO - ENT_m_n5 ).sum(dim=0)
-    #xplusone = torch.cat( ( torch.ones( MTS_m_n5.size(0),1, device=device ),  MTS_m_n5) , 1 )
-
     """
-    xplusone = torch.stack( (torch.ones( MTS_m_n5.size(0), device=device, dtype=float ),  MTS_m_n5), dim=1)
-    #print(xplusone)
 
-    #AB, _ = torch.lstsq( EN_PER_NUCLEO, xplusone )
-    AB = torch.linalg.lstsq( xplusone, EN_PER_NUCLEO ).solution
-    A = AB[0]
-    B = AB[1]
+    R_EN_STCK_m_n5 = EN_STCK_IN_m_n5*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*(CURR_PARS[par_index[44]][TYPES_BN_m_n5]/STCK_EPS_IN[TYPES_BN_m_n5])
+    R_EN_HYDR_m_n5 = EN_HYDR_IN_m_n5*(CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n5]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n5]+1e-12))
+    R_EN_CRST_33_m_n5 = EN_CRST_33_IN_m_n5*(CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n5]/CRST_K_33_IN[TYPES_UNBN_33_m_n5])
+    R_EN_CRST_55_m_n5 = EN_CRST_55_IN_m_n5*(CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n5]/CRST_K_55_IN[TYPES_UNBN_55_m_n5])
 
-    print(A,B)
+    WEIGHTS = torch.exp( 10.78551*( EN0_m_n5 - torch.sum( R_EN_STCK_m_n5+EN_FENE_IN_m_n5,dim=2 ) - torch.sum( R_EN_HYDR_m_n5+R_EN_CRST_33_m_n5+R_EN_CRST_55_m_n5,dim=2 ) ) )
 
-    S = torch.square(B+0.00324)/0.00324/torch.abs(B) +torch.square(A+1.3975)/1.3975/torch.abs(A)
-    """
+    #normailise weights
+    NORM = 1/WEIGHTS.sum(dim=1)
+    WEIGHTS = NORM.unsqueeze(1)*WEIGHTS
+
+    #compute reweighted average
+    REW_EN = torch.sum(WEIGHTS*ENS_m_n5,dim=1)  #sum because weights are normalised
+
+    global EN_PER_NUCLEO_n5
+    EN_PER_NUCLEO_n5 = torch.clone(REW_EN)
+
+    S = torch.square( REW_EN - ENT_m_n5 ).sum(dim=0)
 
     #nbp = 8
 
-    EN_STCK_m_n8 = EN_STCK_IN_m_n8*(1-cg.stck_fact_eps+(0.09271*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*CURR_PARS[par_index[44]][TYPES_BN_m_n8]/STCK_EPS_IN[TYPES_BN_m_n8]
-    EN_HYDR_m_n8 = EN_HYDR_IN_m_n8*CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n8]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n8]+1e-12)
-    EN_CRST_33_m_n8 = EN_CRST_33_IN_m_n8*CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n8]/CRST_K_33_IN[TYPES_UNBN_33_m_n8]
-    EN_CRST_55_m_n8 = EN_CRST_55_IN_m_n8*CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n8]/CRST_K_55_IN[TYPES_UNBN_55_m_n8]
+    R_EN_STCK_m_n8 = EN_STCK_IN_m_n8*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*(CURR_PARS[par_index[44]][TYPES_BN_m_n8]/STCK_EPS_IN[TYPES_BN_m_n8])
+    R_EN_HYDR_m_n8 = EN_HYDR_IN_m_n8*(CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n8]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n8]+1e-12))
+    R_EN_CRST_33_m_n8 = EN_CRST_33_IN_m_n8*(CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n8]/CRST_K_33_IN[TYPES_UNBN_33_m_n8])
+    R_EN_CRST_55_m_n8 = EN_CRST_55_IN_m_n8*(CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n8]/CRST_K_55_IN[TYPES_UNBN_55_m_n8])
 
-    #EN_PER_NUCLEO = ((EN_FENE_IN_m_n8+EN_STCK_m_n8).sum(dim=1) + (EN_HYDR_m_n8+EN_CRST_33_m_n8+EN_CRST_55_m_n8).sum(dim=1))/16. + EN_OFFSET_m_n8
-    #print(EN_PER_NUCLEO)
+    WEIGHTS = torch.exp( 10.78551*( EN0_m_n8 - torch.sum( R_EN_STCK_m_n8+EN_FENE_IN_m_n8,dim=2 ) - torch.sum( R_EN_HYDR_m_n8+R_EN_CRST_33_m_n8+R_EN_CRST_55_m_n8,dim=2 ) ) )
 
-    dx,dy,dz = EN_HYDR_m_n8.size()
+    #normailise weights
+    NORM = 1/WEIGHTS.sum(dim=1)
+    WEIGHTS = NORM.unsqueeze(1)*WEIGHTS
 
-    EN_PER_NUCLEO = (((EN_FENE_IN_m_n8+EN_STCK_m_n8).sum(dim=2) + (EN_HYDR_m_n8+EN_CRST_33_m_n8+EN_CRST_55_m_n8+EN_EXCL_BN_IN_m_n8+EN_EXCL_UNBN_IN_m_n8).sum(dim=2))/16.).sum(dim=1)/dy + EN_OFFSET_m_n8
-
-
-    """
-    print("n5")
-    print(EN_STCK_IN_m_n5.sum(dim=1)/10.)
-    print(EN_HYDR_IN_m_n5.sum(dim=1)/10.)
-    print(EN_CRST_33_IN_m_n5.sum(dim=1)/10.)
-    print(EN_CRST_55_IN_m_n5.sum(dim=1)/10.)
-    print("n8")
-    print(EN_STCK_IN_m_n8.sum(dim=1)/16.)
-    print(EN_HYDR_IN_m_n8.sum(dim=1)/16.)
-    print(EN_CRST_33_IN_m_n8.sum(dim=1)/16.)
-    print(EN_CRST_55_IN_m_n8.sum(dim=1)/16.)
-    """
+    #compute reweighted average
+    REW_EN = torch.sum(WEIGHTS*ENS_m_n8,dim=1)  #sum because weights are normalised
 
     global EN_PER_NUCLEO_n8
-    EN_PER_NUCLEO_n8 = torch.clone(EN_PER_NUCLEO)
+    EN_PER_NUCLEO_n8 = torch.clone(REW_EN)
 
-    #S += torch.square( EN_PER_NUCLEO + 1.3778+0.00339*MTS_m_n8 ).sum(dim=0)
-    S += torch.square( EN_PER_NUCLEO - ENT_m_n8 ).sum(dim=0)
+    S = torch.square( REW_EN - ENT_m_n8 ).sum(dim=0)
 
     #nbp = 15
 
-    EN_STCK_m_n15 = EN_STCK_IN_m_n15*(1-cg.stck_fact_eps+(0.09271*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*CURR_PARS[par_index[44]][TYPES_BN_m_n15]/STCK_EPS_IN[TYPES_BN_m_n15]
-    EN_HYDR_m_n15 = EN_HYDR_IN_m_n15*CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n15]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n15]+1e-12)
-    EN_CRST_33_m_n15 = EN_CRST_33_IN_m_n15*CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n15]/CRST_K_33_IN[TYPES_UNBN_33_m_n15]
-    EN_CRST_55_m_n15 = EN_CRST_55_IN_m_n15*CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n15]/CRST_K_55_IN[TYPES_UNBN_55_m_n15]
+    R_EN_STCK_m_n15 = EN_STCK_IN_m_n15*(1-cg.stck_fact_eps+(0.092717*9*cg.stck_fact_eps))/(1-cg.stck_fact_eps+(0.1*9*cg.stck_fact_eps))*(CURR_PARS[par_index[44]][TYPES_BN_m_n15]/STCK_EPS_IN[TYPES_BN_m_n15])
+    R_EN_HYDR_m_n15 = EN_HYDR_IN_m_n15*(CURR_PARS[par_index[4]][TYPES_UNBN_33_m_n15]/(HYDR_EPS_IN[TYPES_UNBN_33_m_n15]+1e-12))
+    R_EN_CRST_33_m_n15 = EN_CRST_33_IN_m_n15*(CURR_PARS[par_index[77]][TYPES_UNBN_33_m_n15]/CRST_K_33_IN[TYPES_UNBN_33_m_n15])
+    R_EN_CRST_55_m_n15 = EN_CRST_55_IN_m_n15*(CURR_PARS[par_index[116]][TYPES_UNBN_55_m_n15]/CRST_K_55_IN[TYPES_UNBN_55_m_n15])
 
-    #EN_PER_NUCLEO = ((EN_FENE_IN_m_n15+EN_STCK_m_n15).sum(dim=1) + (EN_HYDR_m_n15+EN_CRST_33_m_n15+EN_CRST_55_m_n15).sum(dim=1))/30. + EN_OFFSET_m_n15
-    dx,dy,dz = EN_HYDR_m_n15.size()
+    WEIGHTS = torch.exp( 10.78551*( EN0_m_n15 - torch.sum( R_EN_STCK_m_n15+EN_FENE_IN_m_n15,dim=2 ) - torch.sum( R_EN_HYDR_m_n15+R_EN_CRST_33_m_n15+R_EN_CRST_55_m_n15,dim=2 ) ) )
 
-    EN_PER_NUCLEO = (((EN_FENE_IN_m_n15+EN_STCK_m_n15).sum(dim=2) + (EN_HYDR_m_n15+EN_CRST_33_m_n15+EN_CRST_55_m_n15+EN_EXCL_BN_IN_m_n15+EN_EXCL_UNBN_IN_m_n15).sum(dim=2))/30.).sum(dim=1)/dy + EN_OFFSET_m_n15
+    #normailise weights
+    NORM = 1/WEIGHTS.sum(dim=1)
+    WEIGHTS = NORM.unsqueeze(1)*WEIGHTS
 
-    #print(EN_PER_NUCLEO)
+    #compute reweighted average
+    REW_EN = torch.sum(WEIGHTS*ENS_m_n15,dim=1)  #sum because weights are normalised
 
     global EN_PER_NUCLEO_n15
-    EN_PER_NUCLEO_n15 = torch.clone(EN_PER_NUCLEO)
+    EN_PER_NUCLEO_n15 = torch.clone(REW_EN)
 
-    #S += torch.square( EN_PER_NUCLEO + 1.3653+0.00344*MTS_m_n15 ).sum(dim=0)
-    S += torch.square( EN_PER_NUCLEO - ENT_m_n15 ).sum(dim=0)
+    S = torch.square( REW_EN - ENT_m_n15 ).sum(dim=0)
 
     Scpu = float(S)
 
     return Scpu
+
+

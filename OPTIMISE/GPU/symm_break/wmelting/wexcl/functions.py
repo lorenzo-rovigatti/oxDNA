@@ -763,10 +763,9 @@ def read_melting_seqs_and_mTs(ifile) :
         vals = line.strip().split()
         seqs.append(vals[0])
         mTs.append(float(vals[1]))
-        en_offsets.append(float(vals[2]))
-        en0.append(float(vals[3]))
+        en0.append(float(vals[2]))
 
-    return seqs, mTs, en_offsets, en0
+    return seqs, mTs, en0
 
 def read_topology_from_file(topo_file) :
 
@@ -1661,9 +1660,9 @@ def print_final_pfile(FOPARS,infile) :
     lj_x = torch.clone( torch.pow(CURR_PARS[cfun.f3_S_ID]/CURR_PARS[cfun.f3_R_ID], 6) )
 
     g1 = 4*( torch.square(lj_x) - lj_x )
-    g2 = 12/CURR_PARS[cfun.f3_S_ID]*( 2*torch.square(lj_x)-lj_x )
+    g2 = 12/CURR_PARS[cfun.f3_R_ID]*( 2*torch.square(lj_x)-lj_x )
 
-    CURR_PARS[cfun.f3_RC_ID] = g1/g2
+    CURR_PARS[cfun.f3_RC_ID] = g1/g2 + CURR_PARS[cfun.f3_R_ID]
     CURR_PARS[cfun.f3_B_ID] = torch.square(g2)/g1
 
     #f4
