@@ -98,11 +98,12 @@ protected:
      * - list of repulsion point ids
      * - state size
      */
-    using ParticleType = std::tuple<int, std::vector<int>, std::vector<int>, int>;
+    using ParticleType = std::tuple<int, int, std::vector<int>, std::vector<int>, int>;
 #define PTYPE_ID  0
-#define PTYPE_PATCH_IDS  1
-#define PTYPE_REP_PTS 2
-#define PTYPE_STATE_SIZE 3
+#define PTYPE_INST_COUNT 1
+#define PTYPE_PATCH_IDS  2
+#define PTYPE_REP_PTS 3
+#define PTYPE_STATE_SIZE 4
 
     // repulsion points
     std::vector<RepulsionPoint> m_RepulsionPoints;

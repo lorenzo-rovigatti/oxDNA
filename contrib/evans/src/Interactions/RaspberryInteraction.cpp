@@ -15,9 +15,7 @@ RaspberryInteraction::RaspberryInteraction()  : BaseInteraction(){
     // this will depend somewhat on inputs
 }
 
-RaspberryInteraction::~RaspberryInteraction() {
-
-}
+RaspberryInteraction::~RaspberryInteraction() = default;
 
 /**
  * function to allocate particles
@@ -50,17 +48,18 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
         // ordering of interaction centers is important!
         // first we do patches, as pairs of position, a1
         // then repuslive spheres!
-        int num_int_centers = std::get<PTYPE_REP_PTS>(m_ParticleTypes[i_type]).size() + 2*std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type]).size();
+        const ParticleType& particleType = m_ParticleTypes[i_type];
+        int num_int_centers = std::get<PTYPE_REP_PTS>(particleType).size() + 2*std::get<PTYPE_PATCH_IDS>(particleType).size();
         particles[i]->int_centers.resize(num_int_centers);
         // use same indexer for repulsion points & patches
         int j = 0;
 
-        for (; j < 2*std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type]).size(); j += 2){
+        for (; j < 2*std::get<PTYPE_PATCH_IDS>(particleType).size(); j += 2){
             // two "int centers" for each patch: position and a1
             int idx = j /2 ;
-            assert(idx < std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type]).size());
-            int iPatch = std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type])[idx];
-            assert(iPatch < m_PatchesTypes.size());
+            assert(idx < std::get<PTYPE_PATCH_IDS>(particleType).size());
+            int iPatch = std::get<PTYPE_PATCH_IDS>(particleType)[idx];
+            assert(-1 < iPatch && iPatch < m_PatchesTypes.size());
             // assign position from patch info
             particles[i]->int_centers[j] = std::get<1>(m_PatchesTypes[iPatch]);
             // assign a1 from patch info
@@ -69,8 +68,8 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
 
         for (; j < num_int_centers; j++){
             // get index of info in m_RepulsionPoints
-            int idx = j - 2*std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type]).size();
-            int iRepulsionPoint = std::get<PTYPE_REP_PTS>(m_ParticleTypes[i_type])[idx];
+            int idx = j - 2 * std::get<PTYPE_PATCH_IDS>(particleType).size();
+            int iRepulsionPoint = std::get<PTYPE_REP_PTS>(particleType)[idx];
             assert(iRepulsionPoint < m_RepulsionPoints.size());
             // set int center to repulsion point position
             particles[i]->int_centers[j] = std::get<1>(m_RepulsionPoints[iRepulsionPoint]);
@@ -79,21 +78,22 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
         // init interaction runtime variables
         // particle states
         // todo: at some point we will need to be able to load these from somewhere
-        m_ParticleStates[i].resize(std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[i_type]));
+        m_ParticleStates[i].resize(std::get<PTYPE_STATE_SIZE>(particleType));
         m_ParticleStates[i][0] = true;
         for (int ii = 1; ii < m_ParticleStates[i].size(); ii++){
             m_ParticleStates[i][ii] = false;
         }
-
-        m_PatchyBonds[i].resize(std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[i_type]).size());
+        assert(i < m_PatchyBonds.size());
+        m_PatchyBonds[i].resize(std::get<PTYPE_PATCH_IDS>(particleType).size());
         // for each patch
-        for (int ii = 0; ii < m_PatchyBonds.size(); ii++){
+        for (int ii = 0; ii < m_PatchyBonds[i].size(); ii++){
             // ParticlePatch = {-1, -1} means no bond
+            assert(ii < m_PatchyBonds[i].size());
             m_PatchyBonds[i][ii] = {-1, -1};
         }
 
         type_count++;
-        if (type_count == std::get<0>(m_ParticleTypes[i_type])){
+        if (type_count == std::get<PTYPE_INST_COUNT>(particleType)){
             i_type++;
             type_count = 0;
         }
@@ -291,12 +291,14 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
         std::stringstream ss(particle_type_lines[i].substr(2, particle_type_lines[i].size()-2));
         int iParticleType;
         std::string patch_id_strs, interaction_pt_id_strs;
-        if (!(ss >> iParticleType >> std::get<0>(m_ParticleTypes[iParticleType]) >> patch_id_strs >> interaction_pt_id_strs)){
+        if (!(ss >> iParticleType >> std::get<PTYPE_INST_COUNT>(m_ParticleTypes[iParticleType]) >> patch_id_strs >> interaction_pt_id_strs)){
             throw oxDNAException("Invalid particle type str `" + particle_type_lines[i] + "`!");
         }
         if (iParticleType >= m_ParticleTypes.size()){
             throw oxDNAException("Invalid particle type ID %d", iParticleType);
         }
+        // assign particle type
+        std::get<PTYPE_ID>(m_ParticleTypes[iParticleType]) = iParticleType;
         std::vector<std::string> patch_id_strs_list = Utils::split(patch_id_strs,',');
         std::vector<std::string> int_pt_strs_list = Utils::split(interaction_pt_id_strs,',');
         // process patch IDs
@@ -312,6 +314,13 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
             std::get<PTYPE_REP_PTS>(m_ParticleTypes[iParticleType]).push_back(repulsionPt);
         }
         // TODO: operations
+        int iStateSize;
+        // state size is optional
+        if (ss >> iStateSize){
+            std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = iStateSize;
+        } else {
+            std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = 1;
+        }
     }
 
     // todo: read operations
@@ -323,11 +332,9 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
     // todo: load manually defined color interactions
     // define color interactions
     for (int pi = 0; pi < m_PatchesTypes.size(); pi++){
-        assert(std::get<0>(m_ParticleTypes[pi]) == pi);
         int pi_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pi]);
         number pi_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]);
         for (int pj = 0; pj < m_PatchesTypes.size(); pj++){
-            assert(std::get<0>(m_ParticleTypes[pj]) == pj);
             int pj_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pj]);
             // use petr + flavio version of default color interactions
             number pj_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pj]);
@@ -448,7 +455,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             qqidx = std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq];
             // lookup r-max squared
             // todo: probably possible to precompute these to save a little time
-            number rmax_dist_sqr = SQR(std::get<2>(m_RepulsionPoints[ppidx]) + std::get<2>(m_RepulsionPoints[ppidx])) * 1.2;
+            number rmax_dist_sqr = SQR(std::get<2>(m_RepulsionPoints[ppidx]) + std::get<2>(m_RepulsionPoints[qqidx])) * 1.2;
 //          number rmax_dist_sqr = get_r_max_sqr(ppidx, qqidx);
 
             LR_vector rep_pts_dist = _computed_r + qpos - ppos;
@@ -571,8 +578,6 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
                     LR_vector qpatch_a1 = getParticlePatchAlign(q, qpatch_idx);
                     LR_vector ppatch_a1 = getParticlePatchAlign(p, ppatch_idx);
 
-
-
                     number r_p = sqrt(patch_dist_sqr);
                     number sigma_ss = std::get<PP_INT_SIGMA_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
                     number rcut_ss = std::get<PP_INT_RCUT_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
@@ -648,7 +653,7 @@ bool RaspberryInteraction::patches_can_interact(BaseParticle *p,
     if (!patch_is_active(q, qpatch_type)){
         return false;
     }
-    if (patch_bound(p, ppatch_idx) && patch_bound_to(p, ppatch_idx) != std::pair<int,int>(q->index, qpatch_idx))){
+    if (patch_bound(p, ppatch_idx) && patch_bound_to(p, ppatch_idx) != std::pair<int,int>(q->index, qpatch_idx)){
         return false;
     }
     // if q patch is already locked (we can assume if it's locked, it's not to p patch)
