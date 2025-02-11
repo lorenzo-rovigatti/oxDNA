@@ -138,7 +138,8 @@ LR_vector RaspberryInteraction::getParticlePatchAlign(BaseParticle *p, int patch
 LR_vector RaspberryInteraction::getParticleInteractionSitePosition(BaseParticle *p, int int_site_idx) {
     ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
     // interaction sites are listed after the patch geometry
-    return p->int_centers[int_site_idx + 2 * std::get<PTYPE_REP_PTS>(*particleType).size() ];
+    int idx = int_site_idx + 2 * std::get<PTYPE_PATCH_IDS>(*particleType).size();
+    return p->int_centers[idx];
 }
 
 number RaspberryInteraction::pair_interaction(BaseParticle *p,
@@ -455,69 +456,72 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             qqidx = std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq];
             // lookup r-max squared
             // todo: probably possible to precompute these to save a little time
-            number rmax_dist_sqr = SQR(std::get<2>(m_RepulsionPoints[ppidx]) + std::get<2>(m_RepulsionPoints[qqidx])) * 1.2;
+            rsum = std::get<REPULSION_DIST>(m_RepulsionPoints[ppidx]) + std::get<REPULSION_DIST>(m_RepulsionPoints[qqidx]);
+
+            // compute square of radial cutoff
+            // for reasons i don't fully get, radial cutoff is *slightly* less than 1.0
+            number rmax_dist_sqr = SQR(rsum * PLEXCL_RC) ;
 //          number rmax_dist_sqr = get_r_max_sqr(ppidx, qqidx);
 
             LR_vector rep_pts_dist = _computed_r + qpos - ppos;
+            // distance-squared between the two repulsion pts
             number rep_pts_dist_sqr = rep_pts_dist.norm();
             // if the distance between the two interaction points is greater than the cutoff
+            // we (josh speculating) set the cutoff JUST below 1 (where lj(1) = 0) to make calculations nicer
             if (rep_pts_dist_sqr < rmax_dist_sqr) {
                 // unlike in other impls our model does not assume repulsive spheres have radius=0.5
                 // r-factor = the sum of the radii of the repulsive interaction spheres, minus 1
-                rsum = std::get<2>(m_RepulsionPoints[ppidx]) + std::get<2>(m_RepulsionPoints[ppidx]);
 
                 // we use a Lennard Jones function with quadatic smoothin
                 // sigma
                 sigma = PLEXCL_S;
 
-                // radial cutoff
-                rc = PLEXCL_RC * rep_pts_dist_sqr;
+                // radial cutoff - acct for actual distance sum
+                rc = PLEXCL_RC * rsum;
 
-                // if the normalized radius is less than the interaction cutoff
-                if (rep_pts_dist_sqr < SQR(rc)) {
-                    // is this even correct??
-                    b = PLEXCL_B / rsum;
-                    // compute quadratic smoothing cutoff rstar
-                    rstar = PLEXCL_R * rsum;
-                    // if r is less than rstar, use the lennard-jones equation
-                    if(rep_pts_dist_sqr < SQR(rstar)) {
-                        // partial lennard-jones value
-                        number lj_partial = (sigma / (sqrt(rep_pts_dist_sqr) - rsum - 1));
-                        // lj partial = (sigma/r)^6
-                        lj_partial = lj_partial * lj_partial * lj_partial;
+                // if the radius-squared is less than the interaction cutoff
+                // is this even correct??
+                b = PLEXCL_B / rsum;
+                // compute quadratic smoothing cutoff rstar
+                rstar = PLEXCL_R * rsum;
+                // if r is less than rstar, use the lennard-jones equation
+                if(rep_pts_dist_sqr < SQR(rstar)) {
+                    // partial lennard-jones value
+                    number lj_partial = (sigma / (sqrt(rep_pts_dist_sqr) - rsum - 1));
+                    // lj partial = (sigma/r)^6
+                    lj_partial = lj_partial * lj_partial * lj_partial;
 
-                        // compute lennard-jones interaction energy
-                        e_lj = 8 * (lj_partial * lj_partial - lj_partial);
-                        // update energy
-                        energy += e_lj;
-                        if(update_forces) {
-                            // compute forces
-                            // i really hope this is correct
-                            force = -rep_pts_dist * (24 * PLEXCL_EPS * (lj_partial - 2 * SQR(lj_partial)) / rep_pts_dist_sqr);
-                        }
+                    // compute lennard-jones interaction energy
+                    e_lj = 8 * (lj_partial * lj_partial - lj_partial);
+                    // update energy
+                    energy += e_lj;
+                    if(update_forces) {
+                        // compute forces
+                        // i really hope this is correct
+                        force = -rep_pts_dist * (24 * PLEXCL_EPS * (lj_partial - 2 * SQR(lj_partial)) / rep_pts_dist_sqr);
                     }
-                    else {
-                        // if r > rstar, use quadratic smoothing
-                        // Vsmooth = b(xc - x)^2
-                        // actual distance value, computed by taking the square root of rsquared
-                        r_patch = sqrt(rep_pts_dist_sqr);
-                        number rrc = r_patch - rc;
-                        energy += PLEXCL_EPS * b * SQR(rrc);
-                        if(update_forces) force = -rep_pts_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
-                    }
+                }
+                else {
+                    // if r > rstar, use quadratic smoothing
+                    // Vsmooth = b(xc - x)^2
+                    // actual distance value, computed by taking the square root of rsquared
+                    r_patch = sqrt(rep_pts_dist_sqr);
+                    number rrc = r_patch - rc;
+                    energy += PLEXCL_EPS * b * SQR(rrc);
+                    if(update_forces) force = -rep_pts_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
+                }
 
-                    if (update_forces){
-                        // update particle force vectors
-                        p->force -= force;
-                        q->force += force;
-                        // compute torques
-                        // i grabbed this eqn from Lorenzo's code
-                        p_torque = -p->orientationT * ppos.cross(force);
-                        q_torque =  q->orientationT * qpos.cross(force);
-                        // update particle torque vectors
-                        p->torque += p_torque;
-                        q->torque += q_torque;
-                    }
+                if (update_forces){
+                    // update particle force vectors
+                    p->force -= force;
+                    q->force += force;
+                    // compute torques
+                    // i grabbed this eqn from Lorenzo's code
+                    p_torque = -p->orientationT * ppos.cross(force);
+                    q_torque =  q->orientationT * qpos.cross(force);
+                    // update particle torque vectors
+                    p->torque += p_torque;
+                    q->torque += q_torque;
                 }
                 // if the radius is greater than the cutoff, we can just ignore it
             }

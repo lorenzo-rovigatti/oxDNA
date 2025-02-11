@@ -16,6 +16,7 @@
 #define PLEXCL_S   1.0f
 #define PLEXCL_R   0.9053f
 #define PLEXCL_B   677.505671539f
+// cutoff for repulsive interaction. if r ^ 2 < ((r1+r2) * PLEXCL_RC) ^ 2, will calculate
 #define PLEXCL_RC  0.99888f
 #define PLEXCL_EPS 2.0f
 
