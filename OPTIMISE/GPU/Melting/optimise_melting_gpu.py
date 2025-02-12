@@ -809,7 +809,7 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':20000,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':400,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

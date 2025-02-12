@@ -62,7 +62,7 @@ def read_config(cfile_name) :
         tfile = open("in_Ts.txt",'r')
         Ts_lines = tfile.readlines()
 
-    checklist = np.zeros(12, dtype = int) #check if some mandatory parameters are missing
+    checklist = np.zeros(16, dtype = int) #check if some mandatory parameters are missing
 
     Seq_counter_n5 = -1
     Ts_index_n5 = -1
@@ -436,7 +436,51 @@ def read_config(cfile_name) :
                 cg.symm_stck = True
             else :
                 cg.symm_stck = False
-                checklist[9] = 1
+            checklist[9] = 1
+
+        if(vals[0] == "read_energy_from_file") :
+            if vals[1] == "True" :
+                cg.read_energy_from_file = True
+            elif vals[1] == "False" :
+                cg.read_energy_from_file = False
+            else:
+                print("Could not understand option for read_energy_from_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.read_energy_from_file))
+            checklist[10] = 1
+
+        if(vals[0] == "read_coords_from_file") :
+            if vals[1] == "True" :
+                cg.read_coords_from_file = True
+            elif vals[1] == "False" :
+                cg.read_coords_from_file = False
+            else:
+                print("Could not understand option for read_coords_from_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.read_coords_from_file))
+            checklist[11] = 1
+
+        if(vals[0] == "print_energy_to_file") :
+            if vals[1] == "True" :
+                cg.print_energy_to_file = True
+            elif vals[1] == "False" :
+                cg.print_energy_to_file = False
+            else:
+                print("Could not understand option for print_energy_to_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.print_energy_to_file))
+            checklist[12] = 1
+
+        if(vals[0] == "print_coords_to_file") :
+            if vals[1] == "True" :
+                cg.print_coords_to_file = True
+            elif vals[1] == "False" :
+                cg.print_coords_to_file = False
+            else:
+                print("Could not understand option for print_coords_to_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.print_coords_to_file))
+            checklist[13] = 1
 
     cfile.close()
     if cg.first_step_flag == False:
@@ -621,6 +665,38 @@ def read_config(cfile_name) :
         print("If you want to break the AA/TT symmetry,")
         print("Usage:")
         print("SYMM_STCK 1")
+
+    if checklist[10] == 1:
+        print("Read energy from file = "+str(cg.read_energy_from_file))
+    else :
+        print("OPTION. Reading energy from trajectory")
+        print("If you want to read from file:")
+        print("Usage:")
+        print("read_energy_from_file True")
+
+    if checklist[11] == 1:
+        print("Read coords from file = "+str(cg.read_coords_from_file))
+    else :
+        print("OPTION. Reading coords from trajectory")
+        print("If you want to read from file:")
+        print("Usage:")
+        print("read_coords_from_file True")
+
+    if checklist[12] == 1:
+        print("Print energy to file = "+str(cg.print_energy_to_file))
+    else :
+        print("OPTION. Printing energy to file disabled")
+        print("If you want to print to file:")
+        print("Usage:")
+        print("print_energy_to_file True")
+
+    if checklist[13] == 1:
+        print("Print coords to file = "+str(cg.print_coords_to_file))
+    else :
+        print("OPTION. Printing coordinates to file disabled")
+        print("If you want to print to file:")
+        print("Usage:")
+        print("print_coords_to_file True")
 
     return True
 
