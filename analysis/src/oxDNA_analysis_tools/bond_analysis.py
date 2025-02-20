@@ -6,6 +6,7 @@ from json import dump
 import numpy as np
 import matplotlib.pyplot as plt
 import oxpy
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_input_parameter
@@ -138,7 +139,7 @@ def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, desi
     plt.ylabel('Number of Bonds')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(plotname)
+    plt.savefig(plotname, dpi=FIG_DPI)
     return
 
 def cli_parser(prog="bond_analysis.py"):

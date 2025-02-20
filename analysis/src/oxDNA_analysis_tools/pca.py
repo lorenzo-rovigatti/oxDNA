@@ -9,6 +9,7 @@ from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.config import check
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
@@ -71,7 +72,7 @@ def make_heatmap(covariance:np.ndarray):
     b = fig.colorbar(a, ax=ax)
     b.set_label("covariance", rotation = 270)
     plt.tight_layout()
-    plt.savefig("heatmap.png")
+    plt.savefig("heatmap.png", dpi=FIG_DPI)
 
 
 def compute_cov(ctx:ComputeContext_cov, chunk_size:int, chunk_id:int):
@@ -147,7 +148,7 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
     plt.xlabel("component")
     plt.ylabel("eigenvalue")
     plt.tight_layout()
-    plt.savefig("scree.png")
+    plt.savefig("scree.png", dpi=FIG_DPI)
 
     total = sum(evalues)
     running = 0
@@ -218,7 +219,7 @@ def main():
     ax = fig.add_subplot(projection='3d')
     ax.scatter(coordinates[:,0], coordinates[:,1], coordinates[:,2], c='g', s=25)
     plt.tight_layout()
-    plt.savefig("coordinates2.png")
+    plt.savefig("coordinates2.png", dpi=FIG_DPI)
 
     #Create an oxView overlays for the first N components
     if args.N:

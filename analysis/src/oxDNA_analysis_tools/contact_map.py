@@ -4,6 +4,7 @@ import argparse
 import matplotlib.pyplot as plt
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
@@ -106,7 +107,7 @@ def main():
     b.set_label("distance (nm)", rotation = 270, labelpad=15)
     plt.tight_layout()
     log("Saving contact map to '{}'".format(graph_name))
-    plt.savefig(graph_name)
+    plt.savefig(graph_name, dpi=FIG_DPI)
 
     # Save the contact map as a pickle
     if args.data:

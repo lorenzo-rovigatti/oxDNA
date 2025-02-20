@@ -9,6 +9,7 @@ from sklearn.cluster import DBSCAN
 from matplotlib import animation
 from json import dump, load
 from oxDNA_analysis_tools.config import check
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import TrajInfo, TopInfo
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, linear_read, conf_to_str, describe, write_conf
 
@@ -183,7 +184,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
         ax.add_artist(l)
         if not interactive_plot:
             plt.tight_layout()
-            plt.savefig(plot_file)
+            plt.savefig(plot_file, dpi=FIG_DPI)
             log("Saved cluster plot to {}".format(plot_file))
         else:
             plt.show()
