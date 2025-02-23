@@ -97,13 +97,14 @@ int TopologyParser::parse_old_topology(std::vector<BaseParticle *> &particles) {
 			p->btype = Utils::decode_base(base[0]);
 		}
 		else {
-			if(atoi(base) > 0) {
-				p->type = atoi(base) % 4;
+			int i_base = atoi(base);
+			if(i_base > 0) {
+				p->type = i_base % 4;
 			}
 			else {
-				p->type = 3 - ((3 - atoi(base)) % 4);
+				p->type = 3 - ((3 - i_base) % 4);
 			}
-			p->btype = atoi(base);
+			p->btype = i_base;
 		}
 
 		if(p->type == P_INVALID) {
