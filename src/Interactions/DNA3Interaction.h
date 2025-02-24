@@ -96,10 +96,6 @@ public:
 	number _excl_rc[7][5][5][5][5];
 
 	number MESH_F4_SD_POINTS[21][5][5][5][5];
-	
-	number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD[ty1][ty2][ty3][ty4]; }
-	number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD[ty1][ty2][ty3][ty4]; }
-	number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD[ty1][ty2][ty3][ty4]; }
 
         number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD[ty1][ty2][ty3][ty4]; }
         number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD[ty1][ty2][ty3][ty4]; }

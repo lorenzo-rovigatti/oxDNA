@@ -122,6 +122,18 @@ mkdir ${main_path}/Step0
 #copy parameters files
 cp ${main_path}/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/
 
+#sample confs for melting
+cd ${main_path}/Step0/
+cp ../input_MD_melting .
+cp ../sample_melting.sh .
+cp ../gen_seqs_n5.txt .
+cp ../gen_seqs_n8.txt .
+cp ../gen_seqs_n15.txt .
+bash sample_melting.sh 5 ${oxDNA_path}
+bash sample_melting.sh 8 ${oxDNA_path}
+bash sample_melting.sh 15 ${oxDNA_path}
+cd ..
+
 #setup and run repetitions for step 0
 for ((l=0; l < ${Nseq}; l++)); do
 	for ((j=0; j < ${Nreps};j++)); do
@@ -150,7 +162,7 @@ wait
 
 #optimise
 cd ${main_path}/Step0
-python ${opti_path}/optimise_geometry_gpu.py ../$config > OutOpti.log
+python ${opti_path}/optimise_geometry_gpu_wmelting.py ../$config > OutOpti.log
 
 #same as above, but for all the other steps
 #copy all necessary files form previous step and
@@ -163,6 +175,19 @@ for ((i=1; i < ${Nsteps}; i++)); do
 	#copy optimisation code
 	cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step${i}/
 	cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/oxDNA_sequence_dependent_parameters_in.txt	#copy output of optimse at previous step and make it the starting parameter files of this step
+
+        #sample confs for melting
+        cd ${main_path}/Step${i}/
+        cp ../input_MD_melting .
+        cp ../sample_melting.sh .
+        cp ../gen_seqs_n5.txt .
+        cp ../gen_seqs_n8.txt .
+        cp ../gen_seqs_n15.txt .
+        bash sample_melting.sh 5 ${oxDNA_path}
+        bash sample_melting.sh 8 ${oxDNA_path}
+        bash sample_melting.sh 15 ${oxDNA_path}
+        cd ..
+
 	for ((l=0; l < ${Nseq}; l++)); do
 		for ((j=0; j< ${Nreps};j++)); do
 			mkdir -p ${main_path}/Step${i}/Seq${l}/Rep${j}/
@@ -183,15 +208,13 @@ for ((i=1; i < ${Nsteps}; i++)); do
 			sed -i "s|seed = .*|seed = ${RANDOM}|g" input_MD
 			sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
 			sed -i "s|T = 300K|T = ${temperature}|g" input_MD
-			sed -i "s|conf_file = .*|conf_file = generated.dat|g" input_MD
-			${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
+                        ${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
 		done
 	done
 
         wait
 
-
 	cd ${main_path}/Step${i}
-	python ${opti_path}/optimise_geometry_gpu.py ../$config > OutOpti.log
+	python ${opti_path}/optimise_geometry_gpu_wmelting.py ../$config > OutOpti.log
 
 done

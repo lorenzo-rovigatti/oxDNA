@@ -55,32 +55,38 @@ def Vharmonic(x,x0):
 #Parse config file (read parameters)
 #Returns False if mandatory parameters are missing
 def read_config(cfile_name) :
-    
+
     cfile = open(cfile_name,'r')
-    
+
     if cg.first_step_flag == False:
         tfile = open("in_Ts.txt",'r')
         Ts_lines = tfile.readlines()
-    Ts_index = -1
-    
-    checklist = np.zeros(12, dtype = int) #check if some mandatory parameters are missing
-    
-    Seq_counter = -1
-    
+
+    checklist = np.zeros(16, dtype = int) #check if some mandatory parameters are missing
+
+    Seq_counter_n5 = -1
+    Ts_index_n5 = -1
+
+    Seq_counter_n8 = -1
+    Ts_index_n8 = -1
+
+    Seq_counter_n15 = -1
+    Ts_index_n15 = -1
+
     for line in cfile.readlines() :
         vals = line.split()
         if len(vals) == 0:
             continue
         if vals[0][0] == '#':
-            continue        
+            continue
         #print(vals)
-        
+
         #read sequence
         if(vals[0] == 'SEQ'):
-            
-            Seq_counter += 1            
-            Ts_index += 1
-            
+
+            #Seq_counter += 1
+            #Ts_index += 1
+
             if len(vals) != 9 :
                 print("Invalid SEQ sintax.")
                 print("Usage:")
@@ -92,35 +98,46 @@ def read_config(cfile_name) :
                 print("DT = DT between rew temperatures")
                 print("opfile = order param file")
                 print("wfile = weight_file")
-                return False            
-            
+                return False
+
             checklist[0] = 1
-            
+
             nbp = len(vals[1])
-            
+
             if nbp == 5:
+
+                Seq_counter_n5 += 1
+                Ts_index_n5 += 1
+
                 cg.seq_n5.append(vals[1])
                 cg.Njuns_n5.append(len(vals[1])-1)
-            
+
+                box = np.zeros(3)
+                box[0] = float(vals[2])
+                box[1] = float(vals[2])
+                box[2] = float(vals[2])
+
+                cg.boxes_n5.append(box)
+
                 Ct = 2./pow(float(vals[2]),3.)*2.6868
                 Cs = float(vals[3])
-            
-                cg.Ct_n5.append(Ct)            
+
+                cg.Ct_n5.append(Ct)
                 cg.Cs_n5.append(Cs)
 
-            	SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-            	SimT = 0
-            	if cg.first_step_flag == True:
-                	SimT = float(vals[4])     
-            	else:
-                	SimT = float(Ts_lines[Ts_index])
+                SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
+                SimT = 0
+                if cg.first_step_flag == True:
+                    SimT = float(vals[4])
+                else:
+                    SimT = float(Ts_lines[Ts_index])
 
                 cfun.target_Tms_n5.append(SLt)
-            
+
                 NT = int(vals[5])
                 DT = float(vals[6])
-            
-                cfun.sim_Ts_n5.append(SimT)            
+
+                cfun.sim_Ts_n5.append(SimT)
                 cfun.n_Ts_n5.append(NT)
 
 
@@ -129,9 +146,9 @@ def read_config(cfile_name) :
                 #if not, adjust DT
 
                 if Delta > NT*DT+16 :
-                
+
                     DT_new = (NT*Delta+16)/NT
-                
+
                     print("Warning: DT is too small to cover simulated T and target mT.")
                     print("SimT - Target T: " + str(SimT-SLt))
                     print("Enlarging DT to: " + str(DT_new))
@@ -145,75 +162,82 @@ def read_config(cfile_name) :
 
                 #T0 = (SimT-SLt)/2.
                 T0 = SimT
-            
+
                 rew_Ts = []
-                        
+
                 lr = 0
                 ur = 0
-            
+
                 if (NT)%2 == 0 :
                     lr = -int((NT)/2-1)
                     ur = int((NT)/2+1)
                 else :
                     lr = -int((NT-1)/2)
                     ur = int((NT-1)/2+1)
-                
-            
+
                 offset = 0.
                 if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
                     offset = -(DT*lr+T0-0.5)
                 if DT*ur+T0>100 :
                     offset = - (DT*ur+T0-100) - 0.5
-            
+
                 for l in range(lr,ur) :
                     rew_Ts.append( DT*l+T0  + offset)
-                
-                
+
                 cfun.rew_Ts_n5.append(rew_Ts)
-                
-            
+
                 #read weights
 
-                wfile = open("Seq"+str(Seq_counter)+"/Rep0/"+vals[8],'r')
-                cg.fin_wfiles.append("Seq"+str(Seq_counter)+"/"+vals[8])
-          
+                wfile = open("n5/Seq"+str(Seq_counter_n5)+"/Rep0/"+vals[8],'r')
+
                 weights = []
-            
+
                 for line in wfile.readlines() :
                     vals = line.split()
                     if len(vals) == 0:
                         continue
                     if vals[0][0] == '#':
-                        continue  
-                
+                        continue
+
                     weights.append(float(vals[1]))
-                
+
                 cfun.weights_n5 = weights
-                wfile.close()    
-                
+                wfile.close()
+
             elif nbp == 8:
+
+                Seq_counter_n8 += 1
+                Ts_index_n8 += 1
+
                 cg.seq_n8.append(vals[1])
                 cg.Njuns_n8.append(len(vals[1])-1)
-            
+
+                box = np.zeros(3)
+                box[0] = float(vals[2])
+                box[1] = float(vals[2])
+                box[2] = float(vals[2])
+
+                cg.boxes_n8.append(box)
+
                 Ct = 2./pow(float(vals[2]),3.)*2.6868
                 Cs = float(vals[3])
-            
-                cg.Ct_n8.append(Ct)            
+
+                cg.Ct_n8.append(Ct)
                 cg.Cs_n8.append(Cs)
 
-            	SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-            	SimT = 0
-            	if cg.first_step_flag == True:
-                	SimT = float(vals[4])     
-            	else:
-                	SimT = float(Ts_lines[Ts_index])
+                SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
+                SimT = 0
+                if cg.first_step_flag == True:
+                    SimT = float(vals[4])
+                else:
+                    SimT = float(Ts_lines[Ts_index])
 
                 cfun.target_Tms_n8.append(SLt)
-            
+
                 NT = int(vals[5])
                 DT = float(vals[6])
-            
-                cfun.sim_Ts_n8.append(SimT)            
+
+                cfun.sim_Ts_n8.append(SimT)
                 cfun.n_Ts_n8.append(NT)
 
 
@@ -222,9 +246,9 @@ def read_config(cfile_name) :
                 #if not, adjust DT
 
                 if Delta > NT*DT+16 :
-                
+
                     DT_new = (NT*Delta+16)/NT
-                
+
                     print("Warning: DT is too small to cover simulated T and target mT.")
                     print("SimT - Target T: " + str(SimT-SLt))
                     print("Enlarging DT to: " + str(DT_new))
@@ -238,90 +262,85 @@ def read_config(cfile_name) :
 
                 #T0 = (SimT-SLt)/2.
                 T0 = SimT
-            
+
                 rew_Ts = []
-                        
+
                 lr = 0
                 ur = 0
-            
+
                 if (NT)%2 == 0 :
                     lr = -int((NT)/2-1)
                     ur = int((NT)/2+1)
                 else :
                     lr = -int((NT-1)/2)
                     ur = int((NT-1)/2+1)
-                
-            
+
                 offset = 0.
                 if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
                     offset = -(DT*lr+T0-0.5)
                 if DT*ur+T0>100 :
                     offset = - (DT*ur+T0-100) - 0.5
-            
+
                 for l in range(lr,ur) :
                     rew_Ts.append( DT*l+T0  + offset)
-                
-                
+
                 cfun.rew_Ts_n8.append(rew_Ts)
-                
-            
+
                 #read weights
 
-                wfile = open("Seq"+str(Seq_counter)+"/Rep0/"+vals[8],'r')
-                cg.fin_wfiles.append("Seq"+str(Seq_counter)+"/"+vals[8])
-          
+                wfile = open("n8/Seq"+str(Seq_counter_n8)+"/Rep0/"+vals[8],'r')
+
                 weights = []
-            
+
                 for line in wfile.readlines() :
                     vals = line.split()
                     if len(vals) == 0:
                         continue
                     if vals[0][0] == '#':
-                        continue  
-                
+                        continue
+
                     weights.append(float(vals[1]))
-                
+
                 cfun.weights_n8 = weights
-                wfile.close() 
+                wfile.close()
+
+            """
 
             elif nbp == 15:
+
+                Seq_counter_n15 += 1
+                Ts_index_n15 += 1
+
                 cg.seq_n15.append(vals[1])
                 cg.Njuns_n15.append(len(vals[1])-1)
-            
+
+                box = np.zeros(3)
+                box[0] = float(vals[2])
+                box[1] = float(vals[2])
+                box[2] = float(vals[2])
+
+                cg.boxes_n15.append(box)
+
                 Ct = 2./pow(float(vals[2]),3.)*2.6868
                 Cs = float(vals[3])
-            
-                cg.Ct_n15.append(Ct)            
+
+                cg.Ct_n15.append(Ct)
                 cg.Cs_n15.append(Cs)
 
-            	SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-            	SimT = 0
-            	if cg.first_step_flag == True:
-                	SimT = float(vals[4])     
-            	else:
-                	SimT = float(Ts_lines[Ts_index])
+                SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
+                SimT = 0
+                if cg.first_step_flag == True:
+                    SimT = float(vals[4])
+                else:
+                    SimT = float(Ts_lines[Ts_index])
 
                 cfun.target_Tms_n15.append(SLt)
-            
+
                 NT = int(vals[5])
                 DT = float(vals[6])
-            
-                cfun.sim_Ts_n15.append(SimT)            
+
+                cfun.sim_Ts_n15.append(SimT)
                 cfun.n_Ts_n15.append(NT)
-
-
-                """
-                #Does the range of selected temperatures cover both simT and target T?
-                #if not, adjust DT
-
-                if Delta > NT*DT+16 :
-                
-                    DT_new = (NT*Delta+16)/NT
-                
-                    print("Warning: DT is too small to cover simulated T and target mT.")
-                    print("SimT - Target T: " + str(SimT-SLt))
-                    print("Enlarging DT to: " + str(DT_new))
-                """
 
                 #DT = DT_new
                 cfun.D_Ts_n15.append(DT)
@@ -331,58 +350,55 @@ def read_config(cfile_name) :
 
                 #T0 = (SimT-SLt)/2.
                 T0 = SimT
-            
+
                 rew_Ts = []
-                        
+
                 lr = 0
                 ur = 0
-            
+
                 if (NT)%2 == 0 :
                     lr = -int((NT)/2-1)
                     ur = int((NT)/2+1)
                 else :
                     lr = -int((NT-1)/2)
                     ur = int((NT-1)/2+1)
-                
-            
+
                 offset = 0.
                 if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
                     offset = -(DT*lr+T0-0.5)
                 if DT*ur+T0>100 :
                     offset = - (DT*ur+T0-100) - 0.5
-            
+
                 for l in range(lr,ur) :
                     rew_Ts.append( DT*l+T0  + offset)
-                
-                
+
                 cfun.rew_Ts_n15.append(rew_Ts)
-                
-            
+
                 #read weights
 
-                wfile = open("Seq"+str(Seq_counter)+"/Rep0/"+vals[8],'r')
-                cg.fin_wfiles.append("Seq"+str(Seq_counter)+"/"+vals[8])
-          
+                wfile = open("n15/Seq"+str(Seq_counter_n15)+"/Rep0/"+vals[8],'r')
+
                 weights = []
-            
+
                 for line in wfile.readlines() :
                     vals = line.split()
                     if len(vals) == 0:
                         continue
                     if vals[0][0] == '#':
-                        continue  
-                
+                        continue
+
                     weights.append(float(vals[1]))
-                
+
                 cfun.weights_n15 = weights
-                wfile.close()       
-            
-                
+                wfile.close()
+
+        """
+
         #read snapshots to discard (equilibration)
         if(vals[0] == "IN_SNAP") :
-            cg.in_snap = int(vals[1]) 
+            cg.in_snap = int(vals[1])
             checklist[1] = 1
-            
+
         #read how many replicas
         if(vals[0] == "REPS") :
             cg.Nreps = int(vals[1])
@@ -393,45 +409,89 @@ def read_config(cfile_name) :
             #print(vals)
             cfun.add_opti_par(vals[1])
             checklist[3] = 1
-                
+
         if(vals[0] == "ALGO") :
             cg.algo = vals[1]
             checklist[4] = 1
-            
+
         if(vals[0] == "MAXITER") :
             cg.miter = int(vals[1])
             checklist[5] = 1
-            
+
         if(vals[0] == "NEVA") :
             cg.neva = int(vals[1])
             checklist[6] = 1
-            
+
         if(vals[0] == "LBFGSB_EPS") :
             cg.LBFGSB_eps = float(vals[1])
-            checklist[7] = 1            
-            
+            checklist[7] = 1
+
         if(vals[0] == "LBFGSB_IPRINT") :
             cg.LBFGSB_iprint = int(vals[1])
             checklist[8] = 1
-            
+
         #symm stacking default = True
         if(vals[0] == "SYMM_STCK") :
             if int(vals[1]) == 0 :
                 cg.symm_stck = True
             else :
                 cg.symm_stck = False
-                checklist[9] = 1
-    
+            checklist[9] = 1
+
+        if(vals[0] == "read_energy_from_file") :
+            if vals[1] == "True" :
+                cg.read_energy_from_file = True
+            elif vals[1] == "False" :
+                cg.read_energy_from_file = False
+            else:
+                print("Could not understand option for read_energy_from_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.read_energy_from_file))
+            checklist[10] = 1
+
+        if(vals[0] == "read_coords_from_file") :
+            if vals[1] == "True" :
+                cg.read_coords_from_file = True
+            elif vals[1] == "False" :
+                cg.read_coords_from_file = False
+            else:
+                print("Could not understand option for read_coords_from_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.read_coords_from_file))
+            checklist[11] = 1
+
+        if(vals[0] == "print_energy_to_file") :
+            if vals[1] == "True" :
+                cg.print_energy_to_file = True
+            elif vals[1] == "False" :
+                cg.print_energy_to_file = False
+            else:
+                print("Could not understand option for print_energy_to_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.print_energy_to_file))
+            checklist[12] = 1
+
+        if(vals[0] == "print_coords_to_file") :
+            if vals[1] == "True" :
+                cg.print_coords_to_file = True
+            elif vals[1] == "False" :
+                cg.print_coords_to_file = False
+            else:
+                print("Could not understand option for print_coords_to_file.")
+                print("Alternatives are True or False")
+                print("Setting it to "+ str(cg.print_coords_to_file))
+            checklist[13] = 1
+
     cfile.close()
     if cg.first_step_flag == False:
         tfile.close()
 
     #CHECK AND PRINT
-    
+
     if checklist[0] == 1:
-        
+
         cg.Nseq_n5 = len(cg.seq_n5)
-        
+
         print("NBPS = 5")
         for i in range(cg.Nseq_n5):
                 print("SEQUENCE " + str(i) + ": "+cg.seq_n5[i])
@@ -439,24 +499,24 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n5[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n5[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n5[i]) + " M")
-                
+
                 string = ""
-                
+
                 for l in range(len(cfun.rew_Ts_n5[i])) :
-                                       
+
                     string = string + str(cfun.rew_Ts_n5[i][l]) + " "
-                    
+
                 print("Reweighted temperatures: " + string)
-                
+
                 string = ""
-                
-                for l in range(len(cfun.weights_n5[i])) :
-                    string = string + str(cfun.weights_n5[i][l]) + " "
-                    
+
+                for l in range(len(cfun.weights_n5)) :
+                    string = string + str(cfun.weights_n5[l]) + " "
+
                 print("Weights: " +  string)
-                
+
         cg.Nseq_n8 = len(cg.seq_n8)
-        
+
         print("NBPS = 8")
         for i in range(cg.Nseq_n8):
                 print("SEQUENCE " + str(i) + ": "+cg.seq_n8[i])
@@ -464,24 +524,24 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n8[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n8[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n8[i]) + " M")
-                
+
                 string = ""
-                
+
                 for l in range(len(cfun.rew_Ts_n8[i])) :
-                                       
+
                     string = string + str(cfun.rew_Ts_n8[i][l]) + " "
-                    
+
                 print("Reweighted temperatures: " + string)
-                
+
                 string = ""
-                
-                for l in range(len(cfun.weights_n8[i])) :
-                    string = string + str(cfun.weights_n8[i][l]) + " "
-                    
+
+                for l in range(len(cfun.weights_n8)) :
+                    string = string + str(cfun.weights_n8[l]) + " "
+
                 print("Weights: " +  string)
-                
-    cg.Nseq_n15 = len(cg.seq_n15)
-        
+
+        cg.Nseq_n15 = len(cg.seq_n15)
+
         print("NBPS = 15")
         for i in range(cg.Nseq_n15):
                 print("SEQUENCE " + str(i) + ": "+cg.seq_n15[i])
@@ -489,30 +549,28 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n15[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n15[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n15[i]) + " M")
-                
+
                 string = ""
-                
+
                 for l in range(len(cfun.rew_Ts_n15[i])) :
-                                       
+
                     string = string + str(cfun.rew_Ts_n15[i][l]) + " "
-                    
+
                 print("Reweighted temperatures: " + string)
-                
+
                 string = ""
-                
-                for l in range(len(cfun.weights_n15[i])) :
-                    string = string + str(cfun.weights_n15[i][l]) + " "
-                    
+
+                for l in range(len(cfun.weights_n15)) :
+                    string = string + str(cfun.weights_n15[l]) + " "
+
                 print("Weights: " +  string)
-                            
-                
+
     else:
         print("MANDATORY. Sequences missing from input file.")
         print("Usage:")
         print("SEQ seq")
         return False
-    
-            
+
     if checklist[1] == 1:
         print("INITIAL SNAPSHOT: "+str(cg.in_snap))
         print("Ignoring all sampled snapshopts < "+ str(cg.in_snap) +" in the optimisation.")
@@ -520,21 +578,21 @@ def read_config(cfile_name) :
         print("OPTION. No in snapshot specified. Using all snapshots (is the trajectory equilibrated?).")
         print("Usage:")
         print("IN_SNAP in_snap")
-        
+
     if checklist[2] == 1:
         print("NUMBER OF REPETITIONS: "+str(cg.Nreps))
     else :
         print("OPTION. No Nreps specified. Running only one simulation replica.")
         print("Usage:")
         print("IN_SNAP in_snap")
-        
-        
+
     if checklist[3] == 1:
-        
+
         print("PARAMETERS used in the optimisation: ")
-        print("OPTIMISE - "+str(cg.par_dimension)+":")    
-       
-        
+        print("# id type (base 10)")
+        for l in range(len(cfun.OPT_PAR_LIST)) :
+            print(cfun.OPT_PAR_LIST[l])
+
     else :
         print("MANDATORY. No parameters for optimisation specified.")
         print("Usage. For optimisation parameters:")
@@ -545,10 +603,9 @@ def read_config(cfile_name) :
         print("cname par_name1 CONTINUITY value")
         print("cname par_name2 CONTINUITY value")
         print("...")
-        
+
         return False
-        
-        
+
     if checklist[4] == 1:
         print("Optimisation algorithm selected: "+str(cg.algo))
     else :
@@ -566,9 +623,8 @@ def read_config(cfile_name) :
         print("Options:")
         print("NEVA neva")
         print("LBFGSB_EPS eps (default 0.01)")
-        print("LBFGSB_IPRINT iprint (default 1)")        
-        
-        
+        print("LBFGSB_IPRINT iprint (default 1)")
+
     if checklist[5] == 1:
         print("MAX number of ITERATIONS of the optimisation algorithm: "+str(cg.miter))
     else :
@@ -577,7 +633,6 @@ def read_config(cfile_name) :
         print("Usage:")
         print("MAXITER miter")
 
-        
     if checklist[6] == 1:
         print("MAX number of function evaluations of the optimisation algorithm: "+str(cg.neva))
     else :
@@ -594,7 +649,7 @@ def read_config(cfile_name) :
             print("Note: it might be that MAX number of iterations is used, instead")
             print("Usage:")
             print("LBFGSB_EPS eps")
-            
+
         if checklist[8] == 1:
             print("iprint for L-BFGS-B algorithm: "+str(cg.LBFGSB_iprint))
         else :
@@ -602,17 +657,49 @@ def read_config(cfile_name) :
             print("Note: it might be that MAX number of iterations is used, instead")
             print("Usage:")
             print("LBFGSB_iprint iprint")
-            
+
     if checklist[9] == 1:
         print("Breaking stacking symmetry (AA/TT only)")
     else :
         print("OPTION. Using symmetric stacking.")
         print("If you want to break the AA/TT symmetry,")
         print("Usage:")
-        print("SYMM_STCK 1")            
-            
-    
+        print("SYMM_STCK 1")
+
+    if checklist[10] == 1:
+        print("Read energy from file = "+str(cg.read_energy_from_file))
+    else :
+        print("OPTION. Reading energy from trajectory")
+        print("If you want to read from file:")
+        print("Usage:")
+        print("read_energy_from_file True")
+
+    if checklist[11] == 1:
+        print("Read coords from file = "+str(cg.read_coords_from_file))
+    else :
+        print("OPTION. Reading coords from trajectory")
+        print("If you want to read from file:")
+        print("Usage:")
+        print("read_coords_from_file True")
+
+    if checklist[12] == 1:
+        print("Print energy to file = "+str(cg.print_energy_to_file))
+    else :
+        print("OPTION. Printing energy to file disabled")
+        print("If you want to print to file:")
+        print("Usage:")
+        print("print_energy_to_file True")
+
+    if checklist[13] == 1:
+        print("Print coords to file = "+str(cg.print_coords_to_file))
+    else :
+        print("OPTION. Printing coordinates to file disabled")
+        print("If you want to print to file:")
+        print("Usage:")
+        print("print_coords_to_file True")
+
     return True
+
 
 
  ###################################################################################################
@@ -830,9 +917,9 @@ def find_cuts_for_lists(OXPS_zero) :
         if OXPS_zero[par_index[123]][j] < rcut_low:
             rcut_low = OXPS_zero[par_index[123]][j]
 
-    #+-0.2 because we are changing crst
-    rcut_high = rcut_high + 0.2
-    rcut_low = rcut_low - 0.2
+    #we are not changing crst, so we don't have to increase the range
+    rcut_high = rcut_high
+    rcut_low = rcut_low
 
     return rcut_low , rcut_high
 
@@ -868,7 +955,7 @@ class nucleotide :
         self.hydr = C + pos_hydr[t]*BV
 
 
-def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file):
+def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file, box):
 
     rcut_sq_high = rcut_high*rcut_high
     rcut_sq_low = rcut_low*rcut_low
@@ -960,10 +1047,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     #bonded basepairs
                     #find pairs and tetramer type
                     for i in range(len(topology)) :
-                        ty0 = 0
-                        ty1 = 0
-                        ty2 = 0
-                        ty3 = 0
+                        ty0 = 1
+                        ty1 = 1
+                        ty2 = 1
+                        ty3 = 1
                         if topology[i].up_id == -1: continue
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
@@ -979,15 +1066,13 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                                ty2 = base_to_id(topology[j].base_type)
                                n2 = config[j]
                                if topology[j].up_id == -1:
-                                   ty3 = ty0
+                                   break
                                else:
                                    for z in range(len(topology)) :
                                        if topology[z].id == topology[j].up_id:
                                           ty3 = base_to_id(topology[z].base_type)
                                           break
                                break
-                        if topology[i].down_id == -1:
-                            ty0 = ty3
 
                         ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
 
@@ -1032,13 +1117,15 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     types_unbn_1conf_55 = []
 
                     #UNDBONDED
+                    #out_string = ""
                     for i in range(len(topology)) :
-                        ty0_33 = 0
-                        ty0_55 = 0
-                        ty1 = 0
-                        ty2 = 0
-                        ty3_33 = 0
-                        ty3_55 = 0
+                        #out_string += " " + str(topology[i].id)
+                        ty0_33 = 1
+                        ty0_55 = 1
+                        ty1 = 1
+                        ty2 = 1
+                        ty3_33 = 1
+                        ty3_55 = 1
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
@@ -1048,29 +1135,49 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                               ty0_33 = base_to_id(topology[z].base_type)
 
                         for j in range(len(topology)) :
+
+                            #min image to take care of duplexes with strands on different images
+                            #this can happen in melting simulations since a duplex can melt and then reform
+                            min_im_v = np.zeros(3)
+
+                            min_im_v[0] = round((n1.c[0]-n2.c[0])/box[0])*box[0]
+                            min_im_v[1] = round((n1.c[1]-n2.c[1])/box[1])*box[1]
+                            min_im_v[2] = round((n1.c[2]-n2.c[2])/box[2])*box[2]
+
                             n2 = config[j]
-                            if np.dot(n1.hydr - n2.hydr, n1.hydr - n2.hydr) < rcut_sq_low: continue #verlet cutoff
-                            if np.dot(n1.hydr - n2.hydr, n1.hydr - n2.hydr) > rcut_sq_high: continue #verlet cutoff
+
+                            hyv = n1.hydr - n2.hydr - min_im_v
+                            hydist = np.linalg.norm(hyv)
+                            hydist2 = hydist*hydist
+                            if hydist2 < rcut_sq_low: continue #verlet cutoff
+                            if hydist2 > rcut_sq_high: continue #verlet cutoff
                             if topology[j].id <= topology[i].id: continue #ordered ids (avoid pairs repetition)
                             if topology[j].id == topology[i].down_id or topology[j].id == topology[i].up_id: continue #no bonded pairs
 
+                            #out_string += str(topology[j].id)
+
                             ty2 = base_to_id(topology[j].base_type)
 
-                            if topology[j].up_id == -1:
-                               ty3_33 = 0
-                            if topology[j].down_id == -1:
-                               ty3_55 = 0
-                            else:
+                            # if topology[j].up_id == -1:
+                            #   ty3_33 = 0
+                            #if topology[j].down_id == -1:
+                               #ty3_55 = 0
+
+                            if topology[j].down_id != -1:
                                 for z in range(len(topology)) :
                                    if topology[z].id == topology[j].down_id:
                                       ty3_55 = base_to_id(topology[z].base_type)
+                                      break
+                            if topology[j].up_id != -1:
+                                for z in range(len(topology)) :
                                    if topology[z].id == topology[j].up_id:
                                       ty3_33 = base_to_id(topology[z].base_type)
+                                      break
 
-                            if topology[i].down_id == -1:
-                               ty0_55 = 0
-                            if topology[i].up_id == -1:
-                               ty0_33 = 0
+                            #if topology[i].down_id == -1:
+                            #   ty0_55 = 0
+                            #if topology[i].up_id == -1:
+                               #ty0_33 = 0
 
                             ty_33 = ty0_33+ty1*4+ty2*4*4+ty3_33*4*4*4 #tetramer type in base 10
                             ty_55 = ty0_55+ty1*4+ty2*4*4+ty3_55*4*4*4 #tetramer type in base 10
@@ -1079,8 +1186,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             types_unbn_1conf_55.append(ty_55)
 
                             #compute unbnd pair coordinates
-                            hydr_r_1conf.append(np.linalg.norm((n1.hydr - n2.hydr)))
-                            rhydr = (n1.hydr - n2.hydr)/np.linalg.norm((n1.hydr - n2.hydr))
+                            hydr_r_1conf.append(hydist)
+                            rhydr = hyv/hydist
 
                             th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
                             th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
@@ -1091,6 +1198,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
 
 
+
+                    #print(len(types_unbn_1conf_33), out_string)
                     types_unbn_33.append(types_unbn_1conf_33)
                     types_unbn_55.append(types_unbn_1conf_55)
 
@@ -1113,19 +1222,19 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
 #change temperature to reweighting target in input2.an
 """
 def update_T_input_file(T,file_name) :
-    
-    strold1 = r"(T) = .*(K)$"  #could be K or 
+
+    strold1 = r"(T) = .*(K)$"  #could be K or
     strold2 = r"(T) = .*(C)$"  #could be C
-    strnew = "T = "+str(T)+"C"    
-    
-    pysed.replace(strold1,strnew,file_name)  
-    pysed.replace(strold2,strnew,file_name)   
-    
+    strnew = "T = "+str(T)+"C"
+
+    pysed.replace(strold1,strnew,file_name)
+    pysed.replace(strold2,strnew,file_name)
+
     return
 """
 
 def estimate_new_wfile(hist,wfile_name) :
-    
+
 
     max_entry = max(hist)
     w = []
@@ -1136,37 +1245,37 @@ def estimate_new_wfile(hist,wfile_name) :
             break
         else:
             w.append(max_entry/i)
-        
+
     ofile = open(wfile_name,'w')
-    
+
     for i in range(len(w)):
         print(str(i) + " " + str(w[i]),file=ofile)
-        
+
     ofile.close()
-    
+
     return True
 
 
 
 def callbackF(par) :
-    
+
     cg.Niter += 1
     cg.Diter_Trange += 1
-    
+
     cg.update_rews = True
-    
+
     ofile = open("parameters_v_iter.txt", 'a')
-    
+
     string = str(cg.Niter)
-    
+
     for i in range(len(par)):
-        
+
         string = string + " " + str(par[i])
-    
+
     print(string, file=ofile)
-    
+
     ofile.close()
-    
+
     return
 
 
@@ -1176,13 +1285,13 @@ def callbackF(par) :
 ###################################################################################################
 
 def print_final_melting_temperatures(mTs) :
-    
+
     ofile = open("final_rew_mTs.txt",'w')
     for i in range(len(mTs)) :
         if i%cg.Nreps == 0:
             print(mTs[i], file=ofile)
     ofile.close()
-    
+
     return
 
 
@@ -1308,70 +1417,6 @@ def print_final_pfile(FOPARS,infile) :
     #impose symmetries
     VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
     CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
-
-    #constraints - no continuity
-
-    #delta
-    aveD = torch.mean(CURR_PARS[2])
-    #print("Old delta:", aveD)
-    CURR_PARS[2] = CURR_PARS[2] - aveD + cfun.AVE_DELTA
-    #print("New delta:", torch.mean(CURR_PARS[2]))
-
-    CURR_PARS[3] = torch.square( CURR_PARS[2] )
-
-    #crst r0
-    #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
-
-    #Constraints - no continuity
-    fene_r02_crst = torch.square(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33])
-    stck_r02_crst = torch.square(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33])
-
-    #0.08 <- if hydr_r0 = 0.4. otherwise this has to be changed
-    CURR_PARS[78] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-
-    fene_r02_crst = torch.square(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55])
-    stck_r02_crst = torch.square(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55])
-
-    CURR_PARS[117] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-
-    # constraints - continuity
-    #f1
-
-    CURR_PARS[cfun.f1_RL_ID] = cfun.OFFSET_f1_RL[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-    CURR_PARS[cfun.f1_RH_ID] = cfun.OFFSET_f1_RH[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-    CURR_PARS[cfun.f1_RC_ID] = cfun.OFFSET_f1_RC[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-
-    EXP1 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RL_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-    EXP2 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RC_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-    EXP3 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RH_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-
-    CURR_PARS[cfun.f1_BL_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP1*(1-EXP1) )/( torch.square(1-EXP1) - torch.square(1-EXP2) )
-    CURR_PARS[cfun.f1_BH_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP3*(1-EXP3) )/( torch.square(1-EXP3) - torch.square(1-EXP2) )
-
-    CURR_PARS[cfun.f1_RCL_ID] = CURR_PARS[cfun.f1_RL_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BL_ID]*( EXP1*(1-EXP1) )
-    CURR_PARS[cfun.f1_RCH_ID] = CURR_PARS[cfun.f1_RH_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BH_ID]*( EXP3*(1-EXP3) )
-
-    #f2
-    CURR_PARS[cfun.f2_RL_ID] = cfun.OFFSET_f2_RL[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-    CURR_PARS[cfun.f2_RH_ID] = cfun.OFFSET_f2_RH[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-    CURR_PARS[cfun.f2_RC_ID] = cfun.OFFSET_f2_RC[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-
-    TERM1 = CURR_PARS[cfun.f2_RL_ID]-CURR_PARS[cfun.f2_R0_ID]
-    TERM2 = CURR_PARS[cfun.f2_RH_ID]-CURR_PARS[cfun.f2_R0_ID]
-    TERM3 = CURR_PARS[cfun.f2_RC_ID]-CURR_PARS[cfun.f2_R0_ID]
-
-    CURR_PARS[cfun.f2_RCL_ID] = CURR_PARS[cfun.f2_RL_ID] - (torch.square(TERM1)-torch.square(TERM3))/TERM1
-    CURR_PARS[cfun.f2_RCH_ID] = CURR_PARS[cfun.f2_RH_ID] - (torch.square(TERM2)-torch.square(TERM3))/TERM2
-
-    CURR_PARS[cfun.f2_BL_ID] = -0.5*TERM1/( CURR_PARS[cfun.f2_RCL_ID]-CURR_PARS[cfun.f2_RL_ID] )
-    CURR_PARS[cfun.f2_BH_ID] = -0.5*TERM2/( CURR_PARS[cfun.f2_RCH_ID]-CURR_PARS[cfun.f2_RH_ID] )
-
-
-    #f4
-    CURR_PARS[cfun.f4_TS_ID] = torch.sqrt(0.81225/CURR_PARS[cfun.f4_A_ID])
-    CURR_PARS[cfun.f4_TC_ID] = 1./CURR_PARS[cfun.f4_A_ID]/CURR_PARS[cfun.f4_TS_ID]
-    CURR_PARS[cfun.f4_B_ID] = CURR_PARS[cfun.f4_A_ID]*CURR_PARS[cfun.f4_TS_ID]/(CURR_PARS[cfun.f4_TC_ID]-CURR_PARS[cfun.f4_TS_ID])
-
 
     FIN_PARS = torch.tensor(CURR_PARS,device='cpu')
 

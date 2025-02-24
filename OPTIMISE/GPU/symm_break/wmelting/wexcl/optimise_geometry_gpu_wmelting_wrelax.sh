@@ -122,10 +122,25 @@ mkdir ${main_path}/Step0
 #copy parameters files
 cp ${main_path}/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/
 
+#sample confs for melting
+cd ${main_path}/Step0/
+cp ../input_MD_melting .
+cp ../sample_melting.sh .
+cp ../gen_seqs_n5.txt .
+cp ../gen_seqs_n8.txt .
+cp ../gen_seqs_n15.txt .
+bash sample_melting.sh 5 ${oxDNA_path}
+bash sample_melting.sh 8 ${oxDNA_path}
+bash sample_melting.sh 15 ${oxDNA_path}
+cd ..
+
 #setup and run repetitions for step 0
 for ((l=0; l < ${Nseq}; l++)); do
 	for ((j=0; j < ${Nreps};j++)); do
 		mkdir -p ${main_path}/Step0/Seq${l}/Rep${j}/
+		#cp ${main_path}/gen.txt ${main_path}/Step0/Seq${l}/Rep${j}/
+                cp ${opti_path}/relax_stage1 ${main_path}/Step0/Seq${l}/Rep${j}/
+                cp ${opti_path}/relax_stage2 ${main_path}/Step0/Seq${l}/Rep${j}/
 		cp ${opti_path}/input_MD ${main_path}/Step0/Seq${l}/Rep${j}/
 		cp ${main_path}/Step0/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/Seq${l}/Rep${j}/
 
@@ -138,19 +153,45 @@ for ((l=0; l < ${Nseq}; l++)); do
 		#python3 ${opti_path}/GenOP.py ${#seq[$l]} ${main_path}/${config} #generate op file (to check if sampled confs are melted)
 		python ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt	#gen topology and in conf
 		sed -i "s|seed = 1|seed = ${RANDOM}|g" input_MD		#randomise seed
+                sed -i "s|seed = 1|seed = ${RANDOM}|g" relax_stage1
+                sed -i "s|seed = 1|seed = ${RANDOM}|g" relax_stage2
 		sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
 		sed -i "s|T = 300K|T = ${temperature}|g" input_MD
-		sed -i "s|conf_file = .*|conf_file = generated.dat|g" input_MD
-		${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
+                sed -i "s|T = 300K|T = ${temperature}|g" relax_stage1
+                sed -i "s|T = 300K|T = ${temperature}|g" relax_stage2
+		${oxDNA_path}/build/bin/oxDNA relax_stage1 > out_rel1 &	#run oxdna
 	done
 done
 
 wait
 
+for ((l=0; l < ${Nseq}; l++)); do
+        for ((j=0; j< ${Nreps};j++)); do
+                rep_path=${main_path}/Step0/Seq${l}/Rep${j}
+                step_path=${main_path}/Step0/
+                cd ${rep_path}
+                ${oxDNA_path}/build/bin/oxDNA relax_stage2 > out_rel2 &
+        done
+done
+
+wait
+
+for ((l=0; l < ${Nseq}; l++)); do
+        for ((j=0; j< ${Nreps};j++)); do
+                rep_path=${main_path}/Step0/Seq${l}/Rep${j}
+                step_path=${main_path}/Step0/
+                cd ${rep_path}
+                ${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
+        done
+done
+
+wait
+
+
 
 #optimise
 cd ${main_path}/Step0
-python ${opti_path}/optimise_geometry_gpu.py ../$config > OutOpti.log
+python ${opti_path}/optimise_geometry_wmelting_gpu.py ../$config > OutOpti.log
 
 #same as above, but for all the other steps
 #copy all necessary files form previous step and
@@ -163,10 +204,25 @@ for ((i=1; i < ${Nsteps}; i++)); do
 	#copy optimisation code
 	cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step${i}/
 	cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/oxDNA_sequence_dependent_parameters_in.txt	#copy output of optimse at previous step and make it the starting parameter files of this step
+
+        #sample confs for melting
+        cd ${main_path}/Step${i}/
+        cp ../input_MD_melting .
+        cp ../sample_melting.sh .
+        cp ../gen_seqs_n5.txt .
+        cp ../gen_seqs_n8.txt .
+        cp ../gen_seqs_n15.txt .
+        bash sample_melting.sh 5 ${oxDNA_path}
+        bash sample_melting.sh 8 ${oxDNA_path}
+        bash sample_melting.sh 15 ${oxDNA_path}
+        cd ..
+
 	for ((l=0; l < ${Nseq}; l++)); do
 		for ((j=0; j< ${Nreps};j++)); do
 			mkdir -p ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cp ${opti_path}/input_MD ${main_path}/Step${i}/Seq${l}/Rep${j}/
+                        cp ${opti_path}/relax_stage1 ${main_path}/Step${i}/Seq${l}/Rep${j}/
+                        cp ${opti_path}/relax_stage2 ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			#cp ${main_path}/Step$(($i-1))/Seq${l}/Rep${j}/op.txt ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cd ${main_path}/Step${i}/Seq${l}/Rep${j}/
@@ -181,17 +237,39 @@ for ((i=1; i < ${Nsteps}; i++)); do
 
 			python ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt
 			sed -i "s|seed = .*|seed = ${RANDOM}|g" input_MD
+                        sed -i "s|seed = .*|seed = ${RANDOM}|g" relax_stage1
+                        sed -i "s|seed = .*|seed = ${RANDOM}|g" relax_stage2
 			sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
 			sed -i "s|T = 300K|T = ${temperature}|g" input_MD
-			sed -i "s|conf_file = .*|conf_file = generated.dat|g" input_MD
-			${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
+                        sed -i "s|T = 300K|T = ${temperature}|g" relax_stage1
+                        sed -i "s|T = 300K|T = ${temperature}|g" relax_stage2
+                        ${oxDNA_path}/build/bin/oxDNA relax_stage1 > out_rel1 &
 		done
 	done
 
         wait
 
+        for ((l=0; l < ${Nseq}; l++)); do
+                for ((j=0; j< ${Nreps};j++)); do
+                        rep_path=${step_path}/Seq${l}/Rep${j}
+                        cd ${rep_path}
+                        ${oxDNA_path}/build/bin/oxDNA relax_stage2 > out_rel2 &
+                done
+        done
+
+        wait
+
+        for ((l=0; l < ${Nseq}; l++)); do
+                for ((j=0; j< ${Nreps};j++)); do
+                        rep_path=${step_path}/Seq${l}/Rep${j}
+                        cd ${rep_path}
+                        ${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
+                done
+        done
+
+	wait
 
 	cd ${main_path}/Step${i}
-	python ${opti_path}/optimise_geometry_gpu.py ../$config > OutOpti.log
+	python ${opti_path}/optimise_geometry_gpu_wmelting.py ../$config > OutOpti.log
 
 done
