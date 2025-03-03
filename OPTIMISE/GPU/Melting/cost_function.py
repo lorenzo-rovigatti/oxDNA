@@ -1168,6 +1168,10 @@ def convert_Ts_to_ox_units() :
     global rew_Ts_n15
 
     for i in range(len(sim_Ts_n5)):
+
+        if sim_Ts_n5[i] > 273.15:
+            print("Found simulation temperature in K. We don't like that!")
+            exit(1)
         factor = (sim_Ts_n5[i] + 273.15)/300*0.1
         sim_Ts_n5[i] = factor
 
@@ -1177,6 +1181,9 @@ def convert_Ts_to_ox_units() :
             rew_Ts_n5[i][j] = factor
 
     for i in range(len(sim_Ts_n8)):
+        if sim_Ts_n8[i] > 273.15:
+            print("Found simulation temperature in K. We don't like that!")
+            exit(1)
         factor = (sim_Ts_n8[i] + 273.15)/300*0.1
         sim_Ts_n8[i] = factor
 
@@ -1186,6 +1193,9 @@ def convert_Ts_to_ox_units() :
             rew_Ts_n8[i][j] = factor
 
     for i in range(len(sim_Ts_n15)):
+        if sim_Ts_n15[i] > 273.15:
+            print("Found simulation temperature in K. We don't like that!")
+            exit(1)
         factor = (sim_Ts_n15[i] + 273.15)/300*0.1
         sim_Ts_n15[i] = factor
 
@@ -1196,6 +1206,39 @@ def convert_Ts_to_ox_units() :
 
     return
 
+
+SIM_Ts_EXT_n5 = None
+SIM_Ts_EXT_n8 = None
+SIM_Ts_EXT_n15 = None
+
+BIAS_WEIGHTS_EXT_n5 = None
+BIAS_WEIGHTS_EXT_n8 = None
+BIAS_WEIGHTS_EXT_n15 = None
+
+#this is needed and works exclusively with parallel tempering
+def extend_Ts_and_weights_for_PT() :
+
+    #SIM_Ts[seq][pt_replica]->SIM_Ts_EXT[seq][conf]
+    #BIAS_WEIGHTS[pt_replica][op]->SIM_Ts_EXT[conf][op]
+
+    global SIM_Ts_EXT_n5
+    global SIM_Ts_EXT_n8
+    global SIM_Ts_EXT_n15
+    global BIAS_WEIGHTS_EXT_n5
+    global BIAS_WEIGHTS_EXT_n8
+    global BIAS_WEIGHTS_EXT_n15
+
+    SIM_Ts_EXT_n5 = torch.repeat_interleave(SIM_Ts_n5, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+    SIM_Ts_EXT_n5 = torch.repeat_interleave(SIM_Ts_n8, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+    SIM_Ts_EXT_n5 = torch.repeat_interleave(SIM_Ts_n15, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+
+    BIAS_WEIGHTS_EXT_n5 = torch.repeat_interleave(BIAS_WEIGHTS_n5, repeats=cg.tot_Nconfs_per_pt_rep, dim=0)
+    BIAS_WEIGHTS_EXT_n5 = torch.repeat_interleave(BIAS_WEIGHTS_n8, repeats=cg.tot_Nconfs_per_pt_rep, dim=0)
+    BIAS_WEIGHTS_EXT_n5 = torch.repeat_interleave(BIAS_WEIGHTS_n15, repeats=cg.tot_Nconfs_per_pt_rep, dim=0)
+
+    BIAS_WEIGHTS_n5
+
+    return
 
 #################################
 ##### oxdna modulations f1-5
@@ -1261,7 +1304,6 @@ def F5(COSPHI, A, B, XC, XS):
 
 
 #TENSOR FOR TREATING PARAMETRS UPDATE
-
 
 f1_R0_ID = None
 f1_A_ID = None
@@ -1731,8 +1773,16 @@ def compute_energy_n5() :
     #radial part
     #piecewise energy: compute all possibilities, and filter with where
 
-    STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-    STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    STCK_EPS = None
+    STCK_SH = None
+
+    #sim_Ts are different for every pt replica.
+    if cg.parallel_tempering:
+        STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    else:
+        STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
     f1 = F1(STCK_R_n5, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n5], CURR_PARS[par_index[46]][TYPES_BN_n5], CURR_PARS[par_index[48]][TYPES_BN_n5],\
             CURR_PARS[par_index[49]][TYPES_BN_n5], CURR_PARS[par_index[50]][TYPES_BN_n5], CURR_PARS[par_index[51]][TYPES_BN_n5], CURR_PARS[par_index[52]][TYPES_BN_n5], CURR_PARS[par_index[53]][TYPES_BN_n5], STCK_SH)
@@ -1862,8 +1912,16 @@ def compute_energy_n8() :
     #radial part
     #piecewise energy: compute all possibilities, and filter with where
 
-    STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-    STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n8[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    STCK_EPS = None
+    STCK_SH = None
+
+    #sim_Ts are different for every pt replica.
+    if cg.parallel_tempering:
+        STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n8[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    else:
+        STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n8[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
 
     f1 = F1(STCK_R_n8, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n8], CURR_PARS[par_index[46]][TYPES_BN_n8], CURR_PARS[par_index[48]][TYPES_BN_n8],\
@@ -1998,8 +2056,17 @@ def compute_initial_energy_n15() :
     #piecewise energy: compute all possibilities, and filter with where
 
 
-    STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-    STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    STCK_EPS = None
+    STCK_SH = None
+
+    #sim_Ts are different for every pt replica.
+    if cg.parallel_tempering:
+        STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+    else:
+        STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+
 
     f1 = F1(STCK_R_n15, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n15], CURR_PARS[par_index[46]][TYPES_BN_n15], CURR_PARS[par_index[48]][TYPES_BN_n15],\
             CURR_PARS[par_index[49]][TYPES_BN_n15], CURR_PARS[par_index[50]][TYPES_BN_n15], CURR_PARS[par_index[51]][TYPES_BN_n15], CURR_PARS[par_index[52]][TYPES_BN_n15], CURR_PARS[par_index[53]][TYPES_BN_n15], STCK_SH)
@@ -2231,15 +2298,14 @@ def update_rew_Ts(update_flag):
             for k in range(lrs_n5[l],urs_n5[l]) :
 
                 offset = 0.
-                if D_Ts_n5[l]*lrs_n5[l]+T0<0 :  #oxpy does not like T < 0C and T > 100C
+                if D_Ts_n5[l]*lrs_n5[l]+T0<0 :  #behaviour if oxdna for Ts < 0C is unverified
                     offset = -(D_Ts_n5[l]*lrs_n5[l]+T0-0.5)
-                if D_Ts_n5[l]*urs_n5[l]+T0>100 :
-                    offset = - (D_Ts_n5[l]*urs_n5[l]+T0-100) - 0.5
+                #if D_Ts_n5[l]*urs_n5[l]+T0>100 :
+                #    offset = - (D_Ts_n5[l]*urs_n5[l]+T0-100) - 0.5
 
                 REW_Ts_n5[l][counts] = ((D_Ts_n5[l]*k+T0 + offset)+273.15)/3000.
                 counts += 1
 
-        """
         for l in range(cg.Nseq_n8) :
             T0 = current_mT_n8[l]
 
@@ -2247,10 +2313,10 @@ def update_rew_Ts(update_flag):
             for k in range(lrs_n8[l],urs_n8[l]) :
 
                 offset = 0.
-                if D_Ts_n8[l]*lrs_n8[l]+T0<0 :  #oxpy does not like T < 0C and T > 100C
+                if D_Ts_n8[l]*lrs_n8[l]+T0<0 :  #behaviour if oxdna for Ts < 0C is unverified
                     offset = -(D_Ts_n8[l]*lrs_n8[l]+T0-0.5)
-                if D_Ts_n8[l]*urs_n8[l]+T0>100 :
-                    offset = - (D_Ts_n8[l]*urs_n8[l]+T0-100) - 0.5
+                #if D_Ts_n8[l]*urs_n8[l]+T0>100 :
+                #    offset = - (D_Ts_n8[l]*urs_n8[l]+T0-100) - 0.5
 
                 REW_Ts_n8[l][counts] = ((D_Ts_n8[l]*k+T0 + offset)+273.15)/3000.
                 counts += 1
@@ -2262,14 +2328,13 @@ def update_rew_Ts(update_flag):
             for k in range(lrs_n15[l],urs_n15[l]) :
 
                 offset = 0.
-                if D_Ts_n15[l]*lrs_n15[l]+T0<0 :  #oxpy does not like T < 0C and T > 100C
+                if D_Ts_n15[l]*lrs_n15[l]+T0<0 : #behaviour if oxdna for Ts < 0C is unverified
                     offset = -(D_Ts_n15[l]*lrs_n15[l]+T0-0.5)
-                if D_Ts_n15[l]*urs_n15[l]+T0>100 :
-                    offset = - (D_Ts_n15[l]*urs_n15[l]+T0-100) - 0.5
+                #if D_Ts_n15[l]*urs_n15[l]+T0>100 :
+                #    offset = - (D_Ts_n15[l]*urs_n15[l]+T0-100) - 0.5
 
                 REW_Ts_n15[l][counts] = ((D_Ts_n15[l]*k+T0 + offset)+273.15)/3000.
                 counts += 1
-        """
     return
 
 #######################################
@@ -2370,16 +2435,33 @@ def COST(PARS) :
     print(EN_CRST_55_REW_n5-EN_CRST_55_IN_n5)
     """
 
-    DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n5*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n5*9*cg.stck_fact_eps))/REW_Ts_n5)
+    REW_WEIGHTS = None
     s1, s2 = REW_Ts_n5.size()
 
-    REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n5,EN_HYDR_IN0_n5+EN_CRST_33_IN0_n5+EN_CRST_55_IN0_n5+EN_FENE_IN0_n5+EN_OFFSET_n5).unsqueeze(0).repeat(s2,1,1) \
-         +torch.einsum('ik,ij->kij',1/REW_Ts_n5,torch.sum(EN_HYDR_REW_n5+EN_CRST_33_REW_n5+EN_CRST_55_REW_n5,dim=2)+torch.sum(EN_FENE_IN_n5,dim=2)+EN_OFFSET_n5)
+    if cg.parallel_tempering :
 
-    #print("Rew_w 1")
-    #print(REW_WEIGHTS)
-    REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n5,EN_STCK_IN0_n5).unsqueeze(0).repeat(s2,1,1) \
-         +torch.einsum('ik,ij->kij',DELTA,EN_STCK_REW_n5.sum(dim=2))
+        REW_WEIGHTS = (-1/SIM_Ts_EXT_n5*(EN_HYDR_IN0_n5+EN_CRST_33_IN0_n5+EN_CRST_55_IN0_n5+EN_FENE_IN0_n5+EN_OFFSET_n5)).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n5,torch.sum(EN_HYDR_REW_n5+EN_CRST_33_REW_n5+EN_CRST_55_REW_n5,dim=2)+torch.sum(EN_FENE_IN_n5,dim=2)+EN_OFFSET_n5)
+
+        #print("Rew_w 1")
+        #print(REW_WEIGHTS)
+        #DELTA[seq][conf][rewT]
+        DELTA = torch.einsum('ij,ik->ijK',1/(1-cg.stck_fact_eps+(SIM_Ts_EXT_n5*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n5*9*cg.stck_fact_eps))/REW_Ts_n5)
+        REW_WEIGHTS += (-1/SIM_Ts_n5*EN_STCK_IN0_n5).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ijk,ij->kij',DELTA,EN_STCK_REW_n5.sum(dim=2))
+
+    else :
+        #DELTA[seq][rewT]
+        DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n5*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n5*9*cg.stck_fact_eps))/REW_Ts_n5)
+
+        REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n5,EN_HYDR_IN0_n5+EN_CRST_33_IN0_n5+EN_CRST_55_IN0_n5+EN_FENE_IN0_n5+EN_OFFSET_n5).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n5,torch.sum(EN_HYDR_REW_n5+EN_CRST_33_REW_n5+EN_CRST_55_REW_n5,dim=2)+torch.sum(EN_FENE_IN_n5,dim=2)+EN_OFFSET_n5)
+
+        #print("Rew_w 1")
+        #print(REW_WEIGHTS)
+        #REW_WEIGHTS[rewT][seq][conf]
+        REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n5,EN_STCK_IN0_n5).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',DELTA,EN_STCK_REW_n5.sum(dim=2))
 
     #print("Rew_w 2")
     #print(REW_WEIGHTS)
@@ -2400,20 +2482,34 @@ def COST(PARS) :
 
     HISTS = torch.zeros(s1,s2,6, dtype=torch.float64)
 
+    #HISTS[seq][conf][op]
     for i in range(6) :
         HISTS[:,:,i] = torch.where(HBS_SAMPLED_n5==i,1,0)
 
     #print("HISTS")
     #print(HISTS)
 
-    HISTS_REW = torch.einsum('ijk,lij->ilk',HISTS, BOLTZ_WEIGHTS)
+    #HIST_REW[seq][rewT][op]
+    HISTS_REW = None
+
+    if cg.parallel_tempering:
+        #BIAS_WEIGHTS_EXT[conf][op]
+        HISTS = torch.einsum('ijk,jk->ijk',HISTS,1./BIAS_WEIGHTS_EXT_n5)
+        #here we normalise and sum the histograms of different pt replicas
+        #HISTS_REW[seq][rewT][op][pt_rep]
+        HISTS_REW = torch.einsum('zijk,zlij->ilkz',torch.stack(torch.split(HISTS,cg.N_PT_reps_n5,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.N_PT_reps_n5,dim=2)))
+        #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
+        #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
+        MAX_V = torch.amax(HISTS_REW,dim=(1,2))
+        HISTS_REW = torch.einsum('ilkz,iz->ilkz', HISTS_REW, 1/MAX).sum(dim=3)
+
+    else:
+        #BIAS_WEIGHTS[op]
+        HISTS = torch.einsum('ijk,k->ijk',HISTS,1./BIAS_WEIGHTS_n5)
+        #HIST_REW[seq][rewT][op]
+        HISTS_REW = torch.einsum('ijk,lij->ilk',HISTS, BOLTZ_WEIGHTS)
 
     #print("HISTS_REW")
-    #print(HISTS_REW)
-
-    HISTS_REW = torch.einsum('ijk,k->ijk', HISTS_REW, 1./BIAS_WEIGHTS_n5)
-
-    #print("HISTS_REW_w_bias")
     #print(HISTS_REW)
 
     mTs_n5 = estimate_mT(REW_Ts_n5,HISTS_REW)*3000-273.15
@@ -2426,20 +2522,35 @@ def COST(PARS) :
     S = torch.square( mTs_n5 - TARGET_mTs_n5).sum(dim=0)
 
 
-    """
-
     #nbps = 8
 
     #compute Boltzmann weights (reweighting)
     EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8 = compute_rew_energy_n8(CURR_PARS)
 
-    DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n8*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n8*9*cg.stck_fact_eps))/REW_Ts_n8)
+    REW_WEIGHTS = None
     s1, s2 = REW_Ts_n8.size()
 
-    REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n8,torch.sum(EN_HYDR_IN_n8+EN_CRST_33_IN_n8+EN_CRST_55_IN_n8,dim=2)+torch.sum(EN_FENE_IN_n8,dim=2)+EN_OFFSET_n8).repeat(s2) \
-         +torch.einsum('ik,ij->ijk',1/REW_Ts_n8,torch.sum(EN_HYDR_REW_n8+EN_CRST_33_REW_n8+EN_CRST_55_REW_n8,dim=2)++torch.sum(EN_FENE_IN_n8,dim=2)+EN_OFFSET_n8)
-    REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n8,torch.sum(EN_STCK_IN_n8,dim=2)).repeat(s2) \
-         +torch.einsum('ik,ij->ijk',DELTA,EN_STCK_REW_n8.sum(dim=2))
+    if cg.parallel_tempering :
+
+        REW_WEIGHTS = (-1/SIM_Ts_EXT_n8*(EN_HYDR_IN0_n8+EN_CRST_33_IN0_n8+EN_CRST_55_IN0_n8+EN_FENE_IN0_n8+EN_OFFSET_n8)).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n8,torch.sum(EN_HYDR_REW_n8+EN_CRST_33_REW_n8+EN_CRST_55_REW_n8,dim=2)+torch.sum(EN_FENE_IN_n8,dim=2)+EN_OFFSET_n8)
+
+        #DELTA[seq][conf][rewT]
+        DELTA = torch.einsum('ij,ik->ijK',1/(1-cg.stck_fact_eps+(SIM_Ts_EXT_n8*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n8*9*cg.stck_fact_eps))/REW_Ts_n8)
+        REW_WEIGHTS += (-1/SIM_Ts_n8*EN_STCK_IN0_n8).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ijk,ij->kij',DELTA,EN_STCK_REW_n8.sum(dim=2))
+
+    else :
+        #DELTA[seq][rewT]
+        DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n8*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n8*9*cg.stck_fact_eps))/REW_Ts_n8)
+
+        REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n8,EN_HYDR_IN0_n8+EN_CRST_33_IN0_n8+EN_CRST_55_IN0_n8+EN_FENE_IN0_n8+EN_OFFSET_n8).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n8,torch.sum(EN_HYDR_REW_n8+EN_CRST_33_REW_n8+EN_CRST_55_REW_n8,dim=2)+torch.sum(EN_FENE_IN_n8,dim=2)+EN_OFFSET_n8)
+
+        #REW_WEIGHTS[rewT][seq][conf]
+        REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n8,EN_STCK_IN0_n8).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',DELTA,EN_STCK_REW_n8.sum(dim=2))
+
 
     REW_WEIGHTS = torch.exp( REW_WEIGHTS )
 
@@ -2449,39 +2560,68 @@ def COST(PARS) :
 
     s1,s2 = HBS_SAMPLED_n8.size()
 
-    HISTS = torch.zeros(s1,s2,9,dtype=torch.float64)
+    HISTS = torch.zeros(s1,s2,6, dtype=torch.float64)
 
+    #HISTS[seq][conf][op]
     for i in range(9) :
         HISTS[:,:,i] = torch.where(HBS_SAMPLED_n8==i,1,0)
 
-    HISTS_REW = torch.einsum('ijk,ilj->ilk',HISTS, BOLTZ_WEIGHTS)
+    #HIST_REW[seq][rewT][op]
+    HISTS_REW = None
 
-    HISTS_REW = torch.einsum('ijk,k->ijk', HISTS_REW, 1./BIAS_WEIGHTS_n8)
+    if cg.parallel_tempering:
+        #BIAS_WEIGHTS_EXT[conf][op]
+        HISTS = torch.einsum('ijk,jk->ijk',HISTS,1./BIAS_WEIGHTS_EXT_n8)
+        #here we normalise and sum the histograms of different pt replicas
+        #HISTS_REW[seq][rewT][op][pt_rep]
+        HISTS_REW = torch.einsum('zijk,zlij->ilkz',torch.stack(torch.split(HISTS,cg.N_PT_reps_n8,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.N_PT_reps_n8,dim=2)))
+        #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
+        #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
+        MAX_V = torch.amax(HISTS_REW,dim=(1,2))
+        HISTS_REW = torch.einsum('ilkz,iz->ilkz', HISTS_REW, 1/MAX).sum(dim=3)
+
+    else:
+        #BIAS_WEIGHTS[op]
+        HISTS = torch.einsum('ijk,k->ijk',HISTS,1./BIAS_WEIGHTS_n8)
+        #HIST_REW[seq][rewT][op]
+        HISTS_REW = torch.einsum('ijk,lij->ilk',HISTS, BOLTZ_WEIGHTS)
 
     mTs_n8 = estimate_mT(REW_Ts_n8,HISTS_REW)*3000-273.15
 
     global current_mT_n8
     current_mT_n8 = torch.clone(mTs_n8)
 
-    S += torch.square(mTs_n8 - TARGET_mTs_n8).sum(dim=0)
-
-    """
-
-
-    """
+    S = torch.square( mTs_n8 - TARGET_mTs_n8).sum(dim=0)
 
     #nbps = 15
 
     #compute Boltzmann weights (reweighting)
     EN_STCK_REW_n15, EN_HYDR_REW_n15, EN_CRST_33_REW_n15, EN_CRST_55_REW_n15 = compute_rew_energy_n15(CURR_PARS)
 
-    DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n15*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n15*9*cg.stck_fact_eps))/REW_Ts_n15)
+    REW_WEIGHTS = None
     s1, s2 = REW_Ts_n15.size()
 
-    REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n15,torch.sum(EN_HYDR_IN_n15+EN_CRST_33_IN_n15+EN_CRST_55_IN_n15,dim=2)+torch.sum(EN_FENE_IN_n15,dim=2)+EN_OFFSET_n15).repeat(s2) \
-         +torch.einsum('ik,ij->ijk',1/REW_Ts_n15,torch.sum(EN_HYDR_REW_n15+EN_CRST_33_REW_n15+EN_CRST_55_REW_n15,dim=2)++torch.sum(EN_FENE_IN_n15,dim=2)+EN_OFFSET_n15)
-    REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n15,torch.sum(EN_STCK_IN_n15,dim=2)).repeat(s2) \
-         +torch.einsum('ik,ij->ijk',DELTA,EN_STCK_REW_n15.sum(dim=2))
+    if cg.parallel_tempering :
+
+        REW_WEIGHTS = (-1/SIM_Ts_EXT_n15*(EN_HYDR_IN0_n15+EN_CRST_33_IN0_n15+EN_CRST_55_IN0_n15+EN_FENE_IN0_n15+EN_OFFSET_n15)).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n15,torch.sum(EN_HYDR_REW_n15+EN_CRST_33_REW_n15+EN_CRST_55_REW_n15,dim=2)+torch.sum(EN_FENE_IN_n15,dim=2)+EN_OFFSET_n15)
+
+        #DELTA[seq][conf][rewT]
+        DELTA = torch.einsum('ij,ik->ijK',1/(1-cg.stck_fact_eps+(SIM_Ts_EXT_n15*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n15*9*cg.stck_fact_eps))/REW_Ts_n15)
+        REW_WEIGHTS += (-1/SIM_Ts_n15*EN_STCK_IN0_n15).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ijk,ij->kij',DELTA,EN_STCK_REW_n15.sum(dim=2))
+
+    else :
+        #DELTA[seq][rewT]
+        DELTA = torch.einsum('i,ij->ij',1/(1-cg.stck_fact_eps+(SIM_Ts_n15*9*cg.stck_fact_eps)),(1-cg.stck_fact_eps+(REW_Ts_n15*9*cg.stck_fact_eps))/REW_Ts_n15)
+
+        REW_WEIGHTS = -torch.einsum('i,ij->ij',1/SIM_Ts_n15,EN_HYDR_IN0_n15+EN_CRST_33_IN0_n15+EN_CRST_55_IN0_n15+EN_FENE_IN0_n15+EN_OFFSET_n15).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',1/REW_Ts_n15,torch.sum(EN_HYDR_REW_n15+EN_CRST_33_REW_n15+EN_CRST_55_REW_n15,dim=2)+torch.sum(EN_FENE_IN_n15,dim=2)+EN_OFFSET_n15)
+
+        #REW_WEIGHTS[rewT][seq][conf]
+        REW_WEIGHTS += -torch.einsum('i,ij->ij',1/SIM_Ts_n15,EN_STCK_IN0_n15).unsqueeze(0).repeat(s2,1,1) \
+             +torch.einsum('ik,ij->kij',DELTA,EN_STCK_REW_n15.sum(dim=2))
+
 
     REW_WEIGHTS = torch.exp( REW_WEIGHTS )
 
@@ -2491,23 +2631,38 @@ def COST(PARS) :
 
     s1,s2 = HBS_SAMPLED_n15.size()
 
-    HISTS = torch.zeros(s1,s2,16,dtype=torch.float64)
+    HISTS = torch.zeros(s1,s2,6, dtype=torch.float64)
 
+    #HISTS[seq][conf][op]
     for i in range(16) :
         HISTS[:,:,i] = torch.where(HBS_SAMPLED_n15==i,1,0)
 
-    HISTS_REW = torch.einsum('ijk,ilj->ilk',HISTS, BOLTZ_WEIGHTS)
+    #HIST_REW[seq][rewT][op]
+    HISTS_REW = None
 
-    HISTS_REW = torch.einsum('ijk,k->ijk', HISTS_REW, 1./BIAS_WEIGHTS_n15)
+    if cg.parallel_tempering:
+        #BIAS_WEIGHTS_EXT[conf][op]
+        HISTS = torch.einsum('ijk,jk->ijk',HISTS,1./BIAS_WEIGHTS_EXT_n15)
+        #here we normalise and sum the histograms of different pt replicas
+        #HISTS_REW[seq][rewT][op][pt_rep]
+        HISTS_REW = torch.einsum('zijk,zlij->ilkz',torch.stack(torch.split(HISTS,cg.N_PT_reps_n15,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.N_PT_reps_n15,dim=2)))
+        #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
+        #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
+        MAX_V = torch.amax(HISTS_REW,dim=(1,2))
+        HISTS_REW = torch.einsum('ilkz,iz->ilkz', HISTS_REW, 1/MAX).sum(dim=3)
+
+    else:
+        #BIAS_WEIGHTS[op]
+        HISTS = torch.einsum('ijk,k->ijk',HISTS,1./BIAS_WEIGHTS_n15)
+        #HIST_REW[seq][rewT][op]
+        HISTS_REW = torch.einsum('ijk,lij->ilk',HISTS,BOLTZ_WEIGHTS)
 
     mTs_n15 = estimate_mT(REW_Ts_n15,HISTS_REW)*3000-273.15
 
     global current_mT_n15
     current_mT_n15 = torch.clone(mTs_n15)
 
-    S += torch.square(mTs_n15 - TARGET_mTs_n15).sum(dim=0)
-
-    """
+    S = torch.square( mTs_n15 - TARGET_mTs_n15).sum(dim=0)
 
     Scpu = float(S)
 
