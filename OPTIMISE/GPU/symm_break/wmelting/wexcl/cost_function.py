@@ -2182,8 +2182,6 @@ def compute_energy_m_n5() :
     CRST_K_33_IN = torch.clone(CURR_PARS_m[par_index[77]])
     CRST_K_55_IN = torch.clone(CURR_PARS_m[par_index[116]])
 
-
-
     #FENE
     TMP = -CURR_PARS_m[par_index[0]][TYPES_BN_m_n5]/2.*torch.log( 1.-torch.square( FENE_R_m_n5-CURR_PARS_m[par_index[1]][TYPES_BN_m_n5] )/CURR_PARS_m[par_index[3]][TYPES_BN_m_n5])
     EN_FENE_IN_m_n5 = torch.where(torch.square(FENE_R_m_n5-CURR_PARS_m[par_index[1]][TYPES_BN_m_n5])<CURR_PARS_m[par_index[3]][TYPES_BN_m_n5]-0.001,TMP,0.5)

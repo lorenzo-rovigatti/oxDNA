@@ -25,7 +25,8 @@ par_index = parl.par_index
 PARS_IN = None
 CURR_PARS = None
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 #################################
 ##### Initialisation

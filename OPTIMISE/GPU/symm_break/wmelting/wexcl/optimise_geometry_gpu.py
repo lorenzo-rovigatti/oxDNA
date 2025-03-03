@@ -420,7 +420,7 @@ for n in range(len(low_bond)) :
         ub = up_bond[n]*1.03
         if lb > 0.6: low_bond[n] = lb
         else: low_bond[n] = 0.6
-        if ub > 0.9: up_bond[n] = ub
+        if ub < 0.9: up_bond[n] = ub
         else: up_bond[n] = 0.9
     elif cfun.OPT_PAR_LIST[n][0] == 78 or cfun.OPT_PAR_LIST[n][0] == 117:
         low_bond[n] = low_bond[n]*0.97
@@ -429,12 +429,12 @@ for n in range(len(low_bond)) :
         low_bond[n] = low_bond[n]*0.97
         up_bond[n] = up_bond[n]*1.03
     elif cfun.OPT_PAR_LIST[n][0] == 45:
-        lb = low_bond[n]*0.98
-        ub = up_bond[n]*1.02
+        lb = low_bond[n]*0.97
+        ub = up_bond[n]*1.03
         if lb > 0.2: low_bond[n] = lb
-        else: low_bond[n] = 0.33
-        if ub > 0.5: up_bond[n] = ub
-        else: up_bond[n] = 0.42
+        else: low_bond[n] = 0.2
+        if ub < 0.5: up_bond[n] = ub
+        else: up_bond[n] = 0.5
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
         low_bond[n] = 2.880
         up_bond[n] = 3.405
@@ -460,6 +460,9 @@ for n in range(len(low_bond)) :
         low_bond[n] = low_bond[n]*0.5
         up_bond[n] = up_bond[n]*2.
 
+
+print(low_bond)
+print(up_bond)
 
 bnd = optimize.Bounds(low_bond,up_bond)
 

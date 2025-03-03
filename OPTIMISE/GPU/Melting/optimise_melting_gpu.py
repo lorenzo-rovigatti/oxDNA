@@ -97,7 +97,7 @@ test_file.close()
 
 
 #create all tensors on the gpu. Change this to easily swap between gpu and cpu
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 print("Memory usage after read optim options:")
 print_memory_usage()
@@ -747,10 +747,10 @@ for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 4:
         lb = low_bond[n]*0.5
         ub = up_bond[n]*1.5
-        if lb > 0.85: low_bond[n] = lb
-        else: low_bond[n] = 0.85
-        if ub > 1.3: up_bond[n] = ub
-        else: up_bond[n] = 1.3
+        if lb > 0.65: low_bond[n] = lb
+        else: low_bond[n] = 0.65
+        if ub > 1.4: up_bond[n] = ub
+        else: up_bond[n] = 1.4
     elif cfun.OPT_PAR_LIST[n][0] == 44:
         lb = low_bond[n]*0.5
         ub = up_bond[n]*1.5
@@ -809,7 +809,7 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':400,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':7,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

@@ -208,6 +208,7 @@ for ((i=1; i < ${Nsteps}; i++)); do
 			sed -i "s|seed = .*|seed = ${RANDOM}|g" input_MD
 			sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
 			sed -i "s|T = 300K|T = ${temperature}|g" input_MD
+               	        sed -i "s|conf_file = .*|conf_file = generated.dat|g" input_MD
                         ${oxDNA_path}/build/bin/oxDNA input_MD > out_main &
 		done
 	done

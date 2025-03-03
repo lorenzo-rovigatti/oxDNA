@@ -688,8 +688,8 @@ cfun.init_tensors_melting_n15(device, fene_r, stck_r, th4_bn, th5, th6, cosphi1,
 
 #print(stck_r)
 
-#cfun.set_opt_parameters_melting(["HYDR", "STCK", "CRST_33", "CRST_55"])
-cfun.set_opt_parameters_melting(["STCK", "CRST_33", "CRST_55"])
+cfun.set_opt_parameters_melting(["HYDR", "STCK", "CRST_33", "CRST_55"])
+#cfun.set_opt_parameters_melting(["STCK", "CRST_33", "CRST_55"])
 print(cfun.OPT_PAR_LIST_m)
 
 #build masks (for selecting optim parameters and marginalising mu and cov) and symm tensors (for imposing symmetries)
@@ -802,14 +802,46 @@ X0_m = TMP_m.numpy()
 low_bond_m = torch.tensor(TMP_m, device='cpu').numpy()
 up_bond_m = torch.tensor(TMP_m, device='cpu').numpy()
 
+
+def find_htype(ty) :
+
+    ty0 = ty%4
+    ty1 = (ty//4)%4
+    ty2 = (ty//4//4)%4
+    ty3 = (ty//4//4//4)%4
+    TY = bases[ty1]+bases[ty2]
+
+    return TY
+
+hy_CG_up = 1.4
+hy_CG_low = 1.1
+
 for n in range(len(low_bond_m)) :
     if cfun.OPT_PAR_LIST_m[n][0] == 4:
-        lb = low_bond_m[n][m]*0.97
-        ub = up_bond_m[n][m]*1.03
-        if lb > 0.85: low_bond_m[n] = lb
-        else: low_bond_m[n] = 0.85
-        if ub > 1.3: up_bond_m[n] = ub
-        else: up_bond_m[n] = 1.3
+        htype = find_htype(cfun.OPT_PAR_LIST_m[n][1])
+        print(htype)
+        if htype == "CG" or htype == "GC":
+            hy_CG_up = up_bond_m[n]*1.05
+            hy_CG_low = low_bond_m[n]*0.95
+            break
+
+hy_AT_up = hy_CG_up*0.73
+hy_AT_low = hy_CG_low*0.6
+
+for n in range(len(low_bond_m)) :
+    if cfun.OPT_PAR_LIST_m[n][0] == 4:
+        TY = find_htype(cfun.OPT_PAR_LIST_m[n][1])
+        print(TY)
+        if TY == "CG" or TY == "GC":
+            low_bond_m[n] = hy_CG_low
+            up_bond_m[n] = hy_CG_up
+        elif TY == "AT" or TY == "TA":
+            low_bond_m[n] = hy_AT_low
+            up_bond_m[n] = hy_AT_up
+        else:
+            low_bond_m[n] = 0.
+            up_bond_m[n] = 0.
+
     elif cfun.OPT_PAR_LIST_m[n][0] == 44:
         lb = low_bond_m[n]*0.97
         ub = up_bond_m[n]*1.03
@@ -916,7 +948,7 @@ def Callback(sol):
     TMP_m = torch.tensor(OPTI_PAR_m,device='cpu') #copy opti parameters to the cpu.
     X0_m = TMP_m.numpy()
 
-    sol_m = optimize.minimize(cfun.COST_m,X0_m, method='L-BFGS-B', callback=Callback_m, bounds=bnd_m, options={'maxiter':1,'iprint': 1})
+    sol_m = optimize.minimize(cfun.COST_m,X0_m, method='L-BFGS-B', callback=Callback_m, bounds=bnd_m, options={'maxiter':2,'iprint': 1})
 
     print("Optimised energies:")
     print("n5")
