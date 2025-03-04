@@ -13,7 +13,7 @@
 
 // constants from Flavio Romano's PatchyShapeInteraction
 // i'm not 100% sure why r and rc aren't 1
-#define PLEXCL_S   1.0f
+#define PLEXCL_S   1.0f // this is technocally sigma-squared
 #define PLEXCL_R   0.9053f
 #define PLEXCL_B   677.505671539f
 // cutoff for repulsive interaction. if r ^ 2 < ((r1+r2) * PLEXCL_RC) ^ 2, will calculate
@@ -73,6 +73,8 @@ protected:
             number, // polyT (aka sigma)
             std::string // sticky sequence
             >;
+#define PPATCH_POS 1
+#define PPATCH_ORI 2
 #define PPATCH_COLOR 3
 #define PPATCH_STATE 5
 #define PPATCH_INT_DIST 7
@@ -93,13 +95,17 @@ protected:
 #define REPULSION_DIST 2
 
     /**
-     * particle type
+     * - particle type
      * - number of instances
      * - list of patch ids
      * - list of repulsion point ids
      * - state size
      */
-    using ParticleType = std::tuple<int, int, std::vector<int>, std::vector<int>, int>;
+    using ParticleType = std::tuple<int,
+                                    int,
+                                    std::vector<int>,
+                                    std::vector<int>,
+                                    int>;
 #define PTYPE_ID  0
 #define PTYPE_INST_COUNT 1
 #define PTYPE_PATCH_IDS  2
@@ -146,6 +152,7 @@ protected:
     std::unordered_map<std::pair<int,int>, PatchPatch, UnorderedPairHash, UnorderedPairEqual> m_PatchPatchInteractions;
 
     number m_nPatchyBondEnergyCutoff;
+    bool _has_read_top; // flag to avoid double-reading the top file
 public:
     RaspberryInteraction();
     virtual ~RaspberryInteraction();

@@ -7,6 +7,8 @@
 
 #include <sstream>
 #include "RaspberryInteraction.h"
+#include "Particles/PatchyParticle.h"
+#include "../Particles/RaspberryParticle.h"
 
 #define PATCHY_CUTOFF 0.18f
 
@@ -40,17 +42,14 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
         // assign particle type
         m_ParticleList[i] = i_type;
 
-        particles[i] = new BaseParticle();
-        particles[i]->index = i;
-        particles[i]->strand_id = i;
-        particles[i]->type = i_type;
-
         // ordering of interaction centers is important!
         // first we do patches, as pairs of position, a1
         // then repuslive spheres!
         const ParticleType& particleType = m_ParticleTypes[i_type];
-        int num_int_centers = std::get<PTYPE_REP_PTS>(particleType).size() + 2*std::get<PTYPE_PATCH_IDS>(particleType).size();
-        particles[i]->int_centers.resize(num_int_centers);
+        int num_int_centers = std::get<PTYPE_REP_PTS>(particleType).size()
+                + 2 * std::get<PTYPE_PATCH_IDS>(particleType).size();
+        // create & populate interaction center list to use in particle object constructor
+        std::vector<LR_vector> int_centers(num_int_centers);
         // use same indexer for repulsion points & patches
         int j = 0;
 
@@ -61,9 +60,9 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
             int iPatch = std::get<PTYPE_PATCH_IDS>(particleType)[idx];
             assert(-1 < iPatch && iPatch < m_PatchesTypes.size());
             // assign position from patch info
-            particles[i]->int_centers[j] = std::get<1>(m_PatchesTypes[iPatch]);
+            int_centers[j] = std::get<PPATCH_POS>(m_PatchesTypes[iPatch]);
             // assign a1 from patch info
-            particles[i]->int_centers[j+1] = std::get<2>(m_PatchesTypes[iPatch]);
+            int_centers[j+1] = std::get<PPATCH_ORI>(m_PatchesTypes[iPatch]);
         }
 
         for (; j < num_int_centers; j++){
@@ -72,8 +71,14 @@ void RaspberryInteraction::allocate_particles(std::vector<BaseParticle *> &parti
             int iRepulsionPoint = std::get<PTYPE_REP_PTS>(particleType)[idx];
             assert(iRepulsionPoint < m_RepulsionPoints.size());
             // set int center to repulsion point position
-            particles[i]->int_centers[j] = std::get<1>(m_RepulsionPoints[iRepulsionPoint]);
+            int_centers[j] = std::get<1>(m_RepulsionPoints[iRepulsionPoint]);
         }
+
+
+        particles[i] = new RaspberryParticle(std::move(int_centers));
+        particles[i]->index = i;
+        particles[i]->strand_id = i;
+        particles[i]->type = i_type;
 
         // init interaction runtime variables
         // particle states
@@ -139,6 +144,7 @@ LR_vector RaspberryInteraction::getParticleInteractionSitePosition(BaseParticle 
     ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
     // interaction sites are listed after the patch geometry
     int idx = int_site_idx + 2 * std::get<PTYPE_PATCH_IDS>(*particleType).size();
+    assert(idx < p->int_centers.size());
     return p->int_centers[idx];
 }
 
@@ -167,7 +173,7 @@ number RaspberryInteraction::pair_interaction_nonbonded(BaseParticle *p,
     }
 
     e += repulsive_pt_interaction(p, q, update_forces);
-    e += patchy_pt_interaction(p, q, false);
+//    e += patchy_pt_interaction(p, q, false);
 
     return e;
 }
@@ -197,164 +203,168 @@ int RaspberryInteraction::get_N_from_topology() {
  * @param particles
  */
 void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
-    // open topology file
-    std::ifstream topology(_topology_filename, std::ios::in);
-    if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
+    if (!_has_read_top) {
+        // open topology file
+        std::ifstream topology(_topology_filename, std::ios::in);
+        if (!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 
-    // resize list of particle type IDs to match particle pointers
-    m_ParticleList.resize(particles.size());
-    // set number of "strands"
-    *N_strands = m_ParticleList.size();
-    // read header
-    std::string first_line = readLineNoComment(topology);
-    // skip first line entirely (for now)
+        // resize list of particle type IDs to match particle pointers
+        m_ParticleList.resize(particles.size());
+        // set number of "strands"
+        *N_strands = m_ParticleList.size();
+        // read header
+        std::string first_line = readLineNoComment(topology);
+        // skip first line entirely (for now)
 
-    // let's read all lines first
-    std::vector<std::string> particle_type_lines;
-    std::vector<std::string> patch_type_lines;
-    std::vector<std::string> patch_group_lines;
-    std::vector<std::string> repulsion_pt_lines;
-    std::vector<std::string> signal_passing_operations;
+        // let's read all lines first
+        std::vector<std::string> particle_type_lines;
+        std::vector<std::string> patch_type_lines;
+        std::vector<std::string> patch_group_lines;
+        std::vector<std::string> repulsion_pt_lines;
+        std::vector<std::string> signal_passing_operations;
 
-    std::string sz;
-    while (std::getline(topology, sz)){
-        // read line
-        sz = Utils::trim(sz);
-        // if line is not blank or a comment
-        if (sz.length() > 0 && sz[0] != '#') {
-            // if line is patch descriptor
-            if (sz.substr(0, 2) == "iP") {
-                patch_type_lines.push_back(sz);
+        std::string sz;
+        while (std::getline(topology, sz)) {
+            // read line
+            sz = Utils::trim(sz);
+            // if line is not blank or a comment
+            if (sz.length() > 0 && sz[0] != '#') {
+                // if line is patch descriptor
+                if (sz.substr(0, 2) == "iP") {
+                    patch_type_lines.push_back(sz);
+                }
+                    // particle type ("corpuscule") descriptor
+                else if (sz.substr(0, 2) == "iC") {
+                    particle_type_lines.push_back(sz);
+                }
+                    // operation descriptor
+                else if (sz.substr(0, 2) == "iO") {
+                    signal_passing_operations.push_back(sz);
+                } else if (sz.substr(0, 2) == "iG") {
+                    patch_group_lines.push_back(sz);
+                } else if (sz.substr(0, 2) == "iR") {
+                    repulsion_pt_lines.push_back(sz);
+                } else {
+                    throw oxDNAException("Malformed topology! Line `" + sz + "` does not clearly convey information");
+                }
             }
-            // particle type ("corpuscule") descriptor
-            else if (sz.substr(0, 2) == "iC") {
-                particle_type_lines.push_back(sz);
+        }
+        // resize patch type vector
+        m_PatchesTypes.resize(patch_type_lines.size());
+        // read patches
+        for (int i = 0; i < patch_type_lines.size(); i++) {
+            readPatchString(patch_type_lines[i]);
+        }
+
+        // read patch groups
+        for (int i = 0; i < patch_group_lines.size(); i++) {
+            std::stringstream ss(patch_group_lines[i].substr(2, patch_group_lines[i].size() - 2));
+            std::vector<int> patches;
+            int p;
+            while (ss >> p) {
+                patches.push_back(p);
             }
-            // operation descriptor
-            else if (sz.substr(0, 2) == "iO") {
-                signal_passing_operations.push_back(sz);
-            } else if (sz.substr(0, 2) == "iG") {
-                patch_group_lines.push_back(sz);
+            // todo: if patch groups do anything put that here
+        }
+
+        // read repulsion points
+        m_RepulsionPoints.resize(repulsion_pt_lines.size());
+        for (int i = 0; i < repulsion_pt_lines.size(); i++) {
+            std::stringstream ss(repulsion_pt_lines[i].substr(2, repulsion_pt_lines[i].size() - 2));
+            LR_vector position;
+            number r;
+            std::string pos_str;
+            if (!(ss >> pos_str >> r)) {
+                throw oxDNAException("Invalid repulsion point type str `" + repulsion_pt_lines[i] + "`!");
             }
-            else if (sz.substr(0,2) == "iR"){
-                repulsion_pt_lines.push_back(sz);
+            try {
+                position = parseVector(pos_str);
+            } catch (oxDNAException &e) {
+                throw oxDNAException("Invalid repulsion point type str `" + repulsion_pt_lines[i] + "`!");
+            }
+            m_RepulsionPoints[i] = {i, position, r};
+        }
+        //    // cache sums of all possible repulsion point pairs
+        //    // todo: warn if this is too big?
+        //    for (int i = 0; i < m_RepulsionPoints.size(); i++){
+        //        for (int j = i; j < m_RepulsionPoints.size(); j++){
+        //            m_RSums[{i, j}] = std::get<2>(m_RepulsionPoints[i]) + std::get<2>(m_RepulsionPoints[j]);
+        //        }
+        //    }
+
+        // read particle types
+        m_ParticleTypes.resize(particle_type_lines.size());
+        for (int i = 0; i < particle_type_lines.size(); i++) {
+            std::stringstream ss(particle_type_lines[i].substr(2, particle_type_lines[i].size() - 2));
+            int iParticleType;
+            std::string patch_id_strs, interaction_pt_id_strs;
+            if (!(ss >> iParticleType >> std::get<PTYPE_INST_COUNT>(m_ParticleTypes[iParticleType]) >> patch_id_strs
+                     >> interaction_pt_id_strs)) {
+                throw oxDNAException("Invalid particle type str `" + particle_type_lines[i] + "`!");
+            }
+            if (iParticleType >= m_ParticleTypes.size()) {
+                throw oxDNAException("Invalid particle type ID %d", iParticleType);
+            }
+            // assign particle type
+            std::get<PTYPE_ID>(m_ParticleTypes[iParticleType]) = iParticleType;
+            std::vector<std::string> patch_id_strs_list = Utils::split(patch_id_strs, ',');
+            std::vector<std::string> int_pt_strs_list = Utils::split(interaction_pt_id_strs, ',');
+            // process patch IDs
+            for (std::string &sz: patch_id_strs_list) {
+                int patch = std::stoi(sz);
+                assert(patch < m_PatchesTypes.size());
+                std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[iParticleType]).push_back(patch);
+            }
+            // process interaction points
+            for (std::string &sz: int_pt_strs_list) {
+                int repulsionPt = std::stoi(sz);
+                assert(repulsionPt < m_RepulsionPoints.size());
+                std::get<PTYPE_REP_PTS>(m_ParticleTypes[iParticleType]).push_back(repulsionPt);
+            }
+            // TODO: operations
+            int iStateSize;
+            // state size is optional
+            if (ss >> iStateSize) {
+                std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = iStateSize;
             } else {
-                throw oxDNAException("Malformed topology! Line `" + sz + "` does not clearly convey information");
+                std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = 1;
             }
         }
-    }
-    // resize patch type vector
-    m_PatchesTypes.resize(patch_type_lines.size());
-    // read patches
-    for (int i = 0; i < patch_type_lines.size(); i++){
-        readPatchString(patch_type_lines[i]);
-    }
 
-    // read patch groups
-    for (int i = 0; i < patch_group_lines.size(); i++){
-        std::stringstream ss(patch_group_lines[i].substr(2, patch_group_lines[i].size()-2));
-        std::vector<int> patches;
-        int p;
-        while (ss >> p){
-            patches.push_back(p);
-        }
-        // todo: if patch groups do anything put that here
-    }
+        // todo: read operations
 
-    // read repulsion points
-    m_RepulsionPoints.resize(repulsion_pt_lines.size());
-    for (int i = 0; i < repulsion_pt_lines.size(); i++){
-        std::stringstream ss(repulsion_pt_lines[i].substr(2, repulsion_pt_lines[i].size()-2));
-        LR_vector position;
-        number r;
-        std::string pos_str;
-        if (!(ss >> pos_str >> r)){
-            throw oxDNAException("Invalid repulsion point type str `" + repulsion_pt_lines[i] + "`!");
-        }
-        try {
-            position = parseVector(pos_str);
-        } catch (oxDNAException &e){
-            throw oxDNAException("Invalid repulsion point type str `" + repulsion_pt_lines[i] + "`!");
-        }
-        m_RepulsionPoints[i] = {i, position, r};
-    }
-//    // cache sums of all possible repulsion point pairs
-//    // todo: warn if this is too big?
-//    for (int i = 0; i < m_RepulsionPoints.size(); i++){
-//        for (int j = i; j < m_RepulsionPoints.size(); j++){
-//            m_RSums[{i, j}] = std::get<2>(m_RepulsionPoints[i]) + std::get<2>(m_RepulsionPoints[j]);
-//        }
-//    }
+        // close topology file
+        topology.close();
+        // TODO: CUDA version of this func will need to cache vs. max patches
 
-    // read particle types
-    m_ParticleTypes.resize(particle_type_lines.size());
-    for (int i = 0; i < particle_type_lines.size(); i++){
-        std::stringstream ss(particle_type_lines[i].substr(2, particle_type_lines[i].size()-2));
-        int iParticleType;
-        std::string patch_id_strs, interaction_pt_id_strs;
-        if (!(ss >> iParticleType >> std::get<PTYPE_INST_COUNT>(m_ParticleTypes[iParticleType]) >> patch_id_strs >> interaction_pt_id_strs)){
-            throw oxDNAException("Invalid particle type str `" + particle_type_lines[i] + "`!");
-        }
-        if (iParticleType >= m_ParticleTypes.size()){
-            throw oxDNAException("Invalid particle type ID %d", iParticleType);
-        }
-        // assign particle type
-        std::get<PTYPE_ID>(m_ParticleTypes[iParticleType]) = iParticleType;
-        std::vector<std::string> patch_id_strs_list = Utils::split(patch_id_strs,',');
-        std::vector<std::string> int_pt_strs_list = Utils::split(interaction_pt_id_strs,',');
-        // process patch IDs
-        for (std::string& sz : patch_id_strs_list){
-            int patch = std::stoi(sz);
-            assert(patch < m_PatchesTypes.size());
-            std::get<PTYPE_PATCH_IDS>(m_ParticleTypes[iParticleType]).push_back(patch);
-        }
-        // process interaction points
-        for (std::string &sz : int_pt_strs_list){
-            int repulsionPt = std::stoi(sz);
-            assert(repulsionPt < m_RepulsionPoints.size());
-            std::get<PTYPE_REP_PTS>(m_ParticleTypes[iParticleType]).push_back(repulsionPt);
-        }
-        // TODO: operations
-        int iStateSize;
-        // state size is optional
-        if (ss >> iStateSize){
-            std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = iStateSize;
-        } else {
-            std::get<PTYPE_STATE_SIZE>(m_ParticleTypes[iParticleType]) = 1;
-        }
-    }
-
-    // todo: read operations
-
-    // close topology file
-    topology.close();
-    // TODO: CUDA version of this func will need to cache vs. max patches
-
-    // todo: load manually defined color interactions
-    // define color interactions
-    for (int pi = 0; pi < m_PatchesTypes.size(); pi++){
-        int pi_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pi]);
-        number pi_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]);
-        for (int pj = 0; pj < m_PatchesTypes.size(); pj++){
-            int pj_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pj]);
-            // use petr + flavio version of default color interactions
-            number pj_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pj]);
-            if (((abs(pi_color) > 20) && (pi_color + pj_color == 0)) || ((abs(pi_color) <= 20) && (pi_color == pj_color))){
-                // todo: patch strengths? ugh
-                number sigma_ss = pi_dist + pj_dist;
-                number rcut_ss = 1.5 * sigma_ss;
-                number B_ss = 1. / (1. + 4. * SQR(1. - rcut_ss / sigma_ss));
-                number a_part = -1. / (B_ss - 1.) / exp(1. / (1. - rcut_ss / sigma_ss));
-                number b_part = B_ss * pow(sigma_ss, 4.);
-                m_PatchPatchInteractions[{pi, pj}] = {
-                    sigma_ss, // sigma_ss
-                    1.5 * sigma_ss, // rcut_ss
-                    a_part, // a_part
-                    b_part, //b_part
-                    1. //epsilon
-                };
+        // todo: load manually defined color interactions
+        // define color interactions
+        for (int pi = 0; pi < m_PatchesTypes.size(); pi++) {
+            int pi_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pi]);
+            number pi_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]);
+            for (int pj = 0; pj < m_PatchesTypes.size(); pj++) {
+                int pj_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pj]);
+                // use petr + flavio version of default color interactions
+                number pj_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pj]);
+                if (((abs(pi_color) > 20) && (pi_color + pj_color == 0)) ||
+                    ((abs(pi_color) <= 20) && (pi_color == pj_color))) {
+                    // todo: patch strengths? ugh
+                    number sigma_ss = pi_dist + pj_dist;
+                    number rcut_ss = 1.5 * sigma_ss;
+                    number B_ss = 1. / (1. + 4. * SQR(1. - rcut_ss / sigma_ss));
+                    number a_part = -1. / (B_ss - 1.) / exp(1. / (1. - rcut_ss / sigma_ss));
+                    number b_part = B_ss * pow(sigma_ss, 4.);
+                    m_PatchPatchInteractions[{pi, pj}] = {
+                            sigma_ss, // sigma_ss
+                            1.5 * sigma_ss, // rcut_ss
+                            a_part, // a_part
+                            b_part, //b_part
+                            1. //epsilon
+                    };
+                }
             }
         }
+        _has_read_top = true;
     }
     allocate_particles(particles);
 }
@@ -437,9 +447,13 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
     int p_type = m_ParticleList[p->get_index()];
     int q_type = m_ParticleList[q->get_index()];
 
+    // we use a Lennard Jones function with quadatic smoothin
+    // sigma
+    number sigma_sqr = PLEXCL_S;
+
     number e_lj;
     number energy = 0.;
-    number sigma, rstar, b, rc, rsum;
+    number rstar, b, rc, rsum;
     LR_vector force;
     LR_vector p_torque, q_torque;
     int ppidx, qqidx;
@@ -456,6 +470,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             qqidx = std::get<PTYPE_REP_PTS>(m_ParticleTypes[q_type])[qq];
             // lookup r-max squared
             // todo: probably possible to precompute these to save a little time
+            // sum of radii of patchy particles
             rsum = std::get<REPULSION_DIST>(m_RepulsionPoints[ppidx]) + std::get<REPULSION_DIST>(m_RepulsionPoints[qqidx]);
 
             // compute square of radial cutoff
@@ -463,6 +478,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             number rmax_dist_sqr = SQR(rsum * PLEXCL_RC) ;
 //          number rmax_dist_sqr = get_r_max_sqr(ppidx, qqidx);
 
+            // compute displacement vector between repulsion sites
             LR_vector rep_pts_dist = _computed_r + qpos - ppos;
             // distance-squared between the two repulsion pts
             number rep_pts_dist_sqr = rep_pts_dist.norm();
@@ -472,9 +488,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                 // unlike in other impls our model does not assume repulsive spheres have radius=0.5
                 // r-factor = the sum of the radii of the repulsive interaction spheres, minus 1
 
-                // we use a Lennard Jones function with quadatic smoothin
-                // sigma
-                sigma = PLEXCL_S;
+
 
                 // radial cutoff - acct for actual distance sum
                 rc = PLEXCL_RC * rsum;
@@ -486,13 +500,14 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                 rstar = PLEXCL_R * rsum;
                 // if r is less than rstar, use the lennard-jones equation
                 if(rep_pts_dist_sqr < SQR(rstar)) {
-                    // partial lennard-jones value
-                    number lj_partial = (sigma / (sqrt(rep_pts_dist_sqr) - rsum - 1));
-                    // lj partial = (sigma/r)^6
+                    // partial lennard-jones value (sigma^2 / r^2)
+                    number lj_partial = (sigma_sqr / rep_pts_dist_sqr);
+                    // lj partial = (sigma/r)^6 = (sigma^2 / r^2) ^ 3
                     lj_partial = lj_partial * lj_partial * lj_partial;
 
                     // compute lennard-jones interaction energy
-                    e_lj = 8 * (lj_partial * lj_partial - lj_partial);
+                    // (sigma / r) ^ 12 = ((sigma / r)^6)^2
+                    e_lj = 4 * PLEXCL_EPS * (lj_partial * lj_partial - lj_partial);
                     // update energy
                     energy += e_lj;
                     if(update_forces) {
@@ -508,7 +523,9 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                     r_patch = sqrt(rep_pts_dist_sqr);
                     number rrc = r_patch - rc;
                     energy += PLEXCL_EPS * b * SQR(rrc);
-                    if(update_forces) force = -rep_pts_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
+                    if(update_forces) {
+                        force = -rep_pts_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
+                    }
                 }
 
                 if (update_forces){
@@ -520,7 +537,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                     p_torque = -p->orientationT * ppos.cross(force);
                     q_torque =  q->orientationT * qpos.cross(force);
                     // update particle torque vectors
-                    p->torque += p_torque;
+                    p->torque -= p_torque;
                     q->torque += q_torque;
                 }
                 // if the radius is greater than the cutoff, we can just ignore it
