@@ -57,6 +57,9 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool, r0:float=1.2, PBC:boo
             db_str (str): The dot-bracket string to convert.  Currently ignores pseudoknots.
             stiff (float): stiff of the mutual trap to create
             reverse (bool): Reverse the dot-bracket string before creating the forces?
+            r0 (float): (optional) The equilibrium distance for the trap (default 1.2)
+            PBC (bool): (optional) Whether or not the trap will respect PBC (default True)
+            stiff_rate (float): (optional) If the stiffness changes with time (default 0)
 
         Returns:
             List[Dict]: A list of force dictionaries

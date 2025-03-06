@@ -7,6 +7,7 @@ from typing import List
 import argparse
 import os
 import matplotlib.pyplot as plt
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import get_chunk_size, oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
@@ -267,7 +268,7 @@ def main():
         #plt.show()
         plt.tight_layout()
         log("Writing histogram to file {}".format(out))
-        plt.savefig("{}".format(out))
+        plt.savefig("{}".format(out), dpi=FIG_DPI)
 
     #make a trajectory plot
     if lineplt == True:
@@ -289,7 +290,7 @@ def main():
         #plt.show()
         plt.tight_layout()
         log("Writing trajectory plot to file {}".format(out))
-        plt.savefig("{}".format(out))
+        plt.savefig("{}".format(out), dpi=FIG_DPI)
 
     if cluster == True:
         if not all([x == trajectories[0] for x in trajectories]):

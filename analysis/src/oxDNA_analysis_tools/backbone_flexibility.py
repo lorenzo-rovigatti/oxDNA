@@ -6,6 +6,7 @@ from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import System, TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe
@@ -158,7 +159,7 @@ def main():
     plt.xlabel("torsion_angle")
     plt.ylabel("dihedral_angle")
     plt.tight_layout()
-    plt.savefig(out)
+    plt.savefig(out, dpi=FIG_DPI)
     log("Wrote plot to {}".format(out))
 
     if args.data:

@@ -18,7 +18,7 @@ def __fetch_file_from_path(path):
         top_string = file.read()
         return top_string.replace("\n", "\\n")  
 
-def display_files(system_list,  inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def display_files(system_list,  inbox_settings: List[str] =  ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/", height:int = 500):
     """
         Generate an iframe displaying the provided files in oxview
 
@@ -26,6 +26,7 @@ def display_files(system_list,  inbox_settings =  ["Monomer", "Origin"], oxview_
             system_list (tuple) : a list of lists of tuples (file_string, extension) 
             inbox_settings (list[str]) : a list of strings, the inbox settings to use
             oxview_src (str) : the url of the oxview source
+            height (int) : height of the iframe
 
         Returns: 
             The iframe-id for reuse
@@ -55,7 +56,7 @@ def display_files(system_list,  inbox_settings =  ["Monomer", "Origin"], oxview_
         
     a("}")
     a("</script>")
-    a(f'<iframe width="99%" height="500"  src="{oxview_src}" id="oxview-frame-{frame_id}" onload="handle()">')
+    a(f'<iframe width="99%" height="{height}"  src="{oxview_src}" id="oxview-frame-{frame_id}" onload="handle()">')
     a("</iframe>")
     
     display(HTML( "".join(out_lines) ))
@@ -102,7 +103,7 @@ def from_path(*args:Union[List[str],List[List[str]]] , **kwargs):
     
     
     
-def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = None, par_file_path = None , script_file_path = None, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def oxdna_conf(top: TopInfo, conf:Configuration, overlay:str = None, forces_path:str = None, par_file_path:str = None , script_file_path:str = None, inbox_settings:List[str] = ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/", height:int = 500):
     """
         Display an oxDNA configuration in oxview
 
@@ -113,8 +114,9 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
             forces_path (str) : (optional) the path to the forces file
             par_file_path (str) : (optional) the path to the par file
             script_file_path (str) : (optional) the path to the script file (js)
-            inbox_settings (list[str]) : (optional) a list of strings, the inbox settings to use
+            inbox_settings (List[str]) : (optional) a list of strings, the inbox settings to use
             oxview_src (str) : (optional) the url of the oxview source
+            height (int) : (optional) the height of the view
     """
     # compress the dat
     dat_string = __compress_dat(conf)
@@ -144,9 +146,9 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
         file_list.append((forces_string, "forces.txt"))      
         
     # hack cause we support multiple systems in from_path 
-    display_files([file_list], inbox_settings, oxview_src)
+    display_files([file_list], inbox_settings, oxview_src, height=height)
     
-def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_settings:List[str] = ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
         Display a loro patchy configuration in oxview
         
@@ -172,7 +174,7 @@ def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_s
 
     display_files([file_list], inbox_settings, oxview_src)
 
-def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings:List[str] = ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
         Display a flro patchy configuration in oxview
 

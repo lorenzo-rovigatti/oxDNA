@@ -11,7 +11,12 @@ The scripts can be run via the command line with:
 oat <script name> <script arguments>
 ```
 
-There are Bash and Zsh autocompletes avilable for the script names, which can be activated by copying the file `/oxDNA/analysis/oat-completion.sh` to your autocompletes file (in Bash: `~/.bash_completion`) or adding `source /path/to/oxDNA/analysis/oat-completions.sh` to your rc file and restarting your command line session.
+There are Bash and Zsh autocompletes avilable for the script names, which can be activated by copying the file `/oxDNA/analysis/oat-completion.sh` to your autocompletes file (in Bash: `~/.bash_completion`) or adding `source /path/to/oxDNA/analysis/oat-completion.sh` to your rc file and restarting your command line session.  Note that for Zsh, you must be using the modern completion engine by adding 
+```
+autoload -U compinit
+compinit
+```
+to your `.zshrc` file.
 
 Documentation for individual scripts:
 
