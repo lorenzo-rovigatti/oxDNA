@@ -181,6 +181,14 @@ number DetailedPolymerSwapInteraction::_yukawa(BaseParticle *p, BaseParticle *q,
 		LR_vector force = _computed_r * ((_yk_strength * exp_part) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
 		p->force -= force;
 		q->force += force;
+
+		if(p->strand_id != q->strand_id) {
+			_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, -force);
+			_update_inter_chain_stress_tensor(q->strand_id, p->strand_id, force);
+		}
+
+		_update_stress_tensor(p->pos, -force);
+		_update_stress_tensor(p->pos + _computed_r, force);
 	}
 
 	return energy;
