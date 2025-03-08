@@ -119,7 +119,6 @@ __device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAS
 
 		_update_stress_tensor<true>(p_st, r, force);
 		F += force;
-		F.w += energy;
 	}
 }
 
@@ -159,7 +158,6 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx
 
 	_update_stress_tensor<true>(p_st, r, force);
 	F += force;
-	F.w += energy;
 }
 
 __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
@@ -181,7 +179,6 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStress
 
 	_update_stress_tensor<true>(p_st, r, force);
 	F += force;
-	F.w += energy;
 }
 
 __device__ void _sticky_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, CUDAStressTensor &p_st, c_number4 *forces) {
