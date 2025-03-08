@@ -43,6 +43,8 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
 
+	getInputBool(&inp, "DPS_phantom", &_phantom, 0);
+
 	if(getInputNumber(&inp, "DPS_yukawa_strength", &_yk_strength, 0) == KEY_FOUND) {
 		if(_yk_strength <= 0.) {
 			throw oxDNAException("DPS_yukawa_strength should be larger than 0.");
@@ -439,7 +441,7 @@ bool DetailedPolymerSwapInteraction::_sticky_interaction(int p_btype, int q_btyp
 }
 
 number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) {
+	if(p->is_bonded(q) || _phantom) {
 		return (number) 0.f;
 	}
 

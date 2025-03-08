@@ -169,10 +169,6 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStress
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
-	if(sqr_r > sqr_rfene) {
-		printf("WARNING: the distance between particles %d and %d (%lf) exceeds the FENE R0 (%lf)\n", get_particle_index(ppos), get_particle_index(qpos), sqrtf(sqr_r), sqrtf(sqr_rfene));
-	}
-
 	c_number energy = -Kfene * sqr_rfene * logf(1.f - sqr_r / sqr_rfene);
 	// this c_number is the module of the force over r, so we don't have to divide the distance vector by its module
 	c_number force_mod = -2.f * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
@@ -265,7 +261,7 @@ __device__ bool are_bonded_neighs(int p, int q, int *bonded_neighs) {
 	return are_neighs;
 }
 
-__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, bool update_st, CUDAStressTensor *st, CUDABox *box) {
+__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, bool update_st, CUDAStressTensor *st, CUDABox *box, bool phantom) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -280,6 +276,9 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 		c_number4 i_pos = poss[i_idx];
 
 		_FENE(ppos, i_pos, F, p_st, box);
+		if(phantom) {
+			_repulsion(ppos, i_pos, F, p_st, box, false);
+		}
 
 		if(MD_enable_semiflexibility[0]) {
 			for(int j = i + 1; j <= n_bonded_neighs; j++) {
@@ -438,13 +437,15 @@ void CUDADetailedPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_n
 
 	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _update_st, _d_st, d_box);
+		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _update_st, _d_st, d_box, _phantom);
 	CUT_CHECK_ERROR("ps_FENE_flexibility_forces DetailedPolymerSwap error");
 
-	ps_forces
-		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _d_bonded_neighs, _tex_eps, _update_st, _d_st, d_box);
-	CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
+	if(!_phantom) {
+		ps_forces
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _d_bonded_neighs, _tex_eps, _update_st, _d_st, d_box);
+		CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
+	}
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());
