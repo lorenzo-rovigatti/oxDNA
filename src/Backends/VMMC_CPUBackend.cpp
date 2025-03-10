@@ -392,20 +392,19 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 
 	DNA3Interaction * inter = dynamic_cast<DNA3Interaction *>(_interaction.get());
 	if( inter != NULL) {
-	
-                // I DON'T UNDERSTAND THIS HERE. WHAT IS type_n3_2 and type_n5_2 AND WHY IS IT HARDCODED TO 2?
-		type_n3_2 = 2;
-		type_n5_2 = 2;
-		
+
+		type_n3_2 = 5;
+		type_n5_2 = 5;
+
 		if (q->n3 != P_VIRTUAL) { type_n3_2 = q->n3->type; }
 		if (p->n5 != P_VIRTUAL) { type_n5_2 = p->n5->type; }
-		
+
 		//no need for this, since we broke the bonded complementary symetry
 		//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-		//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;	
-	
+		//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+
 		rbackr0 = rback.module() - inter->get_fene_r0_SD(type_n3_2,q->type,p->type,type_n5_2);
-		fened = inter->get_fene_delta_SD(type_n3_2,q->type,p->type,type_n5_2); 
+		fened = inter->get_fene_delta_SD(type_n3_2,q->type,p->type,type_n5_2);
 	}
 	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		rbackr0 = rback.module() - FENE_R0_OXDNA2;
@@ -453,7 +452,7 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	if(r.norm() > _sqr_rcut) {
 		return (number) 0.f;
 	}
-	
+
 	_interaction->set_computed_r(r);
 	number energy = _interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q, false, false);
 

@@ -85,6 +85,8 @@ EN_EXCL_UNBN_IN = None
 UPDATE_MAP = None
 SYMM_LIST = None #list with parameters to symmetrise - dim 1 is par index, dim 2 type
 SYMM_LIST_SYMM = None #list of symmetric parameters - SYMM_LIST_SYMM[i][j] is the symmetric counterpart of SYMM_LIST[i][j]
+ENDS = None #list with types with one end
+NOENDS = None #list of types without ends
 CRST_TETRA_TYPE_33 = None
 CRST_TETRA_TYPE_55 = None
 CRST_TETRA_TYPE_33_SYMM = None
@@ -590,23 +592,23 @@ def add_opti_par(name) :
     if len(vals_cn) == 0:
         return
     if vals_cn[0] == "STCK" and len(vals_cn) == 3:
-            ty=fun.base_to_id(vals_cn[1])*4+fun.base_to_id(vals_cn[2])*4*4
+            ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5
             OPT_PAR_LIST.append( [PARS_LIST.index("STCK_EPS"),ty])
     elif vals_cn[0] == "HYDR" and len(vals_cn) == 3:
-                ty=fun.base_to_id(vals_cn[1])*4+fun.base_to_id(vals_cn[2])*4*4   #from base 4 to base 10
+                ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5   #from base 4 to base 10
                 OPT_PAR_LIST.append( [PARS_LIST.index("HYDR_EPS"),ty] )
     elif vals_cn[0] == "HYDR" or (vals_cn[0] == "CRST" and vals_cn[1] == "K") :
         par_name = vals_cn[0]
         for i in range(1,len(vals_cn)-2):
             par_name += "_"+vals_cn[i]
-        ty=fun.base_to_id(vals_cn[len(vals_cn)-2])*4+fun.base_to_id(vals_cn[len(vals_cn)-1])*4*4  #from base 4 to base 10
+        ty=fun.base_to_id(vals_cn[len(vals_cn)-2])*5+fun.base_to_id(vals_cn[len(vals_cn)-1])*5*5  #from base 4 to base 10
         OPT_PAR_LIST.append( [PARS_LIST.index(par_name),ty] )
 
     elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" or vals_cn[0] == "CRST":
         par_name = vals_cn[0]
         for i in range(1,len(vals_cn)-4):
             par_name += "_"+vals_cn[i]
-        ty=fun.base_to_id(vals_cn[len(vals_cn)-4])+fun.base_to_id(vals_cn[len(vals_cn)-3])*4+fun.base_to_id(vals_cn[len(vals_cn)-2])*4*4+fun.base_to_id(vals_cn[len(vals_cn)-1])*4*4*4    #from base 4 to base 10
+        ty=fun.base_to_id(vals_cn[len(vals_cn)-4])+fun.base_to_id(vals_cn[len(vals_cn)-3])*5+fun.base_to_id(vals_cn[len(vals_cn)-2])*5*5+fun.base_to_id(vals_cn[len(vals_cn)-1])*5*5*5    #from base 4 to base 10
         OPT_PAR_LIST.append( [PARS_LIST.index(par_name),ty] )
 
     return
@@ -621,6 +623,10 @@ def build_masks_and_symm_tensors() :
     global device
     global SYMM_LIST
     global SYMM_LIST_SYMM
+
+    global ENDS
+    global NOENDS
+
     global CRST_TETRA_TYPE_33
     global CRST_TETRA_TYPE_55
     global CRST_TETRA_TYPE_33_SYMM
@@ -738,219 +744,219 @@ def build_masks_and_symm_tensors() :
 
         ID = OPT_PAR_LIST[i][0]
         TY = OPT_PAR_LIST[i][1]
-        umap.append(ID*256+TY)
+        umap.append(ID*625+TY)
 
         if ID in parl.compl_symm_ids_2d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+ty1*5+ty2*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
-                    TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
+                    TY_S = m+(3-ty2)*5+(3-ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
         elif ID in parl.compl_symm_ids_2d_no_TT_AA :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
             if (ty1 == 0 and ty3 == 0) or (ty1 == 3 and ty3 == 3):
                 continue
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+ty1*5+ty2*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
-                    TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
+                        sls.append(ID*625+TY_S)
+                    TY_S = m+(3-ty2)*5+(3-ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
         elif ID in parl.compl_symm_ids :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = (3-ty3)+(3-ty2)*4+(3-ty1)*4*4+(3-ty0)*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = (3-ty3)+(3-ty2)*5+(3-ty1)*5*5+(3-ty0)*5*5*5
             if TY != TY_S:
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         elif ID in parl.perm_symm_ids_2d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+(ty1)*4+(ty2)*4*4+l*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+(ty1)*5+(ty2)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
                     if ID in parl.is_th2 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
                     if ID in parl.is_th5 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
                     if ID in parl.is_th7 :
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
-                    TY_S = m+(ty2)*4+(ty1)*4*4+l*4*4*4
+                    TY_S = m+(ty2)*5+(ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
                     if ID in parl.is_th2 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
                     if ID in parl.is_th5 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
                     if ID in parl.is_th7 :
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         elif ID in parl.perm_symm_ids_4d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = ty3+ty2*4+ty1*4*4+ty0*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = ty3+ty2*5+ty1*5*5+ty0*5*5*5
             if TY != TY_S:
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         elif ID in parl.perm_symm_ids :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = ty3+ty2*4+ty1*4*4+ty0*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = ty3+ty2*5+ty1*5*5+ty0*5*5*5
             if TY != TY_S:
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         else :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
 
     UPDATE_MAP = torch.tensor(umap,device=device)
     SYMM_LIST = torch.tensor(sl,device=device)
@@ -970,26 +976,40 @@ def build_masks_and_symm_tensors() :
     # corss_55 - qn3, q, p, pn3
     # p = chosen particle, q = interacting particle
 
+    ends = []
+    noends = []
+
+    for m in range(5):
+        for n in range(5):
+             for p in range(5):
+                 for q in range(5):
+                     ty = m + n*5 + p*25 + q*125
+                     if m != 4 and n != 4 and p != 4 and q != 4 : noends.append(ty)
+                     else : ends.append(ty)
+
+    ENDS = torch.tensor(ends, device=device)
+    NOENDS = torch.tensor(noends, device=device)
+
     sl_33 = []
     sl_55 = []
     sl_33_s = []
     sl_55_s = []
-    for m in range(4):
-        for n in range(m,4):
-             for p in range(n,4):
-                 for q in range(p,4):
+    for m in range(5):
+        for n in range(m,5):
+             for p in range(n,5):
+                 for q in range(p,5):
                      ty1 = 3-m
                      ty2 = 3-n
                      ty3 = p
                      ty4 = q
-                     sl_33.append(ty1+ty2*4+ty3*16+ty4*64)
-                     sl_33_s.append(ty4+ty3*4+ty2*16+ty1*64)
+                     sl_33.append(ty1+ty2*5+ty3*25+ty4*125)
+                     sl_33_s.append(ty4+ty3*5+ty2*25+ty1*125)
                      ty1 = q
                      ty2 = p
                      ty3 = 3-n
                      ty4 = 3-m
-                     sl_55.append(ty1+ty2*4+ty3*16+ty4*64)
-                     sl_55_s.append(ty4+ty3*4+ty2*16+ty1*64)
+                     sl_55.append(ty1+ty2*5+ty3*25+ty4*125)
+                     sl_55_s.append(ty4+ty3*5+ty2*25+ty1*125)
 
     CRST_TETRA_TYPE_33 = torch.tensor(sl_33,device=device)
     CRST_TETRA_TYPE_55 = torch.tensor(sl_55,device=device)
@@ -1092,6 +1112,8 @@ def compute_initial_energy() :
 
     global EN_EXCL_BN_IN
     global EN_EXCL_UNBN_IN
+
+    SHIFT_STCK, SHIFT_HYDR = FIX_ENSLAVED(PARS_IN, False) #fix enslaved parameters
 
     #FENE
     TMP = -PARS_IN[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS_IN[par_index[1]][TYPES_BN] )/PARS_IN[par_index[3]][TYPES_BN])
@@ -1355,34 +1377,11 @@ def compute_stiffness(cov) :
 
     return M
 
-LB = None
-LT = None
-CURR_AVE_DELTA = 0.2
-ave_prop_flag = True
-CURR_PARS_m = None
-CURR_SHIFT_ST_m = None
-CURR_SHIFT_HY_m = None
 
-def COST(PARS) :
 
-    global CURR_PARS_m
-    global CURR_SHIFT_ST_m
-    global CURR_SHIFT_HY_m
+#compute and set enslaved parameters
 
-    PARS_OPTI = torch.tensor(PARS,device=device)
-    #PARS_OPTI = torch.clone(PARS)
-
-    CURR_PARS = torch.clone(CURR_PARS_m) #Initialise parameters
-    SH_ST = torch.clone(CURR_SHIFT_ST_m)
-    SH_HY = torch.clone(CURR_SHIFT_HY_m)
-
-    #UPDATE PARAMETERS
-    CURR_PARS.put_(UPDATE_MAP, PARS_OPTI)
-
-    #impose symmetries
-    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,SYMM_LIST )
-    CURR_PARS.put_(SYMM_LIST_SYMM,VALS)
-
+def FIX_ENSLAVED(CURR_PARS, opti) :
     #ENSLAVED PARAMETERS
 
     #crst r0 ####
@@ -1407,27 +1406,34 @@ def COST(PARS) :
 
     """
 
-    #Fix delta average ###
+    #set ends
 
-    global CURR_AVE_DELTA
-    aveD = torch.mean(CURR_PARS[2])
-    CURR_PARS[2] = CURR_PARS[2] - aveD + AVE_DELTA
-    CURR_AVE_DELTA = torch.mean(CURR_PARS[2])
+    ENDS_VALS = torch.mean(CURR_PARS[:,NOENDS])
+    CURR_PARS[:,ENDS] = ENDS_VALS.unsqueeze(1)
 
-    #Make STCK_THETA5A average ###
 
-    aveTH5A = torch.mean(CURR_PARS[60])
-    CURR_PARS[60] = aveTH5A
+    if opti:
+        #Fix delta average ###
+
+        global CURR_AVE_DELTA
+        aveD = torch.mean(CURR_PARS[2])
+        CURR_PARS[2] = CURR_PARS[2] - aveD + AVE_DELTA
+        CURR_AVE_DELTA = torch.mean(CURR_PARS[2])
+
+        #Make STCK_THETA5A average ###
+
+        aveTH5A = torch.mean(CURR_PARS[60])
+        CURR_PARS[60] = aveTH5A
 
     #delta2 ###
     #delta2 = delta^2
     CURR_PARS[3] = torch.square( CURR_PARS[2] )
 
-    #Excluded volume
-    #fixing base-base bonded interaction according to the stacking resting distance
-    CURR_PARS[171] = CURR_PARS[45] - 0.07 #171 = bonded baba excl volume, 45 = stck r0
-    CURR_PARS[f3_R_ID] = CURR_PARS[f3_S_ID]*0.97
-
+    if opti:
+        #Excluded volume
+        #fixing base-base bonded interaction according to the stacking resting distance
+        CURR_PARS[171] = CURR_PARS[45] - 0.07 #171 = bonded baba excl volume, 45 = stck r0
+        CURR_PARS[f3_R_ID] = CURR_PARS[f3_S_ID]*0.97
 
     #Constraints - continuity
     #f1
@@ -1483,6 +1489,38 @@ def COST(PARS) :
     CURR_PARS[f4_TC_ID] = 1./CURR_PARS[f4_A_ID]/CURR_PARS[f4_TS_ID]
     CURR_PARS[f4_B_ID] = CURR_PARS[f4_A_ID]*CURR_PARS[f4_TS_ID]/(CURR_PARS[f4_TC_ID]-CURR_PARS[f4_TS_ID])
 
+    return SH_ST, SH_HY
+
+
+LB = None
+LT = None
+CURR_AVE_DELTA = 0.2
+ave_prop_flag = True
+CURR_PARS_m = None
+CURR_SHIFT_ST_m = None
+CURR_SHIFT_HY_m = None
+
+def COST(PARS) :
+
+    global CURR_PARS_m
+    global CURR_SHIFT_ST_m
+    global CURR_SHIFT_HY_m
+
+    PARS_OPTI = torch.tensor(PARS,device=device)
+    #PARS_OPTI = torch.clone(PARS)
+
+    CURR_PARS = torch.clone(CURR_PARS_m) #Initialise parameters
+    SH_ST = torch.clone(CURR_SHIFT_ST_m)
+    SH_HY = torch.clone(CURR_SHIFT_HY_m)
+
+    #UPDATE PARAMETERS
+    CURR_PARS.put_(UPDATE_MAP, PARS_OPTI)
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,SYMM_LIST )
+    CURR_PARS.put_(SYMM_LIST_SYMM,VALS)
+
+    SH_ST, SH_HY = FIX_ENSLAVED(CURR_PARS,True)
 
     #save updated parameters (we need this to swap between meling and geometry)
     CURR_PARS_m = torch.clone(CURR_PARS)

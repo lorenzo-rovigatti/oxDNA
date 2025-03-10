@@ -16,46 +16,46 @@ DNA3Interaction::DNA3Interaction() :
 
         //initaialise all sequence dependent parameters with their average value.
         //these values are overwritten with the sequence dependent values in init().
-        for(int j = 0; j < 5; j++) {
-		for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 6; j++) {
+      	  for(int i = 0; i < 5; i++) {
 			for(int k = 0; k < 5; k++) {
-				for(int l = 0; l < 5; l++)  {
+				for(int l = 0; l < 6; l++)  {
 
 					_fene_r0_SD[i][j][k][l] = FENE_R0_OXDNA2;
 					_fene_delta_SD[i][j][k][l] = FENE_DELTA;
 					_fene_delta2_SD[i][j][k][l] = FENE_DELTA2;
 
 					_excl_s[0][i][j][k][l] = EXCL_S1;
-                                        _excl_s[1][i][j][k][l] = EXCL_S2;
-                                        _excl_s[2][i][j][k][l] = EXCL_S3;
-                                        _excl_s[3][i][j][k][l] = EXCL_S4;
-                                        _excl_s[4][i][j][k][l] = EXCL_S5;
-                                        _excl_s[5][i][j][k][l] = EXCL_S6;
-                                        _excl_s[6][i][j][k][l] = EXCL_S7;
+                    _excl_s[1][i][j][k][l] = EXCL_S2;
+                    _excl_s[2][i][j][k][l] = EXCL_S3;
+                    _excl_s[3][i][j][k][l] = EXCL_S4;
+                    _excl_s[4][i][j][k][l] = EXCL_S5;
+                    _excl_s[5][i][j][k][l] = EXCL_S6;
+                    _excl_s[6][i][j][k][l] = EXCL_S7;
 
-                                        _excl_r[0][i][j][k][l] = EXCL_R1;
-                                        _excl_r[1][i][j][k][l] = EXCL_R2;
-                                        _excl_r[2][i][j][k][l] = EXCL_R3;
-                                        _excl_r[3][i][j][k][l] = EXCL_R4;
-                                        _excl_r[4][i][j][k][l] = EXCL_R5;
-                                        _excl_r[5][i][j][k][l] = EXCL_R6;
-                                        _excl_r[6][i][j][k][l] = EXCL_R7;
+                    _excl_r[0][i][j][k][l] = EXCL_R1;
+                    _excl_r[1][i][j][k][l] = EXCL_R2;
+                    _excl_r[2][i][j][k][l] = EXCL_R3;
+                    _excl_r[3][i][j][k][l] = EXCL_R4;
+                    _excl_r[4][i][j][k][l] = EXCL_R5;
+                    _excl_r[5][i][j][k][l] = EXCL_R6;
+                    _excl_r[6][i][j][k][l] = EXCL_R7;
 
-                                        _excl_b[0][i][j][k][l] = EXCL_B1;
-                                        _excl_b[1][i][j][k][l] = EXCL_B2;
-                                        _excl_b[2][i][j][k][l] = EXCL_B3;
-                                        _excl_b[3][i][j][k][l] = EXCL_B4;
-                                        _excl_b[4][i][j][k][l] = EXCL_B5;
-                                        _excl_b[5][i][j][k][l] = EXCL_B6;
-                                        _excl_b[6][i][j][k][l] = EXCL_B7;
+                    _excl_b[0][i][j][k][l] = EXCL_B1;
+                    _excl_b[1][i][j][k][l] = EXCL_B2;
+                    _excl_b[2][i][j][k][l] = EXCL_B3;
+                    _excl_b[3][i][j][k][l] = EXCL_B4;
+                    _excl_b[4][i][j][k][l] = EXCL_B5;
+                    _excl_b[5][i][j][k][l] = EXCL_B6;
+                    _excl_b[6][i][j][k][l] = EXCL_B7;
 
-                                        _excl_rc[0][i][j][k][l] = EXCL_RC1;
-                                        _excl_rc[1][i][j][k][l] = EXCL_RC2;
-                                        _excl_rc[2][i][j][k][l] = EXCL_RC3;
-                                        _excl_rc[3][i][j][k][l] = EXCL_RC4;
-                                        _excl_rc[4][i][j][k][l] = EXCL_RC5;
-                                        _excl_rc[5][i][j][k][l] = EXCL_RC6;
-                                        _excl_rc[6][i][j][k][l] = EXCL_RC7;
+                    _excl_rc[0][i][j][k][l] = EXCL_RC1;
+                    _excl_rc[1][i][j][k][l] = EXCL_RC2;
+                    _excl_rc[2][i][j][k][l] = EXCL_RC3;
+                    _excl_rc[3][i][j][k][l] = EXCL_RC4;
+                    _excl_rc[4][i][j][k][l] = EXCL_RC5;
+                    _excl_rc[5][i][j][k][l] = EXCL_RC6;
+                    _excl_rc[6][i][j][k][l] = EXCL_RC7;
 
 
 					F1_SD_A[0][i][j][k][l]  = HYDR_A;
@@ -290,29 +290,29 @@ DNA3Interaction::DNA3Interaction() :
 					F2_SD_RCHIGH[3][i][j][k][l] = CRST_RCHIGH_55;
 
 
-                                        F5_SD_PHI_A[0][i][j][k][l] = STCK_PHI1_A;
-                                        F5_SD_PHI_A[1][i][j][k][l] = STCK_PHI2_A;
-                                        F5_SD_PHI_A[2][i][j][k][l] = CXST_PHI3_A;
-                                        F5_SD_PHI_A[3][i][j][k][l] = CXST_PHI4_A;
+                    F5_SD_PHI_A[0][i][j][k][l] = STCK_PHI1_A;
+                    F5_SD_PHI_A[1][i][j][k][l] = STCK_PHI2_A;
+                    F5_SD_PHI_A[2][i][j][k][l] = CXST_PHI3_A;
+                    F5_SD_PHI_A[3][i][j][k][l] = CXST_PHI4_A;
 
-                                        F5_SD_PHI_B[0][i][j][k][l] = STCK_PHI1_B;
-                                        F5_SD_PHI_B[1][i][j][k][l] = STCK_PHI2_B;
-                                        F5_SD_PHI_B[2][i][j][k][l] = CXST_PHI3_B;
-                                        F5_SD_PHI_B[3][i][j][k][l] = CXST_PHI3_B;
+                    F5_SD_PHI_B[0][i][j][k][l] = STCK_PHI1_B;
+                    F5_SD_PHI_B[1][i][j][k][l] = STCK_PHI2_B;
+                    F5_SD_PHI_B[2][i][j][k][l] = CXST_PHI3_B;
+                    F5_SD_PHI_B[3][i][j][k][l] = CXST_PHI3_B;
 
-                                        F5_SD_PHI_XC[0][i][j][k][l] = STCK_PHI1_XC;
-                                        F5_SD_PHI_XC[1][i][j][k][l] = STCK_PHI2_XC;
-                                        F5_SD_PHI_XC[2][i][j][k][l] = CXST_PHI3_XC;
-                                        F5_SD_PHI_XC[3][i][j][k][l] = CXST_PHI4_XC;
+                    F5_SD_PHI_XC[0][i][j][k][l] = STCK_PHI1_XC;
+                    F5_SD_PHI_XC[1][i][j][k][l] = STCK_PHI2_XC;
+                    F5_SD_PHI_XC[2][i][j][k][l] = CXST_PHI3_XC;
+                    F5_SD_PHI_XC[3][i][j][k][l] = CXST_PHI4_XC;
 
-                                        F5_SD_PHI_XS[0][i][j][k][l] = STCK_PHI1_XS;
-   		                        F5_SD_PHI_XS[1][i][j][k][l] = STCK_PHI2_XS;
-                		        F5_SD_PHI_XS[2][i][j][k][l] = CXST_PHI3_XS;
-		                        F5_SD_PHI_XS[3][i][j][k][l] = CXST_PHI4_XS;
+                    F5_SD_PHI_XS[0][i][j][k][l] = STCK_PHI1_XS;
+   		            F5_SD_PHI_XS[1][i][j][k][l] = STCK_PHI2_XS;
+                    F5_SD_PHI_XS[2][i][j][k][l] = CXST_PHI3_XS;
+		            F5_SD_PHI_XS[3][i][j][k][l] = CXST_PHI4_XS;
 
 				}
 			}
-                }
+        }
 	}
 
 
@@ -337,6 +337,35 @@ DNA3Interaction::DNA3Interaction() :
 	}
 	*/
 
+}
+
+
+number DNA3Interaction::get_average_par(number par[6][5][5][6]) {
+    number average = 0.;
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            for(int k = 0; k < 4; k++) {
+                for(int l = 0; l < 4; l++) {
+                    average += par[i][j][k][l]/256.;
+                }
+            }
+        }
+    }
+    return average;
+}
+
+number DNA3Interaction::get_average_par(int m, number par[][6][5][5][6]) {
+    number average = 0.;
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            for(int k = 0; k < 4; k++) {
+                for(int l = 0; l < 4; l++) {
+                    average += par[m][i][j][k][l]/256.;
+                }
+            }
+        }
+    }
+    return average;
 }
 
 void DNA3Interaction::init() {
@@ -377,66 +406,66 @@ void DNA3Interaction::init() {
 
 						//EXCLUDED VOLUME
 
-                                                sprintf(key, "EXCL_S1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_S7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_S7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6][i][j][k][l] = tmp_value;
 
-                                                sprintf(key, "EXCL_R1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_R7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_R7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6][i][j][k][l] = tmp_value;
 
 						/*
-                                                sprintf(key, "EXCL_B1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[0][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[1][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[2][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[3][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[4][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[5][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_B7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[6][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[0][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[1][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[2][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[3][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[4][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[5][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_B7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[6][i][j][k][l] = tmp_value;
 
-                                                sprintf(key, "EXCL_RC1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[0][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[1][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[2][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[3][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[4][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[5][i][j][k][l] = tmp_value;
-                                                sprintf(key, "EXCL_RC7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[6][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[0][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[1][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[2][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[3][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[4][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[5][i][j][k][l] = tmp_value;
+                        sprintf(key, "EXCL_RC7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[6][i][j][k][l] = tmp_value;
 						*/
 
 						//FENE
@@ -614,31 +643,31 @@ void DNA3Interaction::init() {
 
 						//tetramer dependent
 
-						sprintf(key, "CRST_THETA4_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
-                                                /*
-                                                sprintf(key, "CRST_THETA4_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
-                                                */
+                        sprintf(key, "CRST_THETA4_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        /*
+                        sprintf(key, "CRST_THETA4_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        */
 
-                                                sprintf(key, "CRST_THETA4_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
-                                                /*
-                                                sprintf(key, "CRST_THETA4_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
-                                                sprintf(key, "CRST_THETA4_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                                                if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
-                                                */
+                        sprintf(key, "CRST_THETA4_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        /*
+                        sprintf(key, "CRST_THETA4_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        sprintf(key, "CRST_THETA4_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        */
 
 						sprintf(key, "CRST_THETA1_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
@@ -776,15 +805,87 @@ void DNA3Interaction::init() {
 						//MESH POINTS --TODO, ?
 					}
 				}
-			}
+            }
 		}
 
-		//Set constrained parameters
-		//constrained = set by continuity and differentiability
-		for(int i = 0; i < 4; i++) {
+    //Set parameters for ends (average of complete junctions)
+
+    for(int i = 0; i < 6; i++) {
+        for(int j = 0; j < 4; j++) {
+            for(int k = 0; k < 4; k++) {
+
+                    //fene
+                    _fene_delta_SD[i][j][k][5] = get_average_par(_fene_delta_SD);
+                    _fene_delta_SD[5][j][k][i] = get_average_par(_fene_delta_SD);
+                    _fene_r0_SD[i][j][k][5] = get_average_par(_fene_r0_SD);
+                    _fene_r0_SD[5][j][k][i] = get_average_par(_fene_r0_SD);
+
+                    //f1
+                    number term1, term2, term3;
+                    for(int m = 0; m < 2; m++) {
+                        F1_SD_A[m][i][j][k][5] = get_average_par(m,F1_SD_A);
+                        F1_SD_R0[m][i][j][k][5] = get_average_par(m,F1_SD_R0);
+                        F1_SD_RC[m][i][j][k][5] = get_average_par(m,F1_SD_RC);
+                        F1_SD_RLOW[m][i][j][k][5] = get_average_par(m,F1_SD_RLOW);
+                        F1_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F1_SD_RHIGH);
+
+                        F1_SD_A[m][5][j][k][i] = get_average_par(m,F1_SD_A);
+                        F1_SD_R0[m][5][j][k][i] = get_average_par(m,F1_SD_R0);
+                        F1_SD_RC[m][5][j][k][i] = get_average_par(m,F1_SD_RC);
+                        F1_SD_RLOW[m][5][j][k][i] = get_average_par(m,F1_SD_RLOW);
+                        F1_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F1_SD_RHIGH);
+                    }
+                    //f2
+                    for(int m = 0; m < 4; m++) {
+                        F2_SD_R0[m][i][j][k][5] = get_average_par(m,F1_SD_R0);
+                        F2_SD_RC[m][i][j][k][5] = get_average_par(m,F1_SD_RC);
+                        F2_SD_RLOW[m][i][j][k][5] = get_average_par(m,F1_SD_RLOW);
+                        F2_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F1_SD_RHIGH);
+
+                        F2_SD_R0[m][5][j][k][i] = get_average_par(m,F1_SD_R0);
+                        F2_SD_RC[m][5][j][k][i] = get_average_par(m,F1_SD_RC);
+                        F2_SD_RLOW[m][5][j][k][i] = get_average_par(m,F1_SD_RLOW);
+                        F2_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F1_SD_RHIGH);
+                    }
+
+                    //f3
+                    for(int m = 0; m < 7; m++) {
+                        _excl_s[m][i][j][k][5] = get_average_par(m, _excl_s);
+                        _excl_r[m][i][j][k][5] = get_average_par(m, _excl_r);
+
+                        _excl_s[m][5][j][k][i] = get_average_par(m, _excl_s);
+                        _excl_r[m][5][j][k][i] = get_average_par(m, _excl_r);
+                    }
+
+                    //f4
+                    for(int m = 0; m < 21; m++) {
+                        F4_SD_THETA_A[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_A);
+                        F4_SD_THETA_T0[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_T0);
+                        F4_SD_THETA_TS[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_TS);
+
+                        F4_SD_THETA_A[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_A);
+                        F4_SD_THETA_T0[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_T0);
+                        F4_SD_THETA_TS[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_TS);
+
+                    }
+                    //f5
+                    for(int m = 0; m < 4; m++) {
+                        F5_SD_PHI_A[m][i][j][k][5] = get_average_par(m,F5_SD_PHI_A);
+                        F5_SD_PHI_XS[m][i][j][k][5] = get_average_par(m,F5_SD_PHI_XS);
+
+                        F5_SD_PHI_A[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_A);
+                        F5_SD_PHI_XS[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_XS);
+                    }
+                }
+            }
+        }
+
+		//Set enslaved parameters
+		//Enslaved = set by continuity and differentiability
+		for(int i = 0; i < 6; i++) {
 			for(int j = 0; j < 4; j++) {
 				for(int k = 0; k < 4; k++) {
-					for(int l = 0; l < 4; l++) {
+					for(int l = 0; l < 6; l++) {
 
 						//delta2
 						_fene_delta2_SD[i][j][k][l] = SQR(_fene_delta_SD[i][j][k][l]);
@@ -802,7 +903,7 @@ void DNA3Interaction::init() {
 							F1_SD_RCLOW[m][i][j][k][l] = F1_SD_RLOW[m][i][j][k][l] - F1_SD_A[m][i][j][k][l]/F1_SD_BLOW[m][i][j][k][l]*(term1*(1-term1));
 							F1_SD_RCHIGH[m][i][j][k][l] = F1_SD_RHIGH[m][i][j][k][l] - F1_SD_A[m][i][j][k][l]/F1_SD_BHIGH[m][i][j][k][l]*(term3*(1-term3));
 
-							F1_SD_SHIFT[m][i][j][k][l] = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m][i][j][k][l] - F1_SD_R0[m][i][j][k][l]) * F1_SD_A[m][i][j][k][l]));			
+							F1_SD_SHIFT[m][i][j][k][l] = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m][i][j][k][l] - F1_SD_R0[m][i][j][k][l]) * F1_SD_A[m][i][j][k][l]));
 						}
 						//f2
 						for(int m = 0; m < 4; m++) {
@@ -831,7 +932,7 @@ void DNA3Interaction::init() {
 						//f4
 						for(int m = 0; m < 21; m++) {
 							F4_SD_THETA_TC[m][i][j][k][l] = 1./F4_SD_THETA_A[m][i][j][k][l]/F4_SD_THETA_TS[m][i][j][k][l];
-							F4_SD_THETA_B[m][i][j][k][l] = F4_SD_THETA_A[m][i][j][k][l]*F4_SD_THETA_TS[m][i][j][k][l]/( F4_SD_THETA_TC[m][i][j][k][l] - F4_SD_THETA_TS[m][i][j][k][l] );			
+							F4_SD_THETA_B[m][i][j][k][l] = F4_SD_THETA_A[m][i][j][k][l]*F4_SD_THETA_TS[m][i][j][k][l]/( F4_SD_THETA_TC[m][i][j][k][l] - F4_SD_THETA_TS[m][i][j][k][l] );
 						}
 						//f5
 						for(int m = 0; m < 4; m++) {
@@ -850,10 +951,10 @@ void DNA3Interaction::init() {
 
 		if(_use_mbf) {
 
-			for(int i = 0; i < 5; i++) {
+			for(int i = 0; i < 6; i++) {
 				for(int j = 0; j < 5; j++) {
 					for(int k = 0; k < 5; k++) {
-						for(int l = 0; l < 5; l++) {
+						for(int l = 0; l < 6; l++) {
 							_mbf_xmax_SD[i][j][k][l] = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD[i][j][k][l])) / (2.f * _mbf_fmax);
 							// if we use mbf, we should tell the user
 							OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD[i][j][k][l]);
@@ -870,35 +971,35 @@ void DNA3Interaction::init() {
 		//Fixing rcut (cut distance for nonbonded interaction computation)
 		//We loop through all bases combinations, and pick the largest cutoff distance possible.
 		//Can be made more efficient if we define an SD version and use the right rcut depending on the types of interacting particles,
-		//But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would  we gain?).
-                number rcutbase;
-                number rcutback;
-                number rcutbase_max = 0.;
-                number rcutback_max = 0.;
-                number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-                number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-                number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-                for(int i = 0; i < 4; i++) {
-                        for(int j = 0; j < 4; j++) {
-                                for(int k = 0; k < 4; k++) {
-                                        for(int l = 0; l < 4; l++) {
-                                                for(int m = 0; m < 4; m++) {
-                                                        for(int n = 0; n < 4; n++) {
-                                                            rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0][i][j][k][l];
-                                                            if(rcutback > rcutback_max) rcutback_max = rcutback;
-                                                            rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0][i][j][k][k];
-                                                            if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
-                                                        }
+//But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would  we gain?).
+        number rcutbase;
+        number rcutback;
+        number rcutbase_max = 0.;
+        number rcutback_max = 0.;
+        number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+        number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+        number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+        for(int i = 0; i < 6; i++) {
+                for(int j = 0; j < 4; j++) {
+                        for(int k = 0; k < 4; k++) {
+                                for(int l = 0; l < 6; l++) {
+                                        for(int m = 0; m < 4; m++) {
+                                                for(int n = 0; n < 4; n++) {
+                                                    rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0][i][j][k][l];
+                                                    if(rcutback > rcutback_max) rcutback_max = rcutback;
+                                                    rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0][i][j][k][k];
+                                                    if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
                                                 }
                                         }
                                 }
                         }
                 }
+        }
 
 		//std::cout << "rcut0: " << _rcut  << std::endl;
 
-                _rcut = fmax(rcutback_max, rcutbase_max);
-                _sqr_rcut = SQR(_rcut);
+        _rcut = fmax(rcutback_max, rcutbase_max);
+        _sqr_rcut = SQR(_rcut);
 
 		//std::cout << "rcut1: " << _rcut  << std::endl;
 
@@ -933,10 +1034,10 @@ void DNA3Interaction::init() {
 			// the order of the interpolation interval extremes is reversed,
 			// due to the cosine being monotonically decreasing with increasing
 			// x
-			for(int j = 0; j < 5; j++) {
+			for(int j = 0; j < 6; j++) {
 				for(int z = 0; z < 5; z++) {
 					for(int k = 0; k < 5; k++) {
-						for(int l = 0; l < 5; l++) {
+						for(int l = 0; l < 6; l++) {
 
 							//std::cout << i << " " << j << " " << z << std::endl;
 							int points = MESH_F4_SD_POINTS[i][j][z][k][l];
@@ -974,11 +1075,11 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 	LR_vector torqueq(0, 0, 0);
 	LR_vector torquep(0, 0, 0);
 
-        int type_n3_2 = 2;
-        int type_n5_2 = 2;
+    int type_n3_2 = 5;
+    int type_n5_2 = 5;
 
-        if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-        if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
 	LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number energy = _repulsive_lj(rcenter, force, _excl_s[4][type_n3_2][q->type][p->type][type_n5_2],_excl_r[4][type_n3_2][q->type][p->type][type_n5_2],
@@ -1043,8 +1144,8 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
 	//for non bonded we don't look at the flanking; we just take a length that can accomodate all crst and hydr
 	//otherwise we would have to introduce a ton of parameters
-        int type_n3_2 = 0;
-	int type_n5_2 = 0;
+    int type_n3_2 = 5;
+	int type_n5_2 = 5;
 
 
 	// BASE-BASE
@@ -1125,11 +1226,11 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 		_computed_r = q->pos - p->pos;
 	}
 
-	int type_n3_2 = 2;
-	int type_n5_2 = 2;
+	int type_n3_2 = 5;
+	int type_n5_2 = 5;
 
 	if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-        if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
         //These two conditions are needed if we impose complementarity symmetry in bonded interaction.
 	//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
@@ -1220,15 +1321,15 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 
 
 	// functions and their derivatives needed for energies and forces
-	int type_n3_2 = 2;
-	int type_n5_2 = 2;
+	int type_n3_2 = 5;
+	int type_n5_2 = 5;
 
-        if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-        if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
-        //These two conditions are needed if we impose complementarity symmetry in bonded interaction.
-        //if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-        //if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+    //These two conditions are needed if we impose complementarity symmetry in bonded interaction.
+    //if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
+    //if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
 	number f1 = _f1_SD(rstackmod, STCK_F1, type_n3_2, q->type, p->type, type_n5_2);
 	number f4t4 = _custom_f4_SD(cost4, STCK_F4_THETA4, type_n3_2, q->type, p->type, type_n5_2);
@@ -1564,8 +1665,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
 	*/
 
-	int type_n3_2_33 = 2;
-	int type_n5_2_33 = 2;
+	int type_n3_2_33 = 5;
+	int type_n5_2_33 = 5;
 
 	if (q->n5 != P_VIRTUAL) type_n3_2_33 = q->n5->type;
 	if (p->n5 != P_VIRTUAL) type_n5_2_33 = p->n5->type;
@@ -1574,8 +1675,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 	//if (p->n5 == P_VIRTUAL && q->n5 != P_VIRTUAL) type_n5_2_33 = type_n3_2_33;
 
 
-	int type_n3_2_55 = 2;
-	int type_n5_2_55 = 2;
+	int type_n3_2_55 = 5;
+	int type_n5_2_55 = 5;
 
 	if (q->n3 != P_VIRTUAL) type_n3_2_55 = q->n3->type;
 	if (p->n3 != P_VIRTUAL) type_n5_2_55 = p->n3->type;
@@ -1915,8 +2016,6 @@ number DNA3Interaction::_f5D_SD(number f, int type, int n3_2, int n3_1, int n5_1
 void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 	int N = particles.size();
 
-        std::cout << "Testing sanity" << std::endl;
-
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) {
@@ -1931,8 +2030,8 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 
-		int type_n3_2 = 2;
-		int type_n5_2 = 2;
+		int type_n3_2 = 5;
+		int type_n5_2 = 5;
 		number mind;
 		number maxd;
 		if(p->n3 != P_VIRTUAL) {
@@ -1958,8 +2057,8 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 			}
 		}
 
-		type_n3_2 = 2;
-		type_n5_2 = 2;
+		type_n3_2 = 5;
+		type_n5_2 = 5;
 
 		if(p->n5 != P_VIRTUAL) {
 			BaseParticle *q = p->n5;
@@ -1986,8 +2085,6 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 			}
 		}
 	}
-
-       std::cout << "Done" << std::endl;
 
 }
 

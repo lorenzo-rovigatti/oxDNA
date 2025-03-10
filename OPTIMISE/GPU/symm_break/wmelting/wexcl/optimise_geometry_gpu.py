@@ -258,16 +258,16 @@ for l in range(cg.Nseq) :
 #Test: plot unbn_types
 
 
-bases = ['A', 'C', 'G', 'T']
+bases = ['A', 'C', 'G', 'T', 'E']
 
 def to_letters(types):
     string = ""
     for l in range(len(types)):
         TY = types[l]
-        ty0 = TY%4
-        ty1 = (TY//4)%4
-        ty2 = (TY//4//4)%4
-        ty3 = (TY//4//4//4)%4
+        ty0 = TY%5
+        ty1 = (TY//5)%5
+        ty2 = (TY//5//5)%5
+        ty3 = (TY//5//5//5)%5
         ty = bases[ty0]+bases[ty1]+bases[ty2]+bases[ty3]
         string+=ty+" "
 
@@ -334,46 +334,6 @@ cfun.compute_initial_energy()
 cfun.print_initial_energy()
 
 print(fene_r[0][0])
-
-"""
-print("conf 79")
-for l in range(len(types_bn[0][80])) :
-    print(str(excl_ba_ba_r_bn[0][79][l])+" "+str(excl_ba_bb_r_bn[0][79][l])+" "+str(excl_bb_ba_r_bn[0][79][l])+" "+type_to_base4(types_bn[0][79][l])+" "+str(cfun.CURR_PARS[171][types_bn[0][79][l]])+" "+ str(cfun.CURR_PARS[175][types_bn[0][79][l]])+" "+str(cfun.CURR_PARS[179][types_bn[0][79][l]])+" "+str(cfun.EN_EXCL_BN_IN[0][79][l]))
-print("conf 80")
-for l in range(len(types_bn[0][80])) :
-    print(str(excl_ba_ba_r_bn[0][80][l])+" "+str(excl_ba_bb_r_bn[0][80][l])+" "+str(excl_bb_ba_r_bn[0][80][l])+" "+type_to_base4(types_bn[0][80][l])+" "+str(cfun.CURR_PARS[171][types_bn[0][80][l]])+" "+ str(cfun.CURR_PARS[175][types_bn[0][80][l]])+" "+str(cfun.CURR_PARS[179][types_bn[0][80][l]])+" "+str(cfun.EN_EXCL_BN_IN[0][80][l]))
-print("conf 81")
-for l in range(len(types_bn[0][80])) :
-    print(str(excl_ba_ba_r_bn[0][81][l])+" "+str(excl_ba_bb_r_bn[0][81][l])+" "+str(excl_bb_ba_r_bn[0][81][l])+" "+type_to_base4(types_bn[0][81][l])+" "+str(cfun.CURR_PARS[171][types_bn[0][81][l]])+" "+ str(cfun.CURR_PARS[175][types_bn[0][81][l]])+" "+str(cfun.CURR_PARS[179][types_bn[0][81][l]])+" "+str(cfun.EN_EXCL_BN_IN[0][81][l]))
-"""
-"""
-print("conf 0")
-for l in range(len(types_unbn_33[0][0])) :
-    print(str(hydr_r[0][0][l])+" "+type_to_base4(types_unbn_33[0][0][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][0][l]])+" "+str(cfun.EN_HYDR_IN[0][0][l]))
-print("conf 1")
-for l in range(len(types_unbn_33[0][1])) :
-    print(str(hydr_r[0][1][l])+" "+type_to_base4(types_unbn_33[0][1][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][1][l]])+" "+str(cfun.EN_HYDR_IN[0][1][l]))
-print("conf 2")
-for l in range(len(types_unbn_33[0][2])) :
-    print(str(hydr_r[0][2][l])+" "+type_to_base4(types_unbn_33[0][2][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][2][l]])+" "+str(cfun.EN_HYDR_IN[0][2][l]))
-
-print("conf 0")
-for l in range(len(types_unbn_33[0][0])) :
-    print(str(hydr_r[0][0][l])+" "+type_to_base4(types_unbn_33[0][0][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][0][l]])+" "+str(cfun.EN_CRST_33_IN[0][0][l])+" "+str(cfun.EN_CRST_55_IN[0][0][l]))
-print("conf 1")
-for l in range(len(types_unbn_33[0][1])) :
-    print(str(hydr_r[0][1][l])+" "+type_to_base4(types_unbn_33[0][1][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][1][l]])+" "+str(cfun.EN_CRST_33_IN[0][1][l])+" "+str(cfun.EN_CRST_55_IN[0][0][l]))
-print("conf 2")
-for l in range(len(types_unbn_33[0][2])) :
-    print(str(hydr_r[0][2][l])+" "+type_to_base4(types_unbn_33[0][2][l])+" "+str(cfun.CURR_PARS[4][types_unbn_33[0][2][l]])+" "+str(cfun.EN_CRST_33_IN[0][2][l])+" "+str(cfun.EN_CRST_55_IN[0][0][l]))
-
-print("ave")
-print(cfun.EN_FENE_IN[0][0].sum(dim=0)/48)
-print(cfun.EN_FENE_IN[0][1].sum(dim=0)/48)
-print(cfun.EN_FENE_IN[0][2].sum(dim=0)/48)
-
-"""
-
 print("Computed initial energy")
 
 ###################################################################################################
@@ -389,7 +349,7 @@ ids = []
 for i in range(len(cfun.OPT_PAR_LIST)) :
     id = cfun.OPT_PAR_LIST[i][0]
     ty = cfun.OPT_PAR_LIST[i][1]
-    ids.append(id*256+ty)
+    ids.append(id*625+ty)
 
 
 IDS_OP = torch.tensor(ids,device=device)
@@ -483,7 +443,7 @@ while counts < len(X0) :
 
 
 tfile = open("PARS_TEST.txt", 'w')
-for i in range(256) :
+for i in range(625) :
     string = type_to_base4(i) + " " + str(float(cfun.CURR_PARS[101][i])) + " " + str(float(cfun.CURR_PARS[102][i])) + " " + str(float(cfun.CURR_PARS[103][i])) + " " + str(float(cfun.CURR_PARS[104][i])) + " " + str(float(cfun.CURR_PARS[105][i]))
     print(string, file=tfile)
 tfile.close()
