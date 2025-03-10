@@ -93,6 +93,7 @@ N_PT_reps_n8 = 8 #number of pt replicas n8
 N_PT_reps_n15 = 8 #number of pt replicas n15
 
 Nconfs_per_pt_rep = 0 #sampled confs per pt replica - in_snap
+tot_Nconfs_per_pt_rep = 0 #Nconfs_per_pt_rep * Nreps
 tot_time = 0 #for pt, this is the sim time of each replica
 delta_time = 0 #time interval between snapshots
 delta_print_en = 0 #time interval between printing energy

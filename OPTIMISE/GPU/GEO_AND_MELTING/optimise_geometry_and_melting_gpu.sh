@@ -163,14 +163,14 @@ melt_path=${main_path}/Melting
 
 #store tensors (trajectories and initial energies) to pytorch file; avoid overhead and need for 3 parameters file (1 extra for en0)
 sed -i "s|print_energy_to_file .*|print_energy_to_file True|g" ${main_path}/${config_melt}
-sed -i "s|print_coords_to_file .*|print_coords_to_file True|g" ${config_melt}
+#sed -i "s|print_coords_to_file .*|print_coords_to_file True|g" ${config_melt}
 sed -i "s|read_energy_from_file .*|read_energy_from_file False|g" ${config_melt}
-sed -i "s|read_coords_from_file .*|read_coords_from_file False|g" ${config_melt}
+#sed -i "s|read_coords_from_file .*|read_coords_from_file False|g" ${config_melt}
 
 #sed -i "s|print_energy_to_file .*|print_energy_to_file False|g" ${config_melt}
-#sed -i "s|print_coords_to_file .*|print_coords_to_file False|g" ${config_melt}
+sed -i "s|print_coords_to_file .*|print_coords_to_file False|g" ${config_melt}
 #sed -i "s|read_energy_from_file .*|read_energy_from_file True|g" ${config_melt}
-#sed -i "s|read_coords_from_file .*|read_coords_from_file True|g" ${config_melt}
+sed -i "s|read_coords_from_file .*|read_coords_from_file True|g" ${config_melt}
 
 cd ${melt_path}
 
