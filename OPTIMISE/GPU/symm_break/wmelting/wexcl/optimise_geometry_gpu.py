@@ -288,10 +288,10 @@ else:
 
 
 def type_to_base4(TY) :
-    ty0 = TY%4
-    ty1 = (TY//4)%4
-    ty2 = (TY//4//4)%4
-    ty3 = (TY//4//4//4)%4
+    ty0 = TY%5
+    ty1 = (TY//5)%5
+    ty2 = (TY//5//5)%5
+    ty3 = (TY//5//5//5)%5
 
     return str(ty0)+str(ty1)+str(ty2)+str(ty3)
 
@@ -333,7 +333,6 @@ cfun.compute_initial_energy()
 
 cfun.print_initial_energy()
 
-print(fene_r[0][0])
 print("Computed initial energy")
 
 ###################################################################################################

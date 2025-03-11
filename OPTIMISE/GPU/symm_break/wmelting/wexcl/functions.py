@@ -671,7 +671,7 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
             OXPS_zero[i][j] = val
 
     #here we use the initial custom parameters, must include stck_x_y and hydr_x_y
-    if [4,48] not in over_indices :
+    if [4,75] not in over_indices :  #this is HYDR_A_T
         print("No HYDR_x_y in SD file. Terminating")
         exit(1)
     if [44,0] not in over_indices :
@@ -903,10 +903,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     #bonded basepairs
                     #find pairs and tetramer type
                     for i in range(len(topology)) :
-                        ty0 = 5
-                        ty1 = 5
-                        ty2 = 5
-                        ty3 = 5
+                        ty0 = 4 #4 = END
+                        ty1 = 4
+                        ty2 = 4
+                        ty3 = 4
                         if topology[i].up_id == -1: continue
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
@@ -932,7 +932,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             ty0 = ty3
                         """
 
-                        ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
+                        ty = ty0+ty1*5+ty2*5*5+ty3*5*5*5 #tetramer type in base 10
 
                         types_1conf.append(ty)
 
@@ -992,12 +992,12 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
 
                     #UNDBONDED
                     for i in range(len(topology)) :
-                        ty0_33 = 5
-                        ty0_55 = 5
-                        ty1 = 5
-                        ty2 = 5
-                        ty3_33 = 5
-                        ty3_55 = 5
+                        ty0_33 = 4
+                        ty0_55 = 4
+                        ty1 = 4
+                        ty2 = 4
+                        ty3_33 = 4
+                        ty3_55 = 4
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
@@ -1040,8 +1040,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                                ty0_33 = 0
                             """
 
-                            ty_33 = ty0_33+ty1*4+ty2*4*4+ty3_33*4*4*4 #tetramer type in base 10
-                            ty_55 = ty0_55+ty1*4+ty2*4*4+ty3_55*4*4*4 #tetramer type in base 10
+                            ty_33 = ty0_33+ty1*5+ty2*5*5+ty3_33*5*5*5 #tetramer type in base 10
+                            ty_55 = ty0_55+ty1*5+ty2*5*5+ty3_55*5*5*5 #tetramer type in base 10
 
                             types_unbn_1conf_33.append(ty_33)
                             types_unbn_1conf_55.append(ty_55)
