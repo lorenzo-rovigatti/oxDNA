@@ -97,7 +97,7 @@ test_file.close()
 
 
 #create all tensors on the gpu. Change this to easily swap between gpu and cpu
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 print("Memory usage after read optim options:")
 print_memory_usage()
@@ -105,6 +105,21 @@ print_memory_usage()
 #########################################################################################################################
 ############## READ TRAJECTORY, COMPUTE OXDNA COORDINATES (i.e angles and distances) AND INTERNAL COORDINATES ###########
 #########################################################################################################################
+
+nevery_en = int(cg.delta_time/cg.delta_print_en)
+nevery_split = int(cg.delta_time/cg.delta_split_en)
+
+if nevery_en == 0 or nevery_split == 0:
+    if nevery_en == 0:
+        print("Energy was printed less frequently than snapshots were sampled.")
+        print("Cannot read order parameter value for all snapshots")
+        print("Aborting.")
+    if nevery_split == 0:
+        print("Split_energy was printed less frequently than snapshots were sampled.")
+        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots")
+        print("Aborting.")
+
+    exit(1)
 
 #################
 ### nbps = 5 ####
@@ -115,49 +130,65 @@ for l in range(cg.Nseq_n5):
     en_off_1 = []
     hbs_s_1 = []
 
-    for m in range(cg.Nreps) :
-        split_en_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/split_energy.dat", 'r')
-        en_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/energy.dat", 'r')
+    N_pts = 1
+    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n5
 
-        nline = 0
-        for line in split_en_file.readlines():
-            if nline % 5 == 0:
-                if nline / 5 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print("Something weird when reading en_offset")
-                off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
-                en_off_1.append(off)
-                #print(vals[0],off)
-            nline += 1
+    for rp in range(N_pts) :    #first we loop over pt replicas, then repetitions: we are stacking configuraions of same PT temperature together
+        for m in range(cg.Nreps) :
 
-        nline = 0
-        for line in en_file.readlines():
-            if nline % 10 == 0:
-                if nline / 10 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print(vals[0])
-                    print("Something weird when reading hbs_sampled")
-                hbs_s_1.append(int(vals[5]))  #hbs
-                #print(vals[0],vals[5])
-            nline += 1
+            split_en_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/split_energy.dat"
+            en_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/energy.dat"
 
-        split_en_file.close()
-        en_file.close()
+            if cg.parallel_tempering :
+
+                split_en_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_split_energy.dat"
+                en_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_energy.dat"
+
+            split_en_file = open(split_en_file_name, 'r')
+            en_file = open(en_file_name, 'r')
+
+            nline = 0
+            for line in split_en_file.readlines():
+                if nline % nevery_split == 0:
+                    if nline / nevery_split <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading en_offset. Snap time is off")
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    en_off_1.append(off*10) #off is per nucleotinde!
+                    #print(vals[0],off)
+                nline += 1
+
+            nline = 0
+            for line in en_file.readlines():
+                if nline % nevery_en == 0:
+                    if nline / nevery_en <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading hbs_sampled. Snap time is off")
+                    hbs_s_1.append(int(vals[5]))  #hbs
+                    #print(vals[0],vals[5])
+                nline += 1
+
+            split_en_file.close()
+            en_file.close()
 
     cfun.en_offset_n5.append(en_off_1)
     cfun.hbs_sampled_n5.append(hbs_s_1)
 
+    ofile_hsb=open("hsb_n5.dat", 'w')
+    print(cfun.hbs_sampled_n5, file=ofile_hsb)
+    ofile_hsb.close()
 
 if cg.read_coords_from_file :
     cfun.init_tensors_from_file_n5(device, shifts, OXPS_zero)
 
 else :
+
     fene_r = []
     stck_r = []
     th4_bn = []
@@ -181,52 +212,62 @@ else :
 
     for l in range(cg.Nseq_n5):
 
-        for m in range(cg.Nreps) :
-            tr_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat",'r')
-            topo_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+        N_pts = 1
+        if cg.parallel_tempering : N_pts = cg.N_PT_reps_n5
 
-            #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n5[l])
+        for rp in range(N_pts) :
+            for m in range(cg.Nreps) :
 
-            if m == 0:
-                fene_r.append(fr)
-                stck_r.append(sr)
-                th4_bn.append(t4bn)
-                th5.append(t5)
-                th6.append(t6)
-                cosphi1.append(cp1)
-                cosphi2.append(cp2)
-                types_bn.append(tbn)
-                hydr_r.append(hr)
-                th1.append(t1)
-                th2.append(t2)
-                th3.append(t3)
-                th4_unbn.append(t4un)
-                th7.append(t7)
-                th8.append(t8)
-                types_unbn_33.append(tun33)
-                types_unbn_55.append(tun55)
-            else:
-                fene_r[l].extend(fr)
-                stck_r[l].extend(sr)
-                th4_bn[l].extend(t4bn)
-                th5[l].extend(t5)
-                th6[l].extend(t6)
-                cosphi1[l].extend(cp1)
-                cosphi2[l].extend(cp2)
-                types_bn[l].extend(tbn)
-                hydr_r[l].extend(hr)
-                th1[l].extend(t1)
-                th2[l].extend(t2)
-                th3[l].extend(t3)
-                th4_unbn[l].extend(t4un)
-                th7[l].extend(t7)
-                th8[l].extend(t8)
-                types_unbn_33[l].extend(tun33)
-                types_unbn_55[l].extend(tun55)
+                tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
+                topo_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
 
-            tr_file.close()
-            topo_file.close()
+                if cg.parallel_tempering :
+                    tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
+
+                tr_file = open(tr_file_name, 'r')
+
+                #oxdna distances, types and angles
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n5[l])
+
+                if m == 0 and rp == 0:
+                    fene_r.append(fr)
+                    stck_r.append(sr)
+                    th4_bn.append(t4bn)
+                    th5.append(t5)
+                    th6.append(t6)
+                    cosphi1.append(cp1)
+                    cosphi2.append(cp2)
+                    types_bn.append(tbn)
+                    hydr_r.append(hr)
+                    th1.append(t1)
+                    th2.append(t2)
+                    th3.append(t3)
+                    th4_unbn.append(t4un)
+                    th7.append(t7)
+                    th8.append(t8)
+                    types_unbn_33.append(tun33)
+                    types_unbn_55.append(tun55)
+                else:
+                    fene_r[l].extend(fr)
+                    stck_r[l].extend(sr)
+                    th4_bn[l].extend(t4bn)
+                    th5[l].extend(t5)
+                    th6[l].extend(t6)
+                    cosphi1[l].extend(cp1)
+                    cosphi2[l].extend(cp2)
+                    types_bn[l].extend(tbn)
+                    hydr_r[l].extend(hr)
+                    th1[l].extend(t1)
+                    th2[l].extend(t2)
+                    th3[l].extend(t3)
+                    th4_unbn[l].extend(t4un)
+                    th7[l].extend(t7)
+                    th8[l].extend(t8)
+                    types_unbn_33[l].extend(tun33)
+                    types_unbn_55[l].extend(tun55)
+
+                tr_file.close()
+                topo_file.close()
 
     #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 
@@ -254,12 +295,17 @@ else :
 
 
     print("Check lengths:")
-    print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
-    print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
+    if len(fene_r) > 0 : print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
+    if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
 
     print("Memory usage after reading n5 data:")
     print_memory_usage()
+
+
+    ofile = open("test_fener.dat", 'w')
+    print(fene_r,file=ofile)
+    ofile.close()
 
 
     cfun.init_tensors_n5(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
@@ -299,43 +345,57 @@ for l in range(cg.Nseq_n8):
     en_off_1 = []
     hbs_s_1 = []
 
-    for m in range(cg.Nreps) :
-        split_en_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/split_energy.dat", 'r')
-        en_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/energy.dat", 'r')
+    N_pts = 1
+    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n8
 
-        nline = 0
-        for line in split_en_file.readlines():
-            if nline % 5 == 0:
-                if nline / 5 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print("Something weird when reading en_offset")
-                off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
-                en_off_1.append(off)
-                #print(vals[0],off)
-            nline += 1
+    for rp in range(N_pts) :
+        for m in range(cg.Nreps) :
 
-        nline = 0
-        for line in en_file.readlines():
-            if nline % 10 == 0:
-                if nline / 10 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print(vals[0])
-                    print("Something weird when reading hbs_sampled")
-                hbs_s_1.append(int(vals[5]))  #hbs
-                #print(vals[0],vals[5])
-            nline += 1
+            split_en_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/split_energy.dat"
+            en_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/energy.dat"
 
-        split_en_file.close()
-        en_file.close()
+            if cg.parallel_tempering :
+
+                split_en_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_split_energy.dat"
+                en_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_energy.dat"
+
+            split_en_file = open(split_en_file_name, 'r')
+            en_file = open(en_file_name, 'r')
+
+
+            nline = 0
+            for line in split_en_file.readlines():
+                if nline % nevery_split == 0:
+                    if nline / nevery_split <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading en_offset. Snap time is off")
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    en_off_1.append(off*16) #off is per nucleotinde!
+                    #print(vals[0],off)
+                nline += 1
+
+            nline = 0
+            for line in en_file.readlines():
+                if nline % nevery_en == 0:
+                    if nline / nevery_en <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading hbs_sampled. Snap time is off")
+                    hbs_s_1.append(int(vals[5]))  #hbs
+                    #print(vals[0],vals[5])
+                nline += 1
+
+            split_en_file.close()
+            en_file.close()
 
     cfun.en_offset_n8.append(en_off_1)
     cfun.hbs_sampled_n8.append(hbs_s_1)
+
 
 
 if cg.read_coords_from_file :
@@ -366,53 +426,62 @@ else :
 
     for l in range(cg.Nseq_n8):
 
-        for m in range(cg.Nreps) :
+        N_pts = 1
+        if cg.parallel_tempering : N_pts = cg.N_PT_reps_n8
 
-            tr_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat",'r')
-            topo_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+        for rp in range(N_pts) :
+            for m in range(cg.Nreps) :
 
-            #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n8[l])
+                tr_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
+                topo_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
 
-            if m == 0:
-                fene_r.append(fr)
-                stck_r.append(sr)
-                th4_bn.append(t4bn)
-                th5.append(t5)
-                th6.append(t6)
-                cosphi1.append(cp1)
-                cosphi2.append(cp2)
-                types_bn.append(tbn)
-                hydr_r.append(hr)
-                th1.append(t1)
-                th2.append(t2)
-                th3.append(t3)
-                th4_unbn.append(t4un)
-                th7.append(t7)
-                th8.append(t8)
-                types_unbn_33.append(tun33)
-                types_unbn_55.append(tun55)
-            else:
-                fene_r[l].extend(fr)
-                stck_r[l].extend(sr)
-                th4_bn[l].extend(t4bn)
-                th5[l].extend(t5)
-                th6[l].extend(t6)
-                cosphi1[l].extend(cp1)
-                cosphi2[l].extend(cp2)
-                types_bn[l].extend(tbn)
-                hydr_r[l].extend(hr)
-                th1[l].extend(t1)
-                th2[l].extend(t2)
-                th3[l].extend(t3)
-                th4_unbn[l].extend(t4un)
-                th7[l].extend(t7)
-                th8[l].extend(t8)
-                types_unbn_33[l].extend(tun33)
-                types_unbn_55[l].extend(tun55)
+                if cg.parallel_tempering :
+                    tr_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
 
-            tr_file.close()
-            topo_file.close()
+                tr_file = open(tr_file_name, 'r')
+
+                #oxdna distances, types and angles
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n8[l])
+
+                if m == 0 and rp == 0:
+                    fene_r.append(fr)
+                    stck_r.append(sr)
+                    th4_bn.append(t4bn)
+                    th5.append(t5)
+                    th6.append(t6)
+                    cosphi1.append(cp1)
+                    cosphi2.append(cp2)
+                    types_bn.append(tbn)
+                    hydr_r.append(hr)
+                    th1.append(t1)
+                    th2.append(t2)
+                    th3.append(t3)
+                    th4_unbn.append(t4un)
+                    th7.append(t7)
+                    th8.append(t8)
+                    types_unbn_33.append(tun33)
+                    types_unbn_55.append(tun55)
+                else:
+                    fene_r[l].extend(fr)
+                    stck_r[l].extend(sr)
+                    th4_bn[l].extend(t4bn)
+                    th5[l].extend(t5)
+                    th6[l].extend(t6)
+                    cosphi1[l].extend(cp1)
+                    cosphi2[l].extend(cp2)
+                    types_bn[l].extend(tbn)
+                    hydr_r[l].extend(hr)
+                    th1[l].extend(t1)
+                    th2[l].extend(t2)
+                    th3[l].extend(t3)
+                    th4_unbn[l].extend(t4un)
+                    th7[l].extend(t7)
+                    th8[l].extend(t8)
+                    types_unbn_33[l].extend(tun33)
+                    types_unbn_55[l].extend(tun55)
+
+                tr_file.close()
+                topo_file.close()
 
     #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 
@@ -439,8 +508,8 @@ else :
 
 
     print("Check lengths:")
-    print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
-    print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
+    if len(fene_r) > 0 : print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
+    if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n8(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
                       th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
@@ -465,56 +534,64 @@ else :
     del types_unbn_55
 
 
-"""
-
 ##################
 ### nbps = 15 ####
 ##################
-
 
 for l in range(cg.Nseq_n15):
 
     en_off_1 = []
     hbs_s_1 = []
 
-    for m in range(cg.Nreps) :
-        tr_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat",'r')
-        topo_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+    N_pts = 1
+    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n15
 
-        nline = 0
-        for line in split_en_file.readlines():
-            if nline % 5 == 0:
-                if nline / 5 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print("Something weird when reading en_offset")
-                off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
-                en_off_1.append(off)
-                #print(vals[0],off)
-            nline += 1
+    for rp in range(N_pts) :
+        for m in range(cg.Nreps) :
 
-        nline = 0
-        for line in en_file.readlines():
-            if nline % 10 == 0:
-                if nline / 10 <= cg.in_snap :
-                    nline += 1
-                    continue
-                vals = line.strip().split()
-                if int(vals[0]) % 100000 != 0 :
-                    print(vals[0])
-                    print("Something weird when reading hbs_sampled")
-                hbs_s_1.append(int(vals[5]))  #hbs
-                #print(vals[0],vals[5])
-            nline += 1
+            split_en_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/split_energy.dat"
+            en_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/energy.dat"
 
-        split_en_file.close()
-        en_file.close()
+            if cg.parallel_tempering :
+
+                split_en_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_split_energy.dat"
+                en_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_energy.dat"
+
+            split_en_file = open(split_en_file_name, 'r')
+            en_file = open(en_file_name, 'r')
+
+            nline = 0
+            for line in split_en_file.readlines():
+                if nline % nevery_split == 0:
+                    if nline / nevery_split <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading en_offset. Snap time is off")
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    en_off_1.append(off*30) #off is per nucleotinde!
+                    #print(vals[0],off)
+                nline += 1
+
+            nline = 0
+            for line in en_file.readlines():
+                if nline % nevery_en == 0:
+                    if nline / nevery_en <= cg.in_snap :
+                        nline += 1
+                        continue
+                    vals = line.strip().split()
+                    if int(vals[0]) % cg.delta_time != 0 :
+                        print("Something weird when reading hbs_sampled. Snap time is off")
+                    hbs_s_1.append(int(vals[5]))  #hbs
+                    #print(vals[0],vals[5])
+                nline += 1
+
+            split_en_file.close()
+            en_file.close()
 
     cfun.en_offset_n15.append(en_off_1)
     cfun.hbs_sampled_n15.append(hbs_s_1)
-
 
 
 if cg.read_coords_from_file :
@@ -545,54 +622,63 @@ else :
 
     for l in range(cg.Nseq_n15):
 
-        for m in range(cg.Nreps) :
-            tr_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat",'r')
-            topo_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+        N_pts = 1
+        if cg.parallel_tempering : N_pts = cg.N_PT_reps_n15
 
-            #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n15[l])
+        for rp in range(N_pts) :
+            for m in range(cg.Nreps) :
 
-            if m == 0:
-                fene_r.append(fr)
-                stck_r.append(sr)
-                th4_bn.append(t4bn)
-                th5.append(t5)
-                th6.append(t6)
-                cosphi1.append(cp1)
-                cosphi2.append(cp2)
-                types_bn.append(tbn)
-                hydr_r.append(hr)
-                th1.append(t1)
-                th2.append(t2)
-                th3.append(t3)
-                th4_unbn.append(t4un)
-                th7.append(t7)
-                th8.append(t8)
-                types_unbn.append(tun)
-                types_unbn_33.append(tun33)
-                types_unbn_55.append(tun55)
-            else:
-                fene_r[l].extend(fr)
-                stck_r[l].extend(sr)
-                th4_bn[l].extend(t4bn)
-                th5[l].extend(t5)
-                th6[l].extend(t6)
-                cosphi1[l].extend(cp1)
-                cosphi2[l].extend(cp2)
-                types_bn[l].extend(tbn)
-                hydr_r[l].extend(hr)
-                th1[l].extend(t1)
-                th2[l].extend(t2)
-                th3[l].extend(t3)
-                th4_unbn[l].extend(t4un)
-                th7[l].extend(t7)
-                th8[l].extend(t8)
-                types_unbn[l].extend(tun)
-                types_unbn_33[l].extend(tun33)
-                types_unbn_55[l].extend(tun55)
 
-            tr_file.close()
-            topo_file.close()
+                tr_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
+                topo_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+
+                if cg.parallel_tempering :
+                    tr_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
+
+                tr_file = open(tr_file_name, 'r')
+
+                #oxdna distances, types and angles
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n15[l])
+
+                if m == 0 and rp == 0:
+                    fene_r.append(fr)
+                    stck_r.append(sr)
+                    th4_bn.append(t4bn)
+                    th5.append(t5)
+                    th6.append(t6)
+                    cosphi1.append(cp1)
+                    cosphi2.append(cp2)
+                    types_bn.append(tbn)
+                    hydr_r.append(hr)
+                    th1.append(t1)
+                    th2.append(t2)
+                    th3.append(t3)
+                    th4_unbn.append(t4un)
+                    th7.append(t7)
+                    th8.append(t8)
+                    types_unbn_33.append(tun33)
+                    types_unbn_55.append(tun55)
+                else:
+                    fene_r[l].extend(fr)
+                    stck_r[l].extend(sr)
+                    th4_bn[l].extend(t4bn)
+                    th5[l].extend(t5)
+                    th6[l].extend(t6)
+                    cosphi1[l].extend(cp1)
+                    cosphi2[l].extend(cp2)
+                    types_bn[l].extend(tbn)
+                    hydr_r[l].extend(hr)
+                    th1[l].extend(t1)
+                    th2[l].extend(t2)
+                    th3[l].extend(t3)
+                    th4_unbn[l].extend(t4un)
+                    th7[l].extend(t7)
+                    th8[l].extend(t8)
+                    types_unbn_33[l].extend(tun33)
+                    types_unbn_55[l].extend(tun55)
+
+                tr_file.close()
+                topo_file.close()
 
     #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 
@@ -606,7 +692,7 @@ else :
         for j in range(len(types_unbn_33[l])):
             for z in range(len(types_unbn_33[l][j]), max_ints):
                 types_unbn_33[l][j].append(0)
-                types_unbn_33[l][j].append(0)
+                types_unbn_55[l][j].append(0)
                 hydr_r[l][j].append(0.)
 
                 th1[l][j].append(0.)
@@ -617,10 +703,13 @@ else :
                 th7[l][j].append(0.)
                 th8[l][j].append(0.)
 
+    for l in range(cg.Nseq_n15) :
+        for j in range(len(types_unbn_33[l])):
+            if j < 40: print(len(types_unbn_33[l][j]))
 
     print("Check lengths:")
-    print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
-    print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
+    if len(fene_r) > 0 : print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
+    if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n15(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
                       th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
@@ -644,10 +733,6 @@ else :
     del types_unbn_55
 
 
-
-"""
-
-
 print("Memory usage after reading all data:")
 print_memory_usage()
 
@@ -656,12 +741,16 @@ print_memory_usage()
 ############## SETUP TENSORS FOR COST FUNCTION ####################################################
 ###################################################################################################
 
+#extend sim_Ts tensors if using parallel tempering sim_Ts[seq][pt_replica]->sim_Ts[seq][conf]
+if cg.parallel_tempering: cfun.extend_Ts_and_weights_for_PT()
 
 if cg.print_coords_to_file:
     ofile = open("dists_and_angles_n5.txt", 'w')
     cfun.print_dists_and_angles_n5(ofile)
     ofile.close()
     cfun.print_dists_and_angles_n8()
+    cfun.print_dists_and_angles_n15()
+
 
 ofile = open("melting_tensors_n5.txt", 'w')
 cfun.print_melting_things_n5(ofile)
@@ -687,9 +776,9 @@ print_memory_usage()
 
 #compute initial energy and modulation factors
 
-cfun.compute_energy_n5()
-cfun.compute_energy_n8()
-#cfun.compute_initial_energy_n15()
+if cg.Nseq_n5 > 0 : cfun.compute_energy_n5()
+if cg.Nseq_n8 > 0 : cfun.compute_energy_n8()
+if cg.Nseq_n15 > 0 : cfun.compute_initial_energy_n15()
 
 print("Memory usage after computing in energy:")
 print_memory_usage()
@@ -699,18 +788,13 @@ print("Computed initial energy")
 ofile = open("energy_in_all_n5.txt", 'w')
 ofile_ave = open("energy_in_ave_n5.txt", 'w')
 
-cfun.print_energy_n5(ofile,ofile_ave)
+if cg.Nseq_n5 > 0 : cfun.print_energy_n5(ofile,ofile_ave)
 
 ofile.close()
 ofile_ave.close()
 
-ofile = open("energy_in_all_n8.txt", 'w')
-ofile_ave = open("energy_in_ave_n8.txt", 'w')
-
-cfun.print_energy_n8(ofile,ofile_ave)
-
-ofile.close()
-ofile_ave.close()
+if cg.Nseq_n8 > 0 : cfun.print_energy_n8()
+if cg.Nseq_n15 > 0 : cfun.print_energy_n15()
 
 print("Memory usage before optim-1:")
 print_memory_usage()
@@ -747,10 +831,10 @@ for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 4:
         lb = low_bond[n]*0.5
         ub = up_bond[n]*1.5
-        if lb > 0.85: low_bond[n] = lb
-        else: low_bond[n] = 0.85
-        if ub > 1.3: up_bond[n] = ub
-        else: up_bond[n] = 1.3
+        if lb > 0.65: low_bond[n] = lb
+        else: low_bond[n] = 0.65
+        if ub > 1.4: up_bond[n] = ub
+        else: up_bond[n] = 1.4
     elif cfun.OPT_PAR_LIST[n][0] == 44:
         lb = low_bond[n]*0.5
         ub = up_bond[n]*1.5
@@ -773,12 +857,27 @@ print_memory_usage()
 
 print("S0: "+str(cfun.COST(X0)))
 
+if cg.Nseq_n5 > 0:
+    print("Initial mTs n5:")
+    print(cfun.current_mT_n5)
 
-print("Target mTs n5:")
-print(cfun.target_Tms_n5)
+    print("Target mTs n5:")
+    print(cfun.target_Tms_n5)
 
-print("Initial mTs n5:")
-print(cfun.current_mT_n5)
+if cg.Nseq_n8 > 0:
+    print("Initial mTs n8:")
+    print(cfun.current_mT_n8)
+
+    print("Target mTs n8:")
+    print(cfun.target_Tms_n8)
+
+if cg.Nseq_n15 > 0:
+    print("Initial mTs n15:")
+    print(cfun.current_mT_n15)
+
+    print("Target mTs n15:")
+    print(cfun.target_Tms_n15)
+
 
 def Callback(sol):
 
@@ -794,11 +893,27 @@ def Callback(sol):
     print(tmp)
     print("S: "+str(cfun.COST(sol)))
 
-    print("Target mTs n5:")
-    print(cfun.target_Tms_n5)
+    if cg.Nseq_n5 > 0:
+        print("mTs n5 at iteration "+str(cg.Niter)+":")
+        print(cfun.current_mT_n5)
 
-    print("Current mTs n5")
-    print(cfun.current_mT_n5)
+        print("Target mTs n5:")
+        print(cfun.target_Tms_n5)
+
+    if cg.Nseq_n8 > 0:
+        print("mTs n8 at iteration "+str(cg.Niter)+":")
+        print(cfun.current_mT_n8)
+
+        print("Target mTs n8:")
+        print(cfun.target_Tms_n8)
+
+    if cg.Nseq_n15 > 0:
+        print("mTs n15 at iteration "+str(cg.Niter)+":")
+        print(cfun.current_mT_n15)
+
+        print("Target mTs n15:")
+        print(cfun.target_Tms_n15)
+
 
     print("Memory usage at end of iteration:")
     print_memory_usage()
@@ -809,7 +924,7 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxfun':400,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':50,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))
@@ -827,4 +942,3 @@ fun.print_final_pfile(sol.x,in_SD_par_file)
 in_SD_par_file.close()
 
 print("DONE")
-

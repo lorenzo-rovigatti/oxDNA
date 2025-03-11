@@ -58,11 +58,37 @@ def read_config(cfile_name) :
 
     cfile = open(cfile_name,'r')
 
+    #first, let't check if we used parallel tempering or not!
+    #depending on that, the structure of the config file is different
+
+    for line in cfile.readlines() :
+        vals = line.split()
+        if len(vals) == 0:
+            continue
+        if vals[0][0] == '#':
+            continue
+
+        if vals[0] == "PARALLEL_TEMPERING" :
+            if int(vals[1]) == 0 :
+                cg.parallel_tempering = True
+            else:
+                cg.parallel_tempering = False
+
+    if cg.parallel_tempering == True :
+        print("Configurations sampled with parallel tempering!")
+        print("Trying to read weights and temperatures for each replica of each sequence.")
+    else:
+        print("No parallel tempering detected. Expected one weight file and one temperature for each sequence.")
+
+    cfile.close()
+
+    cfile = open(cfile_name,'r')
+
     if cg.first_step_flag == False:
         tfile = open("in_Ts.txt",'r')
         Ts_lines = tfile.readlines()
 
-    checklist = np.zeros(16, dtype = int) #check if some mandatory parameters are missing
+    checklist = np.zeros(18, dtype = int) #check if some mandatory parameters are missing
 
     Seq_counter_n5 = -1
     Ts_index_n5 = -1
@@ -81,24 +107,46 @@ def read_config(cfile_name) :
             continue
         #print(vals)
 
+        ws_n5_read = False
+        ws_n8_read = False
+        ws_n15_read = False
+
         #read sequence
         if(vals[0] == 'SEQ'):
 
             #Seq_counter += 1
             #Ts_index += 1
 
-            if len(vals) != 9 :
-                print("Invalid SEQ sintax.")
-                print("Usage:")
-                print("SEQ seq box_size Cs simT0 Nts DT opfile wfile")
-                print("box_size = box_size")
-                print("Cs = ssalt concentration")
-                print("simT0 = simulation temperature first step")
-                print("NTs = number of rew temperatures")
-                print("DT = DT between rew temperatures")
-                print("opfile = order param file")
-                print("wfile = weight_file")
-                return False
+            if cg.parallel_tempering == False :
+
+                if len(vals) != 9 :
+                    print("Invalid SEQ sintax.")
+                    print("Usage:")
+                    print("SEQ seq box_size Cs simT0 Nts DT opfile wfile")
+                    print("box_size = box_size")
+                    print("Cs = salt concentration")
+                    print("simT0 = simulation temperature first step")
+                    print("NTs = number of rew temperatures")
+                    print("DT = DT between rew temperatures")
+                    print("opfile = order param file")
+                    print("wfile = weight_file")
+                    return False
+
+            else:
+
+                if len(vals) < 9 :
+                    print("Invalid SEQ sintax.")
+                    print("Usage:")
+                    print("SEQ seq box_size Cs Nreps simTs DT opfile wfiles")
+                    print("box_size = box_size")
+                    print("Cs = salt concentration")
+                    print("Nreps = number of replicas (for PT)")
+                    print("simTs = simulation temperatures, one for each replica")
+                    print("DT = DT between rew temperatures")
+                    print("opfile = order param file")
+                    print("wfiles = weight_files, one for each replica")
+                    return False
+
 
             checklist[0] = 1
 
@@ -126,83 +174,136 @@ def read_config(cfile_name) :
                 cg.Cs_n5.append(Cs)
 
                 SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-                SimT = 0
-                if cg.first_step_flag == True:
-                    SimT = float(vals[4])
-                else:
-                    SimT = float(Ts_lines[Ts_index])
-
                 cfun.target_Tms_n5.append(SLt)
 
-                NT = int(vals[5])
-                DT = float(vals[6])
+                if cg.parallel_tempering == False:
+                    SimT = 0
+                    if cg.first_step_flag == True:
+                        SimT = float(vals[4])
+                    else:
+                        SimT = float(Ts_lines[Ts_index])
 
-                cfun.sim_Ts_n5.append(SimT)
-                cfun.n_Ts_n5.append(NT)
+                    NT = int(vals[5])
+                    DT = float(vals[6])
+
+                    cfun.sim_Ts_n5.append(SimT)
+                    cfun.n_Ts_n5.append(NT)
+
+                    #DT = DT_new
+                    cfun.D_Ts_n5.append(DT)
+
+                    #create T range around T0
+
+                    #T0 = (SimT-SLt)/2.
+                    T0 = SimT
+
+                    rew_Ts = []
+
+                    lr = 0
+                    ur = 0
+
+                    if (NT)%2 == 0 :
+                        lr = -int((NT)/2-1)
+                        ur = int((NT)/2+1)
+                    else :
+                        lr = -int((NT-1)/2)
+                        ur = int((NT-1)/2+1)
+
+                    offset = 0.
+                    if DT*lr+T0<0 :  ##oxdna behaviour at T < 0 is uncertain
+                        offset = -(DT*lr+T0-0.5)
+                    #if DT*ur+T0>100 :
+                    #    offset = - (DT*ur+T0-100) - 0.5
+
+                    for l in range(lr,ur) :
+                        rew_Ts.append( DT*l+T0  + offset)
+
+                    cfun.rew_Ts_n5.append(rew_Ts)
+
+                    if ws_n5_read == False:
+                        #read weights
+
+                        wfile = open("n5/Seq"+str(Seq_counter_n5)+"/Rep0/"+vals[8],'r')
+
+                        weights = []
+
+                        for line in wfile.readlines() :
+                            vals_w = line.split()
+                            if len(vals_w) == 0:
+                                continue
+                            if vals_w[0][0] == '#':
+                                continue
+
+                            weights.append(float(vals_w[1]))
+
+                        cfun.weights_n5 = weights
+                        wfile.close()
+                        ws_n5_read = True
 
 
-                """
-                #Does the range of selected temperatures cover both simT and target T?
-                #if not, adjust DT
+                #w parallel tempering!
+                else:
+                    Nrs = int(vals[4])
+                    #print(Nrs)
+                    cg.N_PT_reps_n5 = Nrs
+                    sTs = []
+                    npars = 4
+                    for i in range(Nrs):
+                        npars += 1
+                        sT = float(vals[npars])
+                        sTs.append(sT)
 
-                if Delta > NT*DT+16 :
+                    npars += 1
+                    DT = float(vals[npars])
+                    NT = int((sTs[len(sTs)-1]-sTs[0])/DT+1)
 
-                    DT_new = (NT*Delta+16)/NT
+                    #print(NT)
+                    cfun.sim_Ts_n5.append(sTs)
+                    cfun.n_Ts_n5.append(NT)
 
-                    print("Warning: DT is too small to cover simulated T and target mT.")
-                    print("SimT - Target T: " + str(SimT-SLt))
-                    print("Enlarging DT to: " + str(DT_new))
-                """
+                    #create T range around T0
 
-                #DT = DT_new
-                cfun.D_Ts_n5.append(DT)
+                    #T0 = (SimT-SLt)/2.
+                    T0 = sTs[0]
+
+                    rew_Ts = []
+
+                    for i in range(NT) :
+                        rew_Ts.append(T0+DT*i)
+
+                    #print(rew_Ts)
+                    cfun.rew_Ts_n5.append(rew_Ts)
 
 
-                #create T range around T0
+                    npars += 1 #next par is opfile, we don't need it
 
-                #T0 = (SimT-SLt)/2.
-                T0 = SimT
+                    #read weights
 
-                rew_Ts = []
+                    if ws_n5_read == False:
+                        weights = []
+                        for i in range(Nrs):
+                            weights_1rep = []
+                            npars += 1
+                            print(vals)
+                            print(i, vals[npars])
+                            name = "n5/Seq"+str(Seq_counter_n5)+"/Rep0/"+vals[npars]
+                            print(name)
+                            wfile = open(name,'r')
 
-                lr = 0
-                ur = 0
+                            for line in wfile.readlines() :
+                                vals_w = line.split()
+                                if len(vals_w) == 0:
+                                    continue
+                                if vals_w[0][0] == '#':
+                                    continue
 
-                if (NT)%2 == 0 :
-                    lr = -int((NT)/2-1)
-                    ur = int((NT)/2+1)
-                else :
-                    lr = -int((NT-1)/2)
-                    ur = int((NT-1)/2+1)
+                                weights_1rep.append(float(vals_w[1]))
 
-                offset = 0.
-                if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
-                    offset = -(DT*lr+T0-0.5)
-                if DT*ur+T0>100 :
-                    offset = - (DT*ur+T0-100) - 0.5
+                            wfile.close()
+                            weights.append(weights_1rep)
 
-                for l in range(lr,ur) :
-                    rew_Ts.append( DT*l+T0  + offset)
-
-                cfun.rew_Ts_n5.append(rew_Ts)
-
-                #read weights
-
-                wfile = open("n5/Seq"+str(Seq_counter_n5)+"/Rep0/"+vals[8],'r')
-
-                weights = []
-
-                for line in wfile.readlines() :
-                    vals = line.split()
-                    if len(vals) == 0:
-                        continue
-                    if vals[0][0] == '#':
-                        continue
-
-                    weights.append(float(vals[1]))
-
-                cfun.weights_n5 = weights
-                wfile.close()
+                        cfun.weights_n5.append(weights)
+                        #ws_n5_read = True
 
             elif nbp == 8:
 
@@ -226,85 +327,130 @@ def read_config(cfile_name) :
                 cg.Cs_n8.append(Cs)
 
                 SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-                SimT = 0
-                if cg.first_step_flag == True:
-                    SimT = float(vals[4])
-                else:
-                    SimT = float(Ts_lines[Ts_index])
-
                 cfun.target_Tms_n8.append(SLt)
 
-                NT = int(vals[5])
-                DT = float(vals[6])
+                if cg.parallel_tempering == False:
+                    SimT = 0
+                    if cg.first_step_flag == True:
+                        SimT = float(vals[4])
+                    else:
+                        SimT = float(Ts_lines[Ts_index])
 
-                cfun.sim_Ts_n8.append(SimT)
-                cfun.n_Ts_n8.append(NT)
+                    NT = int(vals[5])
+                    DT = float(vals[6])
+
+                    cfun.sim_Ts_n8.append(SimT)
+                    cfun.n_Ts_n8.append(NT)
+
+                    #DT = DT_new
+                    cfun.D_Ts_n8.append(DT)
+
+                    #create T range around T0
+
+                    #T0 = (SimT-SLt)/2.
+                    T0 = SimT
+
+                    rew_Ts = []
+
+                    lr = 0
+                    ur = 0
+
+                    if (NT)%2 == 0 :
+                        lr = -int((NT)/2-1)
+                        ur = int((NT)/2+1)
+                    else :
+                        lr = -int((NT-1)/2)
+                        ur = int((NT-1)/2+1)
+
+                    offset = 0.
+                    if DT*lr+T0<0 :  #oxdna behaviour at T < 0 is uncertain
+                        offset = -(DT*lr+T0-0.5)
+                    #if DT*ur+T0>100 :
+                    #    offset = - (DT*ur+T0-100) - 0.5
+
+                    for l in range(lr,ur) :
+                        rew_Ts.append( DT*l+T0  + offset)
+
+                    cfun.rew_Ts_n8.append(rew_Ts)
+
+                    if ws_n8_read == False:
+                        #read weights
+
+                        wfile = open("n8/Seq"+str(Seq_counter_n8)+"/Rep0/"+vals[8],'r')
+
+                        weights = []
+
+                        for line in wfile.readlines() :
+                            vals_w = line.split()
+                            if len(vals_w) == 0:
+                                continue
+                            if vals_w[0][0] == '#':
+                                continue
+
+                            weights.append(float(vals_w[1]))
+
+                        cfun.weights_n8 = weights
+                        wfile.close()
+                        ws_n8_read = True
 
 
-                """
-                #Does the range of selected temperatures cover both simT and target T?
-                #if not, adjust DT
+                #w parallel tempering!
+                else:
+                    Nrs = int(vals[4])
+                    cg.N_PT_reps_n8 = Nrs
+                    sTs = []
+                    npars = 4
+                    for i in range(Nrs):
+                        npars += 1
+                        sT = float(vals[npars])
+                        sTs.append(sT)
 
-                if Delta > NT*DT+16 :
+                    npars += 1
+                    DT = float(vals[npars])
+                    NT = int((sTs[len(sTs)-1]-sTs[0])/DT+1)
+                    cfun.sim_Ts_n8.append(sTs)
+                    cfun.n_Ts_n8.append(NT)
 
-                    DT_new = (NT*Delta+16)/NT
+                    #create T range around T0
 
-                    print("Warning: DT is too small to cover simulated T and target mT.")
-                    print("SimT - Target T: " + str(SimT-SLt))
-                    print("Enlarging DT to: " + str(DT_new))
-                """
+                    #T0 = (SimT-SLt)/2.
+                    T0 = sTs[0]
 
-                #DT = DT_new
-                cfun.D_Ts_n8.append(DT)
+                    rew_Ts = []
+
+                    for i in range(NT) :
+                        rew_Ts.append(T0+DT*i)
+
+                    cfun.rew_Ts_n8.append(rew_Ts)
 
 
-                #create T range around T0
+                    npars += 1 #opfile, we don't need it
 
-                #T0 = (SimT-SLt)/2.
-                T0 = SimT
+                    #read weights
 
-                rew_Ts = []
+                    if ws_n8_read == False:
+                        weights = []
+                        for i in range(Nrs):
+                            weights_1rep = []
+                            npars += 1
+                            name = "n8/Seq"+str(Seq_counter_n8)+"/Rep0/"+vals[npars]
+                            wfile = open(name,'r')
 
-                lr = 0
-                ur = 0
+                            for line in wfile.readlines() :
+                                vals_w = line.split()
+                                if len(vals_w) == 0:
+                                    continue
+                                if vals_w[0][0] == '#':
+                                    continue
 
-                if (NT)%2 == 0 :
-                    lr = -int((NT)/2-1)
-                    ur = int((NT)/2+1)
-                else :
-                    lr = -int((NT-1)/2)
-                    ur = int((NT-1)/2+1)
+                                weights_1rep.append(float(vals_w[1]))
 
-                offset = 0.
-                if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
-                    offset = -(DT*lr+T0-0.5)
-                if DT*ur+T0>100 :
-                    offset = - (DT*ur+T0-100) - 0.5
+                            wfile.close()
+                            weights.append(weights_1rep)
 
-                for l in range(lr,ur) :
-                    rew_Ts.append( DT*l+T0  + offset)
+                        cfun.weights_n8.append(weights)
+                        #ws_n8_read = True
 
-                cfun.rew_Ts_n8.append(rew_Ts)
-
-                #read weights
-
-                wfile = open("n8/Seq"+str(Seq_counter_n8)+"/Rep0/"+vals[8],'r')
-
-                weights = []
-
-                for line in wfile.readlines() :
-                    vals = line.split()
-                    if len(vals) == 0:
-                        continue
-                    if vals[0][0] == '#':
-                        continue
-
-                    weights.append(float(vals[1]))
-
-                cfun.weights_n8 = weights
-                wfile.close()
-
-            """
 
             elif nbp == 15:
 
@@ -328,71 +474,130 @@ def read_config(cfile_name) :
                 cg.Cs_n15.append(Cs)
 
                 SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
-                SimT = 0
-                if cg.first_step_flag == True:
-                    SimT = float(vals[4])
-                else:
-                    SimT = float(Ts_lines[Ts_index])
-
                 cfun.target_Tms_n15.append(SLt)
 
-                NT = int(vals[5])
-                DT = float(vals[6])
+                if cg.parallel_tempering == False:
+                    SimT = 0
+                    if cg.first_step_flag == True:
+                        SimT = float(vals[4])
+                    else:
+                        SimT = float(Ts_lines[Ts_index])
 
-                cfun.sim_Ts_n15.append(SimT)
-                cfun.n_Ts_n15.append(NT)
+                    NT = int(vals[5])
+                    DT = float(vals[6])
 
-                #DT = DT_new
-                cfun.D_Ts_n15.append(DT)
+                    cfun.sim_Ts_n15.append(SimT)
+                    cfun.n_Ts_n15.append(NT)
+
+                    #DT = DT_new
+                    cfun.D_Ts_n15.append(DT)
+
+                    #create T range around T0
+
+                    #T0 = (SimT-SLt)/2.
+                    T0 = SimT
+
+                    rew_Ts = []
+
+                    lr = 0
+                    ur = 0
+
+                    if (NT)%2 == 0 :
+                        lr = -int((NT)/2-1)
+                        ur = int((NT)/2+1)
+                    else :
+                        lr = -int((NT-1)/2)
+                        ur = int((NT-1)/2+1)
+
+                    offset = 0.
+                    if DT*lr+T0<0 :  #oxdna behaviour at T < 0 is uncertain
+                        offset = -(DT*lr+T0-0.5)
+                    #if DT*ur+T0>100 :
+                    #    offset = - (DT*ur+T0-100) - 0.5
+
+                    for l in range(lr,ur) :
+                        rew_Ts.append( DT*l+T0  + offset)
+
+                    cfun.rew_Ts_n15.append(rew_Ts)
+
+                    if ws_n15_read == False:
+                        #read weights
+
+                        wfile = open("n15/Seq"+str(Seq_counter_n15)+"/Rep0/"+vals[8],'r')
+
+                        weights = []
+
+                        for line in wfile.readlines() :
+                            vals_w = line.split()
+                            if len(vals_w) == 0:
+                                continue
+                            if vals_w[0][0] == '#':
+                                continue
+
+                            weights.append(float(vals_w[1]))
+
+                        cfun.weights_n15 = weights
+                        wfile.close()
+                        ws_n15_read = True
 
 
-                #create T range around T0
+                #w parallel tempering!
+                else:
+                    Nrs = int(vals[4])
+                    cg.N_PT_reps_n15 = Nrs
+                    sTs = []
+                    npars = 4
+                    for i in range(Nrs):
+                        npars += 1
+                        sT = float(vals[npars])
+                        sTs.append(sT)
 
-                #T0 = (SimT-SLt)/2.
-                T0 = SimT
+                    npars += 1
+                    DT = float(vals[npars])
+                    NT = int((sTs[len(sTs)-1]-sTs[0])/DT+1)
+                    cfun.sim_Ts_n15.append(sTs)
+                    cfun.n_Ts_n15.append(NT)
 
-                rew_Ts = []
+                    #create T range around T0
 
-                lr = 0
-                ur = 0
+                    #T0 = (SimT-SLt)/2.
+                    T0 = sTs[0]
 
-                if (NT)%2 == 0 :
-                    lr = -int((NT)/2-1)
-                    ur = int((NT)/2+1)
-                else :
-                    lr = -int((NT-1)/2)
-                    ur = int((NT-1)/2+1)
+                    rew_Ts = []
 
-                offset = 0.
-                if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
-                    offset = -(DT*lr+T0-0.5)
-                if DT*ur+T0>100 :
-                    offset = - (DT*ur+T0-100) - 0.5
+                    for i in range(NT) :
+                        rew_Ts.append(T0+DT*i)
 
-                for l in range(lr,ur) :
-                    rew_Ts.append( DT*l+T0  + offset)
+                    cfun.rew_Ts_n15.append(rew_Ts)
 
-                cfun.rew_Ts_n15.append(rew_Ts)
 
-                #read weights
+                    npars += 1 #opfile, we don't need it
 
-                wfile = open("n15/Seq"+str(Seq_counter_n15)+"/Rep0/"+vals[8],'r')
+                    #read weights
 
-                weights = []
+                    if ws_n15_read == False:
+                        weights = []
+                        for i in range(Nrs):
+                            weights_1rep = []
+                            npars += 1
+                            name = "n15/Seq"+str(Seq_counter_n15)+"/Rep0/"+vals[npars]
+                            wfile = open(name,'r')
 
-                for line in wfile.readlines() :
-                    vals = line.split()
-                    if len(vals) == 0:
-                        continue
-                    if vals[0][0] == '#':
-                        continue
+                            for line in wfile.readlines() :
+                                vals_w = line.split()
+                                if len(vals_w) == 0:
+                                    continue
+                                if vals_w[0][0] == '#':
+                                    continue
 
-                    weights.append(float(vals[1]))
+                                weights_1rep.append(float(vals_w[1]))
 
-                cfun.weights_n15 = weights
-                wfile.close()
+                            wfile.close()
+                            weights.append(weights_1rep)
 
-        """
+                        cfun.weights_n15.append(weights)
+                        #ws_n15_read = True
+
 
         #read snapshots to discard (equilibration)
         if(vals[0] == "IN_SNAP") :
@@ -409,6 +614,22 @@ def read_config(cfile_name) :
             #print(vals)
             cfun.add_opti_par(vals[1])
             checklist[3] = 1
+
+        if(vals[0] == "SIM_TIME") :
+            cg.tot_time = int(float(vals[1]))
+            checklist[14] = 1
+
+        if(vals[0] == "DELTA_TIME") :
+            cg.delta_time = int(float(vals[1]))
+            checklist[15] = 1
+
+        if(vals[0] == "DELTA_PRINT_EN") :
+            cg.delta_print_en = int(float(vals[1]))
+            checklist[16] = 1
+
+        if(vals[0] == "DELTA_PRINT_SPLIT_EN") :
+            cg.delta_split_en = int(float(vals[1]))
+            checklist[17] = 1
 
         if(vals[0] == "ALGO") :
             cg.algo = vals[1]
@@ -481,6 +702,7 @@ def read_config(cfile_name) :
                 print("Alternatives are True or False")
                 print("Setting it to "+ str(cg.print_coords_to_file))
             checklist[13] = 1
+
 
     cfile.close()
     if cg.first_step_flag == False:
@@ -698,13 +920,49 @@ def read_config(cfile_name) :
         print("Usage:")
         print("print_coords_to_file True")
 
+        if checklist[14] == 1:
+            print("Total simulation time = "+str(cg.tot_time))
+        else :
+            print("MANDATORY. Total simulation time")
+            print("Usage:")
+            print("SIM_TIME tot_time")
+            return False
+
+    if checklist[15] == 1:
+        print("Delta t between snapshots = "+str(cg.delta_time))
+        cg.Nconfs_per_pt_rep = int(cg.tot_time/cg.delta_time)-cg.in_snap
+        cg.tot_Nconfs_per_pt_rep = cg.Nreps*cg.Nconfs_per_pt_rep
+        print("Number of sampled configurations per replica = "+str(cg.Nconfs_per_pt_rep))
+        print("Total number of sampled configurations per replica (accounting for Nreps simulations)= "+str(cg.tot_Nconfs_per_pt_rep))
+    else :
+        print("MANDATORY. Delta t between snapshots")
+        print("Usage:")
+        print("DELTA_TIME snap_time")
+        return False
+
+    if checklist[16] == 1:
+        print("Delta t between printing energy = "+str(cg.delta_print_en))
+    else :
+        print("MANDATORY. Delta t between printing energy")
+        print("Usage:")
+        print("DELTA_PRINT_EN en_print_time")
+        return False
+
+    if checklist[17] == 1:
+        print("Delta t between printing split energy = "+str(cg.delta_print_en))
+    else :
+        print("MANDATORY. Delta t between printing split energy")
+        print("Usage:")
+        print("DELTA_PRINT_SPLIT_EN split_en_print_time")
+        return False
+
+
     return True
 
 
-
- ###################################################################################################
- ############## READ PARAMETERS FROM model.h E SD PARAMETERS FILE ##################################
- ###################################################################################################
+###################################################################################################
+############## READ PARAMETERS FROM model.h E SD PARAMETERS FILE ##################################
+###################################################################################################
 
 #find initial values of the parameters from model.h file (if it gets updated, changes are read without modifying the code)
 def read_vanilla_parameters(mfile) :
@@ -822,7 +1080,7 @@ def read_pars_from_SD_file(SDfile) :
                          over_indices.append(oi)
                          over_vals.append(float(vals[2]))
 
-        elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" :
+        elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL":
             par_name = vals_cn[0]
             for i in range(1,len(vals_cn)-4):
                 par_name += "_"+vals_cn[i]
@@ -1437,7 +1695,7 @@ def print_final_pfile(FOPARS,infile) :
         vals_cn = vals[0].split("_")
 
         #4D parameters
-        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
             par_name = vals_cn[0]
             for i in range(1,len(vals_cn)-4):
                 par_name+="_"+vals_cn[i]

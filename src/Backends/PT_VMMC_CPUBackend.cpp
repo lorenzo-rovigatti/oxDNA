@@ -101,7 +101,7 @@ void PT_VMMC_CPUBackend::init() {
 		}
 
 		_irresp_w.init((const char*) _irresp_weights_file, &_op, _safe_weights, _default_weight);
-
+        _w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);    //Andrea: we have to update this, otherwise weight will be common!
 		fprintf(stderr, "(from replica %d) common_weights = %d; weights file = %s\n", _my_mpi_id, _pt_common_weights, _weights_file);
 	}
 }

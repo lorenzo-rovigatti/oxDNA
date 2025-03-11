@@ -35,7 +35,14 @@ PARS_LIST = [
              'CRST_THETA3_T0_55', 'CRST_THETA3_A_55', 'CRST_THETA3_B_55', 'CRST_THETA3_TS_55', 'CRST_THETA3_TC_55',
              'CRST_THETA4_T0_55', 'CRST_THETA4_A_55', 'CRST_THETA4_B_55', 'CRST_THETA4_TS_55', 'CRST_THETA4_TC_55',
              'CRST_THETA7_T0_55', 'CRST_THETA7_A_55', 'CRST_THETA7_B_55', 'CRST_THETA7_TS_55', 'CRST_THETA7_TC_55',
-             'CRST_THETA8_T0_55', 'CRST_THETA8_A_55', 'CRST_THETA8_B_55', 'CRST_THETA8_TS_55', 'CRST_THETA8_TC_55'
+             'CRST_THETA8_T0_55', 'CRST_THETA8_A_55', 'CRST_THETA8_B_55', 'CRST_THETA8_TS_55', 'CRST_THETA8_TC_55',
+             'EXCL_S1', 'EXCL_R1', 'EXCL_B1', 'EXCL_RC1',
+             'EXCL_S2', 'EXCL_R2', 'EXCL_B2', 'EXCL_RC2',
+             'EXCL_S3', 'EXCL_R3', 'EXCL_B3', 'EXCL_RC3',
+             'EXCL_S4', 'EXCL_R4', 'EXCL_B4', 'EXCL_RC4',
+             'EXCL_S5', 'EXCL_R5', 'EXCL_B5', 'EXCL_RC5',
+             'EXCL_S6', 'EXCL_R6', 'EXCL_B6', 'EXCL_RC6',
+             'EXCL_S7', 'EXCL_R7', 'EXCL_B7', 'EXCL_RC7'
              ]
 
 
@@ -149,7 +156,7 @@ par_index.append(PARS_LIST.index("STCK_PHI2_XS"))
 
 
 #CROSS STACKING
-    
+
 par_index.append(PARS_LIST.index("CRST_K_33"))
 par_index.append(PARS_LIST.index("CRST_R0_33"))
 par_index.append(PARS_LIST.index("CRST_RC_33"))
@@ -242,6 +249,41 @@ par_index.append(PARS_LIST.index("CRST_THETA8_B_55"))
 par_index.append(PARS_LIST.index("CRST_THETA8_TS_55"))
 par_index.append(PARS_LIST.index("CRST_THETA8_TC_55"))
 
+#EXCLUDED VOLUME
+par_index.append(PARS_LIST.index("EXCL_S1"))
+par_index.append(PARS_LIST.index("EXCL_R1"))
+par_index.append(PARS_LIST.index("EXCL_B1"))
+par_index.append(PARS_LIST.index("EXCL_RC1"))
+
+par_index.append(PARS_LIST.index("EXCL_S2"))
+par_index.append(PARS_LIST.index("EXCL_R2"))
+par_index.append(PARS_LIST.index("EXCL_B2"))
+par_index.append(PARS_LIST.index("EXCL_RC2"))
+
+par_index.append(PARS_LIST.index("EXCL_S3"))
+par_index.append(PARS_LIST.index("EXCL_R3"))
+par_index.append(PARS_LIST.index("EXCL_B3"))
+par_index.append(PARS_LIST.index("EXCL_RC3"))
+
+par_index.append(PARS_LIST.index("EXCL_S4"))
+par_index.append(PARS_LIST.index("EXCL_R4"))
+par_index.append(PARS_LIST.index("EXCL_B4"))
+par_index.append(PARS_LIST.index("EXCL_RC4"))
+
+par_index.append(PARS_LIST.index("EXCL_S5"))
+par_index.append(PARS_LIST.index("EXCL_R5"))
+par_index.append(PARS_LIST.index("EXCL_B5"))
+par_index.append(PARS_LIST.index("EXCL_RC5"))
+
+par_index.append(PARS_LIST.index("EXCL_S6"))
+par_index.append(PARS_LIST.index("EXCL_R6"))
+par_index.append(PARS_LIST.index("EXCL_B6"))
+par_index.append(PARS_LIST.index("EXCL_RC6"))
+
+par_index.append(PARS_LIST.index("EXCL_S7"))
+par_index.append(PARS_LIST.index("EXCL_R7"))
+par_index.append(PARS_LIST.index("EXCL_B7"))
+par_index.append(PARS_LIST.index("EXCL_RC7"))
 
 compl_symm_ids_2d = [0]
 compl_symm_ids_2d_no_TT_AA = []

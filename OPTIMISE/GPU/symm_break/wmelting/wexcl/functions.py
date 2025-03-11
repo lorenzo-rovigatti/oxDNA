@@ -11,7 +11,7 @@ import cmath
 PARS_LIST = parl.PARS_LIST
 par_index = parl.par_index
 
-bases = ['A','C','G','T']
+bases = ['A','C','G','T','E']
 #map bases to id
 def base_to_id(b) :
     if b == 'A':
@@ -22,6 +22,8 @@ def base_to_id(b) :
         return 2
     elif  b == 'T':
         return 3
+    elif  b == 'E':
+        return 4
     else:
         return -1
 
@@ -559,16 +561,16 @@ def read_pars_from_SD_file(SDfile) :
             continue
         vals_cn = vals[0].split("_")
         if vals_cn[0] == "STCK" and len(vals_cn) == 3:
-            for i in range(4):
-                for j in range(4):
-                    ty=i+base_to_id(vals_cn[1])*4+base_to_id(vals_cn[2])*4*4+j*4*4*4    #from base 4 to base 10
+            for i in range(5):
+                for j in range(5):
+                    ty=i+base_to_id(vals_cn[1])*5+base_to_id(vals_cn[2])*5*5+j*5*5*5    #from base 4 to base 10
                     oi = [PARS_LIST.index("STCK_EPS"),ty]
                     over_indices.append(oi)
                     over_vals.append(float(vals[2]))
         elif vals_cn[0] == "HYDR" and len(vals_cn) == 3:
-            for i in range(4):
-                for j in range(4):
-                    ty=i+base_to_id(vals_cn[1])*4+base_to_id(vals_cn[2])*4*4+j*4*4*4    #from base 4 to base 10
+            for i in range(5):
+                for j in range(5):
+                    ty=i+base_to_id(vals_cn[1])*5+base_to_id(vals_cn[2])*5*5+j*5*5*5    #from base 4 to base 10
                     oi = [PARS_LIST.index("HYDR_EPS"),ty]
                     over_indices.append(oi)
                     over_vals.append(float(vals[2]))
@@ -577,9 +579,9 @@ def read_pars_from_SD_file(SDfile) :
             if vals_cn[0] == "HYDR" or vals_cn[1] == "K":
                 for i in range(1,len(vals_cn)-2):
                     par_name += "_"+vals_cn[i]
-                for i in range(4):
-                    for j in range(4):
-                        ty=i+base_to_id(vals_cn[len(vals_cn)-2])*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4+j*4*4*4    #from base 4 to base 10
+                for i in range(5):
+                    for j in range(5):
+                        ty=i+base_to_id(vals_cn[len(vals_cn)-2])*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5+j*5*5*5    #from base 4 to base 10
                         oi = [PARS_LIST.index(par_name),ty]
                         over_indices.append(oi)
                         over_vals.append(float(vals[2]))
@@ -593,16 +595,16 @@ def read_pars_from_SD_file(SDfile) :
                          par_name += "_THETA8"
                     for i in range(2,len(vals_cn)-2):
                          par_name += "_"+vals_cn[i]
-                    for i in range(4):
-                        for j in range(4):
-                            ty=i+base_to_id(vals_cn[len(vals_cn)-2])*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4+j*4*4*4    #from base 4 to base 10
+                    for i in range(5):
+                        for j in range(5):
+                            ty=i+base_to_id(vals_cn[len(vals_cn)-2])*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5+j*5*5*5    #from base 4 to base 10
                             oi = [PARS_LIST.index(par_name),ty]
                             over_indices.append(oi)
                             over_vals.append(float(vals[2]))
             else :
                 for i in range(1,len(vals_cn)-4):
                     par_name += "_"+vals_cn[i]
-                ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4
+                ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5
                 oi = [PARS_LIST.index(par_name),ty]
                 over_indices.append(oi)
                 over_vals.append(float(vals[2]))
@@ -616,7 +618,7 @@ def read_pars_from_SD_file(SDfile) :
                          par_name += "_THETA8"
                     for i in range(2,len(vals_cn)-4):
                          par_name += "_"+vals_cn[i]
-                         ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4
+                         ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5
                          oi = [PARS_LIST.index(par_name),ty]
                          over_indices.append(oi)
                          over_vals.append(float(vals[2]))
@@ -627,7 +629,7 @@ def read_pars_from_SD_file(SDfile) :
                 par_name = vals_cn[0]
                 for i in range(1,len(vals_cn)-4):
                     par_name += "_"+vals_cn[i]
-            ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4    #from base 4 to base 10
+            ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5    #from base 4 to base 10
             oi = [PARS_LIST.index(par_name),ty]
             over_indices.append(oi)
             over_vals.append(float(vals[2]))
@@ -648,24 +650,24 @@ def read_pars_from_SD_file(SDfile) :
 #T = temperature in oxdna units. This is needed to correctly set STCK_EPS
 def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
 
-    OXPS_zero = np.zeros((len(PARS_LIST),256),dtype=float)
-    shifts = np.zeros((2,256),dtype=float) #0 = hydr, 1 = stck
+    OXPS_zero = np.zeros((len(PARS_LIST),625),dtype=float)
+    shifts = np.zeros((2,625),dtype=float) #0 = hydr, 1 = stck
 
     for i in range(len(PARS_LIST)) :
 
         if PARS_LIST[i] == "STCK_EPS":
-            for j in range(256) :
+            for j in range(625) :
                 OXPS_zero[i][j] = 1.
             continue
         if PARS_LIST[i] == "HYDR_EPS":
-            for j in range(256) :
+            for j in range(625) :
                 OXPS_zero[i][j] = 0.
             continue
 
         index = pars_mh.index(PARS_LIST[i])
         val = vals_mh[index]
 
-        for j in range(256) :
+        for j in range(625) :
             OXPS_zero[i][j] = val
 
     #here we use the initial custom parameters, must include stck_x_y and hydr_x_y
@@ -681,7 +683,7 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
         OXPS_zero[over_indices[i][0]][over_indices[i][1]] = over_vals[i]
 
     #set eps and shifts
-    for j in range(256) :
+    for j in range(625) :
         #hydr
         shifts[0][j] = Morse(OXPS_zero[par_index[7]][j],OXPS_zero[par_index[4]][j],OXPS_zero[par_index[5]][j],OXPS_zero[par_index[6]][j])
         #stacking
@@ -901,10 +903,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     #bonded basepairs
                     #find pairs and tetramer type
                     for i in range(len(topology)) :
-                        ty0 = 1
-                        ty1 = 1
-                        ty2 = 1
-                        ty3 = 1
+                        ty0 = 5
+                        ty1 = 5
+                        ty2 = 5
+                        ty3 = 5
                         if topology[i].up_id == -1: continue
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
@@ -990,12 +992,12 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
 
                     #UNDBONDED
                     for i in range(len(topology)) :
-                        ty0_33 = 1
-                        ty0_55 = 1
-                        ty1 = 1
-                        ty2 = 1
-                        ty3_33 = 1
-                        ty3_55 = 1
+                        ty0_33 = 5
+                        ty0_55 = 5
+                        ty1 = 5
+                        ty2 = 5
+                        ty3_33 = 5
+                        ty3_55 = 5
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
@@ -1583,93 +1585,7 @@ def print_final_pfile(FOPARS,infile) :
     VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
     CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
 
-    #constraints - no continuity
-
-    #delta
-    aveD = torch.mean(CURR_PARS[2])
-    #print("Old delta:", aveD)
-    CURR_PARS[2] = CURR_PARS[2] - aveD + cfun.AVE_DELTA
-    #print("New delta:", torch.mean(CURR_PARS[2]))
-
-    #Make STCK_THETA5A average
-
-    aveTH5A = torch.mean(CURR_PARS[60])
-    CURR_PARS[60] = aveTH5A
-
-    CURR_PARS[3] = torch.square( CURR_PARS[2] )
-
-    #crst r0
-    #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2asin(sqrt(fene_ro^2-stck_r0^2)))) )
-
-    """
-    #Constraints - no continuity
-    fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
-    stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33])+torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_33_SYMM]))*0.25
-
-    #0.08 <- if hydr_r0 = 0.4. otherwise this has to be changed
-    CURR_PARS[78][cfun.CRST_TETRA_TYPE_33] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-    CURR_PARS[78][cfun.CRST_TETRA_TYPE_33_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-
-    fene_r02_crst = torch.square(torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55])+torch.clone(CURR_PARS[1][cfun.CRST_TETRA_TYPE_55_SYMM]))*0.25
-    stck_r02_crst = torch.square(torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55])+torch.clone(CURR_PARS[45][cfun.CRST_TETRA_TYPE_55_SYMM]))*0.25
-
-    CURR_PARS[117][cfun.CRST_TETRA_TYPE_55] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-    CURR_PARS[117][cfun.CRST_TETRA_TYPE_55_SYMM] = torch.sqrt( stck_r02_crst+0.08*(1+torch.cos(2*torch.arcsin(0.5*torch.sqrt(fene_r02_crst-stck_r02_crst)))) )
-    """
-
-    #Excluded volume
-    #fixing base-base bonded interaction according to the stacking resting distance
-    CURR_PARS[171] = CURR_PARS[45] - 0.07 #171 = bonded baba excl volume, 45 = stck r0
-    CURR_PARS[cfun.f3_R_ID] = CURR_PARS[cfun.f3_S_ID]*0.97
-
-    # constraints - continuity
-    #f1
-
-    CURR_PARS[cfun.f1_RL_ID] = cfun.OFFSET_f1_RL[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-    CURR_PARS[cfun.f1_RH_ID] = cfun.OFFSET_f1_RH[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-    CURR_PARS[cfun.f1_RC_ID] = cfun.OFFSET_f1_RC[cfun.OFFSET_f1_ID] + CURR_PARS[cfun.f1_R0_ID]
-
-    EXP1 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RL_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-    EXP2 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RC_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-    EXP3 = torch.exp( -CURR_PARS[cfun.f1_A_ID]*(CURR_PARS[cfun.f1_RH_ID]-CURR_PARS[cfun.f1_R0_ID]) )
-
-    CURR_PARS[cfun.f1_BL_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP1*(1-EXP1) )/( torch.square(1-EXP1) - torch.square(1-EXP2) )
-    CURR_PARS[cfun.f1_BH_ID] = torch.square( CURR_PARS[cfun.f1_A_ID] )*torch.square( EXP3*(1-EXP3) )/( torch.square(1-EXP3) - torch.square(1-EXP2) )
-
-    CURR_PARS[cfun.f1_RCL_ID] = CURR_PARS[cfun.f1_RL_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BL_ID]*( EXP1*(1-EXP1) )
-    CURR_PARS[cfun.f1_RCH_ID] = CURR_PARS[cfun.f1_RH_ID] - CURR_PARS[cfun.f1_A_ID]/CURR_PARS[cfun.f1_BH_ID]*( EXP3*(1-EXP3) )
-
-    #f2
-    CURR_PARS[cfun.f2_RL_ID] = cfun.OFFSET_f2_RL[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-    CURR_PARS[cfun.f2_RH_ID] = cfun.OFFSET_f2_RH[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-    CURR_PARS[cfun.f2_RC_ID] = cfun.OFFSET_f2_RC[cfun.OFFSET_f2_ID] + CURR_PARS[cfun.f2_R0_ID]
-
-    TERM1 = CURR_PARS[cfun.f2_RL_ID]-CURR_PARS[cfun.f2_R0_ID]
-    TERM2 = CURR_PARS[cfun.f2_RH_ID]-CURR_PARS[cfun.f2_R0_ID]
-    TERM3 = CURR_PARS[cfun.f2_RC_ID]-CURR_PARS[cfun.f2_R0_ID]
-
-    CURR_PARS[cfun.f2_RCL_ID] = CURR_PARS[cfun.f2_RL_ID] - (torch.square(TERM1)-torch.square(TERM3))/TERM1
-    CURR_PARS[cfun.f2_RCH_ID] = CURR_PARS[cfun.f2_RH_ID] - (torch.square(TERM2)-torch.square(TERM3))/TERM2
-
-    CURR_PARS[cfun.f2_BL_ID] = -0.5*TERM1/( CURR_PARS[cfun.f2_RCL_ID]-CURR_PARS[cfun.f2_RL_ID] )
-    CURR_PARS[cfun.f2_BH_ID] = -0.5*TERM2/( CURR_PARS[cfun.f2_RCH_ID]-CURR_PARS[cfun.f2_RH_ID] )
-
-
-    #f3
-
-    lj_x = torch.clone( torch.pow(CURR_PARS[cfun.f3_S_ID]/CURR_PARS[cfun.f3_R_ID], 6) )
-
-    g1 = 4*( torch.square(lj_x) - lj_x )
-    g2 = 12/CURR_PARS[cfun.f3_R_ID]*( 2*torch.square(lj_x)-lj_x )
-
-    CURR_PARS[cfun.f3_RC_ID] = g1/g2 + CURR_PARS[cfun.f3_R_ID]
-    CURR_PARS[cfun.f3_B_ID] = torch.square(g2)/g1
-
-    #f4
-    CURR_PARS[cfun.f4_TS_ID] = torch.sqrt(0.81225/CURR_PARS[cfun.f4_A_ID])
-    CURR_PARS[cfun.f4_TC_ID] = 1./CURR_PARS[cfun.f4_A_ID]/CURR_PARS[cfun.f4_TS_ID]
-    CURR_PARS[cfun.f4_B_ID] = CURR_PARS[cfun.f4_A_ID]*CURR_PARS[cfun.f4_TS_ID]/(CURR_PARS[cfun.f4_TC_ID]-CURR_PARS[cfun.f4_TS_ID])
-
+    cfun.FIX_ENSLAVED(CURR_PARS,True)
 
     FIN_PARS = torch.tensor(CURR_PARS,device='cpu')
 
@@ -1704,7 +1620,7 @@ def print_final_pfile(FOPARS,infile) :
                 ty1 = base_to_id(vals_cn[len(vals_cn)-3])
                 ty0 = base_to_id(vals_cn[len(vals_cn)-4])
 
-                ty = ty0+ty1*4+ty2*16+ty3*64
+                ty = ty0+ty1*5+ty2*25+ty3*125
 
                 print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
             else:
@@ -1723,7 +1639,7 @@ def print_final_pfile(FOPARS,infile) :
                 ty2 = base_to_id(vals_cn[len(vals_cn)-1])
                 ty1 = base_to_id(vals_cn[len(vals_cn)-2])
 
-                ty = ty1*4+ty2*16
+                ty = ty1*5+ty2*25
 
                 print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
             else:
