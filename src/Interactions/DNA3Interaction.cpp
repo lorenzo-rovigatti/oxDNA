@@ -16,8 +16,8 @@ DNA3Interaction::DNA3Interaction() :
 
         //initaialise all sequence dependent parameters with their average value.
         //these values are overwritten with the sequence dependent values in init().
-        for(int j = 0; j < 6; j++) {
-      	  for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 6; i++) {
+      	  for(int j = 0; j < 5; j++) {
 			for(int k = 0; k < 5; k++) {
 				for(int l = 0; l < 6; l++)  {
 
@@ -816,12 +816,13 @@ void DNA3Interaction::init() {
 
                     //fene
                     _fene_delta_SD[i][j][k][5] = get_average_par(_fene_delta_SD);
+                    //if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
                     _fene_delta_SD[5][j][k][i] = get_average_par(_fene_delta_SD);
                     _fene_r0_SD[i][j][k][5] = get_average_par(_fene_r0_SD);
+                    //if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
                     _fene_r0_SD[5][j][k][i] = get_average_par(_fene_r0_SD);
 
                     //f1
-                    number term1, term2, term3;
                     for(int m = 0; m < 2; m++) {
                         F1_SD_A[m][i][j][k][5] = get_average_par(m,F1_SD_A);
                         F1_SD_R0[m][i][j][k][5] = get_average_par(m,F1_SD_R0);
@@ -835,18 +836,21 @@ void DNA3Interaction::init() {
                         F1_SD_RLOW[m][5][j][k][i] = get_average_par(m,F1_SD_RLOW);
                         F1_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F1_SD_RHIGH);
                     }
+
+
                     //f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m][i][j][k][5] = get_average_par(m,F1_SD_R0);
-                        F2_SD_RC[m][i][j][k][5] = get_average_par(m,F1_SD_RC);
-                        F2_SD_RLOW[m][i][j][k][5] = get_average_par(m,F1_SD_RLOW);
-                        F2_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F1_SD_RHIGH);
+                        F2_SD_R0[m][i][j][k][5] = get_average_par(m,F2_SD_R0);
+                        F2_SD_RC[m][i][j][k][5] = get_average_par(m,F2_SD_RC);
+                        F2_SD_RLOW[m][i][j][k][5] = get_average_par(m,F2_SD_RLOW);
+                        F2_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F2_SD_RHIGH);
 
-                        F2_SD_R0[m][5][j][k][i] = get_average_par(m,F1_SD_R0);
-                        F2_SD_RC[m][5][j][k][i] = get_average_par(m,F1_SD_RC);
-                        F2_SD_RLOW[m][5][j][k][i] = get_average_par(m,F1_SD_RLOW);
-                        F2_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F1_SD_RHIGH);
+                        F2_SD_R0[m][5][j][k][i] = get_average_par(m,F2_SD_R0);
+                        F2_SD_RC[m][5][j][k][i] = get_average_par(m,F2_SD_RC);
+                        F2_SD_RLOW[m][5][j][k][i] = get_average_par(m,F2_SD_RLOW);
+                        F2_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F2_SD_RHIGH);
                     }
+
 
                     //f3
                     for(int m = 0; m < 7; m++) {
@@ -857,8 +861,12 @@ void DNA3Interaction::init() {
                         _excl_r[m][5][j][k][i] = get_average_par(m, _excl_r);
                     }
 
+
                     //f4
                     for(int m = 0; m < 21; m++) {
+                        if(m == 2 || m == 3 || m == 4 || m == 5) continue;
+                        if(m == 10 || m == 11 || m == 12) continue;
+                        if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
                         F4_SD_THETA_A[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_A);
                         F4_SD_THETA_T0[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_T0);
                         F4_SD_THETA_TS[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_TS);
@@ -875,7 +883,8 @@ void DNA3Interaction::init() {
 
                         F5_SD_PHI_A[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_A);
                         F5_SD_PHI_XS[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_XS);
-                    }
+
+                  }
                 }
             }
         }
@@ -889,6 +898,7 @@ void DNA3Interaction::init() {
 
 						//delta2
 						_fene_delta2_SD[i][j][k][l] = SQR(_fene_delta_SD[i][j][k][l]);
+
 
 						//f1
 						number term1, term2, term3;
@@ -1075,11 +1085,11 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 	LR_vector torqueq(0, 0, 0);
 	LR_vector torquep(0, 0, 0);
 
-    int type_n3_2 = 5;
-    int type_n5_2 = 5;
+        int type_n3_2 = 5;
+        int type_n5_2 = 5;
 
-    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+        if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+        if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
 	LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number energy = _repulsive_lj(rcenter, force, _excl_s[4][type_n3_2][q->type][p->type][type_n5_2],_excl_r[4][type_n3_2][q->type][p->type][type_n5_2],
@@ -1257,7 +1267,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 	else {
 		// we check whether we ended up OUTSIDE of the FENE range
 		if(fabs(rbackr0) > _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2] - DBL_EPSILON) {
-			std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2  << q->type  << p->type  << type_n5_2  << " " << rbackmod << " " << _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] << " " << _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2] << std::endl;
+			std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2  << q->type  << p->type  << type_n5_2  << " " << rbackmod << " " << _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] << " " << _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2]<< " " << _fene_delta2_SD[type_n3_2][q->type][p->type][type_n5_2] << std::endl;
 			if(update_forces && !_allow_broken_fene) {
 				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2]), fabs(_fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2]));
 			}
@@ -1340,10 +1350,14 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 
 	number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
 
-	//std::cout << "stacking energy: " << energy << std::endl;
-	//std::cout << f1 << " " << f4t4 << " " << f4t5 << " " << f4t6 << " " << f5phi1 << " " << f5phi2 << std::endl;
-
-
+/*
+        if(type_n3_2 ==5 || type_n5_2 == 5) {
+	    std::cout << "type" << type_n3_2 << " " << q->type << " " << p->type << " " << type_n5_2 << "stacking energy: " << energy << std::endl;
+	    std::cout << f1 << " " << f4t4 << " " << f4t5 << " " << f4t6 << " " << f5phi1 << " " << f5phi2 << std::endl;
+            std::cout << F4_SD_THETA_A[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_B[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_T0[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2]
+<< " " << F4_SD_THETA_TS[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_TC[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << std::endl;
+        }
+*/
 	if(update_forces && energy != (number) 0.f) {
 		LR_vector torquep(0, 0, 0);
 		LR_vector torqueq(0, 0, 0);
