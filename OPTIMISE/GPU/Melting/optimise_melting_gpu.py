@@ -41,7 +41,7 @@ cg.first_step_flag = True
 #X = torch.tensor([0,1,2])
 #print(X.device)
 
-
+torch.set_printoptions(precision=6)
 ###################################################################################################
 ############## INITIALISE PARAMETERS FROM model.h E SD PARAMETERS FILE ############################
 ###################################################################################################
@@ -124,6 +124,18 @@ if nevery_en == 0 or nevery_split == 0:
 #################
 ### nbps = 5 ####
 #################
+
+
+bases = ['A', 'C', 'G', 'T', 'E']
+
+def type_to_base4(TY) :
+    ty0 = TY%5
+    ty1 = (TY//5)%5
+    ty2 = (TY//5//5)%5
+    ty3 = (TY//5//5//5)%5
+
+    return str(ty0)+str(ty1)+str(ty2)+str(ty3)
+
 
 for l in range(cg.Nseq_n5):
 
@@ -314,6 +326,9 @@ else :
     print("Memory usage after initialising n5 tensors:")
     print_memory_usage()
 
+    #for l in types_bn[0][0] :
+    #    print(type_to_base4(l))
+
     del fene_r
     del stck_r
     del th4_bn
@@ -399,7 +414,7 @@ for l in range(cg.Nseq_n8):
 
 
 if cg.read_coords_from_file :
-    cfun.init_tensors_from_file_n8(device, shifts)
+    cfun.init_tensors_from_file_n8(device)
 
 else :
 
@@ -512,7 +527,7 @@ else :
     if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n8(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
+                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55)
 
 
     del fene_r
@@ -595,7 +610,7 @@ for l in range(cg.Nseq_n15):
 
 
 if cg.read_coords_from_file :
-    cfun.init_tensors_from_file_n15(device, shifts)
+    cfun.init_tensors_from_file_n15(device)
 
 else :
 
@@ -712,7 +727,7 @@ else :
     if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n15(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
+                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55)
 
     del fene_r
     del stck_r
@@ -805,7 +820,7 @@ ids = []
 for i in range(len(cfun.OPT_PAR_LIST)) :
     id = cfun.OPT_PAR_LIST[i][0]
     ty = cfun.OPT_PAR_LIST[i][1]
-    ids.append(id*256+ty)
+    ids.append(id*625+ty)
 
 
 IDS_OP = torch.tensor(ids,device=device)

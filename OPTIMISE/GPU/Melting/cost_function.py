@@ -25,6 +25,9 @@ par_index = parl.par_index
 PARS_IN = None
 CURR_PARS = None
 
+SHIFT_STCK = None
+SHIFT_HYDR = None
+
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = torch.device("cpu")
 
@@ -57,9 +60,6 @@ TH8_n5 = None
 TYPES_UNBN_33_n5 = None
 TYPES_UNBN_55_n5 = None
 
-SHIFT_STCK_n5 = None
-SHIFT_HYDR_n5 = None
-
 ZEROS_BN_n5 = None
 ONES_BN_n5 = None
 ZEROS_UNBN_n5 = None
@@ -83,6 +83,8 @@ EN_OFFSET_n5 = None
 UPDATE_MAP_n5 = None
 SYMM_LIST_n5 = None #list with parameters to symmetrise - dim 1 is par index, dim 2 type
 SYMM_LIST_SYMM_n5 = None #list of symmetric parameters - SYMM_LIST_SYMM[i][j] is the symmetric counterpart of SYMM_LIST[i][j]
+ENDS = None #list with types with one end
+NOENDS = None #list of types without ends
 CRST_TETRA_TYPE_33_n5 = None
 CRST_TETRA_TYPE_55_n5 = None
 
@@ -112,6 +114,9 @@ def init_tensors_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     global PARS_IN
     global CURR_PARS
 
+    global SHIFT_STCK
+    global SHIFT_HYDR
+
     global FENE_R_n5
     global STCK_R_n5
     global TH4_BN_n5
@@ -130,9 +135,6 @@ def init_tensors_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     global TH8_n5
     global TYPES_UNBN_33_n5
     global TYPES_UNBN_55_n5
-
-    global SHIFT_STCK_n5
-    global SHIFT_HYDR_n5
 
     global ZEROS_BN_n5
     global ONES_BN_n5
@@ -162,6 +164,9 @@ def init_tensors_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     PARS_IN = torch.tensor(OXPS_zero,device=device)
     CURR_PARS = torch.tensor(OXPS_zero,device=device)
 
+    SHIFT_STCK = torch.tensor(shifts[1], device=device)
+    SHIFT_HYDR = torch.tensor(shifts[0], device=device)
+
     #initialise tensors
     FENE_R_n5 = torch.tensor(fene_r, device=device)
     STCK_R_n5 = torch.tensor(stck_r, device=device)
@@ -186,10 +191,6 @@ def init_tensors_n5(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
 
     #COS_THETAB_n5 = torch.tensor(costb,device=device)
     #COS_OMEGAT_n5 = torch.tensor(cosot,device=device)
-
-    SHIFT_STCK_n5 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n5 = torch.tensor(shifts[0], device=device)
-
     EN_OFFSET_n5 = torch.tensor(en_offset_n5,device=device)
 
     SIM_Ts_n5 = torch.tensor(sim_Ts_n5,device=device)
@@ -217,6 +218,9 @@ def init_tensors_from_file_n5(dev, shifts, OXPS_zero) :
     global PARS_IN
     global CURR_PARS
 
+    global SHIFT_STCK
+    global SHIFT_HYDR
+
     global FENE_R_n5
     global STCK_R_n5
     global TH4_BN_n5
@@ -235,9 +239,6 @@ def init_tensors_from_file_n5(dev, shifts, OXPS_zero) :
     global TH8_n5
     global TYPES_UNBN_33_n5
     global TYPES_UNBN_55_n5
-
-    global SHIFT_STCK_n5
-    global SHIFT_HYDR_n5
 
     global EN_OFFSET_n5
 
@@ -279,8 +280,8 @@ def init_tensors_from_file_n5(dev, shifts, OXPS_zero) :
     TYPES_UNBN_33_n5 = torch.load("TYPES_UNBN_33_n5.pt", map_location=device)
     TYPES_UNBN_55_n5 = torch.load("TYPES_UNBN_55_n5.pt", map_location=device)
 
-    SHIFT_STCK_n5 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n5 = torch.tensor(shifts[0], device=device)
+    SHIFT_STCK = torch.tensor(shifts[1], device=device)
+    SHIFT_HYDR = torch.tensor(shifts[0], device=device)
 
     EN_OFFSET_n5 = torch.tensor(en_offset_n5,device=device)
 
@@ -534,9 +535,6 @@ TH8_n8 = None
 TYPES_UNBN_33_n8 = None
 TYPES_UNBN_55_n8 = None
 
-SHIFT_STCK_n8 = None
-SHIFT_HYDR_n8 = None
-
 ZEROS_BN_n8 = None
 ONES_BN_n8 = None
 ZEROS_UNBN_n8 = None
@@ -583,7 +581,7 @@ HBS_SAMPLED_n8 = None
 
 #initailise tensors with coordinates and
 def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts) :
+                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55) :
 
     global FENE_R_n8
     global STCK_R_n8
@@ -603,9 +601,6 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     global TH8_n8
     global TYPES_UNBN_33_n8
     global TYPES_UNBN_55_n8
-
-    global SHIFT_STCK_n8
-    global SHIFT_HYDR_n8
 
     global ZEROS_BN_n8
     global ONES_BN_n8
@@ -656,10 +651,6 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
     #COS_THETAB_n8 = torch.tensor(costb,device=device)
     #COS_OMEGAT_n8 = torch.tensor(cosot,device=device)
 
-    SHIFT_STCK_n8 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n8 = torch.tensor(shifts[0], device=device)
-
-
     EN_OFFSET_n8 = torch.tensor(en_offset_n8,device=device)
 
     SIM_Ts_n8 = torch.tensor(sim_Ts_n8,device=device)
@@ -682,7 +673,7 @@ def init_tensors_n8(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, typ
 
 
 #initailise tensors with coordinates from files
-def init_tensors_from_file_n8(dev, shifts) :
+def init_tensors_from_file_n8(dev) :
 
     global FENE_R_n8
     global STCK_R_n8
@@ -702,9 +693,6 @@ def init_tensors_from_file_n8(dev, shifts) :
     global TH8_n8
     global TYPES_UNBN_33_n8
     global TYPES_UNBN_55_n8
-
-    global SHIFT_STCK_n8
-    global SHIFT_HYDR_n8
 
     global EN_OFFSET_n8
 
@@ -741,9 +729,6 @@ def init_tensors_from_file_n8(dev, shifts) :
 
     TYPES_UNBN_33_n8 = torch.load("TYPES_UNBN_33_n8.pt", map_location=device)
     TYPES_UNBN_55_n8 = torch.load("TYPES_UNBN_55_n8.pt", map_location=device)
-
-    SHIFT_STCK_n8 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n8 = torch.tensor(shifts[0], device=device)
 
     EN_OFFSET_n8 = torch.tensor(en_offset_n8,device=device)
 
@@ -903,9 +888,6 @@ TH8_n15 = None
 TYPES_UNBN_33_n15 = None
 TYPES_UNBN_55_n15 = None
 
-SHIFT_STCK_n15 = None
-SHIFT_HYDR_n15 = None
-
 ZEROS_BN_n15 = None
 ONES_BN_n15 = None
 ZEROS_UNBN_n15 = None
@@ -952,7 +934,7 @@ HBS_SAMPLED_n15 = None
 
 #initailise tensors with coordinates and
 def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts) :
+                  th4_unbn, th7, th8, types_unbn_33, types_unbn_55) :
 
     global FENE_R_n15
     global STCK_R_n15
@@ -972,9 +954,6 @@ def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ty
     global TH8_n15
     global TYPES_UNBN_33_n15
     global TYPES_UNBN_55_n15
-
-    global SHIFT_STCK_n15
-    global SHIFT_HYDR_n15
 
     global ZEROS_BN_n15
     global ONES_BN_n15
@@ -1024,9 +1003,6 @@ def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ty
     #COS_THETAB_n15 = torch.tensor(costb,device=device)
     #COS_OMEGAT_n15 = torch.tensor(cosot,device=device)
 
-    SHIFT_STCK_n15 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n15 = torch.tensor(shifts[0], device=device)
-
     EN_OFFSET_n15 = torch.tensor(en_offset_n15,device=device)
 
     SIM_Ts_n15 = torch.tensor(sim_Ts_n15,device=device)
@@ -1049,7 +1025,7 @@ def init_tensors_n15(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ty
 
 
 #initailise tensors with coordinates from files
-def init_tensors_from_file_n15(dev, shifts) :
+def init_tensors_from_file_n15(dev) :
 
     global FENE_R_n15
     global STCK_R_n15
@@ -1069,9 +1045,6 @@ def init_tensors_from_file_n15(dev, shifts) :
     global TH8_n15
     global TYPES_UNBN_33_n15
     global TYPES_UNBN_55_n15
-
-    global SHIFT_STCK_n15
-    global SHIFT_HYDR_n15
 
     global EN_OFFSET_n15
 
@@ -1106,9 +1079,6 @@ def init_tensors_from_file_n15(dev, shifts) :
 
     TYPES_UNBN_33_n15 = torch.load("TYPES_UNBN_33_n15.pt", map_location=device)
     TYPES_UNBN_55_n15 = torch.load("TYPES_UNBN_55_n15.pt", map_location=device)
-
-    SHIFT_STCK_n15 = torch.tensor(shifts[1], device=device)
-    SHIFT_HYDR_n15 = torch.tensor(shifts[0], device=device)
 
     EN_OFFSET_n15 = torch.tensor(en_offset_n15,device=device)
 
@@ -1378,6 +1348,10 @@ OFFSET_f2_RL = None
 OFFSET_f2_RH = None
 OFFSET_f2_ID = None
 
+f3_S_ID = None
+f3_R_ID = None
+f3_B_ID = None
+f3_RC_ID = None
 
 f4_A_ID = None
 f4_B_ID = None
@@ -1415,6 +1389,11 @@ def build_continuity_tensors() :
     global OFFSET_f2_RH
     global OFFSET_f2_ID
 
+    global f3_S_ID
+    global f3_R_ID
+    global f3_B_ID
+    global f3_RC_ID
+
     global f4_A_ID
     global f4_B_ID
     global f4_TS_ID
@@ -1431,12 +1410,12 @@ def build_continuity_tensors() :
     f1_rcl_id = [12,52]
     f1_rch_id = [13,53]
 
-    OFFSET_f1_RC = torch.tensor([[0.35]*256,[0.5]*256],device=device)
-    OFFSET_f1_RL = torch.tensor([[-0.06]*256,[-0.08]*256],device=device)
-    OFFSET_f1_RH = torch.tensor([[0.3]*256,[0.35]*256],device=device)
+    OFFSET_f1_RC = torch.tensor([[0.35]*625,[0.5]*625],device=device)
+    OFFSET_f1_RL = torch.tensor([[-0.06]*625,[-0.08]*625],device=device)
+    OFFSET_f1_RH = torch.tensor([[0.3]*625,[0.35]*625],device=device)
     OFFSET_f1_ID = torch.tensor([0,1],device=device)
 
-    #f1
+    #f2
     f2_r0_id = [78,117]
     f2_rc_id = [79,118]
     f2_bl_id = [80,119]
@@ -1446,10 +1425,16 @@ def build_continuity_tensors() :
     f2_rcl_id = [84,123]
     f2_rch_id = [85,124]
 
-    OFFSET_f2_RC = torch.tensor([[0.1]*256,[0.1]*256],device=device)
-    OFFSET_f2_RL = torch.tensor([[-0.08]*256,[-0.08]*256],device=device)
-    OFFSET_f2_RH = torch.tensor([[0.08]*256,[0.08]*256],device=device)
+    OFFSET_f2_RC = torch.tensor([[0.1]*625,[0.1]*625],device=device)
+    OFFSET_f2_RL = torch.tensor([[-0.08]*625,[-0.08]*625],device=device)
+    OFFSET_f2_RH = torch.tensor([[0.08]*625,[0.08]*625],device=device)
     OFFSET_f2_ID = torch.tensor([0,1],device=device)
+
+    #f3
+    f3_s_id = [155,159,163,167,171,175,179]
+    f3_r_id = [156,160,164,168,172,176,180]
+    f3_b_id = [157,161,165,169,173,177,181]
+    f3_rc_id = [158,162,166,170,174,178,182]
 
     #f4
     f4_a_id = [15,20,25,30,35,40,55,60,65,87,92,97,102,107,112,126,131,136,141,146,151]
@@ -1476,6 +1461,11 @@ def build_continuity_tensors() :
     f2_RCL_ID = torch.tensor(f2_rcl_id,device=device)
     f2_RCH_ID = torch.tensor(f2_rch_id,device=device)
 
+    f3_S_ID = torch.tensor(f3_s_id,device=device)
+    f3_R_ID = torch.tensor(f3_r_id,device=device)
+    f3_B_ID = torch.tensor(f3_b_id,device=device)
+    f3_RC_ID = torch.tensor(f3_rc_id,device=device)
+
     f4_A_ID = torch.tensor(f4_a_id,device=device)
     f4_B_ID = torch.tensor(f4_b_id,device=device)
     f4_TS_ID = torch.tensor(f4_ts_id,device=device)
@@ -1501,23 +1491,23 @@ def add_opti_par(name) :
     if len(vals_cn) == 0:
         return
     if vals_cn[0] == "STCK" and len(vals_cn) == 3:
-            ty=fun.base_to_id(vals_cn[1])*4+fun.base_to_id(vals_cn[2])*4*4
+            ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5
             OPT_PAR_LIST.append( [PARS_LIST.index("STCK_EPS"),ty])
     elif vals_cn[0] == "HYDR" and len(vals_cn) == 3:
-                ty=fun.base_to_id(vals_cn[1])*4+fun.base_to_id(vals_cn[2])*4*4   #from base 4 to base 10
+                ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5   #from base 4 to base 10
                 OPT_PAR_LIST.append( [PARS_LIST.index("HYDR_EPS"),ty] )
     elif vals_cn[0] == "HYDR" or (vals_cn[0] == "CRST" and vals_cn[1] == "K") :
         par_name = vals_cn[0]
         for i in range(1,len(vals_cn)-2):
             par_name += "_"+vals_cn[i]
-        ty=fun.base_to_id(vals_cn[len(vals_cn)-2])*4+fun.base_to_id(vals_cn[len(vals_cn)-1])*4*4  #from base 4 to base 10
+        ty=fun.base_to_id(vals_cn[len(vals_cn)-2])*5+fun.base_to_id(vals_cn[len(vals_cn)-1])*5*5  #from base 4 to base 10
         OPT_PAR_LIST.append( [PARS_LIST.index(par_name),ty] )
 
     elif vals_cn[0] == "STCK" or vals_cn[0] == "FENE" or vals_cn[0] == "CRST":
         par_name = vals_cn[0]
         for i in range(1,len(vals_cn)-4):
             par_name += "_"+vals_cn[i]
-        ty=fun.base_to_id(vals_cn[len(vals_cn)-4])+fun.base_to_id(vals_cn[len(vals_cn)-3])*4+fun.base_to_id(vals_cn[len(vals_cn)-2])*4*4+fun.base_to_id(vals_cn[len(vals_cn)-1])*4*4*4    #from base 4 to base 10
+        ty=fun.base_to_id(vals_cn[len(vals_cn)-4])+fun.base_to_id(vals_cn[len(vals_cn)-3])*5+fun.base_to_id(vals_cn[len(vals_cn)-2])*5*5+fun.base_to_id(vals_cn[len(vals_cn)-1])*5*5*5    #from base 4 to base 10
         OPT_PAR_LIST.append( [PARS_LIST.index(par_name),ty] )
 
     return
@@ -1537,6 +1527,8 @@ def build_symm_tensors() :
     global device
     global SYMM_LIST
     global SYMM_LIST_SYMM
+    global ENDS
+    global NOENDS
     global CRST_TETRA_TYPE_33
     global CRST_TETRA_TYPE_55
 
@@ -1551,214 +1543,214 @@ def build_symm_tensors() :
 
         ID = OPT_PAR_LIST[i][0]
         TY = OPT_PAR_LIST[i][1]
-        umap.append(ID*256+TY)
+        umap.append(ID*625+TY)
 
         if ID in parl.nosymm_ids_2d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+ty1*5+ty2*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
         if ID in parl.compl_symm_ids_2d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+(3-ty2)*5+(3-ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
-                    TY_S2 = m+ty1*4+ty2*4*4+l*4*4*4
+                    TY_S2 = m+ty1*5+ty2*5*5+l*5*5*5
                     if TY != TY_S2:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
 
 
         if ID in parl.compl_symm_ids_2d_no_TT_AA :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
             if (ty1 == 0 and ty3 == 0) or (ty1 == 3 and ty3 == 3):
                 continue
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+(3-ty2)*4+(3-ty1)*4*4+l*4*4*4
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+(3-ty2)*5+(3-ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
 
         if ID in parl.compl_symm_ids :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = (3-ty3)+(3-ty2)*4+(3-ty1)*4*4+(3-ty0)*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = (3-ty3)+(3-ty2)*5+(3-ty1)*5*5+(3-ty0)*5*5*5
             if TY != TY_S:
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
-                #sl.append(ID*256+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                #sl.append(ID*w256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
-                #sl.append(256*ID+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                #sl.append(w256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         if ID in parl.perm_symm_ids_2d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            for l in range(4) :
-                for m in range(4) :
-                    TY_S = m+(ty2)*4+(ty1)*4*4+l*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            for l in range(5) :
+                for m in range(5) :
+                    TY_S = m+(ty2)*5+(ty1)*5*5+l*5*5*5
                     if TY != TY_S:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S)
+                        sls.append(ID*625+TY_S)
                     if ID in parl.is_th2 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
                     if ID in parl.is_th5 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
                     if ID in parl.is_th7 :
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
 
-                    TY_S2 = m+ty1*4+ty2*4*4+l*4*4*4
+                    TY_S2 = m+ty1*5+ty2*5*5+l*5*5*5
                     if TY != TY_S2:
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(ID*256+TY_S2)
+                        sls.append(ID*625+TY_S2)
                     if ID in parl.is_th2 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S2)
+                        sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S2)
                     if ID in parl.is_th5 :
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                         #sl.append(ID*256+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S2)
+                        sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S2)
                     if ID in parl.is_th7 :
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                         #sl.append(256*ID+TY)
                         sl.append(i)
-                        sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S2)
+                        sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S2)
 
 
         if ID in parl.perm_symm_ids_4d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = ty3+ty2*4+ty1*4*4+ty0*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = ty3+ty2*5+ty1*5*5+ty0*5*5*5
             if TY != TY_S:
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
         if ID in parl.perm_symm_ids_4d :
-            ty0 = TY%4
-            ty1 = (TY//4)%4
-            ty2 = (TY//4//4)%4
-            ty3 = (TY//4//4//4)%4
-            TY_S = ty3+ty2*4+ty1*4*4+ty0*4*4*4
+            ty0 = TY%5
+            ty1 = (TY//5)%5
+            ty2 = (TY//5//5)%5
+            ty3 = (TY//5//5//5)%5
+            TY_S = ty3+ty2*5+ty1*5*5+ty0*5*5*5
             if TY != TY_S:
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(ID*256+TY_S)
+                sls.append(ID*625+TY_S)
             if ID in parl.is_th2 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY)
+                sls.append(625*parl.is_th3[parl.is_th2.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
+                sls.append(623*parl.is_th3[parl.is_th2.index(ID)]+TY_S)
             if ID in parl.is_th5 :
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY)
                 #sl.append(ID*256+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
+                sls.append(625*parl.is_th6[parl.is_th5.index(ID)]+TY_S)
             if ID in parl.is_th7 :
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY)
                 #sl.append(256*ID+TY)
                 sl.append(i)
-                sls.append(256*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
+                sls.append(625*parl.is_th8[parl.is_th7.index(ID)]+TY_S)
 
     UPDATE_MAP = torch.tensor(umap,device=device)
     SYMM_LIST = torch.tensor(sl,device=device)
@@ -1771,14 +1763,29 @@ def build_symm_tensors() :
     # corss_55 - qn3, q, p, pn3
     # p = chosen particle, q = interacting particle
 
+    ends = []
+    noends = []
+
+    for m in range(5):
+        for n in range(5):
+             for p in range(5):
+                 for q in range(5):
+                     ty = m + n*5 + p*25 + q*125
+                     if m != 4 and n != 4 and p != 4 and q != 4 : noends.append(ty)
+                     else : ends.append(ty)
+
+    ENDS = torch.tensor(ends, device=device)
+    NOENDS = torch.tensor(noends, device=device)
+
+
     sl_33 = []
     sl_55 = []
-    for m in range(4):
-        for n in range(4):
-             for p in range(4):
-                 for q in range(4):
-                     sl_33.append((3-m)+(3-n)*4+p*16+q*64)
-                     sl_55.append(q+p*4+(3-n)*16+(3-m)*64)
+    for m in range(5):
+        for n in range(5):
+             for p in range(5):
+                 for q in range(5):
+                     sl_33.append((3-m)+(3-n)*5+p*25+q*125)
+                     sl_55.append(q+p*5+(3-n)*25+(3-m)*125)
 
     CRST_TETRA_TYPE_33 = torch.tensor(sl_33,device=device)
     CRST_TETRA_TYPE_55 = torch.tensor(sl_55,device=device)
@@ -1789,6 +1796,104 @@ def build_symm_tensors() :
 #################################
 ##### COMPUTE ENERGY
 #################################
+
+
+def FIX_ENSLAVED(CURR_PARS, opti) :
+    #ENSLAVED PARAMETERS
+
+    #crst r0 ####
+    #crst_r0 = sqrt( stck_r0^2+hydr_r0^2/2*(1+cos(2*asin(sqrt(fene_ro^2-stck_r0^2)))) )
+
+    #We include this in the optimisation
+
+    #set ends
+
+    #skip strengths, and average everything else
+    mask = torch.zeros((CURR_PARS.shape[0],CURR_PARS.shape[1]), dtype=torch.bool,device=device)
+    mask[:,ENDS]=True
+    mask[[4,44,77,116],:]=False
+
+    ENDS_VALS = torch.mean(CURR_PARS[:,NOENDS],dim=1)
+    s1 = ENDS_VALS.shape[0]
+    CURR_PARS[mask] = ENDS_VALS.unsqueeze(1).repeat(1,CURR_PARS.shape[1])[mask]
+
+
+    if opti:
+        #Fix delta average ###
+
+        global CURR_AVE_DELTA
+        aveD = torch.mean(CURR_PARS[2])
+        CURR_PARS[2] = CURR_PARS[2] - aveD + AVE_DELTA
+        CURR_AVE_DELTA = torch.mean(CURR_PARS[2])
+
+        #Make STCK_THETA5A average ###
+
+        aveTH5A = torch.mean(CURR_PARS[60])
+        CURR_PARS[60] = aveTH5A
+
+
+    #delta2 ###
+    #delta2 = delta^2
+    CURR_PARS[3] = torch.square( CURR_PARS[2] )
+
+    if opti:
+        #Excluded volume
+        #fixing base-base bonded interaction according to the stacking resting distance
+        CURR_PARS[171] = CURR_PARS[45] - 0.07 #171 = bonded baba excl volume, 45 = stck r0
+        CURR_PARS[f3_R_ID] = CURR_PARS[f3_S_ID]*0.97
+
+    #Constraints - continuity
+    #f1
+
+    CURR_PARS[f1_RL_ID] = OFFSET_f1_RL[OFFSET_f1_ID] + CURR_PARS[f1_R0_ID]
+    CURR_PARS[f1_RH_ID] = OFFSET_f1_RH[OFFSET_f1_ID] + CURR_PARS[f1_R0_ID]
+    CURR_PARS[f1_RC_ID] = OFFSET_f1_RC[OFFSET_f1_ID] + CURR_PARS[f1_R0_ID]
+
+    EXP1 = torch.exp( -CURR_PARS[f1_A_ID]*(CURR_PARS[f1_RL_ID]-CURR_PARS[f1_R0_ID]) )
+    EXP2 = torch.exp( -CURR_PARS[f1_A_ID]*(CURR_PARS[f1_RC_ID]-CURR_PARS[f1_R0_ID]) )
+    EXP3 = torch.exp( -CURR_PARS[f1_A_ID]*(CURR_PARS[f1_RH_ID]-CURR_PARS[f1_R0_ID]) )
+
+    #print("EXP ok")
+
+    CURR_PARS[f1_BL_ID] = torch.square( CURR_PARS[f1_A_ID] )*torch.square( EXP1*(1-EXP1) )/( torch.square(1-EXP1) - torch.square(1-EXP2) )
+    CURR_PARS[f1_BH_ID] = torch.square( CURR_PARS[f1_A_ID] )*torch.square( EXP3*(1-EXP3) )/( torch.square(1-EXP3) - torch.square(1-EXP2) )
+
+    CURR_PARS[f1_RCL_ID] = CURR_PARS[f1_RL_ID] - CURR_PARS[f1_A_ID]/CURR_PARS[f1_BL_ID]*( EXP1*(1-EXP1) )
+    CURR_PARS[f1_RCH_ID] = CURR_PARS[f1_RH_ID] - CURR_PARS[f1_A_ID]/CURR_PARS[f1_BH_ID]*( EXP3*(1-EXP3) )
+
+    #update shift
+
+    SH_HY = MORSE(CURR_PARS[7],CURR_PARS[4],CURR_PARS[5],CURR_PARS[6])
+    SH_ST = CURR_PARS[44]*torch.square(1.-torch.exp(-(CURR_PARS[47]-CURR_PARS[45])*CURR_PARS[46]))
+
+    #f2
+    CURR_PARS[f2_RL_ID] = OFFSET_f2_RL[OFFSET_f2_ID] + CURR_PARS[f2_R0_ID]
+    CURR_PARS[f2_RH_ID] = OFFSET_f2_RH[OFFSET_f2_ID] + CURR_PARS[f2_R0_ID]
+    CURR_PARS[f2_RC_ID] = OFFSET_f2_RC[OFFSET_f2_ID] + CURR_PARS[f2_R0_ID]
+
+    TERM1 = CURR_PARS[f2_RL_ID]-CURR_PARS[f2_R0_ID]
+    TERM2 = CURR_PARS[f2_RH_ID]-CURR_PARS[f2_R0_ID]
+    TERM3 = CURR_PARS[f2_RC_ID]-CURR_PARS[f2_R0_ID]
+
+    CURR_PARS[f2_RCL_ID] = CURR_PARS[f2_RL_ID] - (torch.square(TERM1)-torch.square(TERM3))/TERM1
+    CURR_PARS[f2_RCH_ID] = CURR_PARS[f2_RH_ID] - (torch.square(TERM2)-torch.square(TERM3))/TERM2
+    #f3
+
+    lj_x = torch.clone( torch.pow(CURR_PARS[f3_S_ID]/CURR_PARS[f3_R_ID], 6) )
+
+    g1 = 4*( torch.square(lj_x) - lj_x )
+    g2 = 12/CURR_PARS[f3_R_ID]*( 2*torch.square(lj_x)-lj_x )
+
+    CURR_PARS[f3_RC_ID] = g1/g2 + CURR_PARS[f3_R_ID]
+    CURR_PARS[f3_B_ID] = torch.square(g2)/g1
+
+    #f4
+    CURR_PARS[f4_TS_ID] = torch.sqrt(0.81225/CURR_PARS[f4_A_ID])
+    CURR_PARS[f4_TC_ID] = 1./CURR_PARS[f4_A_ID]/CURR_PARS[f4_TS_ID]
+    CURR_PARS[f4_B_ID] = CURR_PARS[f4_A_ID]*CURR_PARS[f4_TS_ID]/(CURR_PARS[f4_TC_ID]-CURR_PARS[f4_TS_ID])
+
+    return SH_ST, SH_HY
+
 
 #################################
 ##### compute initial energy
@@ -1808,6 +1913,18 @@ def compute_energy_n5() :
     global EN_CRST_33_IN0_n5
     global EN_CRST_55_IN0_n5
 
+    global SHIFT_STCK
+    global SHIFT_HYDR
+    global CURR_PARS
+
+    #fix enslaved
+
+    #for melting, we have to deal with the ends only once (here), since in the optimisation we use only the strengths which are junction dependent (no tetramer)
+
+    SH_ST, SH_HY = FIX_ENSLAVED(CURR_PARS, False)
+
+    SHIFT_STCK = torch.clone(SH_ST)
+    SHIFT_HYDR = torch.clone(SH_HY)
 
     #FENE
     EN_FENE_IN_n5 = -CURR_PARS[par_index[0]][TYPES_BN_n5]/2.*torch.log( 1.-torch.square( FENE_R_n5-CURR_PARS[par_index[1]][TYPES_BN_n5] )/CURR_PARS[par_index[3]][TYPES_BN_n5])
@@ -1822,10 +1939,10 @@ def compute_energy_n5() :
     #sim_Ts are different for every pt replica.
     if cg.parallel_tempering:
         STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
     else:
         STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n5[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK[TYPES_BN_n5], (1.0 - cg.stck_fact_eps + (SIM_Ts_n5 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
     f1 = F1(STCK_R_n5, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n5], CURR_PARS[par_index[46]][TYPES_BN_n5], CURR_PARS[par_index[48]][TYPES_BN_n5],\
             CURR_PARS[par_index[49]][TYPES_BN_n5], CURR_PARS[par_index[50]][TYPES_BN_n5], CURR_PARS[par_index[51]][TYPES_BN_n5], CURR_PARS[par_index[52]][TYPES_BN_n5], CURR_PARS[par_index[53]][TYPES_BN_n5], STCK_SH)
@@ -1852,7 +1969,7 @@ def compute_energy_n5() :
     #HYDROGEN
     #TYPES_UNBN_33_n5 and TYPES_UNBN_55_n5 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n5, CURR_PARS[par_index[4]][TYPES_UNBN_33_n5], CURR_PARS[par_index[5]][TYPES_UNBN_33_n5], CURR_PARS[par_index[6]][TYPES_UNBN_33_n5],CURR_PARS[par_index[8]][TYPES_UNBN_33_n5],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n5], CURR_PARS[par_index[10]][TYPES_UNBN_33_n5], CURR_PARS[par_index[11]][TYPES_UNBN_33_n5], CURR_PARS[par_index[12]][TYPES_UNBN_33_n5], CURR_PARS[par_index[13]][TYPES_UNBN_33_n5], SHIFT_HYDR_n5[TYPES_UNBN_33_n5])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n5], CURR_PARS[par_index[10]][TYPES_UNBN_33_n5], CURR_PARS[par_index[11]][TYPES_UNBN_33_n5], CURR_PARS[par_index[12]][TYPES_UNBN_33_n5], CURR_PARS[par_index[13]][TYPES_UNBN_33_n5], SHIFT_HYDR[TYPES_UNBN_33_n5])
 
     f4_th1 = F4(TH1_n5,CURR_PARS[par_index[14]][TYPES_UNBN_33_n5],CURR_PARS[par_index[15]][TYPES_UNBN_33_n5],CURR_PARS[par_index[16]][TYPES_UNBN_33_n5],\
                 CURR_PARS[par_index[17]][TYPES_UNBN_33_n5],CURR_PARS[par_index[18]][TYPES_UNBN_33_n5])
@@ -1968,10 +2085,10 @@ def compute_energy_n8() :
     #sim_Ts are different for every pt replica.
     if cg.parallel_tempering:
         STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n8[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
     else:
         STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n8[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK[TYPES_BN_n8], (1.0 - cg.stck_fact_eps + (SIM_Ts_n8 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
 
     f1 = F1(STCK_R_n8, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n8], CURR_PARS[par_index[46]][TYPES_BN_n8], CURR_PARS[par_index[48]][TYPES_BN_n8],\
@@ -1999,7 +2116,7 @@ def compute_energy_n8() :
     #HYDROGEN
     #TYPES_UNBN_33_n8 and TYPES_UNBN_55_n8 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n8, CURR_PARS[par_index[4]][TYPES_UNBN_33_n8], CURR_PARS[par_index[5]][TYPES_UNBN_33_n8], CURR_PARS[par_index[6]][TYPES_UNBN_33_n8],CURR_PARS[par_index[8]][TYPES_UNBN_33_n8],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n8], CURR_PARS[par_index[10]][TYPES_UNBN_33_n8], CURR_PARS[par_index[11]][TYPES_UNBN_33_n8], CURR_PARS[par_index[12]][TYPES_UNBN_33_n8], CURR_PARS[par_index[13]][TYPES_UNBN_33_n8], SHIFT_HYDR_n8[TYPES_UNBN_33_n8])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n8], CURR_PARS[par_index[10]][TYPES_UNBN_33_n8], CURR_PARS[par_index[11]][TYPES_UNBN_33_n8], CURR_PARS[par_index[12]][TYPES_UNBN_33_n8], CURR_PARS[par_index[13]][TYPES_UNBN_33_n8], SHIFT_HYDR[TYPES_UNBN_33_n8])
 
     f4_th1 = F4(TH1_n8,CURR_PARS[par_index[14]][TYPES_UNBN_33_n8],CURR_PARS[par_index[15]][TYPES_UNBN_33_n8],CURR_PARS[par_index[16]][TYPES_UNBN_33_n8],\
                 CURR_PARS[par_index[17]][TYPES_UNBN_33_n8],CURR_PARS[par_index[18]][TYPES_UNBN_33_n8])
@@ -2118,10 +2235,10 @@ def compute_initial_energy_n15() :
     #sim_Ts are different for every pt replica.
     if cg.parallel_tempering:
         STCK_EPS = torch.einsum('ijk,ij->ijk', CURR_PARS[par_index[44]][TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,ij->ijk', SHIFT_STCK[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_EXT_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
     else:
         STCK_EPS = torch.einsum('ijk,i->ijk', CURR_PARS[par_index[44]][TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
-        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK_n15[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+        STCK_SH = torch.einsum('ijk,i->ijk', SHIFT_STCK[TYPES_BN_n15], (1.0 - cg.stck_fact_eps + (SIM_Ts_n15 * 9.0 * cg.stck_fact_eps))/(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
 
 
     f1 = F1(STCK_R_n15, STCK_EPS, CURR_PARS[par_index[45]][TYPES_BN_n15], CURR_PARS[par_index[46]][TYPES_BN_n15], CURR_PARS[par_index[48]][TYPES_BN_n15],\
@@ -2149,7 +2266,7 @@ def compute_initial_energy_n15() :
     #HYDROGEN
     #TYPES_UNBN_33_n15 and TYPES_UNBN_55_n15 are the same here: hydr is a 2d interaction, flanking types are irrelevant
     f1 = F1(HYDR_R_n15, CURR_PARS[par_index[4]][TYPES_UNBN_33_n15], CURR_PARS[par_index[5]][TYPES_UNBN_33_n15], CURR_PARS[par_index[6]][TYPES_UNBN_33_n15],CURR_PARS[par_index[8]][TYPES_UNBN_33_n15],\
-            CURR_PARS[par_index[9]][TYPES_UNBN_33_n15], CURR_PARS[par_index[10]][TYPES_UNBN_33_n15], CURR_PARS[par_index[11]][TYPES_UNBN_33_n15], CURR_PARS[par_index[12]][TYPES_UNBN_33_n15], CURR_PARS[par_index[13]][TYPES_UNBN_33_n15], SHIFT_HYDR_n15[TYPES_UNBN_33_n15])
+            CURR_PARS[par_index[9]][TYPES_UNBN_33_n15], CURR_PARS[par_index[10]][TYPES_UNBN_33_n15], CURR_PARS[par_index[11]][TYPES_UNBN_33_n15], CURR_PARS[par_index[12]][TYPES_UNBN_33_n15], CURR_PARS[par_index[13]][TYPES_UNBN_33_n15], SHIFT_HYDR[TYPES_UNBN_33_n15])
 
     f4_th1 = F4(TH1_n15,CURR_PARS[par_index[14]][TYPES_UNBN_33_n15],CURR_PARS[par_index[15]][TYPES_UNBN_33_n15],CURR_PARS[par_index[16]][TYPES_UNBN_33_n15],\
                 CURR_PARS[par_index[17]][TYPES_UNBN_33_n15],CURR_PARS[par_index[18]][TYPES_UNBN_33_n15])
@@ -2347,9 +2464,13 @@ def update_rew_Ts(update_flag):
 
         print("Updating rew Ts")
 
-        ave_rew_Ts_n5 = torch.mean(REW_Ts_n5,dim=1)
-        ave_rew_Ts_n8 = torch.mean(REW_Ts_n8,dim=1)
-        ave_rew_Ts_n15 = torch.mean(REW_Ts_n15,dim=1)
+        ave_rew_Ts_n5 = None
+        ave_rew_Ts_n8 = None
+        ave_rew_Ts_n15 = None
+
+        if cg.Nseq_n5 > 0: ave_rew_Ts_n5 = torch.mean(REW_Ts_n5,dim=1)
+        if cg.Nseq_n8 > 0: ave_rew_Ts_n8 = torch.mean(REW_Ts_n8,dim=1)
+        if cg.Nseq_n15 > 0: ave_rew_Ts_n15 = torch.mean(REW_Ts_n15,dim=1)
 
         for l in range(cg.Nseq_n5) :
             T0 = (current_mT_n5[l]+273.15)/3000
@@ -2372,9 +2493,9 @@ def update_rew_Ts(update_flag):
             if REW_Ts_n15[l][0] + shift <= 0 : shift = -REW_Ts_n15[l][0]+(273.55)/3000
             REW_Ts_n15[l] += shift
 
-        print(REW_Ts_n5)
-        print(REW_Ts_n8)
-        print(REW_Ts_n15)
+        #print(REW_Ts_n5)
+        #print(REW_Ts_n8)
+        #print(REW_Ts_n15)
 
     return
 
