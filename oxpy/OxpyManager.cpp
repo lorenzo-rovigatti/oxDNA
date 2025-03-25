@@ -85,7 +85,7 @@ void OxpyManager::update_CPU_data_structures() {
 	_backend->apply_simulation_data_changes();
 }
 
-void OxpyManager::run(llint steps, bool print_output) {
+void OxpyManager::run_steps(llint steps, bool print_output) {
 	_backend->apply_changes_to_simulation_data();
 
 	for(llint i = 0; i < steps && !SimManager::stop; i++, _steps_run++) {
@@ -224,7 +224,7 @@ input: :class:`InputFile`
 		It is automatically invoked by meth:`run`, and therefore it makes sense to call it only in specific cases (*e.g.* to access simulation data from callbacks).
 	)pbdoc");
 
-	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
+	manager.def("run", &OxpyManager::run_steps, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
 		Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.
 
 		Parameters
