@@ -16,7 +16,7 @@ from IPython.display import display, IFrame
 import numpy as np
 from functools import wraps
 import subprocess
-from typing import List
+from typing import List, Union, Dict
 
 default_input_file = {
     "T" :"20C",
@@ -59,7 +59,7 @@ def dump_json(obj:dict[str,str], path:str):
     with open(path, "w+") as file:
         file.write(dumps(obj))
         
-def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[str,str], force_dict={}, kill_out_dir=False):
+def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:Dict[str,str], force_dict:Union[Dict[str,str],None]=None, kill_out_dir=False):
     """
         sets up a simulation in the given output directory
         
@@ -106,7 +106,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
     # if we have defined forces we need to 
     # 1) build the file
     # 2) add it to the input_file
-    if(len(force_dict) > 0):
+    if force_dict:
         force_path = join(out_dir, "forces.json")
         dump_json(force_dict, force_path)
         input_file["external_forces_as_JSON"] = "true"
