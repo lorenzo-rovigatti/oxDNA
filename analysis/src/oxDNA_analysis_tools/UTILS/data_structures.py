@@ -99,8 +99,10 @@ class System:
     top_file: str
     strands: List[Strand]
 
-    def __init__(self, top_file:str='', strands:List[Strand] = []):
+    def __init__(self, top_file:str='', strands:List[Strand] = None):
         self.top_file = top_file
+        if strands is None:
+            strands = []
         self.strands = strands
 
     def __getitem__(self, key):
