@@ -70,7 +70,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
     out = ''.join([conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs])
     return out
 
-def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:Union[Configuration,None]=None, center:bool=True):
+def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None, ref_conf:Union[Configuration,None]=None, center:bool=True):
     """
         Align a trajectory to a ref_conf and print the result to a file.
 
@@ -90,7 +90,7 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:Uni
         #read the first configuration and use it as the reference configuration for the rest
         ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
 
-    if indexes == []:
+    if indexes == None:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf) # Don't need to center now because we're going to after indexing anyway.

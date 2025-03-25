@@ -99,7 +99,9 @@ class System:
     top_file: str
     strands: List[Strand]
 
-    def __init__(self, top_file:str='', strands:List[Strand] = []):
+    def __init__(self, top_file:str='', strands:Union[List[Strand],None]=None):
+        if strands == None:
+            strands = []
         self.top_file = top_file
         self.strands = strands
 

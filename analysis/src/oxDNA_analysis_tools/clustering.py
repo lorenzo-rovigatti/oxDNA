@@ -2,7 +2,7 @@ import numpy as np
 import argparse
 from os import remove, path
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
-from typing import List
+from typing import List, Union
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from sklearn.cluster import DBSCAN
@@ -193,7 +193,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
     
 
 
-def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:str, eps:float, min_samples:int, op_names:List[str]=[], no_traj:bool=False, interactive_plot:bool=False, min_clusters:int=-1) -> np.ndarray:
+def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:str, eps:float, min_samples:int, op_names:Union[List[str],None]=None, no_traj:bool=False, interactive_plot:bool=False, min_clusters:int=-1) -> np.ndarray:
     """
     Use the DBSCAN algorithm to identify clusters of configurations based on a given order parameter.
 
@@ -258,6 +258,10 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     # Split the trajectory into cluster trajectories
     if not no_traj:
         split_trajectory(traj_info, top_info, labels)
+
+    # Deal with empty op_names
+    if op_names == None:
+        op_names = []
 
     # Get the centroid id from each cluster
     centroid_ids =  get_centroid(op, metric, labels, traj_info, top_info)

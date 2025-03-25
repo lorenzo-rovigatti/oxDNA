@@ -49,7 +49,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
 # Most scripts in OAT have their main computation as a function with the same name as the file itself.
 # This function can easily be imported into other scripts (or notebooks) if you want to manage your analysis from Python instead of the shell
-def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None]=None, indexes:List[int]=[], ncpus:int=1) -> Configuration:
+def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None]=None, indexes:Union[List[int],None]=None, ncpus:int=1) -> Configuration:
     """
         Compute the mean structure of a trajectory.
 
@@ -65,7 +65,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None
     """
 
     # Handle case where function was called from another script with incomplete arguments
-    if indexes == []:
+    if indexes == None:
         indexes = list(range(top_info.nbases))
     if ref_conf == None:
         ref_conf_id = int(randrange(0, traj_info.nconfs))

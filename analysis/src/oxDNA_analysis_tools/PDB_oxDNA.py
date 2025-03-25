@@ -136,6 +136,7 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
         if "O2'" in r.atom_lookup.keys(): # Check for the 2' hydroxyl 
             strand.type='RNA'
         strand.append(monomer)
+        print("Strand append", sys)
         sys.append(strand)
         strand = Strand(strand.id+1)
         prev_chain = a.chain
@@ -160,6 +161,7 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
     systems = []
     configs = []
     sys = System('')
+    print("System creation:", sys)
     strand = Strand(1)
     prev_resi:int = -1
     prev_chain:str = ''

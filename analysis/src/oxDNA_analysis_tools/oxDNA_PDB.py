@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import argparse
 from collections import defaultdict
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
@@ -225,7 +225,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
     return(atom_counter)
 
-def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:List[str]=[], reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
+def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
     """
         Convert an oxDNA file to a PDB file.  Directly writes the file.
 
