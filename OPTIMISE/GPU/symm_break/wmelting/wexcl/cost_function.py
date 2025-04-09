@@ -1653,8 +1653,9 @@ def COST(PARS) :
 
     AVE_DIA_CRRC = TMP[:,IDS_AVE_COV_EXPAND]
 
-    DIA_CRRC = DIA_CRRC - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV
+    #DIA_CRRC = DIA_CRRC - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV
 
+    DIA_CRTC = DIA_CRTC + torch.mean(AVE_COV_RED_TARGET_COV,dim=0,keepdim=True)*0.1
     #print("offset: ", - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV)
     #print("dia crrc: ", DIA_CRRC)
 

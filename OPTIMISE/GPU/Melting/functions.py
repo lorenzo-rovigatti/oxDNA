@@ -1181,7 +1181,35 @@ def find_cuts_for_lists(OXPS_zero) :
     rcut_high = rcut_high
     rcut_low = rcut_low
 
-    return rcut_low , rcut_high
+    rcut_dh_n5 = []
+
+    for i in range(len(cfun.dh_l_n5)):
+        if cg.parallel_tempering:
+           rcut_dh_n5.append(4.5*max(cfun.dh_l_n5[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n5.append(4.5*cfun.dh_l_n5[i]*1.07)
+
+    rcut_dh_n8 = []
+
+    for i in range(len(cfun.dh_l_n8)):
+        if cg.parallel_tempering:
+           rcut_dh_n8.append(4.5*max(cfun.dh_l_n8[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n8.append(4.5*cfun.dh_l_n8[i]*1.07)
+
+    rcut_dh_n15 = []
+
+    for i in range(len(cfun.dh_l_n15)):
+        if cg.parallel_tempering:
+           rcut_dh_n15.append(4.5*max(cfun.dh_l_n15[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n15.append(4.5*cfun.dh_l_n15[i]*1.07)
+
+
+    return rcut_low , rcut_high, rcut_dh_n5, rcut_dh_n8, rcut_dh_n15
 
 #down id = bonded nucleotide, n3 direction
 #up id = bonded nucleotide, n5 direction
@@ -1215,7 +1243,7 @@ class nucleotide :
         self.hydr = C + pos_hydr[t]*BV
 
 
-def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file, box):
+def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, rcut_dh, tr_file, topo_file, box):
 
     rcut_sq_high = rcut_high*rcut_high
     rcut_sq_low = rcut_low*rcut_low
@@ -1244,6 +1272,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
+
+    dh_r = []
+    dh_ty = []
+    dh_chcut = []
 
     Nb = 0
     Ns = 0
@@ -1376,6 +1408,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     types_unbn_1conf_33 = []
                     types_unbn_1conf_55 = []
 
+                    dh_r_1conf = []
+                    dh_ty_1conf = []
+                    dh_chcut_1conf = []
+
+
                     #UNDBONDED
                     #out_string = ""
                     for i in range(len(topology)) :
@@ -1406,15 +1443,25 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
 
                             n2 = config[j]
 
+                            out_of_range = False
+
                             hyv = n1.hydr - n2.hydr - min_im_v
                             hydist = np.linalg.norm(hyv)
                             hydist2 = hydist*hydist
-                            if hydist2 < rcut_sq_low: continue #verlet cutoff
-                            if hydist2 > rcut_sq_high: continue #verlet cutoff
+
+                            bbv = n1.bb - n2.bb - min_im_v
+                            bbdist = np.linalg.norm(bbv)
+                            bbdist2 = bbdist*bbdist
+
+                            if bbdist > rcut_dh and rcut_dh > rcut_high: continue #if we are out of debye huckle range
+                            if hydist2 < rcut_sq_low: out_of_range = True #verlet cutoff
+                            if hydist2 > rcut_sq_high: out_of_range = True #verlet cutoff
                             if topology[j].id <= topology[i].id: continue #ordered ids (avoid pairs repetition)
                             if topology[j].id == topology[i].down_id or topology[j].id == topology[i].up_id: continue #no bonded pairs
 
                             #out_string += str(topology[j].id)
+
+                            if out_of_range and cg.debye_huckel == False: continue #if we dont't use debye huckel, continue.
 
                             ty2 = base_to_id(topology[j].base_type)
 
@@ -1442,21 +1489,31 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             ty_33 = ty0_33+ty1*5+ty2*5*5+ty3_33*5*5*5 #tetramer type in base 10
                             ty_55 = ty0_55+ty1*5+ty2*5*5+ty3_55*5*5*5 #tetramer type in base 10
 
-                            types_unbn_1conf_33.append(ty_33)
-                            types_unbn_1conf_55.append(ty_55)
 
-                            #compute unbnd pair coordinates
-                            hydr_r_1conf.append(hydist)
-                            rhydr = hyv/hydist
+                            if cg.debye_huckel:
+                                chcut = 1
+                                if ty0_33 == 4 or ty0_55 == 4: chcut*=2
+                                if ty3_33 == 4 or ty3_55 == 4: chcut*=2
 
-                            th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
-                            th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
-                            th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
+                                dh_r_1conf.append(bbdist)
+                                dh_ty_1conf.append(ty_33)
+                                dh_chcut_1conf.append(chcut)
 
-                            th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
-                            th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
-                            th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
+                            if out_of_range == False:
+                                #compute unbnd pair coordinates
+                                hydr_r_1conf.append(hydist)
+                                rhydr = hyv/hydist
 
+                                th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
+                                th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
+                                th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
+
+                                th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
+                                th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
+                                th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
+
+                                types_unbn_1conf_33.append(ty_33)
+                                types_unbn_1conf_55.append(ty_55)
 
 
                     #print(len(types_unbn_1conf_33), out_string)
@@ -1473,7 +1530,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th7.append(th7_1conf)
                     th8.append(th8_1conf)
 
-    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55
+                    dh_r.append(dh_r_1conf)
+                    dh_ty.append(dh_ty_1conf)
+                    dh_chcut.append(dh_chcut_1conf)
+
+    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55, dh_r, dh_ty, dh_chcut
 
 ###################################################################################################
 ############## CALLBACK FUNCTIONS #############################################################

@@ -122,3 +122,10 @@ first_step_flag = False #Not used, I think.
 #fin_wfiles = []
 
 symm_stck = False #Not used anymore, I think.
+
+
+debye_huckel = False
+
+good_n5 = []
+good_n8 = []
+good_n15 = []

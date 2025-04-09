@@ -377,9 +377,9 @@ for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 1:
         lb = low_bond[n]*0.97
         ub = up_bond[n]*1.03
-        if lb > 0.6: low_bond[n] = lb
-        else: low_bond[n] = 0.6
-        if ub < 0.9: up_bond[n] = ub
+        if lb > 0.65: low_bond[n] = lb
+        else: low_bond[n] = 0.65
+        if ub < 0.9 and lb > 0.65: up_bond[n] = ub
         else: up_bond[n] = 0.9
     elif cfun.OPT_PAR_LIST[n][0] == 78 or cfun.OPT_PAR_LIST[n][0] == 117:
         low_bond[n] = low_bond[n]*0.97
@@ -390,21 +390,21 @@ for n in range(len(low_bond)) :
     elif cfun.OPT_PAR_LIST[n][0] == 45:
         lb = low_bond[n]*0.97
         ub = up_bond[n]*1.03
-        if lb > 0.2: low_bond[n] = lb
-        else: low_bond[n] = 0.2
+        if lb > 0.25: low_bond[n] = lb
+        else: low_bond[n] = 0.25
         if ub < 0.5: up_bond[n] = ub
         else: up_bond[n] = 0.5
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
-        low_bond[n] = 2.880
-        up_bond[n] = 3.405
+        low_bond[n] = 2.87979
+        up_bond[n] = 3.4033
     elif cfun.OPT_PAR_LIST[n][0] == 55:
 
         lb = low_bond[n]*0.5
         ub = up_bond[n]*2
-        if lb > 0.6 : low_bond[n] = lb
-        else : low_bond[n] = 0.6
+        if lb > 0.5 : low_bond[n] = lb
+        else : low_bond[n] = 0.5
         if ub < 3.0 : up_bond[n] = ub
-        else : up_bond[n] = 4.0
+        else : up_bond[n] = 3.0
 
     elif  cfun.OPT_PAR_LIST[n][0] == 60:
 
@@ -419,14 +419,14 @@ for n in range(len(low_bond)) :
         low_bond[n] = low_bond[n]*0.5
         up_bond[n] = up_bond[n]*2.
 
-
-print(low_bond)
-print(up_bond)
+np.set_printoptions(threshold=np.inf)
+print(up_bond-low_bond)
 
 bnd = optimize.Bounds(low_bond,up_bond)
 
 #Compute average delta. Average value of FENE_DELTA is ket fixed, so that lt is kept at ~220 nm
-cfun.AVE_DELTA = torch.mean(cfun.CURR_PARS_m[2])
+#cfun.AVE_DELTA = torch.mean(cfun.CURR_PARS_m[2][cfun.NOENDS])
+cfun.AVE_DELTA = 0.2 #good ave twist persistence length
 print("Ave delta:", cfun.AVE_DELTA)
 
 print("Initial parameters:")
