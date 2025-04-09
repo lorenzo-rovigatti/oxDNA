@@ -41,7 +41,7 @@ cg.first_step_flag = True
 #X = torch.tensor([0,1,2])
 #print(X.device)
 
-
+torch.set_printoptions(precision=6)
 ###################################################################################################
 ############## INITIALISE PARAMETERS FROM model.h E SD PARAMETERS FILE ############################
 ###################################################################################################
@@ -72,6 +72,21 @@ if fun.read_config(config_file) == False :
     sys.exit()
 
 
+#this allows to remove any weird sequence from the cost function
+for n in range(cg.Nseq_n5):
+    cg.good_n5.append(True)
+
+for n in range(cg.Nseq_n8):
+    cg.good_n8.append(True)
+
+for n in range(cg.Nseq_n15):
+    cg.good_n15.append(True)
+
+cg.good_n5[3] = False
+
+cg.good_n8[0] = False
+cg.good_n8[2] = False
+
 cfun.convert_Ts_to_ox_units()
 
 print("Converting temepratures to oxdna units")
@@ -82,18 +97,26 @@ print(cfun.sim_Ts_n5)
 print("n5 rew Ts:")
 print(cfun.rew_Ts_n5)
 
+#compute debye huckel lambda before reading trajectories: we need to know this to correctly figure out the cutoff
+cfun.compute_debye_huckel_lambda()
+
+print("lambdas")
+print(cfun.dh_l_n5)
+print(cfun.dh_l_n8)
+print(cfun.dh_l_n15)
+
 test_file = open("opti_p_test.txt",'w')
 for l in range(len(cfun.OPT_PAR_LIST)) :
     print(cfun.OPT_PAR_LIST[l],file=test_file)
 
 test_file.close()
 
-test_file = open("opti_p_test1.txt",'w')
-print(OXPS_zero[45],file = test_file)
-print(OXPS_zero[1],file = test_file)
+#test_file = open("opti_p_test1.txt",'w')
+#print(OXPS_zero[45],file = test_file)
+#print(OXPS_zero[1],file = test_file)
 
-print(OXPS_zero[34],file = test_file)
-test_file.close()
+#print(OXPS_zero[34],file = test_file)
+#test_file.close()
 
 
 #create all tensors on the gpu. Change this to easily swap between gpu and cpu
@@ -124,6 +147,18 @@ if nevery_en == 0 or nevery_split == 0:
 #################
 ### nbps = 5 ####
 #################
+
+
+bases = ['A', 'C', 'G', 'T', 'E']
+
+def type_to_base4(TY) :
+    ty0 = TY%5
+    ty1 = (TY//5)%5
+    ty2 = (TY//5//5)%5
+    ty3 = (TY//5//5//5)%5
+
+    return str(ty0)+str(ty1)+str(ty2)+str(ty3)
+
 
 for l in range(cg.Nseq_n5):
 
@@ -156,7 +191,8 @@ for l in range(cg.Nseq_n5):
                     vals = line.strip().split()
                     if int(vals[0]) % cg.delta_time != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
-                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7])
+                    if cg.debye_huckel == False: off += float(vals[8])  #excl (2,4) + coaxial (7) + Debye (8)
                     en_off_1.append(off*10) #off is per nucleotinde!
                     #print(vals[0],off)
                 nline += 1
@@ -206,11 +242,19 @@ else :
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
+    debye_huckel_r = []
+    debye_huckel_types = []
+    debye_huckel_charge_cut = []
 
-    rclow, rchigh = fun.find_cuts_for_lists(OXPS_zero)
+    rclow , rchigh, rcut_dh_n5, rcut_dh_n8, rcut_dh_n15 = fun.find_cuts_for_lists(OXPS_zero)
     print("cuts: "+str(rclow)+" "+str(rchigh))
+    print("DH cuts n5: ", rcut_dh_n5)
+    print("DH cuts n8: ", rcut_dh_n8)
+    print("DH cuts n15: ", rcut_dh_n15)
 
     for l in range(cg.Nseq_n5):
+
+        print("Reading seq " + str(l) + " n5")
 
         N_pts = 1
         if cg.parallel_tempering : N_pts = cg.N_PT_reps_n5
@@ -227,7 +271,7 @@ else :
                 tr_file = open(tr_file_name, 'r')
 
                 #oxdna distances, types and angles
-                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n5[l])
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n5[l], tr_file, topo_file, cg.boxes_n5[l])
 
                 if m == 0 and rp == 0:
                     fene_r.append(fr)
@@ -247,6 +291,9 @@ else :
                     th8.append(t8)
                     types_unbn_33.append(tun33)
                     types_unbn_55.append(tun55)
+                    debye_huckel_r.append(dh_r)
+                    debye_huckel_types.append(dh_ty)
+                    debye_huckel_charge_cut.append(dh_chcut)
                 else:
                     fene_r[l].extend(fr)
                     stck_r[l].extend(sr)
@@ -265,6 +312,10 @@ else :
                     th8[l].extend(t8)
                     types_unbn_33[l].extend(tun33)
                     types_unbn_55[l].extend(tun55)
+                    debye_huckel_r[l].extend(dh_r)
+                    debye_huckel_types[l].extend(dh_ty)
+                    debye_huckel_charge_cut[l].extend(dh_chcut)
+
 
                 tr_file.close()
                 topo_file.close()
@@ -293,10 +344,25 @@ else :
                 th7[l][j].append(0.)
                 th8[l][j].append(0.)
 
+    max_ints = 0
+
+    print("Len debye huckle")
+    for l in range(cg.Nseq_n5) :
+        for j in range(len(debye_huckel_types[l])):
+            if len(debye_huckel_types[l][j]) > max_ints:
+               max_ints = len(debye_huckel_types[l][j])
+    print("max debye huckle pairs: "+str(max_ints))
+    for l in range(cg.Nseq_n5) :
+        for j in range(len(debye_huckel_types[l])):
+            for z in range(len(debye_huckel_types[l][j]), max_ints):
+                debye_huckel_types[l][j].append(0)
+                debye_huckel_r[l][j].append(100.)
+                debye_huckel_charge_cut[l][j].append(1)
 
     print("Check lengths:")
     if len(fene_r) > 0 : print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
     if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
+    if len(dh_r) > 0 : print("debye_huckel_r: "+str(len(debye_huckel_r))+", "+str(len(debye_huckel_r[0]))+", "+ str(len(debye_huckel_r[0][0])))
 
 
     print("Memory usage after reading n5 data:")
@@ -309,10 +375,13 @@ else :
 
 
     cfun.init_tensors_n5(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts, OXPS_zero)
+                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, debye_huckel_r, debye_huckel_types, debye_huckel_charge_cut, shifts, OXPS_zero)
 
     print("Memory usage after initialising n5 tensors:")
     print_memory_usage()
+
+    #for l in types_bn[0][0] :
+    #    print(type_to_base4(l))
 
     del fene_r
     del stck_r
@@ -372,7 +441,8 @@ for l in range(cg.Nseq_n8):
                     vals = line.strip().split()
                     if int(vals[0]) % cg.delta_time != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
-                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7])
+                    if cg.debye_huckel == False: off += float(vals[8])  #excl + coaxial + Debye
                     en_off_1.append(off*16) #off is per nucleotinde!
                     #print(vals[0],off)
                 nline += 1
@@ -399,7 +469,7 @@ for l in range(cg.Nseq_n8):
 
 
 if cg.read_coords_from_file :
-    cfun.init_tensors_from_file_n8(device, shifts)
+    cfun.init_tensors_from_file_n8(device)
 
 else :
 
@@ -420,11 +490,13 @@ else :
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
-
-    rclow, rchigh = fun.find_cuts_for_lists(OXPS_zero)
-    print("cuts: "+str(rclow)+" "+str(rchigh))
+    debye_huckel_r = []
+    debye_huckel_types = []
+    debye_huckel_charge_cut = []
 
     for l in range(cg.Nseq_n8):
+
+        print("Reading seq " + str(l) + " n8")
 
         N_pts = 1
         if cg.parallel_tempering : N_pts = cg.N_PT_reps_n8
@@ -440,8 +512,7 @@ else :
 
                 tr_file = open(tr_file_name, 'r')
 
-                #oxdna distances, types and angles
-                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n8[l])
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n8[l], tr_file, topo_file, cg.boxes_n8[l])
 
                 if m == 0 and rp == 0:
                     fene_r.append(fr)
@@ -461,6 +532,9 @@ else :
                     th8.append(t8)
                     types_unbn_33.append(tun33)
                     types_unbn_55.append(tun55)
+                    debye_huckel_r.append(dh_r)
+                    debye_huckel_types.append(dh_ty)
+                    debye_huckel_charge_cut.append(dh_chcut)
                 else:
                     fene_r[l].extend(fr)
                     stck_r[l].extend(sr)
@@ -479,6 +553,9 @@ else :
                     th8[l].extend(t8)
                     types_unbn_33[l].extend(tun33)
                     types_unbn_55[l].extend(tun55)
+                    debye_huckel_r[l].extend(dh_r)
+                    debye_huckel_types[l].extend(dh_ty)
+                    debye_huckel_charge_cut[l].extend(dh_chcut)
 
                 tr_file.close()
                 topo_file.close()
@@ -507,12 +584,26 @@ else :
                 th8[l][j].append(0.)
 
 
+    max_ints = 0
+    print("Len debye huckel")
+    for l in range(cg.Nseq_n8) :
+        for j in range(len(debye_huckel_types[l])):
+            if len(debye_huckel_types[l][j]) > max_ints:
+               max_ints = len(debye_huckel_types[l][j])
+    print("max debye huckel pairs: "+str(max_ints))
+    for l in range(cg.Nseq_n8) :
+        for j in range(len(debye_huckel_types[l])):
+            for z in range(len(debye_huckel_types[l][j]), max_ints):
+                debye_huckel_types[l][j].append(0)
+                debye_huckel_r[l][j].append(100.)
+                debye_huckel_charge_cut[l][j].append(1)
+
     print("Check lengths:")
     if len(fene_r) > 0 : print("fene_r: "+str(len(fene_r))+", "+str(len(fene_r[0]))+", "+ str(len(fene_r[0][0])))
     if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n8(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
+                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, debye_huckel_r, debye_huckel_types, debye_huckel_charge_cut)
 
 
     del fene_r
@@ -569,7 +660,8 @@ for l in range(cg.Nseq_n15):
                     vals = line.strip().split()
                     if int(vals[0]) % cg.delta_time != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
-                    off = float(vals[2]) + float(vals[4]) + float(vals[7]) + float(vals[8])  #excl + coaxial + Debye
+                    off = float(vals[2]) + float(vals[4]) + float(vals[7])
+                    if cg.debye_huckel == False: off += float(vals[8])  #excl + coaxial + Debye
                     en_off_1.append(off*30) #off is per nucleotinde!
                     #print(vals[0],off)
                 nline += 1
@@ -595,7 +687,7 @@ for l in range(cg.Nseq_n15):
 
 
 if cg.read_coords_from_file :
-    cfun.init_tensors_from_file_n15(device, shifts)
+    cfun.init_tensors_from_file_n15(device)
 
 else :
 
@@ -616,11 +708,13 @@ else :
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
-
-    rclow, rchigh = fun.find_cuts_for_lists(OXPS_zero)
-    print("cuts: "+str(rclow)+" "+str(rchigh))
+    debye_huckel_r = []
+    debye_huckel_types = []
+    debye_huckel_charge_cut = []
 
     for l in range(cg.Nseq_n15):
+
+        print("Reading seq " + str(l) + " n15")
 
         N_pts = 1
         if cg.parallel_tempering : N_pts = cg.N_PT_reps_n15
@@ -637,8 +731,7 @@ else :
 
                 tr_file = open(tr_file_name, 'r')
 
-                #oxdna distances, types and angles
-                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file, cg.boxes_n15[l])
+                fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n15[l], tr_file, topo_file, cg.boxes_n15[l])
 
                 if m == 0 and rp == 0:
                     fene_r.append(fr)
@@ -658,6 +751,9 @@ else :
                     th8.append(t8)
                     types_unbn_33.append(tun33)
                     types_unbn_55.append(tun55)
+                    debye_huckel_r.append(dh_r)
+                    debye_huckel_types.append(dh_ty)
+                    debye_huckel_charge_cut.append(dh_chcut)
                 else:
                     fene_r[l].extend(fr)
                     stck_r[l].extend(sr)
@@ -676,6 +772,9 @@ else :
                     th8[l].extend(t8)
                     types_unbn_33[l].extend(tun33)
                     types_unbn_55[l].extend(tun55)
+                    debye_huckel_r[l].extend(dh_r)
+                    debye_huckel_types[l].extend(dh_ty)
+                    debye_huckel_charge_cut[l].extend(dh_chcut)
 
                 tr_file.close()
                 topo_file.close()
@@ -703,6 +802,21 @@ else :
                 th7[l][j].append(0.)
                 th8[l][j].append(0.)
 
+    max_ints = 0
+    print("Len debye huckel")
+    for l in range(cg.Nseq_n15) :
+        for j in range(len(debye_huckel_types[l])):
+            if len(debye_huckel_types[l][j]) > max_ints:
+               max_ints = len(debye_huckel_types[l][j])
+    print("max debye huckel pairs: "+str(max_ints))
+    for l in range(cg.Nseq_n15) :
+        for j in range(len(debye_huckel_types[l])):
+            for z in range(len(debye_huckel_types[l][j]), max_ints):
+                debye_huckel_types[l][j].append(0)
+                debye_huckel_r[l][j].append(100.)
+                debye_huckel_charge_cut[l][j].append(1)
+
+
     for l in range(cg.Nseq_n15) :
         for j in range(len(types_unbn_33[l])):
             if j < 40: print(len(types_unbn_33[l][j]))
@@ -712,7 +826,7 @@ else :
     if len(hydr_r) > 0 : print("hydr_r: "+str(len(hydr_r))+", "+str(len(hydr_r[0]))+", "+ str(len(hydr_r[0][0])))
 
     cfun.init_tensors_n15(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3,\
-                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, shifts)
+                      th4_unbn, th7, th8, types_unbn_33, types_unbn_55, debye_huckel_r, debye_huckel_types, debye_huckel_charge_cut)
 
     del fene_r
     del stck_r
@@ -740,6 +854,13 @@ print_memory_usage()
 ###################################################################################################
 ############## SETUP TENSORS FOR COST FUNCTION ####################################################
 ###################################################################################################
+
+#extend lambda tensor for deby huckel
+if cg.debye_huckel:
+
+   cfun.extend_lambda_for_debye_huckel()
+   print("Extended lamda. n5 size:")
+   print(cfun.DH_LAMBDA_EXT_n5.shape)
 
 #extend sim_Ts tensors if using parallel tempering sim_Ts[seq][pt_replica]->sim_Ts[seq][conf]
 if cg.parallel_tempering: cfun.extend_Ts_and_weights_for_PT()
@@ -805,7 +926,7 @@ ids = []
 for i in range(len(cfun.OPT_PAR_LIST)) :
     id = cfun.OPT_PAR_LIST[i][0]
     ty = cfun.OPT_PAR_LIST[i][1]
-    ids.append(id*256+ty)
+    ids.append(id*625+ty)
 
 
 IDS_OP = torch.tensor(ids,device=device)
@@ -833,18 +954,18 @@ for n in range(len(low_bond)) :
         ub = up_bond[n]*1.5
         if lb > 0.65: low_bond[n] = lb
         else: low_bond[n] = 0.65
-        if ub > 1.4: up_bond[n] = ub
+        if ub < 1.4: up_bond[n] = ub
         else: up_bond[n] = 1.4
     elif cfun.OPT_PAR_LIST[n][0] == 44:
         lb = low_bond[n]*0.5
         ub = up_bond[n]*1.5
         if lb > 1.0: low_bond[n] = lb
         else: low_bond[n] = 1.0
-        if ub > 2.0: up_bond[n] = ub
+        if ub < 1.9: up_bond[n] = ub
         else: up_bond[n] = 2.0
     elif cfun.OPT_PAR_LIST[n][0] == 77 or cfun.OPT_PAR_LIST[n][0] == 116:
         low_bond[n] = 0
-        up_bond[n] = 76
+        up_bond[n] = 76.1
     else:
         low_bond[n] = low_bond[n]*0.5
         up_bond[n] = up_bond[n]*2.
@@ -925,6 +1046,15 @@ print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
 sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':50,'iprint': 1})
+
+
+#change slightly parameters at boundaries to avoid problems with next iteration
+par_fin = sol.x
+
+for n in range(len(par_fin)) :
+    if (par_fin[n]-low_bond[n])/(low_bond[n]+0.00000001) <= 0.001: par_fin[n]= par_fin[n]*1.001
+    if (up_bond[n]-par_fin[n])/up_bond[n] <= 0.001: par_fin[n] = par_fin[n]*0.999
+
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

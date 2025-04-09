@@ -12,7 +12,7 @@ import SantaLucia
 PARS_LIST = parl.PARS_LIST
 par_index = parl.par_index
 
-bases = ['A','C','G','T']
+bases = ['A','C','G','T','E']
 #map bases to id
 def base_to_id(b) :
     if b == 'A':
@@ -23,6 +23,8 @@ def base_to_id(b) :
         return 2
     elif  b == 'T':
         return 3
+    elif  b == 'E':
+        return 4
     else:
         return -1
 
@@ -1018,16 +1020,16 @@ def read_pars_from_SD_file(SDfile) :
             continue
         vals_cn = vals[0].split("_")
         if vals_cn[0] == "STCK" and len(vals_cn) == 3:
-            for i in range(4):
-                for j in range(4):
-                    ty=i+base_to_id(vals_cn[1])*4+base_to_id(vals_cn[2])*4*4+j*4*4*4    #from base 4 to base 10
+            for i in range(5):
+                for j in range(5):
+                    ty=i+base_to_id(vals_cn[1])*5+base_to_id(vals_cn[2])*5*5+j*5*5*5    #from base 4 to base 10
                     oi = [PARS_LIST.index("STCK_EPS"),ty]
                     over_indices.append(oi)
                     over_vals.append(float(vals[2]))
         elif vals_cn[0] == "HYDR" and len(vals_cn) == 3:
-            for i in range(4):
-                for j in range(4):
-                    ty=i+base_to_id(vals_cn[1])*4+base_to_id(vals_cn[2])*4*4+j*4*4*4    #from base 4 to base 10
+            for i in range(5):
+                for j in range(5):
+                    ty=i+base_to_id(vals_cn[1])*5+base_to_id(vals_cn[2])*5*5+j*5*5*5    #from base 4 to base 10
                     oi = [PARS_LIST.index("HYDR_EPS"),ty]
                     over_indices.append(oi)
                     over_vals.append(float(vals[2]))
@@ -1036,9 +1038,9 @@ def read_pars_from_SD_file(SDfile) :
             if vals_cn[0] == "HYDR" or vals_cn[1] == "K":
                 for i in range(1,len(vals_cn)-2):
                     par_name += "_"+vals_cn[i]
-                for i in range(4):
-                    for j in range(4):
-                        ty=i+base_to_id(vals_cn[len(vals_cn)-2])*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4+j*4*4*4    #from base 4 to base 10
+                for i in range(5):
+                    for j in range(5):
+                        ty=i+base_to_id(vals_cn[len(vals_cn)-2])*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5+j*5*5*5    #from base 4 to base 10
                         oi = [PARS_LIST.index(par_name),ty]
                         over_indices.append(oi)
                         over_vals.append(float(vals[2]))
@@ -1052,16 +1054,16 @@ def read_pars_from_SD_file(SDfile) :
                          par_name += "_THETA8"
                     for i in range(2,len(vals_cn)-2):
                          par_name += "_"+vals_cn[i]
-                    for i in range(4):
-                        for j in range(4):
-                            ty=i+base_to_id(vals_cn[len(vals_cn)-2])*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4+j*4*4*4    #from base 4 to base 10
+                    for i in range(5):
+                        for j in range(5):
+                            ty=i+base_to_id(vals_cn[len(vals_cn)-2])*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5+j*5*5*5    #from base 4 to base 10
                             oi = [PARS_LIST.index(par_name),ty]
                             over_indices.append(oi)
                             over_vals.append(float(vals[2]))
             else :
                 for i in range(1,len(vals_cn)-4):
                     par_name += "_"+vals_cn[i]
-                ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4
+                ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5
                 oi = [PARS_LIST.index(par_name),ty]
                 over_indices.append(oi)
                 over_vals.append(float(vals[2]))
@@ -1075,7 +1077,7 @@ def read_pars_from_SD_file(SDfile) :
                          par_name += "_THETA8"
                     for i in range(2,len(vals_cn)-4):
                          par_name += "_"+vals_cn[i]
-                         ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4
+                         ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5
                          oi = [PARS_LIST.index(par_name),ty]
                          over_indices.append(oi)
                          over_vals.append(float(vals[2]))
@@ -1084,7 +1086,7 @@ def read_pars_from_SD_file(SDfile) :
             par_name = vals_cn[0]
             for i in range(1,len(vals_cn)-4):
                 par_name += "_"+vals_cn[i]
-            ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*4+base_to_id(vals_cn[len(vals_cn)-2])*4*4+base_to_id(vals_cn[len(vals_cn)-1])*4*4*4    #from base 4 to base 10
+            ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5    #from base 4 to base 10
             oi = [PARS_LIST.index(par_name),ty]
             over_indices.append(oi)
             over_vals.append(float(vals[2]))
@@ -1105,28 +1107,28 @@ def read_pars_from_SD_file(SDfile) :
 #T = temperature in oxdna units. This is needed to correctly set STCK_EPS
 def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
 
-    OXPS_zero = np.zeros((len(PARS_LIST),256),dtype=float)
-    shifts = np.zeros((2,256),dtype=float) #0 = hydr, 1 = stck
+    OXPS_zero = np.zeros((len(PARS_LIST),625),dtype=float)
+    shifts = np.zeros((2,625),dtype=float) #0 = hydr, 1 = stck
 
     for i in range(len(PARS_LIST)) :
 
         if PARS_LIST[i] == "STCK_EPS":
-            for j in range(256) :
+            for j in range(625) :
                 OXPS_zero[i][j] = 1.
             continue
         if PARS_LIST[i] == "HYDR_EPS":
-            for j in range(256) :
+            for j in range(625) :
                 OXPS_zero[i][j] = 0.
             continue
 
         index = pars_mh.index(PARS_LIST[i])
         val = vals_mh[index]
 
-        for j in range(256) :
+        for j in range(625) :
             OXPS_zero[i][j] = val
 
     #here we use the initial custom parameters, must include stck_x_y and hydr_x_y
-    if [4,48] not in over_indices :
+    if [4,75] not in over_indices :
         print("No HYDR_x_y in SD file. Terminating")
         exit(1)
     if [44,0] not in over_indices :
@@ -1138,7 +1140,7 @@ def init_oxpars(pars_mh, vals_mh, over_indices, over_vals,T,stck_fact_eps) :
         OXPS_zero[over_indices[i][0]][over_indices[i][1]] = over_vals[i]
 
     #set eps and shifts
-    for j in range(256) :
+    for j in range(625) :
         #hydr
         shifts[0][j] = Morse(OXPS_zero[par_index[7]][j],OXPS_zero[par_index[4]][j],OXPS_zero[par_index[5]][j],OXPS_zero[par_index[6]][j])
         #stacking
@@ -1179,7 +1181,35 @@ def find_cuts_for_lists(OXPS_zero) :
     rcut_high = rcut_high
     rcut_low = rcut_low
 
-    return rcut_low , rcut_high
+    rcut_dh_n5 = []
+
+    for i in range(len(cfun.dh_l_n5)):
+        if cg.parallel_tempering:
+           rcut_dh_n5.append(4.5*max(cfun.dh_l_n5[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n5.append(4.5*cfun.dh_l_n5[i]*1.07)
+
+    rcut_dh_n8 = []
+
+    for i in range(len(cfun.dh_l_n8)):
+        if cg.parallel_tempering:
+           rcut_dh_n8.append(4.5*max(cfun.dh_l_n8[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n8.append(4.5*cfun.dh_l_n8[i]*1.07)
+
+    rcut_dh_n15 = []
+
+    for i in range(len(cfun.dh_l_n15)):
+        if cg.parallel_tempering:
+           rcut_dh_n15.append(4.5*max(cfun.dh_l_n15[i])*1.04) #1.04 accounts for how much lamda would change for an extra 20K
+           #0.962 ~ 2*sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2))
+
+        else: rcut_dh_n15.append(4.5*cfun.dh_l_n15[i]*1.07)
+
+
+    return rcut_low , rcut_high, rcut_dh_n5, rcut_dh_n8, rcut_dh_n15
 
 #down id = bonded nucleotide, n3 direction
 #up id = bonded nucleotide, n5 direction
@@ -1195,11 +1225,11 @@ class topo :
 pos_bb1 = [-0.34,-0.34,-0.34,-0.34]
 pos_bb2 = [0.3408,0.3408,0.3408,0.3408]
 #note: oxdna2
-pos_stck = [0.34,0.34,0.34,0.34]
-pos_hydr = [0.4,0.4,0.4,0.4]
+#pos_stck = [0.34,0.34,0.34,0.34]
+#pos_hydr = [0.4,0.4,0.4,0.4]
 #note: oxdna3
-#pos_stck = [0.37,0.37,0.37,0.37]
-#pos_hydr = [0.43,0.37,0.43,0.37]
+pos_stck = [0.37,0.37,0.37,0.37]
+pos_hydr = [0.43,0.37,0.43,0.37]
 class nucleotide :
     def __init__(self, C, BV, N, ty) :
         t = base_to_id(ty)
@@ -1213,7 +1243,7 @@ class nucleotide :
         self.hydr = C + pos_hydr[t]*BV
 
 
-def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_file, box):
+def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, rcut_dh, tr_file, topo_file, box):
 
     rcut_sq_high = rcut_high*rcut_high
     rcut_sq_low = rcut_low*rcut_low
@@ -1242,6 +1272,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
+
+    dh_r = []
+    dh_ty = []
+    dh_chcut = []
 
     Nb = 0
     Ns = 0
@@ -1305,10 +1339,10 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     #bonded basepairs
                     #find pairs and tetramer type
                     for i in range(len(topology)) :
-                        ty0 = 1
-                        ty1 = 1
-                        ty2 = 1
-                        ty3 = 1
+                        ty0 = 4
+                        ty1 = 4
+                        ty2 = 4
+                        ty3 = 4
                         if topology[i].up_id == -1: continue
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
@@ -1332,7 +1366,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                                           break
                                break
 
-                        ty = ty0+ty1*4+ty2*4*4+ty3*4*4*4 #tetramer type in base 10
+                        ty = ty0+ty1*5+ty2*5*5+ty3*5*5*5 #tetramer type in base 10
 
                         types_1conf.append(ty)
 
@@ -1374,16 +1408,21 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     types_unbn_1conf_33 = []
                     types_unbn_1conf_55 = []
 
+                    dh_r_1conf = []
+                    dh_ty_1conf = []
+                    dh_chcut_1conf = []
+
+
                     #UNDBONDED
                     #out_string = ""
                     for i in range(len(topology)) :
                         #out_string += " " + str(topology[i].id)
-                        ty0_33 = 1
-                        ty0_55 = 1
-                        ty1 = 1
-                        ty2 = 1
-                        ty3_33 = 1
-                        ty3_55 = 1
+                        ty0_33 = 4
+                        ty0_55 = 4
+                        ty1 = 4
+                        ty2 = 4
+                        ty3_33 = 4
+                        ty3_55 = 4
                         n1 = config[i]
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
@@ -1404,15 +1443,25 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
 
                             n2 = config[j]
 
+                            out_of_range = False
+
                             hyv = n1.hydr - n2.hydr - min_im_v
                             hydist = np.linalg.norm(hyv)
                             hydist2 = hydist*hydist
-                            if hydist2 < rcut_sq_low: continue #verlet cutoff
-                            if hydist2 > rcut_sq_high: continue #verlet cutoff
+
+                            bbv = n1.bb - n2.bb - min_im_v
+                            bbdist = np.linalg.norm(bbv)
+                            bbdist2 = bbdist*bbdist
+
+                            if bbdist > rcut_dh and rcut_dh > rcut_high: continue #if we are out of debye huckle range
+                            if hydist2 < rcut_sq_low: out_of_range = True #verlet cutoff
+                            if hydist2 > rcut_sq_high: out_of_range = True #verlet cutoff
                             if topology[j].id <= topology[i].id: continue #ordered ids (avoid pairs repetition)
                             if topology[j].id == topology[i].down_id or topology[j].id == topology[i].up_id: continue #no bonded pairs
 
                             #out_string += str(topology[j].id)
+
+                            if out_of_range and cg.debye_huckel == False: continue #if we dont't use debye huckel, continue.
 
                             ty2 = base_to_id(topology[j].base_type)
 
@@ -1437,24 +1486,34 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                             #if topology[i].up_id == -1:
                                #ty0_33 = 0
 
-                            ty_33 = ty0_33+ty1*4+ty2*4*4+ty3_33*4*4*4 #tetramer type in base 10
-                            ty_55 = ty0_55+ty1*4+ty2*4*4+ty3_55*4*4*4 #tetramer type in base 10
+                            ty_33 = ty0_33+ty1*5+ty2*5*5+ty3_33*5*5*5 #tetramer type in base 10
+                            ty_55 = ty0_55+ty1*5+ty2*5*5+ty3_55*5*5*5 #tetramer type in base 10
 
-                            types_unbn_1conf_33.append(ty_33)
-                            types_unbn_1conf_55.append(ty_55)
 
-                            #compute unbnd pair coordinates
-                            hydr_r_1conf.append(hydist)
-                            rhydr = hyv/hydist
+                            if cg.debye_huckel:
+                                chcut = 1
+                                if ty0_33 == 4 or ty0_55 == 4: chcut*=2
+                                if ty3_33 == 4 or ty3_55 == 4: chcut*=2
 
-                            th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
-                            th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
-                            th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
+                                dh_r_1conf.append(bbdist)
+                                dh_ty_1conf.append(ty_33)
+                                dh_chcut_1conf.append(chcut)
 
-                            th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
-                            th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
-                            th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
+                            if out_of_range == False:
+                                #compute unbnd pair coordinates
+                                hydr_r_1conf.append(hydist)
+                                rhydr = hyv/hydist
 
+                                th1_1conf.append(np.arccos(-np.dot(n1.bv,n2.bv)))
+                                th3_1conf.append(np.arccos(-np.dot(n1.bv,rhydr)))
+                                th2_1conf.append(np.arccos(np.dot(n2.bv,rhydr)))
+
+                                th4_unbn_1conf.append(np.arccos(np.dot(n1.n,n2.n)))
+                                th8_1conf.append(np.arccos(-np.dot(n1.n,rhydr)))
+                                th7_1conf.append(np.arccos(np.dot(n2.n,rhydr)))
+
+                                types_unbn_1conf_33.append(ty_33)
+                                types_unbn_1conf_55.append(ty_55)
 
 
                     #print(len(types_unbn_1conf_33), out_string)
@@ -1471,7 +1530,11 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_fil
                     th7.append(th7_1conf)
                     th8.append(th8_1conf)
 
-    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55
+                    dh_r.append(dh_r_1conf)
+                    dh_ty.append(dh_ty_1conf)
+                    dh_chcut.append(dh_chcut_1conf)
+
+    return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55, dh_r, dh_ty, dh_chcut
 
 ###################################################################################################
 ############## CALLBACK FUNCTIONS #############################################################
@@ -1707,7 +1770,7 @@ def print_final_pfile(FOPARS,infile) :
                 ty1 = base_to_id(vals_cn[len(vals_cn)-3])
                 ty0 = base_to_id(vals_cn[len(vals_cn)-4])
 
-                ty = ty0+ty1*4+ty2*16+ty3*64
+                ty = ty0+ty1*5+ty2*25+ty3*125
 
                 print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
             else:
@@ -1726,7 +1789,7 @@ def print_final_pfile(FOPARS,infile) :
                 ty2 = base_to_id(vals_cn[len(vals_cn)-1])
                 ty1 = base_to_id(vals_cn[len(vals_cn)-2])
 
-                ty = ty1*4+ty2*16
+                ty = ty1*5+ty2*25
 
                 print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
             else:

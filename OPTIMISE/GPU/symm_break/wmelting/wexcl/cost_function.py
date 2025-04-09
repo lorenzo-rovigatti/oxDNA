@@ -276,6 +276,32 @@ def init_tensors(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_
 
 def print_initial_energy() :
 
+    torch.set_printoptions(threshold=float('10'))
+
+    ofile = open("Energy_full", 'w')
+
+    print("FENE:", file=ofile)
+    print(EN_FENE_IN, file=ofile)
+    print("",file=ofile)
+
+    print("STCK:", file=ofile)
+    print(EN_STCK_IN, file=ofile)
+    print("",file=ofile)
+
+    print("HYDR:", file=ofile)
+    print(EN_HYDR_IN, file=ofile)
+    print("",file=ofile)
+
+    print("CRST_33:", file=ofile)
+    print(EN_CRST_33_IN, file=ofile)
+    print("",file=ofile)
+
+    print("CRST_55:", file=ofile)
+    print(EN_CRST_55_IN, file=ofile)
+    print("",file=ofile)
+
+    ofile.close()
+
     EN = EN_EXCL_BN_IN.sum(dim=2)/48
 
     ofile_ave = open("EN_EXCL_BN_IN.dat", 'w')
@@ -289,6 +315,7 @@ def print_initial_energy() :
 
     EN = EN_EXCL_UNBN_IN.sum(dim=2)/48
 
+    ofile_ave.close()
     ofile_ave = open("EN_UNEXCL_BN_IN.dat", 'w')
 
     for i in range(cg.Nseq) :
@@ -300,6 +327,7 @@ def print_initial_energy() :
 
     EN = EN_FENE_IN.sum(dim=2)/48
 
+    ofile_ave.close()
     ofile_ave = open("EN_FENE_IN.dat", 'w')
 
     for i in range(cg.Nseq) :
@@ -311,6 +339,7 @@ def print_initial_energy() :
 
     EN = EN_STCK_IN.sum(dim=2)/48
 
+    ofile_ave.close()
     ofile_ave = open("EN_STCK_IN.dat", 'w')
 
     for i in range(cg.Nseq) :
@@ -322,6 +351,7 @@ def print_initial_energy() :
 
     EN = EN_HYDR_IN.sum(dim=2)/48
 
+    ofile_ave.close()
     ofile_ave = open("EN_HYDR_IN.dat", 'w')
 
     for i in range(cg.Nseq) :
@@ -331,10 +361,10 @@ def print_initial_energy() :
                 print(str(j) + " " + str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
 
+    ofile_ave.close()
     ofile_ave = open("EN_CRST_IN.dat", 'w')
 
     EN = (EN_CRST_33_IN+EN_CRST_55_IN).sum(dim=2)/48
-
     print("CRST=CRST_33+CRST_55",file=ofile_ave)
 
     for i in range(cg.Nseq) :
@@ -517,9 +547,9 @@ def build_continuity_tensors() :
     f1_rcl_id = [12,52]
     f1_rch_id = [13,53]
 
-    OFFSET_f1_RC = torch.tensor([[0.35]*256,[0.5]*256],device=device)
-    OFFSET_f1_RL = torch.tensor([[-0.06]*256,[-0.08]*256],device=device)
-    OFFSET_f1_RH = torch.tensor([[0.3]*256,[0.35]*256],device=device)
+    OFFSET_f1_RC = torch.tensor([[0.35]*625,[0.5]*625],device=device)
+    OFFSET_f1_RL = torch.tensor([[-0.06]*625,[-0.08]*625],device=device)
+    OFFSET_f1_RH = torch.tensor([[0.3]*625,[0.35]*625],device=device)
     OFFSET_f1_ID = torch.tensor([0,1],device=device)
 
     #f1
@@ -532,9 +562,9 @@ def build_continuity_tensors() :
     f2_rcl_id = [84,123]
     f2_rch_id = [85,124]
 
-    OFFSET_f2_RC = torch.tensor([[0.1]*256,[0.1]*256],device=device)
-    OFFSET_f2_RL = torch.tensor([[-0.08]*256,[-0.08]*256],device=device)
-    OFFSET_f2_RH = torch.tensor([[0.08]*256,[0.08]*256],device=device)
+    OFFSET_f2_RC = torch.tensor([[0.1]*625,[0.1]*625],device=device)
+    OFFSET_f2_RL = torch.tensor([[-0.08]*625,[-0.08]*625],device=device)
+    OFFSET_f2_RH = torch.tensor([[0.08]*625,[0.08]*625],device=device)
     OFFSET_f2_ID = torch.tensor([0,1],device=device)
 
     #f3
@@ -1408,9 +1438,14 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
 
     #set ends
 
-    ENDS_VALS = torch.mean(CURR_PARS[:,NOENDS])
-    CURR_PARS[:,ENDS] = ENDS_VALS.unsqueeze(1)
+    #skip strengths, and average everything else
+    mask = torch.zeros((CURR_PARS.shape[0],CURR_PARS.shape[1]), dtype=torch.bool,device=device)
+    mask[:,ENDS]=True
+    mask[[4,44,77,116],:]=False
 
+    ENDS_VALS = torch.mean(CURR_PARS[:,NOENDS],dim=1)
+    s1 = ENDS_VALS.shape[0]
+    CURR_PARS[mask] = ENDS_VALS.unsqueeze(1).repeat(1,CURR_PARS.shape[1])[mask]
 
     if opti:
         #Fix delta average ###
@@ -1618,8 +1653,9 @@ def COST(PARS) :
 
     AVE_DIA_CRRC = TMP[:,IDS_AVE_COV_EXPAND]
 
-    DIA_CRRC = DIA_CRRC - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV
+    #DIA_CRRC = DIA_CRRC - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV
 
+    DIA_CRTC = DIA_CRTC + torch.mean(AVE_COV_RED_TARGET_COV,dim=0,keepdim=True)*0.1
     #print("offset: ", - AVE_DIA_CRRC + AVE_COV_RED_TARGET_COV)
     #print("dia crrc: ", DIA_CRRC)
 
@@ -2167,22 +2203,22 @@ def build_masks_and_symm_tensors_melting() :
 
         ID = OPT_PAR_LIST_m[i][0]
         TY = OPT_PAR_LIST_m[i][1]
-        umap.append(ID*256+TY)
+        umap.append(ID*625+TY)
 
-        ty0 = TY%4
-        ty1 = (TY//4)%4
-        ty2 = (TY//4//4)%4
-        ty3 = (TY//4//4//4)%4
-        for l in range(4) :
-            for m in range(4) :
-                TY_S = m+ty1*4+ty2*4*4+l*4*4*4
+        ty0 = TY%5
+        ty1 = (TY//5)%5
+        ty2 = (TY//5//5)%5
+        ty3 = (TY//5//5//5)%5
+        for l in range(5) :
+            for m in range(5) :
+                TY_S = m+ty1*5+ty2*5*5+l*5*5*5
                 if TY != TY_S:
                     sl.append(i)
-                    sls.append(ID*256+TY_S)
-                TY_SYMM = m+ty2*4+ty1*4*4+l*4*4*4
+                    sls.append(ID*625+TY_S)
+                TY_SYMM = m+ty2*5+ty1*5*5+l*5*5*5
                 if ty1 != ty2 and (ID == 4 or ID == 77 or ID == 116) :
                     sl.append(i)
-                    sls.append(ID*256+TY_SYMM)
+                    sls.append(ID*625+TY_SYMM)
 
     UPDATE_MAP_m = torch.tensor(umap,device=device)
     SYMM_LIST_m = torch.tensor(sl,device=device)
