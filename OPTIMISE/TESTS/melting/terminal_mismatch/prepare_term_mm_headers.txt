@@ -1,0 +1,5 @@
+seqs=( AAGCTG AAGCTG AAGCTG ACGGTA ACGGTA ACGGTA GAGCTG GAGCTG GAGCTG GCGGTA GCGGTA GCGGTA CAGCTG CAGCTG CAGCTG CCGGTA CCGGTA CCGGTA TAGCTG TAGCTG TAGCTG TCGGTA TCGGTA TCGGTA )
+OP_files=( op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt )
+nbps=( 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 )
+mTs=( 29.84 28.37 26.81 32.71 32.12 30.47 30.52 28.48 29.34 35.38 32.33 33.67 30.01 26.64 27.82 32.05 29.09 31.07 29.13 26.90 27.24 31.45 29.30 31.87 )
+mm_id=( 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 )
