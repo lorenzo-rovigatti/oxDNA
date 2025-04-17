@@ -1,5 +1,4 @@
 import oxpy
-from oxpy import InputFile
 from os.path import join, abspath, dirname, exists, basename
 from os import mkdir, getpid,chdir, getcwd
 from multiprocessing import Process
@@ -17,6 +16,7 @@ import numpy as np
 from functools import wraps
 import subprocess
 from typing import List, Union, Dict
+import contextlib 
 
 default_input_file = {
     "T" :"20C",
@@ -45,6 +45,31 @@ default_input_file = {
     "no_stdout_energy" : "true", 
     #"max_density_multiplier":""
 }
+
+
+
+
+class PathContext(contextlib.ContextDecorator):
+    """Class handling the temporary change of path required for the simulations"""
+    def __init__(self, out_dir):
+        self.out_dir = out_dir
+        self.old_path = None
+
+    def __enter__(self):
+        self.old_path = getcwd()
+        chdir(self.out_dir)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        chdir(self.old_path)
+
+def path_decorator(func):
+    """Helper to wrap the PathContext around the Simulation Class Methods"""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        with PathContext(self.out_dir):
+            return func(self, *args, **kwargs)
+    return wrapper
+
 
 def get_default_input():
     """
@@ -80,7 +105,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:Dict[st
             rmtree(out_dir)
     mkdir(out_dir)
     #set up input file
-    input_file = InputFile()
+    input_file = oxpy.InputFile()
     
     # copy the topology over if not present
     out_top = join(out_dir,basename(top_path))
@@ -130,28 +155,14 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:Dict[st
 # our typical run function for a provided dictionary input file 
 def _prun(input_file_path:str):
     with oxpy.Context():
+        path = dirname(abspath(input_file_path))
         # change to the directory of the input file path
-        chdir(dirname(abspath(input_file_path)))
-        input_file = InputFile()
-        input_file.init_from_filename(basename(input_file_path))
-        manager = oxpy.OxpyManager(input_file)
-        manager.run_complete() #run complete run's it till the number steps specified are reached 
+        with PathContext(path):
+            input_file = oxpy.InputFile()
+            input_file.init_from_filename(basename(input_file_path))
+            manager = oxpy.OxpyManager(input_file)
+            manager.run_complete() #run complete run's it till the number steps specified are reached 
             
-
-def path_decorator(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        # Save the current path
-        old_path = getcwd()
-        # Change the path to self.__out_dir
-        chdir(self.out_dir)
-        # Call the original method
-        result = func(self, *args, **kwargs)
-        # Restore the original path
-        chdir(old_path)
-        return result
-    return wrapper
-
 
 class Simulation:
     def __init__(self, input_file_path:str):
@@ -160,7 +171,7 @@ class Simulation:
 
             input_file_path (str): path to the input file
         """
-        self.input_file = InputFile()
+        self.input_file = oxpy.InputFile()
         self.input_file.init_from_filename(input_file_path)
         self.p = None # the process refference
         self.out_dir = dirname(abspath(input_file_path))
@@ -305,42 +316,42 @@ class Simulation:
         
         self.p.start()
         return self
-    
-    # @path_decorator
-    # TODO: possibly add this to the api
-    # def align(self, p=2):
-    #     """
-    #         aligns the trajectory to the last configuration
-    #     """
-    #     with oxpy.Context():
-    #         input_file = InputFile()
-    #         input_file.init_from_filename(basename(self.__input_file_path))
-    #         print(input_file["trajectory_file"])
-
-    #         # run shell command oat align 
-    #         subprocess.run(["oat", "align", "-p", str(p), input_file["trajectory_file"], "aligned.dat"])
-    #         with open(basename(self.__input_file_path),"w+") as file:
-    #             file.write("aligned = aligned.dat")
-    
+       
     @path_decorator
-    def plot_energy(self):
+    def plot_energy(self, ylim = [-2,0]):
         """
             plots the energy graph of the running simulation
         """
-        df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','P','K'])
-        dt = float(self.input_file["dt"])
-        steps = float(self.input_file["steps"])
+        if self.input_file["sim_type"] == "MD":
+            df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','P','K'])
+            dt = float(self.input_file["dt"])
+            steps = float(self.input_file["steps"])
 
-        # make sure our figure is bigger
-        plt.figure(figsize=(15,3)) 
-        # plot the energy
-        plt.plot(df.time/dt,df.U)
+            # make sure our figure is bigger
+            plt.figure(figsize=(15,3)) 
+            # plot the energy
+            plt.plot(df.time/dt,df.U)
 
-        plt.ylabel("Energy")
-        plt.xlabel("Steps")
-        # and the line indicating the complete run
-        plt.ylim([-2,0])
-        plt.plot([steps,steps],[0,-2], color="r")
+            plt.ylabel("Energy")
+            plt.xlabel("Steps")
+            # and the line indicating the complete run
+            plt.ylim(ylim)
+            plt.plot([steps,steps],ylim, color="r")
+        else:
+            # assume we have MC
+            df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','accept_translaitons','accept_rotations', 'smth'])
+            steps = float(self.input_file["steps"])
+
+            # make sure our figure is bigger
+            plt.figure(figsize=(15,3)) 
+            # plot the energy
+            plt.plot(df.time,df.U)
+
+            plt.ylabel("Energy")
+            plt.xlabel("Steps")
+            # and the line indicating the complete run
+            plt.ylim(ylim)
+            plt.plot([steps,steps],ylim, color="r")
 
     def terminate(self):
         """
