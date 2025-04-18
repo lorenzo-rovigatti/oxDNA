@@ -439,3 +439,9 @@ class Simulation(MutableMapping):
 
         # and the line indicating the complete run
         plt.plot([steps,steps],ylim, color="r")
+
+    @path_decorator
+    def get_log(self):
+        """default boilerplate sim output is stored in the log file"""
+        with open(self["log_file"]) as file:
+            return file.readlines()
