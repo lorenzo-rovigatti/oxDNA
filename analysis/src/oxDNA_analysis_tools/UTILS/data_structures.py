@@ -99,7 +99,9 @@ class System:
     top_file: str
     strands: List[Strand]
 
-    def __init__(self, top_file:str='', strands:List[Strand] = []):
+    def __init__(self, top_file:str='', strands:Union[List[Strand],None]=None):
+        if strands == None:
+            strands = []
         self.top_file = top_file
         self.strands = strands
 
@@ -152,7 +154,10 @@ class Strand:
         self._from_old = False
         self.id = id
         self.monomers = []
-        self.type = 'DNA'
+        if self.id < 0:
+            self.type = 'peptide' # In the ANM model, peptides have negative indexes
+        else:
+            self.type = 'DNA' # Default to DNA
         self.circular = False
         for dictionary in initial_data:
             for key in dictionary:
@@ -206,6 +211,22 @@ class Strand:
         Returns the `circular` attribute.
         """
         return self.circular
+    
+    def is_nucleic(self) -> bool:
+        """
+        Checks the type for nucleic acid types
+        """
+        if self.type in ["DNA", "RNA", "XNA"]:
+            return True
+        return False
+    
+    def is_peptide(self) -> bool:
+        """
+        Checks the type for protein types
+        """
+        if self.type in ["peptide"]:
+            return True
+        return False
     
     def get_length(self) -> int:
         """

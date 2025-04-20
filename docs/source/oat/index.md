@@ -11,7 +11,12 @@ The scripts can be run via the command line with:
 oat <script name> <script arguments>
 ```
 
-There are bash autocompletes avilable for the script names, which can be activated by copying the file `/oxDNA/analysis/oat-completion.sh` to your autocompletes file (generally `~/.bash_completion`) and restarting your command line session.
+There are Bash and Zsh autocompletes avilable for the script names, which can be activated by copying the file `/oxDNA/analysis/oat-completion.sh` to your autocompletes file (in Bash: `~/.bash_completion`) or adding `source /path/to/oxDNA/analysis/oat-completion.sh` to your rc file and restarting your command line session.  Note that for Zsh, you must be using the modern completion engine by adding 
+```
+autoload -U compinit
+compinit
+```
+to your `.zshrc` file.
 
 Documentation for individual scripts:
 
@@ -64,6 +69,13 @@ Full API documentation:
    forces.md
 ```
 
+## Constants
+There are a couple global constants which `oat` uses across scripts. These can be found in `oxDNA/analysis/src/oxDNA_analysis_tools/UTILS/constants.py`. They can be set persistently on an installed copy of `oat` using `oat config` with a flag, where the following options are available:
+```shell
+oat config -n 100 # Load configurations in chunks of 100 per process while reading trajectories
+oat config -f 300 # Set output figure DPI to 300
+```
+
 ## Analysis notebooks
 As simulations become more prevalent and analysis pipelines more complicated, it can be beneficial for researchers to define their entire simulation/analysis pipeline in Python notebooks, much as is often done in the machine learning community.  The modular nature of `oxpy` and `oxDNA_analysis_tools` lends itself to composing analyses together to ask specific scientific questions.
 
@@ -79,7 +91,9 @@ import multiprocessing
 
 # Running oxpy multiple times from the same jupyter kernel crashes the kernel for some reason
 # So we will be starting simulations from a separate thread.
-def spawn(f, kwargs = {}):
+def spawn(f, kwargs=None):
+    if kwargs == None:
+        kwargs = {}
     p = multiprocessing.Process(target=f, kwargs = kwargs)
     p.start()
     return p

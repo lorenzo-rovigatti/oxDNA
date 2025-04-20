@@ -190,7 +190,7 @@ public:
 
 	ParticlePair(BaseParticle *p, BaseParticle *q) {
 		if(p == q)
-			throw oxDNAException("ParticlePair: p == q is not allowed");
+			throw oxDNAException("ParticlePair: p == q (%d) is not allowed", p->index);
 		if(p->index < q->index) {
 			first = p;
 			second = q;

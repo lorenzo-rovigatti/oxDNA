@@ -27,6 +27,10 @@ def forces2db(n_bases:int, forces:List[Dict[str, Any]]) -> str:
             str: The forces as a dot-bracket string
     """
     pairs = {f['particle'] : f['ref_particle'] for f in forces}
+    # pairs2db requires the list to be bidirectional.
+    for k, v in [list(x) for x in pairs.items()]:
+        if v not in pairs.keys():
+            pairs[v] = k
     db = pairs2db(n_bases, pairs)
     return db
 
@@ -59,7 +63,7 @@ def main():
     with open(out, 'w+') as f:
         f.write(seq+'\n')
         f.write(db+'\n')
-        log(f"Wrote dot-bracket to file {out}.")
+        log(f"Wrote dot-bracket to file {out}")
 
 if __name__ == '__main__':
     main()

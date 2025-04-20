@@ -17,7 +17,7 @@ protected:
 	bool _average;
 	std::string _seq_filename;
 	number _T;
-	number _hb_multiplier;
+	number _hb_multiplier = 1.0;
 //      bool _grooving
 //      enum _grooving {
 //                      model_oxDNA1 = 0, 

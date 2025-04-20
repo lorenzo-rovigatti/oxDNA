@@ -49,6 +49,7 @@ __constant__ float MD_semiflexibility_k[1];
 
 struct __align__(16) CUDA_FS_bond {
 	c_number4 force;
+	c_number4 r;
 	c_number epsilon;
 	int q;
 };
@@ -62,7 +63,7 @@ struct __align__(16) CUDA_FS_bond_list {
 					n_bonds(0) {
 	}
 	__device__
-	void add_bond(c_number4 &force, c_number epsilon, int q) {
+	void add_bond(c_number4 &force, c_number4 &r, c_number epsilon, int q) {
 		n_bonds++;
 		if(n_bonds > CUDA_MAX_SWAP_NEIGHS) {
 			printf("TOO MANY SWAP NEIGHBOURS, TRAGEDY\nHere is the list of neighbours:\n");
@@ -74,6 +75,7 @@ struct __align__(16) CUDA_FS_bond_list {
 			n_bonds--;
 		}
 		bonds[n_bonds - 1].force = force;
+		bonds[n_bonds - 1].r = r;
 		bonds[n_bonds - 1].q = q;
 		bonds[n_bonds - 1].epsilon = epsilon;
 	}
@@ -83,7 +85,7 @@ __device__ bool _sticky_interaction(int p_btype, int q_btype) {
 	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
 }
 
-__device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box, bool with_yukawa) {
+__device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box, bool with_yukawa) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -109,14 +111,18 @@ __device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAB
 	}
 
 	if(sqr_r < MD_sqr_rep_rcut[0]) {
-		F.x -= r.x * force_mod;
-		F.y -= r.y * force_mod;
-		F.z -= r.z * force_mod;
-		F.w += energy;
+		c_number4 force = {-r.x * force_mod,
+			-r.y * force_mod,
+			-r.z * force_mod,
+			energy
+		};
+
+		_update_stress_tensor<true>(p_st, r, force);
+		F += force;
 	}
 }
 
-__device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx, c_number4 &F, CUDA_FS_bond_list &bond_list, cudaTextureObject_t tex_eps, CUDABox *box) {
+__device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx, c_number4 &F, CUDA_FS_bond_list &bond_list, cudaTextureObject_t tex_eps, CUDAStressTensor &p_st, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -140,38 +146,42 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx
 			c_number4 tmp_force = r * force_mod;
 			tmp_force.w = (r_mod < MD_3b_sigma[0]) ? epsilon : -tmp_energy;
 			
-			bond_list.add_bond(tmp_force, epsilon, q_idx);
+			bond_list.add_bond(tmp_force, r, epsilon, q_idx);
 		}
 	}
 	
-	F.x -= r.x * force_mod;
-	F.y -= r.y * force_mod;
-	F.z -= r.z * force_mod;
-	F.w += energy;
+	c_number4 force = {-r.x * force_mod,
+		-r.y * force_mod,
+		-r.z * force_mod,
+		energy
+	};
+
+	_update_stress_tensor<true>(p_st, r, force);
+	F += force;
 }
 
-__device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
+__device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
 	c_number sqr_rfene = MD_sqr_rfene[0];
 	c_number Kfene = MD_Kfene[0];
 
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
-	if(sqr_r > sqr_rfene) {
-		printf("WARNING: the distance between particles %d and %d (%lf) exceeds the FENE R0 (%lf)\n", get_particle_index(ppos), get_particle_index(qpos), sqrtf(sqr_r), sqrtf(sqr_rfene));
-	}
-
 	c_number energy = -Kfene * sqr_rfene * logf(1.f - sqr_r / sqr_rfene);
 	// this c_number is the module of the force over r, so we don't have to divide the distance vector by its module
 	c_number force_mod = -2.f * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
 
-	F.x -= r.x * force_mod;
-	F.y -= r.y * force_mod;
-	F.z -= r.z * force_mod;
-	F.w += energy;
+	c_number4 force = {-r.x * force_mod,
+		-r.y * force_mod,
+		-r.z * force_mod,
+		energy
+	};
+
+	_update_stress_tensor<true>(p_st, r, force);
+	F += force;
 }
 
-__device__ void _sticky_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c_number4 *forces) {
+__device__ void _sticky_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, CUDAStressTensor &p_st, c_number4 *forces) {
 	for(int bi = 0; bi < bond_list.n_bonds; bi++) {
 		CUDA_FS_bond &b1 = bond_list.bonds[bi];
 		c_number curr_energy = b1.force.w / b1.epsilon;
@@ -187,21 +197,23 @@ __device__ void _sticky_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c
 			F.w += 2.f * prefactor * curr_energy * other_energy;
 
 			if(curr_energy < 1.f) {
-				c_number factor = -prefactor * other_energy;
+				c_number factor = prefactor * other_energy;
 				c_number4 force = factor * b1.force;
 				force.w = 0.f;
 
-				F -= force;
-				LR_atomicAddXYZ(forces + b1.q, force);
+				_update_stress_tensor<false>(p_st, b1.r, force);
+				F += force;
+				LR_atomicAddXYZ(forces + b1.q, -force);
 			}
 
 			if(other_energy < 1.f) {
-				c_number factor = -prefactor * curr_energy;
+				c_number factor = prefactor * curr_energy;
 				c_number4 force = factor * b2.force;
 				force.w = 0.f;
 
-				F -= force;
-				LR_atomicAddXYZ(forces + b2.q, force);
+				_update_stress_tensor<false>(p_st, b2.r, force);
+				F += force;
+				LR_atomicAddXYZ(forces + b2.q, -force);
 			}
 		}
 	}
@@ -246,12 +258,13 @@ __device__ bool are_bonded_neighs(int p, int q, int *bonded_neighs) {
 	return are_neighs;
 }
 
-__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, CUDABox *box) {
+__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, bool update_st, CUDAStressTensor *st, CUDABox *box, bool phantom) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
 
+	CUDAStressTensor p_st;
 	// the first value of each column is the number of bonded neighbours
 	int n_bonded_neighs = bonded_neighs[IND];
 
@@ -259,7 +272,10 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 		int i_idx = bonded_neighs[MD_N[0] * i + IND];
 		c_number4 i_pos = poss[i_idx];
 
-		_FENE(ppos, i_pos, F, box);
+		_FENE(ppos, i_pos, F, p_st, box);
+		if(phantom) {
+			_repulsion(ppos, i_pos, F, p_st, box, false);
+		}
 
 		if(MD_enable_semiflexibility[0]) {
 			for(int j = i + 1; j <= n_bonded_neighs; j++) {
@@ -270,10 +286,13 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 		}
 	}
 
+	if(update_st) {
+		st[IND] += p_st;
+	}
 	forces[IND] = F;
 }
 
-__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, int *bonded_neighs, cudaTextureObject_t tex_eps, CUDABox *box) {
+__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, int *bonded_neighs, cudaTextureObject_t tex_eps, bool update_st, CUDAStressTensor *st, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -282,6 +301,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 	int p_btype = get_particle_btype(ppos);
 
 	CUDA_FS_bond_list bonds;
+	CUDAStressTensor p_st;
 
 	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
@@ -292,17 +312,20 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 			int q_btype = get_particle_btype(qpos);
 			bool sticky_interaction = _sticky_interaction(p_btype, q_btype);
 			bool with_yukawa = (MD_yk_strength[0] > 0.f) && !are_bonded_neighs(IND, q_index, bonded_neighs) && !sticky_interaction;
-			_repulsion(ppos, qpos, F, box, with_yukawa);
+			_repulsion(ppos, qpos, F, p_st, box, with_yukawa);
 
 			if(sticky_interaction) {
 				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
-				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, tex_eps, box);
+				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, tex_eps, p_st, box);
 			}
 		}
 	}
 
-	_sticky_three_body(bonds, F, three_body_forces);
+	_sticky_three_body(bonds, F, p_st, three_body_forces);
 
+	if(update_st) {
+		st[IND] += p_st;
+	}
 	forces[IND] = F;
 }
 
@@ -405,15 +428,21 @@ void CUDADetailedPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_n
 	thrust::device_ptr<c_number4> t_three_body_forces = thrust::device_pointer_cast(_d_three_body_forces);
 	thrust::fill_n(t_three_body_forces, _N, make_c_number4(0, 0, 0, 0));
 
+	if(_update_st) {
+		CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
+	}
+
 	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, d_box);
+		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _update_st, _d_st, d_box, _phantom);
 	CUT_CHECK_ERROR("ps_FENE_flexibility_forces DetailedPolymerSwap error");
 
-	ps_forces
-		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _d_bonded_neighs, _tex_eps, d_box);
-	CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
+	if(!_phantom) {
+		ps_forces
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _d_bonded_neighs, _tex_eps, _update_st, _d_st, d_box);
+		CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
+	}
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());

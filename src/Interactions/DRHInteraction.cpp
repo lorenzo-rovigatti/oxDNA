@@ -88,6 +88,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 	F4_THETA_TC[8] = DRH_CRST_THETA4_TC;
 	F4_THETA_TC[9] = DRH_CRST_THETA7_TC;
 
+	F2_K[1] = CXST_K_OXDNA2;
 	F2_RC[1] = DRH_CXST_RC;
 	F2_R0[1] = DRH_CXST_R0;
 	F2_BLOW[1] = DRH_CXST_BLOW;

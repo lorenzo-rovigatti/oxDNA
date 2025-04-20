@@ -206,9 +206,12 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
                 end_system()
             continue
     
-    # Catch the case where there was no TER or END identifier
+    # Catch the case where there was no TER identifier
     if len(strand) > 0: 
         end_strand()
+        
+    # Catch the case where there was no END identifier
+    if len(sys) > 0:
         end_system()
     
     return configs, systems
