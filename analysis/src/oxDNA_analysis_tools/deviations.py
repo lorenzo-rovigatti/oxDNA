@@ -1,10 +1,11 @@
 import argparse
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from json import dumps
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, inbox, get_confs
@@ -30,7 +31,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return SFs
 
-def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:List[int]=[], ncpus:int=1) -> Tuple[np.ndarray, np.ndarray]:
+def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:Union[List[int],None]=None, ncpus:int=1) -> Tuple[np.ndarray, np.ndarray]:
     """
         Find the deviations of a trajectory from a mean configuration
 
@@ -46,7 +47,7 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             | Root mean squared deviation for each configuration in the trajectory
             | Average fluctuation for each particle in the structure
     """
-    if indexes == []:
+    if indexes == None:
         indexes = list(range(top_info.nbases))
 
     mean_conf = inbox(mean_conf)
@@ -106,7 +107,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
     plt.xlabel('Configuration')
     plt.ylabel('RMSD (nm)')
     plt.tight_layout()
-    plt.savefig(plot_name)
+    plt.savefig(plot_name, dpi=FIG_DPI)
 
     return
 

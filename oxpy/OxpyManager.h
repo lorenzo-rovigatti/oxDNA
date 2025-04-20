@@ -27,7 +27,7 @@ public:
 	void remove_output(std::string filename);
 	void update_CPU_data_structures();
 
-	void run(llint steps, bool print_output=true);
+	void run_steps(llint steps, bool print_output=true);
 	llint steps_run() {
 		return _steps_run;
 	}

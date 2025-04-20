@@ -4,6 +4,7 @@ from os import path
 from typing import List
 from sys import stderr
 import argparse
+import fileinput
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 #checking dependencies to make sure everything is correct
@@ -90,10 +91,13 @@ def set_chunk_size(chunk_size:int):
         Parameters:
             chunk_size (int): number of confs to read at a time
 
-        This will update a file called chunksize.py in the UTILS directory.
+        This will update a file called constants.py in the UTILS directory.
     """
-    with open(path.realpath(__file__).strip('config.py')+"UTILS/chunksize.py", 'w') as f:
-        f.write("CHUNKSIZE = "+str(chunk_size))
+    for line in fileinput.input(path.realpath(__file__).strip('config.py')+"UTILS/constants.py", inplace=True):
+        if line.startswith("CHUNKSIZE"):
+            print("CHUNKSIZE = "+str(chunk_size))
+        else:
+            print(line, end='')
 
 def get_chunk_size():
     """
@@ -103,15 +107,45 @@ def get_chunk_size():
             int: number of confs to read at a time
     """
     try:
-        from oxDNA_analysis_tools.UTILS.chunksize import CHUNKSIZE
+        from oxDNA_analysis_tools.UTILS.constants import CHUNKSIZE
         log("Analyses will be computed in chunks of {} configurations at a time".format(CHUNKSIZE))
         log("You can modify this number by running oat config -n <number>, which will be persistent between analyses.")
     except:
-        raise Exception("Unable to read chunksize from file. UTILS/chunksize.py should contain a line like CHUNKSIZE = 100")
+        raise Exception("Unable to read constants from file. UTILS/constants.py should contain a line like CHUNKSIZE = 100")
+    
+def set_fig_dpi(fig_dpi:float):
+    """
+        Sets the dpi of figures created by oat scripts.  This value is persistent between analyses.
+
+        Parameters:
+            fig_dpi (float): The dpi to pass to matplotlib's savefig function
+
+        This will update a file called constants.py in the UTILS directory.
+    """
+    for line in fileinput.input(path.realpath(__file__).strip('config.py')+"UTILS/constants.py", inplace=True):
+        if line.startswith("FIG_DPI"):
+            print("FIG_DPI = "+str(fig_dpi))
+        else:
+            print(line, end='')
+
+def get_fig_dpi():
+    """
+        Gets the current dpi used for saving figures.
+
+        Returns:
+            float: current figure dpi
+    """
+    try:
+        from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
+        log("Figures will be saved at {} DPI".format(FIG_DPI))
+        log("You can modify this number by running oat config -f <number>, which will be persistent between analyses.")
+    except:
+        raise Exception("Unable to read constants from file. UTILS/constants.py should contain a line like FIG_DPI = 300")
 
 def cli_parser(prog="config.py"):
     parser = argparse.ArgumentParser(prog = prog, description='Configure oxDNA_analysis_tools')
     parser.add_argument('-n', '--chunk_size', type=int, help='Number of configurations to per chunk.  Persistent across analyses.')
+    parser.add_argument('-f', '--fig_dpi', type=float, help='The DPI of figures saved by oat scripts.  Persistent across analyses.')
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
@@ -124,10 +158,15 @@ def main():
         set_chunk_size(args.chunk_size)
         log("Future analyses will calculate in blocks of {} confs at a time".format(args.chunk_size))
 
+    if args.fig_dpi:
+        set_fig_dpi(args.fig_dpi)
+        log(f"Future figures will be saved at {args.fig_dpi} dpi")
+
     check(["python", "numpy", "matplotlib", "sklearn", "oxpy"])
 
     print()
     get_chunk_size()
+    get_fig_dpi()
 
 if __name__ == '__main__':
     main()

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 
 def cli_parser(prog="plot_energy.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Plot oxDNA energy files")
@@ -79,7 +80,7 @@ def main():
         if outfile:
             log("Saving histogram to {}".format(out))
             plt.tight_layout()
-            plt.savefig(out)
+            plt.savefig(out, dpi=FIG_DPI)
         else:
             plt.show()
 
@@ -101,7 +102,7 @@ def main():
         if outfile:
             log("Saving line plot to {}".format(out))
             plt.tight_layout()
-            plt.savefig(out)
+            plt.savefig(out, dpi=FIG_DPI)
         else:
             plt.show()
     
