@@ -162,7 +162,14 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 			case CUDA_REPULSION_PLANE: {
-				c_number distance = extF.repulsionplane.dir.x*ppos.x + extF.repulsionplane.dir.y*ppos.y + extF.repulsionplane.dir.z*ppos.z + extF.repulsionplane.position;
+				c_number position = extF.repulsionplane.starting_position + extF.repulsionplane.v * step;
+				if(extF.repulsionplane.end_position > extF.repulsionplane.starting_position && position > extF.repulsionplane.end_position) {
+					position = extF.repulsionplane.end_position;
+				}
+				if(extF.repulsionplane.end_position < extF.repulsionplane.starting_position && position < extF.repulsionplane.end_position) {
+					position = extF.repulsionplane.end_position;
+				}
+				c_number distance = extF.repulsionplane.dir.x*ppos.x + extF.repulsionplane.dir.y*ppos.y + extF.repulsionplane.dir.z*ppos.z + position;
 				if(distance < 0.0f) {
 					F.x += -distance * extF.repulsionplane.stiff * extF.repulsionplane.dir.x;
 					F.y += -distance * extF.repulsionplane.stiff * extF.repulsionplane.dir.y;

@@ -34,8 +34,12 @@
  */
 
 class RepulsionPlane: public BaseForce {
+private:
+	inline number _updated_position(llint step);
 public:
-	number _position;
+	number _starting_position;
+	number _v = 0.0;
+	number _end_position = 1e6;
 
 	RepulsionPlane();
 	virtual ~RepulsionPlane() {

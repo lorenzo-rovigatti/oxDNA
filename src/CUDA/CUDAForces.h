@@ -143,14 +143,18 @@ void init_LowdimMovingTrap_from_CPU(lowdim_moving_trap *cuda_force, LowdimMoving
 struct repulsion_plane {
 	int type;
 	c_number stiff;
-	c_number position;
+	c_number starting_position;
+	c_number end_position;
+	c_number v;
 	float3 dir;
 };
 
 void init_RepulsionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *cpu_force) {
 	cuda_force->type = CUDA_REPULSION_PLANE;
 	cuda_force->stiff = cpu_force->_stiff;
-	cuda_force->position = cpu_force->_position;
+	cuda_force->starting_position = cpu_force->_starting_position;
+	cuda_force->end_position = cpu_force->_end_position;
+	cuda_force->v = cpu_force->_v;
 	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
 }
 
@@ -170,8 +174,6 @@ void init_AttractionPlane_from_CPU(attraction_plane *cuda_force, AttractionPlane
 	cuda_force->position = cpu_force->_position;
 	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
 }
-
-
 
 /**
  * @brief CUDA version of a RepulsionPlaneMoving.
