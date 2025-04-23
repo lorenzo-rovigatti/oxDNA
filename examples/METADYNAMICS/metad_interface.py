@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import os, shutil
+import os, shutil, sys
 from copy import copy
 import multiprocessing as mp
 import traceback
@@ -67,10 +67,10 @@ class Estimator():
     BIAS_DIR = "bias"
     RUN_BASEDIR = "run-meta_"
 
-    def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
-                    N_walkers=1, use_seq_GPUs=False, p_dict={},
-                    dim=1, ratio=0, angle=0, xmin=0, xmax=20, conf_interval=int(1e3),
-                    save_hills=1, continue_run=0, T=None):
+    def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5),
+                    N_walkers=1, use_seq_GPUs=False, p_dict={}, dim=1, ratio=False, angle=False, 
+                    xmin=0, xmax=30, conf_interval=int(1e3), save_hills=1, continue_run=False, 
+                    T=None, op_interval=1000):
 
         self.base_dir = base_dir
         self.dX = dX
@@ -78,7 +78,6 @@ class Estimator():
         self.A = A
         self.dT = dT
         self.Niter = Niter
-        self.meta = meta
         self.tau = tau
         self.N_walkers = N_walkers
         self.p_dict = p_dict
@@ -87,6 +86,7 @@ class Estimator():
         self.angle = angle
         self.save_hills = save_hills
         self.continue_run = continue_run
+        self.op_interval = op_interval
 
         self.xmin = xmin 
         self.xmax = xmax 
@@ -115,7 +115,7 @@ class Estimator():
             if self.dim == 1:
                 observable_string = f'''{{
     name = pos.dat
-    print_every = 100
+    print_every = {self.op_interval}
     col_1 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
@@ -132,7 +132,7 @@ class Estimator():
             if self.dim == 1:
                 observable_string = f'''{{
     name = pos.dat
-    print_every = 100
+    print_every = {self.op_interval}
     col_1 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
@@ -154,7 +154,7 @@ class Estimator():
             if self.dim == 1:
                 observable_string = f'''{{
     name = pos.dat
-    print_every = 100
+    print_every = {self.op_interval}
     col_1 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
@@ -164,7 +164,7 @@ class Estimator():
             elif self.dim == 2:
                 observable_string = f'''{{
     name = pos.dat
-    print_every = 100
+    print_every = {self.op_interval}
     col_1 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
@@ -188,9 +188,9 @@ class Estimator():
             top_file = os.path.join(self.base_dir, input_file["topology"])
             
             # remove some clutter from the output
+            input_file["show_overwrite_warnings"] = "false"
             input_file["log_file"] = "oxDNA_log.txt"
             input_file["no_stdout_energy"] = "true"
-            input_file["show_overwrite_warnings"] = "false"
             input_file["print_conf_interval"] = str(conf_interval)
             # we standardise the location of the last configuration, which is also the configuration we will start from
             input_file["lastconf_file"] = Estimator.LAST_CONF
@@ -312,13 +312,13 @@ PBC = false'''
         with open(force_file_name, "w+") as f:
             f.write(self.other_forces)
             
-            if self.ratio == 1:
+            if self.ratio:
                 if self.dim == 1:
                     for mode in range(1, 5):
                         our_string = f"{{\ntype = meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
-            elif self.angle == 1:
+            elif self.angle:
                 if self.dim == 1:
                     for mode in range(1, 4):
                         our_string = f"{{\ntype = meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
@@ -433,41 +433,40 @@ PBC = false'''
             new_collective_data.append(copy(new_data))
            
         # update forces
-        if self.meta:
-            for data_selection in new_collective_data:
-                x = data_selection[-1]
-                if self.dim == 1:
-                    local_potential = self.interpolatePotential1D(x, self.potential_grid)
+        for data_selection in new_collective_data:
+            x = data_selection[-1]
+            if self.dim == 1:
+                local_potential = self.interpolatePotential1D(x, self.potential_grid)
 
-                elif self.dim == 2:
-                    local_potential = self.interpolatePotential2D(x[0], x[1], self.potential_grid)
+            elif self.dim == 2:
+                local_potential = self.interpolatePotential2D(x[0], x[1], self.potential_grid)
 
-                prefactor = np.exp(-local_potential / self.dT)
+            prefactor = np.exp(-local_potential / self.dT)
 
-                if self.dim == 1:
-                    ix_left = int((x - self.xmin) / self.dX);
-                    ix_start = max(ix_left - self.r_cut_int, 0)
-                    ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
-                    for ix in range(int(ix_start), int(ix_end)):
+            if self.dim == 1:
+                ix_left = int((x - self.xmin) / self.dX);
+                ix_start = max(ix_left - self.r_cut_int, 0)
+                ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
+                for ix in range(int(ix_start), int(ix_end)):
+                    x_val = self.xmin + self.dX * ix
+                    new_potential = self.get_metad_potential(x, x_val)
+                    self.potential_grid[ix] += prefactor * new_potential
+
+            elif self.dim == 2:
+                ix_left = int((x[0] - self.xmin) / self.dX);
+                ix_start = max(ix_left - self.r_cut_int, 0)
+                ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
+
+                iy_left = int((x[1] - self.xmin) / self.dX);
+                iy_start = max(iy_left - self.r_cut_int, 0)
+                iy_end = min(iy_left + self.r_cut_int + 1, self.N_grid)
+
+                for ix in range(int(ix_start), int(ix_end)):
+                    for iy in range(int(iy_start), int(iy_end)):
                         x_val = self.xmin + self.dX * ix
-                        new_potential = self.get_metad_potential(x, x_val)
-                        self.potential_grid[ix] += prefactor * new_potential
-
-                elif self.dim == 2:
-                    ix_left = int((x[0] - self.xmin) / self.dX);
-                    ix_start = max(ix_left - self.r_cut_int, 0)
-                    ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
-
-                    iy_left = int((x[1] - self.xmin) / self.dX);
-                    iy_start = max(iy_left - self.r_cut_int, 0)
-                    iy_end = min(iy_left + self.r_cut_int + 1, self.N_grid)
-
-                    for ix in range(int(ix_start), int(ix_end)):
-                        for iy in range(int(iy_start), int(iy_end)):
-                            x_val = self.xmin + self.dX * ix
-                            y_val = self.xmin + self.dX * iy
-                            new_potential = self.get_metad_potential2D(x[0], x_val, x[1], y_val)
-                            self.potential_grid[ix, iy] += prefactor * new_potential
+                        y_val = self.xmin + self.dX * iy
+                        new_potential = self.get_metad_potential2D(x[0], x_val, x[1], y_val)
+                        self.potential_grid[ix, iy] += prefactor * new_potential
 
     def do_run(self):
         if self.continue_run:
@@ -484,26 +483,29 @@ if __name__ == '__main__':
 
     import argparse
     
-    parser = argparse.ArgumentParser(description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).")
+    parser = argparse.ArgumentParser(
+        description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("base_directory", help="The directory storing the base simulation files")
     parser.add_argument("--A", default=0.1, help="Initial bias-height increment")
     parser.add_argument("--sigma", default=0.05, help="Width of the deposited Gaussian")
-    parser.add_argument("--tau", default=10000, help="Length of a metadynamics iteration (in time steps)")
+    parser.add_argument("--tau", default=10000, help="Length of a metadynamics iteration (in simulation steps)")
     parser.add_argument("--dX", default=0.001, help="The spacing of the grid used to approximate the potential")
     parser.add_argument("--N_walkers", default=6, help="Number of parallel processes to be launched")
     parser.add_argument("--dT", default=3, help="Strength of the tempering (dT -> 0 leads to conventional simulations, dt -> infinity leads to conventional, non-well-tempered metadynamics)")
     parser.add_argument("--dim", default=1, help="Dimension of the order parameter")
     parser.add_argument("--p_fname", default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
-    parser.add_argument("--ratio", default=0, help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
-    parser.add_argument("--angle", default=0, help="Use the angle defined from three centres of mass as the order parameter")
+    parser.add_argument("--ratio", action="store_true", help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
+    parser.add_argument("--angle", action="store_true", help="Use the angle defined from three centres of mass as the order parameter")
     parser.add_argument("--Niter", default=10000, help="Number of metadynamics iterations")
     parser.add_argument("--xmin", default=0, help="The lower boundary of the potential grid")
     parser.add_argument("--xmax", default=30, help="The upper boundary of the potential grid")
-    parser.add_argument("--conf_interval", default=int(1e3), help="Frequency with which configurations should be saved (in time steps)")
-    parser.add_argument("--save_hills", default=1, help="Frequency with which the potential grid is sampled")
-    parser.add_argument("--continue_run", default=0, help="Whether the simulation should continue or start anew")
+    parser.add_argument("--conf_interval", default=int(1e3), help="Frequency (in simulation steps) with which configurations should be saved")
+    parser.add_argument("--save_hills", default=1, help="Frequency (in metadynamics iterations) with which the potential grid is sampled")
+    parser.add_argument("--continue_run", action="store_true", help="Whether the simulation should continue or start anew")
     parser.add_argument("--T", default=None, help="The temperature at which the simulations will be run. If not set, the temperature in the initial input file will be used")
     parser.add_argument("--use_sequential_GPUs", action="store_true", help="Each walker will try to use a dedicated GPU: the first one will attempt to use GPU 1, the second one GPU 2, etc.")
+    parser.add_argument("--op_interval", default=int(1e3), help="Frequency (in simulation steps) with which the order parameter is printed")
     
     args = parser.parse_args()
     
@@ -516,17 +518,36 @@ if __name__ == '__main__':
     dT = float(args.dT)
     dim = int(args.dim)
     p_fname = str(args.p_fname)
-    ratio = bool(int(args.ratio))
+    ratio = args.ratio
+    angle = args.angle
     Niter = int(args.Niter)
-    angle = bool(int(args.angle))
     xmin = float(args.xmin)
     xmax = float(args.xmax)
     conf_interval = int(args.conf_interval)
     save_hills = int(args.save_hills)
-    continue_run = bool(int(args.continue_run))
+    continue_run = args.continue_run
     T = args.T
     use_seq_GPUs = args.use_sequential_GPUs
-    
+    op_interval = int(args.op_interval)
+
+    # here we check that the options make sense
+    if ratio and angle:
+        print("CRITICAL: --angle and --ratio are mutually exclusive options, exiting", file=sys.stderr)
+        exit(0)
+
+    if dim > 2:
+        print("CRITICAL: Only 1D and 2D order parameters are supported", file=sys.stderr)
+        exit(0)
+    if dim == 2 and (ratio or angle):
+        print("CRITICAL: --angle and --ratio can only be used as one-dimensional order parameters", file=sys.stderr)
+        exit(0)
+
+    if conf_interval > tau:
+        print("WARNING: The configuration print interval (conf_interval) is larger than the duration of a metadynamics interation (tau): no configurations will ever be printed!")
+
+    if op_interval > tau:
+        print("WARNING: The order parameter print interval (op_interval) is larger than the duration of a metadynamics interation (tau): the OP will never be printed!")
+
     # load in the pfile here.
     with open(p_fname) as f:
         p_dict = {}
@@ -534,11 +555,9 @@ if __name__ == '__main__':
             com_name, particles = [l.strip() for l in line.split(':')]
             p_dict[com_name] = particles
     
-    estimator = Estimator(base_dir, Niter=Niter, meta=True, dT=dT,
-                    sigma=sigma, dX=dX, A=A, tau=tau,
-                    N_walkers=N_walkers, use_seq_GPUs=use_seq_GPUs,
-                    p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
-                    conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run, T=T)
+    estimator = Estimator(base_dir, Niter=Niter, dT=dT, sigma=sigma, dX=dX, A=A, tau=tau,
+                    N_walkers=N_walkers, use_seq_GPUs=use_seq_GPUs, p_dict=p_dict, dim=dim, 
+                    ratio=ratio, angle=angle, xmin=xmin, xmax=xmax, conf_interval=conf_interval, 
+                    save_hills=save_hills, continue_run=continue_run, T=T, op_interval=op_interval)
     
     estimator.do_run()
-						      
