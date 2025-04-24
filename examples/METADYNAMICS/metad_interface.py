@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import os, shutil, sys
 from copy import copy
 import multiprocessing as mp
@@ -255,9 +254,7 @@ class Estimator():
                 
     def get_new_data(self, dir_name):
         os.system(f"tail -n 3 ./{dir_name}/pos.dat > ./{dir_name}/pos_min.dat")
-        data = np.array(pd.read_csv(f'./{dir_name}/pos_min.dat', sep='\s+',
-                          header=None,
-                          index_col=False))
+        data = np.loadtxt(f'./{dir_name}/pos_min.dat')
 
         if self.ratio:
             if self.dim == 1:
