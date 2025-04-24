@@ -538,6 +538,7 @@ if __name__ == '__main__':
     if dim > 2:
         print("CRITICAL: Only 1D and 2D order parameters are supported", file=sys.stderr)
         exit(0)
+        
     if dim == 2 and (ratio or angle):
         print("CRITICAL: --angle and --ratio can only be used as one-dimensional order parameters", file=sys.stderr)
         exit(0)
