@@ -6,6 +6,7 @@ import traceback
 import pickle as pkl
 import glob
 import oxpy
+import toml
 
 
 class oxDNARunner(mp.Process):
@@ -32,9 +33,11 @@ class oxDNARunner(mp.Process):
             
             while True:
                 try:
-                    steps, new_potential_grid = self.queue.get()
+                    print_conf, steps, new_potential_grid = self.queue.get()
                     # if steps is None we have to break the loop and stop the walker
                     if steps is not None:
+                        if print_conf:
+                            self.manager.print_configuration()
                         # update the lookup tables of all the metadynamics-related forces
                         for force in self.manager.config_info().forces:
                             if force.group_name == "metadynamics":
@@ -67,8 +70,8 @@ class Estimator():
     RUN_BASEDIR = "run-meta_"
 
     def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5),
-                    N_walkers=1, use_seq_GPUs=False, p_dict={}, dim=1, ratio=False, angle=False, 
-                    xmin=0, xmax=30, conf_interval=int(1e3), save_hills=1, continue_run=False, 
+                    N_walkers=1, use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, 
+                    xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, 
                     T=None, op_interval=1000):
 
         self.base_dir = base_dir
@@ -79,10 +82,10 @@ class Estimator():
         self.Niter = Niter
         self.tau = tau
         self.N_walkers = N_walkers
-        self.p_dict = p_dict
         self.dim = dim
         self.ratio = ratio
         self.angle = angle
+        self.conf_interval = conf_interval
         self.save_hills = save_hills
         self.continue_run = continue_run
         self.op_interval = op_interval
@@ -91,10 +94,15 @@ class Estimator():
         self.xmax = xmax 
 
         self.N_grid = int ((self.xmax - self.xmin) / self.dX) + 1
-        self.dX = (self.xmax - self.xmin) / (self.N_grid - 1) 
+        self.dX = (self.xmax - self.xmin) / (self.N_grid - 1)
+
+        with open(p_fname) as f:
+            self.p_dict = {}
+            for line in f.readlines():
+                com_name, particles = [l.strip() for l in line.split(':')]
+                self.p_dict[com_name] = particles
 
         # we update the spacing for integer division 
-
         if not self.continue_run:
             if self.dim == 1:
                 self.potential_grid = np.zeros(self.N_grid)
@@ -190,7 +198,7 @@ class Estimator():
             input_file["show_overwrite_warnings"] = "false"
             input_file["log_file"] = "oxDNA_log.txt"
             input_file["no_stdout_energy"] = "true"
-            input_file["print_conf_interval"] = str(conf_interval)
+            input_file["print_conf_interval"] = "1e11" # configurations are printed manually every conf_interval metadynamics iterations
             # we standardise the location of the last configuration, which is also the configuration we will start from
             input_file["lastconf_file"] = Estimator.LAST_CONF
             input_file["conf_file"] = Estimator.LAST_CONF
@@ -243,7 +251,7 @@ class Estimator():
                     
                     # write the meta input
                     with open(os.path.join(w.working_dir, Estimator.INPUT_FILE), 'w+') as f:
-                        if use_seq_GPUs:
+                        if use_sequential_GPUs:
                             input_file["CUDA_device"] = str(w.index)
                         f.write(str(input_file))
 
@@ -277,9 +285,6 @@ class Estimator():
                 pass
 
         return data
-
-    def save_old_trajectory(self, dir_name, index):
-        os.system("cp -r ./%s/output/trajectory.dat %s/traj_files/trajectory_%s.dat" % (dir_name, dir_name, index,))
 
     def write_external_forces_file(self, dir_name):
         # build the initial lookup table
@@ -341,7 +346,7 @@ PBC = false'''
             pkl.dump(new_data, f)
 
     def interpolatePotential1D(self, x, potential_grid):
-        x_left = dX * np.floor(x / self.dX)
+        x_left = self.dX * np.floor(x / self.dX)
         x_right = x_left + self.dX
         ix_left = np.floor((x - self.xmin) / self.dX)
         ix_right = ix_left + 1
@@ -388,7 +393,7 @@ PBC = false'''
             self.walkers.append(oxDNARunner(walker_index, "input-meta", self.queue))
             
     def stop_runners(self):
-        runner_args = [None, 0]
+        runner_args = [False, None, 0]
         for w in self.walkers:
             self.queue.put(runner_args)
         self.queue.join()
@@ -397,10 +402,11 @@ PBC = false'''
         print("iteration %s" % (index,), flush=True)
         
         new_potential_grid = self.potential_grid * self.T
-            
+        print_conf = index % self.conf_interval == 0
+
         # run parallel computation
-        runner_args = [tau, new_potential_grid]
-        for w in self.walkers: 
+        runner_args = [print_conf, self.tau, new_potential_grid]
+        for w in self.walkers:
             self.write_external_forces_file(w.working_dir)
             self.queue.put(runner_args)
         self.queue.join()
@@ -417,16 +423,11 @@ PBC = false'''
 
         if index % self.save_hills == 0:
             self.save_potential_grid(index)
-        '''
-        for dir_name in self.dir_names:                     
-            self.save_old_trajectory(dir_name,index)
-        '''
        
         # load new data 
         new_collective_data = []
         for w in self.walkers:
             new_data = self.get_new_data(w.working_dir)
-            # self.save_positions(new_data, index, walker_index)
             new_collective_data.append(copy(new_data))
            
         # update forces
@@ -483,79 +484,49 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("base_directory", help="The directory storing the base simulation files")
-    parser.add_argument("--A", default=0.1, help="Initial bias-height increment")
-    parser.add_argument("--sigma", default=0.05, help="Width of the deposited Gaussian")
-    parser.add_argument("--tau", default=10000, help="Length of a metadynamics iteration (in simulation steps)")
-    parser.add_argument("--dX", default=0.001, help="The spacing of the grid used to approximate the potential")
-    parser.add_argument("--N_walkers", default=6, help="Number of parallel processes to be launched")
-    parser.add_argument("--dT", default=3, help="Strength of the tempering (dT -> 0 leads to conventional simulations, dt -> infinity leads to conventional, non-well-tempered metadynamics)")
-    parser.add_argument("--dim", default=1, help="Dimension of the order parameter")
-    parser.add_argument("--p_fname", default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
+    parser.add_argument("base_dir", help="The directory storing the base simulation files")
+    parser.add_argument("--A", type=float, default=0.1, help="Initial bias-height increment")
+    parser.add_argument("--sigma", type=float, default=0.05, help="Width of the deposited Gaussian")
+    parser.add_argument("--tau", type=int, default=10000, help="Length of a metadynamics iteration (in simulation steps)")
+    parser.add_argument("--dX", type=float, default=0.001, help="The spacing of the grid used to approximate the potential")
+    parser.add_argument("--N_walkers", type=int, default=6, help="Number of parallel processes to be launched")
+    parser.add_argument("--dT", type=float, default=3, help="Strength of the tempering (dT -> 0 leads to conventional simulations, dt -> infinity leads to conventional, non-well-tempered metadynamics)")
+    parser.add_argument("--dim", type=int, default=1, help="Dimension of the order parameter")
+    parser.add_argument("--p_fname", type=str, default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
     parser.add_argument("--ratio", action="store_true", help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
     parser.add_argument("--angle", action="store_true", help="Use the angle defined from three centres of mass as the order parameter")
-    parser.add_argument("--Niter", default=10000, help="Number of metadynamics iterations")
-    parser.add_argument("--xmin", default=0, help="The lower boundary of the potential grid")
-    parser.add_argument("--xmax", default=30, help="The upper boundary of the potential grid")
-    parser.add_argument("--conf_interval", default=int(1e3), help="Frequency (in simulation steps) with which configurations should be saved")
-    parser.add_argument("--save_hills", default=1, help="Frequency (in metadynamics iterations) with which the potential grid is sampled")
+    parser.add_argument("--Niter", type=int, default=10000, help="Number of metadynamics iterations")
+    parser.add_argument("--xmin", type=float, default=0, help="The lower boundary of the potential grid")
+    parser.add_argument("--xmax", type=float, default=30, help="The upper boundary of the potential grid")
+    parser.add_argument("--conf_interval", type=int, default=1000, help="Frequency (in metadynamics iterations) with which configurations should be saved")
+    parser.add_argument("--save_hills", type=int, default=10, help="Frequency (in metadynamics iterations) with which the potential grid is sampled")
     parser.add_argument("--continue_run", action="store_true", help="Whether the simulation should continue or start anew")
     parser.add_argument("--T", default=None, help="The temperature at which the simulations will be run. If not set, the temperature in the initial input file will be used")
     parser.add_argument("--use_sequential_GPUs", action="store_true", help="Each walker will try to use a dedicated GPU: the first one will attempt to use GPU 1, the second one GPU 2, etc.")
-    parser.add_argument("--op_interval", default=int(1e3), help="Frequency (in simulation steps) with which the order parameter is printed")
+    parser.add_argument("--op_interval", type=int, default=1000, help="Frequency (in simulation steps) with which the order parameter is printed")
     
     args = parser.parse_args()
     
-    base_dir = args.base_directory
-    A = float(args.A)
-    sigma = float(args.sigma)
-    tau = int(args.tau)
-    dX = float(args.dX)
-    N_walkers = int(args.N_walkers)
-    dT = float(args.dT)
-    dim = int(args.dim)
-    p_fname = str(args.p_fname)
-    ratio = args.ratio
-    angle = args.angle
-    Niter = int(args.Niter)
-    xmin = float(args.xmin)
-    xmax = float(args.xmax)
-    conf_interval = int(args.conf_interval)
-    save_hills = int(args.save_hills)
-    continue_run = args.continue_run
-    T = args.T
-    use_seq_GPUs = args.use_sequential_GPUs
-    op_interval = int(args.op_interval)
-
     # here we check that the options make sense
-    if ratio and angle:
+    if args.ratio and args.angle:
         print("CRITICAL: --angle and --ratio are mutually exclusive options, exiting", file=sys.stderr)
         exit(0)
 
-    if dim > 2:
+    if args.dim > 2:
         print("CRITICAL: Only 1D and 2D order parameters are supported", file=sys.stderr)
         exit(0)
         
-    if dim == 2 and (ratio or angle):
+    if args.dim == 2 and (args.ratio or args.angle):
         print("CRITICAL: --angle and --ratio can only be used as one-dimensional order parameters", file=sys.stderr)
         exit(0)
 
-    if conf_interval > tau:
-        print("WARNING: The configuration print interval (conf_interval) is larger than the duration of a metadynamics interation (tau): no configurations will ever be printed!")
-
-    if op_interval > tau:
+    if args.op_interval > args.tau:
         print("WARNING: The order parameter print interval (op_interval) is larger than the duration of a metadynamics interation (tau): the OP will never be printed!")
 
-    # load in the pfile here.
-    with open(p_fname) as f:
-        p_dict = {}
-        for line in f.readlines():
-            com_name, particles = [l.strip() for l in line.split(':')]
-            p_dict[com_name] = particles
-    
-    estimator = Estimator(base_dir, Niter=Niter, dT=dT, sigma=sigma, dX=dX, A=A, tau=tau,
-                    N_walkers=N_walkers, use_seq_GPUs=use_seq_GPUs, p_dict=p_dict, dim=dim, 
-                    ratio=ratio, angle=angle, xmin=xmin, xmax=xmax, conf_interval=conf_interval, 
-                    save_hills=save_hills, continue_run=continue_run, T=T, op_interval=op_interval)
+    arg_dict = vars(args)
+    with open("metad_details.toml", "w") as f:
+        toml.dump(arg_dict, f)
+
+    estimator = Estimator(**arg_dict)
     
     estimator.do_run()
