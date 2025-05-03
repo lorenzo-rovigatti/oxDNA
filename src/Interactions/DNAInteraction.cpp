@@ -1486,33 +1486,33 @@ void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			}
 
 			int N_in_strand = btypes.size();
-				for(int i = 0; i < N_in_strand; i++, current_idx++) {
-					if(current_idx == parser.N()) {
-						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
-					}
-
-					BaseParticle *p = particles[current_idx];
-					p->strand_id = ns;
-					p->btype = btypes[i];
-					p->type = (p->btype < 0) ? 3 - ((3 - p->btype) % 4) : p->btype % 4;
-					p->n3 = p->n5 = P_VIRTUAL;
-					if(i > 0) {
-						p->n5 = particles[current_idx - 1];
-						p->affected.push_back(ParticlePair(p->n5, p));
-					}
-					if(i < N_in_strand - 1) {
-						p->n3 = particles[current_idx + 1];
-						p->affected.push_back(ParticlePair(p->n3, p));
-					}
-					// if this is the last nucleotide of the strand then we enforce the circularity of the strand
-					else if(is_circular) {
-						BaseParticle *first = particles[current_idx - i];
-						p->n3 = first;
-						p->affected.push_back(ParticlePair(first, p));
-						first->n5 = p;
-						first->affected.push_back(ParticlePair(p, first));
-					}
+			for(int i = 0; i < N_in_strand; i++, current_idx++) {
+				if(current_idx == parser.N()) {
+					throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
 				}
+
+				BaseParticle *p = particles[current_idx];
+				p->strand_id = ns;
+				p->btype = btypes[i];
+				p->type = (p->btype < 0) ? 3 - ((3 - p->btype) % 4) : p->btype % 4;
+				p->n3 = p->n5 = P_VIRTUAL;
+				if(i > 0) {
+					p->n5 = particles[current_idx - 1];
+					p->affected.push_back(ParticlePair(p->n5, p));
+				}
+				if(i < N_in_strand - 1) {
+					p->n3 = particles[current_idx + 1];
+					p->affected.push_back(ParticlePair(p->n3, p));
+				}
+				// if this is the last nucleotide of the strand then we enforce the circularity of the strand
+				else if(is_circular) {
+					BaseParticle *first = particles[current_idx - i];
+					p->n3 = first;
+					p->affected.push_back(ParticlePair(first, p));
+					first->n5 = p;
+					first->affected.push_back(ParticlePair(p, first));
+				}
+			}
 
 			ns++;
 		}

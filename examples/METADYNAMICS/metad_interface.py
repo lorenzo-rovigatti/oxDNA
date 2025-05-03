@@ -127,11 +127,13 @@ class Estimator():
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p2a']}
+        PBC = false
     }}
     col_2 = {{
         type = distance
         particle_1 = {self.p_dict['p1b']}
         particle_2 = {self.p_dict['p2b']}
+        PBC = false
     }}
 }}'''
     
@@ -144,16 +146,19 @@ class Estimator():
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p2a']}
+        PBC = false
     }}
     col_2 = {{
         type = distance
         particle_1 = {self.p_dict['p3a']}
         particle_2 = {self.p_dict['p2a']}
+        PBC = false
     }}
     col_3 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p3a']}
+        PBC = false
     }}
 }}'''
 
@@ -166,6 +171,7 @@ class Estimator():
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p2a']}
+        PBC = false
     }}
 }}'''
             elif self.dim == 2:
@@ -176,11 +182,13 @@ class Estimator():
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p2a']}
+        PBC = false
     }}
     col_2 = {{
         type = distance
         particle_1 = {self.p_dict['p1b']}
         particle_2 = {self.p_dict['p2b']}
+        PBC = false
     }}
 }}'''
                 
@@ -202,6 +210,9 @@ class Estimator():
             # we standardise the location of the last configuration, which is also the configuration we will start from
             input_file["lastconf_file"] = Estimator.LAST_CONF
             input_file["conf_file"] = Estimator.LAST_CONF
+            # next we try to avoid issues with strands diffusing through boundaries and being brought back by fix_diffusion, which would be disastrous for the forces, which do not take into account PBC by construction
+            input_file["fix_diffusion"] = "false"
+            input_file["reset_initial_com_momentum"] = "true"
             
             if T == None:
                 self.T = oxpy.get_temperature(input_file["T"])
