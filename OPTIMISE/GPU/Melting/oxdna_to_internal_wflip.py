@@ -24,9 +24,9 @@ import sys
 OX_TO_ANG = 8.518 #1 oxdna unit = 8.518 angstrongs
 #Parameteres to map oxdna coordinates to interaction centers
 #A = 0; C = 1, G = 2, T = 3
-#Note: currently, only the COM is used to compute translations.
-STACK_X = [0.405*OX_TO_ANG, 0.275*OX_TO_ANG, 0.405*OX_TO_ANG, 0.275*OX_TO_ANG]
-HB_X = [0.465*OX_TO_ANG, 0.335*OX_TO_ANG, 0.465*OX_TO_ANG, 0.335*OX_TO_ANG]
+#Note: currently, only the COM is used to compute translations. i.e. these are useless
+STACK_X = [0.37*OX_TO_ANG, 0.37*OX_TO_ANG, 0.37*OX_TO_ANG, 0.37*OX_TO_ANG]
+HB_X = [0.4*OX_TO_ANG, 0.37*OX_TO_ANG, 0.4*OX_TO_ANG, 0.37*OX_TO_ANG]
 BB_X = [-0.34*OX_TO_ANG, -0.34*OX_TO_ANG, -0.34*OX_TO_ANG, -0.34*OX_TO_ANG]
 BB_Y = [-0.34*OX_TO_ANG, -0.34*OX_TO_ANG, -0.34*OX_TO_ANG, -0.34*OX_TO_ANG]
 
