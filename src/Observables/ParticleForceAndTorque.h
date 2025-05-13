@@ -21,8 +21,10 @@
  */
 class ParticleForceAndTorque: public BaseObservable {
 protected:
+	std::string _particle_string;
+	bool _lab_frame = true;
 	std::vector<int> _indexes;
-	std::vector<BaseParticle *> _particles;
+	std::set<BaseParticle *> _particles;
 public:
 	ParticleForceAndTorque();
 	virtual ~ParticleForceAndTorque();
