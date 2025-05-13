@@ -53,6 +53,7 @@
 #include "AllVectors.h"
 #include "StressAutocorrelation.h"
 #include "ExternalForce.h"
+#include "ParticleForceAndTorque.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -123,6 +124,7 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = std::make_shared<AllVectors>();
 	else if(!strncasecmp(obs_type, "stress_autocorrelation", 512)) res = std::make_shared<StressAutocorrelation>();
 	else if(!strncasecmp(obs_type, "external_force", 512)) res = std::make_shared<ExternalForce>();
+	else if(!strncasecmp(obs_type, "force_and_torque", 512)) res = std::make_shared<ParticleForceAndTorque>();
 	else {
 		res = PluginManager::instance()->get_observable(obs_type);
 		if(res == NULL) throw oxDNAException("Observable '%s' not found. Aborting", obs_type);

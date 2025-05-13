@@ -57,6 +57,7 @@ SET(observables_SOURCES
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
 	Observables/ExternalForce.cpp
+	Observables/ParticleForceAndTorque.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
