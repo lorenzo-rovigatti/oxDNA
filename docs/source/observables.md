@@ -137,6 +137,14 @@ Print forces and torques due to nucleotide-nucleotide interactions. By default, 
 * `type = pair_force`: the observable type.
 * `[particle_id = <int>]`: if set, only pairs in which one of the particles has the given id will be considered.
 
+## Forces and torques on individual particles
+
+Print forces and torques of individual particles. 
+
+* `type = force_and_torque`: the observable type.
+* `particle = <string>`: index of the first particle or comma-separated list of particle indexes composing the first set. Use `all` or `-1` to print information about all particles.
+* `[lab_frame = <bool>]`: print torques in the laboratory reference frame. Defaults to `true`.
+
 ## Distance between two (sets of) particles
 
 Print the euclidean distance between two particles or between the centres of mass of two sets of particles.
