@@ -5,15 +5,15 @@
 // and a little from Lorenzo Rovigatti's interactions
 //
 
-#ifndef ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
-#define ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
+#ifndef RASPBERRYINTERACTION_H
+#define RASPBERRYINTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
 #include <unordered_map>
 
 // constants from Flavio Romano's PatchyShapeInteraction
 // i'm not 100% sure why r and rc aren't 1
-#define PLEXCL_S   1.0f // this is technocally sigma-squared
+#define PLEXCL_S   1.0f
 #define PLEXCL_R   0.9053f
 #define PLEXCL_B   677.505671539f
 // cutoff for repulsive interaction. if r ^ 2 < ((r1+r2) * PLEXCL_RC) ^ 2, will calculate
@@ -223,4 +223,4 @@ LR_vector parseVector(const std::string& sz);
 
 
 
-#endif //ESTIMATE_TM_PY_RASPBERRYINTERACTION_H
+#endif //RASPBERRYINTERACTION_H

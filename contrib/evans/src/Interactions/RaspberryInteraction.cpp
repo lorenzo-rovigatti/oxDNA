@@ -431,7 +431,20 @@ void RaspberryInteraction::readPatchString(const std::string& patch_line) {
 }
 
 void RaspberryInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
-    // ????
+//    printf("###########\n");
+//    BaseParticle* p = CONFIG_INFO->particles()[0];
+//    BaseParticle* q = CONFIG_INFO->particles()[1];
+//
+//    p->pos = LR_vector(0,0,0);
+//
+//    for (double pp_dist =0.36; pp_dist < 0.52 ; pp_dist+=0.001)
+//    {
+//        _computed_r = q->pos = LR_vector(pp_dist, 0, 0);
+//        p->force = {0,0,0};
+//        double e = repulsive_pt_interaction(p, q, true);
+//        double force = sqrt(p->force.norm());
+//        printf("%f %f\n", pp_dist, force);
+//    }
 }
 
 /**
@@ -446,10 +459,9 @@ void RaspberryInteraction::check_input_sanity(std::vector<BaseParticle *> &parti
 number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParticle *q, bool update_forces) {
     int p_type = m_ParticleList[p->get_index()];
     int q_type = m_ParticleList[q->get_index()];
+    assert(p != q);
 
     // we use a Lennard Jones function with quadatic smoothin
-    // sigma
-    number sigma_sqr = PLEXCL_S;
 
     number e_lj;
     number energy = 0.;
@@ -475,8 +487,10 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
 
             // compute square of radial cutoff
             // for reasons i don't fully get, radial cutoff is *slightly* less than 1.0
-            number rmax_dist_sqr = SQR(rsum * PLEXCL_RC) ;
 //          number rmax_dist_sqr = get_r_max_sqr(ppidx, qqidx);
+
+            // sigma
+            number sigma_sqr = SQR(PLEXCL_S * rsum);
 
             // compute displacement vector between repulsion sites
             LR_vector rep_pts_dist = _computed_r + qpos - ppos;
@@ -484,18 +498,14 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
             number rep_pts_dist_sqr = rep_pts_dist.norm();
             // if the distance between the two interaction points is greater than the cutoff
             // we (josh speculating) set the cutoff JUST below 1 (where lj(1) = 0) to make calculations nicer
+            number rmax_dist_sqr = SQR(rsum * PLEXCL_RC) ;
+
             if (rep_pts_dist_sqr < rmax_dist_sqr) {
                 // unlike in other impls our model does not assume repulsive spheres have radius=0.5
                 // r-factor = the sum of the radii of the repulsive interaction spheres, minus 1
 
-
-
-                // radial cutoff - acct for actual distance sum
                 rc = PLEXCL_RC * rsum;
 
-                // if the radius-squared is less than the interaction cutoff
-                // is this even correct??
-                b = PLEXCL_B / rsum;
                 // compute quadratic smoothing cutoff rstar
                 rstar = PLEXCL_R * rsum;
                 // if r is less than rstar, use the lennard-jones equation
@@ -522,6 +532,9 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                     // actual distance value, computed by taking the square root of rsquared
                     r_patch = sqrt(rep_pts_dist_sqr);
                     number rrc = r_patch - rc;
+
+                    b = PLEXCL_B / SQR(rsum);
+
                     energy += PLEXCL_EPS * b * SQR(rrc);
                     if(update_forces) {
                         force = -rep_pts_dist * (2 * PLEXCL_EPS * b * rrc / r_patch);
@@ -537,7 +550,7 @@ number RaspberryInteraction::repulsive_pt_interaction(BaseParticle *p, BaseParti
                     p_torque = -p->orientationT * ppos.cross(force);
                     q_torque =  q->orientationT * qpos.cross(force);
                     // update particle torque vectors
-                    p->torque -= p_torque;
+                    p->torque += p_torque;
                     q->torque += q_torque;
                 }
                 // if the radius is greater than the cutoff, we can just ignore it
