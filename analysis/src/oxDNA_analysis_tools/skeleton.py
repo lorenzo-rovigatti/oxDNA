@@ -14,6 +14,7 @@ from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, ge
 ComputeContext = namedtuple("ComputeContext", ["top_info", "traj_info", "arrrrrg"])
 
 # The parallelized function which actually does hard things
+# This function needs to have exactly three arguments: an class/dict/tuple containing the needed arguments, the number of configurations per chunk, and the current chunk ID
 # I name my example variables stupid things to make it clear to you that unlike some of the function names, variable names are arbitrary
 # Make your variables descriptive of what they actually are, I see too many uses of boilerplate code which re-use example variable names.
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
@@ -48,10 +49,10 @@ def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpu
     # In this example, the parallelized function is returning one value per configuration
     # You can also return multiple values or an array or an object
     # You just need to modify the callback function to handle whatever data type you're returning.
-    output = np.zeros(traj_info.nconfs)
-    def callback(i, r): # i is the number of the chunk, r is the data that comes back from processing the chunk
-        nonlocal output
-        output[i*chunk_size:i*chunk_size+len(r)] = r 
+    output = np.zeros(traj_info.nconfs) # pre-allocate the memory for your result
+    def callback(i, r): # i is the number of the chunk, r is the return value of the parallelized compute function
+        nonlocal output # You need this to access the variable outside the local scope
+        output[i*chunk_size:i*chunk_size+len(r)] = r # This is how you can insert per-configuration values into a pre-allocated array
 
     # Call <compute> with args <ctx> <ncpus> times to process <nconfs> things then package the results with <callback>
     oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
@@ -59,8 +60,8 @@ def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpu
     return output
 
 # This is what gets picked up by the cli documentation builder
-# The function name is not optional, the documentation looks for 'cli_parser' specifically.
-def cli_parser(prog="program_name"):
+# The function name is not arbitrary, the documentation looks for 'cli_parser' specifically.
+def cli_parser(prog="skeleton"):
     parser = argparse.ArgumentParser(prog = prog, description="One sentence description of your program")
     parser.add_argument('trajectory', type=str, help='The trajectory file you wish to analyze')
     parser.add_argument('-f', '--flag1', type=int, help='An optional flag taking an int from the CLI')
@@ -85,6 +86,7 @@ def main():
 
     # Parse the CLI input
     # Here you can set default values and read files
+    # You can also set defaults in cli_parser, but if you want to do anything more complicated, it needs to b ehere.
     # After parsing the input, you should have all the variables ready to call the core function
     traj = args.trajectory
     top_info, traj_info = describe(None, traj)
