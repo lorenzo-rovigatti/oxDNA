@@ -79,6 +79,8 @@ def main():
             lines.append(mutual_trap_template.format(from_particle_id,stiff,to_particle_id))
             lines.append(mutual_trap_template.format(to_particle_id,stiff,from_particle_id))
 
+    log(f"Found {len(bonded)//2} basepairs")
+
     if pairsfile:
         with open(pairsfile, "w") as file:
             file.writelines(pairlines)
