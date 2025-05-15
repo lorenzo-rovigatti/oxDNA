@@ -61,8 +61,10 @@ void OxpyManager::update_temperature(number new_T) {
 void OxpyManager::print_configuration(bool also_last) {
 	// prints the trajectory configuration
 	_backend->print_conf();
-	// prints the last configuration
-	_backend->print_conf(false, true);
+	if(also_last) {
+		// prints the last configuration
+		_backend->print_conf(false, true);
+	}
 }
 
 void OxpyManager::add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables) {

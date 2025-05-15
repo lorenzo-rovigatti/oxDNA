@@ -6,14 +6,7 @@
  */
 
 /**
- * @brief Prints a list of pairs involved in all order parameters that are hydrogen-bonded
- *
- * If an order parameter file with particle pairs is provided, only those particle pairs
- * will be considered, otherwise all pairs in the system are considered.
- * 
- * @verbatim
- type = average_energy (name of  the observable)
- @endverbatim
+ * @brief Prints the average interaction energy between selected nucleotides
  */
 #ifndef AverageEnergy_H_
 #define AverageEnergy_H_
