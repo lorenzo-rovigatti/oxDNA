@@ -9,6 +9,7 @@ from oxDNA_analysis_tools.UTILS.RyeReader import describe
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.data_structures import TrajInfo
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 
 import time
 start_time = time.time()
@@ -164,7 +165,7 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
     ax.set_ylabel('ln(correlation)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(plt_name, dpi=300)
+    plt.savefig(plt_name, dpi=FIG_DPI)
     log(f"Saving figure to {plt_name}")
 
     return pl

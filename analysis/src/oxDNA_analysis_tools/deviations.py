@@ -5,6 +5,7 @@ import numpy as np
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from json import dumps
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, inbox, get_confs
@@ -106,7 +107,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
     plt.xlabel('Configuration')
     plt.ylabel('RMSD (nm)')
     plt.tight_layout()
-    plt.savefig(plot_name)
+    plt.savefig(plot_name, dpi=FIG_DPI)
 
     return
 

@@ -372,11 +372,13 @@ def strand_describe(top:str) -> Tuple[System, list]:
         strands.append(s)
         system = System(top_file=abspath(top_file), strands=strands)
 
-        # With the old topology, we assume that the sytem is homogenous.
+        # With the old topology, all nucleic acid strands must be the same type.
+        # There's no intrinsic way to tell DNA vs RNA from the topology, so we have to check U vs T
         if 'U' in [m.btype for m in monomers]:
             log("RNA detected, all strands will be marked as RNA")
             for s in system.strands:
-                s.type = 'RNA'
+                if s.is_nucleic():
+                    s.type = "RNA"
 
         return system, monomers
 
@@ -389,7 +391,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
             l = l[:-1]
         else:
             old_top = True
-            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+            log("The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.", level="warning")
 
         if old_top:
             system, monomers = _strand_describe_old(top)

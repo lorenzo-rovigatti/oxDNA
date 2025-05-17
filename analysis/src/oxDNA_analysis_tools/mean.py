@@ -92,7 +92,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None
     # The parallelizer will call the "compute" function with ctx as an argument using "ncpus".
     # The "callback" function is called after each chunk is computed.
     # The trajectory will be processed in batches of chunk_size configurations
-    # chunk_size is a persistent global variable pulled from UTILS/chunksize.py. 
+    # chunk_size is a persistent global variable pulled from UTILS/constants.py. 
     # It can be set by running `oat config -n <chunk_size>` from a command line
     oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
 

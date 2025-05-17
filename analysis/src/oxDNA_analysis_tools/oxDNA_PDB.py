@@ -233,12 +233,12 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             conf (Configuration) : The Configuration to convert
             system (System) : The system topology for the configuration to convert
             out_basename (str) : Filename(-.pdb) to write out to
-            protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. Default: []
-            reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). Default: False
-            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). Default: True
-            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). Default: False
-            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). Default: False
-            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. Default: ''
+            protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. (Default: [])
+            reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). (Default: False)
+            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). (Default: True)
+            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). (Default: False)
+            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). (Default: False)
+            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. (Default: '')
 
     """
     # Open PDB File of nice lookin duplexes to get base structures from
