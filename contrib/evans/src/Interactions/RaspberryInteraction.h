@@ -63,7 +63,7 @@ protected:
      * - patch sticky sequence (for future use)
      */
     using Patch = std::tuple<
-            int,
+            int, //
             LR_vector, // position
             LR_vector, // orientation
             int, // color
@@ -73,6 +73,7 @@ protected:
             number, // polyT (aka sigma)
             std::string // sticky sequence
             >;
+#define PPATCH_TYPE_ID 0
 #define PPATCH_POS 1
 #define PPATCH_ORI 2
 #define PPATCH_COLOR 3
@@ -136,15 +137,24 @@ protected:
 
 //    std::unordered_map<std::pair<int, int>, number,  UnorderedPairHash, UnorderedPairEqual> m_PatchColorInteractions;
 
+// todo impl option to specify potential version in input file
+    // lorenzo version
     // a PatchPatch object describes how two patches interact
     // there is - by design - very redundant, to minimize required calculations at runtime
     // order: sigma_ss, rcut_ss a_part, b_part, eps
-    using PatchPatch = std::tuple<number, number, number, number, number>;
-#define PP_INT_RCUT_SS  0
-#define PP_INT_SIGMA_SS 1
-#define PP_INT_A_PART   2
-#define PP_INT_B_PART   3
-#define PP_INT_EPS      4
+//    using PatchPatch = std::tuple<number, number, number, number, number>;
+//#define PP_INT_RCUT_SS  0
+//#define PP_INT_SIGMA_SS 1
+//#define PP_INT_A_PART   2
+//#define PP_INT_B_PART   3
+//#define PP_INT_EPS      4
+
+    using PatchPatch = std::tuple<number, number, number, number >;
+#define PP_INT_EPS          0
+#define PP_INT_ALPHA_POW    1
+#define PP_MAX_DIST_SQR     2
+#define PP_E_CUT            3
+
     // i've gone back and forth a LOT about how to work these, settled on this method, for now
     // i don't think this hash or equal function are very fast
     // in this case for speed i am using patch type ids as my hash, color should not be discussed
@@ -152,6 +162,7 @@ protected:
     std::unordered_map<std::pair<int,int>, PatchPatch, UnorderedPairHash, UnorderedPairEqual> m_PatchPatchInteractions;
 
     number m_nPatchyBondEnergyCutoff;
+    number m_nDefaultAlpha;
     bool _has_read_top; // flag to avoid double-reading the top file
 public:
     RaspberryInteraction();
@@ -165,9 +176,10 @@ public:
 
     // utility functions
     int numParticles() const;
-    LR_vector getParticlePatchPosition(BaseParticle* p, int patch_idx);
-    LR_vector getParticlePatchAlign(BaseParticle* p, int patch_idx);
-    LR_vector getParticleInteractionSitePosition(BaseParticle* p, int int_site_idx);
+    LR_vector getParticlePatchPosition(BaseParticle* p, int patch_idx) const;
+    LR_vector getParticlePatchAlign(BaseParticle* p, int patch_idx) const;
+    LR_vector getParticleInteractionSitePosition(BaseParticle* p, int int_site_idx) const;
+    const RaspberryInteraction::Patch& getParticlePatchType(BaseParticle* p, int patch_idx) const;
 //    number get_r_max_sqr(const int &intSite1, const int &intSite2) const;
 //    number get_r_sum(const int &intSite1, const int &intSite2) const;
 
@@ -216,6 +228,8 @@ public:
     bool patch_bound(BaseParticle* p, int patch_idx) const;
     void set_bound_to(int p, int ppatch_idx, int q, int qpatch_idx);
     void clear_bound_to(int p, int ppatch_idx);
+
+    static number compute_energy(number patch_dist_sqr, number alpha_exp, number &r8b10) ;
 };
 
 std::string readLineNoComment(std::istream& inp);

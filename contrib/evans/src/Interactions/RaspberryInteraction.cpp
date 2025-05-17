@@ -10,7 +10,9 @@
 #include "Particles/PatchyParticle.h"
 #include "../Particles/RaspberryParticle.h"
 
-#define PATCHY_CUTOFF 0.18f
+// todo
+//#define PATCHY_CUTOFF 0.18f
+#define MIN_E           0.0001
 
 RaspberryInteraction::RaspberryInteraction()  : BaseInteraction(){
     // we actually don't want to add interactions to map here, since for raspberry particles
@@ -30,6 +32,9 @@ void RaspberryInteraction::get_settings(input_file &inp) {
     BaseInteraction::get_settings(inp);
     m_nPatchyBondEnergyCutoff = -0.1;
     getInputNumber(&inp, "PATCHY_bond_energy", &m_nPatchyBondEnergyCutoff, 0);
+    // default sigma value if it isn't specified
+    m_nDefaultAlpha = 0;
+    getInputNumber(&inp, "PATCHY_sigma", &m_nDefaultAlpha, 0);
 }
 
 
@@ -109,6 +114,12 @@ int RaspberryInteraction::numParticles() const {
     return m_ParticleList.size();
 }
 
+const RaspberryInteraction::Patch& RaspberryInteraction::getParticlePatchType(BaseParticle *p, int patch_idx) const{
+    const ParticleType& p_type = m_ParticleTypes[p->type];
+    const int ppatch_tid = std::get<PTYPE_PATCH_IDS>(p_type)[patch_idx];
+    return m_PatchesTypes[ppatch_tid];
+}
+
 // interaction sites in particle positions
 
 /***
@@ -117,7 +128,7 @@ int RaspberryInteraction::numParticles() const {
  * @param patch_idx INDEX of the patch WITHIN THE PARTICLE TYPE
  * @return
  */
-LR_vector RaspberryInteraction::getParticlePatchPosition(BaseParticle *p, int patch_idx) {
+LR_vector RaspberryInteraction::getParticlePatchPosition(BaseParticle *p, int patch_idx) const {
     // patch positions are listed first
     return p->int_centers[patch_idx];
 }
@@ -128,8 +139,8 @@ LR_vector RaspberryInteraction::getParticlePatchPosition(BaseParticle *p, int pa
  * @param patch_idx INDEX of the patch WITHIN THE PARTICLE TYPE
  * @return
  */
-LR_vector RaspberryInteraction::getParticlePatchAlign(BaseParticle *p, int patch_idx) {
-    ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
+LR_vector RaspberryInteraction::getParticlePatchAlign(BaseParticle *p, int patch_idx) const {
+    const ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
     // patch orientations are listed after patch positions
     return p->int_centers[patch_idx + std::get<PTYPE_REP_PTS>(*particleType).size() ];
 }
@@ -140,8 +151,8 @@ LR_vector RaspberryInteraction::getParticlePatchAlign(BaseParticle *p, int patch
  * @param int_site_idx INDEX of the interaction sitw WITHIN THE PARTICLE TYPE
  * @return
  */
-LR_vector RaspberryInteraction::getParticleInteractionSitePosition(BaseParticle *p, int int_site_idx) {
-    ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
+LR_vector RaspberryInteraction::getParticleInteractionSitePosition(BaseParticle *p, int int_site_idx) const {
+    const ParticleType* particleType = &m_ParticleTypes[m_ParticleList[p->get_index()]];
     // interaction sites are listed after the patch geometry
     int idx = int_site_idx + 2 * std::get<PTYPE_PATCH_IDS>(*particleType).size();
     assert(idx < p->int_centers.size());
@@ -173,7 +184,7 @@ number RaspberryInteraction::pair_interaction_nonbonded(BaseParticle *p,
     }
 
     e += repulsive_pt_interaction(p, q, update_forces);
-//    e += patchy_pt_interaction(p, q, false);
+    e += patchy_pt_interaction(p, q, update_forces);
 
     return e;
 }
@@ -346,21 +357,44 @@ void RaspberryInteraction::read_topology(int *N_strands, std::vector<BaseParticl
                 int pj_color = std::get<PPATCH_COLOR>(m_PatchesTypes[pj]);
                 // use petr + flavio version of default color interactions
                 number pj_dist = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pj]);
-                if (((abs(pi_color) > 20) && (pi_color + pj_color == 0)) ||
-                    ((abs(pi_color) <= 20) && (pi_color == pj_color))) {
-                    // todo: patch strengths? ugh
-                    number sigma_ss = pi_dist + pj_dist;
-                    number rcut_ss = 1.5 * sigma_ss;
-                    number B_ss = 1. / (1. + 4. * SQR(1. - rcut_ss / sigma_ss));
-                    number a_part = -1. / (B_ss - 1.) / exp(1. / (1. - rcut_ss / sigma_ss));
-                    number b_part = B_ss * pow(sigma_ss, 4.);
+                if (((abs(pi_color) >= 20) && (pi_color + pj_color == 0)) ||
+                    ((abs(pi_color) < 20) && (pi_color == pj_color))) {
+                    // temporary variable
+                    number r8b10;
+                    // todo: patch strengths? ugh4
+                    number dist_sum = std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]) + std::get<PPATCH_INT_DIST>(m_PatchesTypes[pi]);
+                    number dist_cutoff_sqrd = pow(dist_sum, 2) * pow(
+                            log(1.001) - log(MIN_E),
+                            0.2
+                            );
+                    // check energy at expected distance
+                    number e_standard = compute_energy(pow(dist_sum, 2), pow(dist_sum, 10), r8b10);
+                    number e_cutoff = compute_energy(dist_cutoff_sqrd, pow(dist_sum, 10), r8b10);
                     m_PatchPatchInteractions[{pi, pj}] = {
-                            sigma_ss, // sigma_ss
-                            1.5 * sigma_ss, // rcut_ss
-                            a_part, // a_part
-                            b_part, //b_part
-                            1. //epsilon
+                            1.0,
+                            pow(dist_sum, 10),
+                            dist_cutoff_sqrd,
+                            e_cutoff // probably like MIN_E
                     };
+//                    // code for Lorenzo version
+//                    number sigma_ss = pi_dist + pj_dist;
+//                    assert(sigma_ss > 0);
+//                    assert(!std::isnan(sigma_ss));
+//                    number rcut_ss = 1.5 * sigma_ss;
+//                    assert(!std::isnan(rcut_ss));
+//                    number B_ss = 1. / (1. + 4. * SQR(1. - rcut_ss / sigma_ss));
+//                    assert(!std::isnan(B_ss));
+//                    number a_part = -1. / (B_ss - 1.) / exp(1. / (1. - rcut_ss / sigma_ss));
+//                    assert(!std::isnan(a_part));
+//                    number b_part = B_ss * pow(sigma_ss, 4.);
+//                    assert(!std::isnan(b_part));
+//                    m_PatchPatchInteractions[{pi, pj}] = {
+//                            sigma_ss, // sigma_ss
+//                            1.5 * sigma_ss, // rcut_ss
+//                            a_part, // a_part
+//                            b_part, //b_part
+//                            1. //epsilon
+//                    };
                 }
             }
         }
@@ -373,7 +407,7 @@ void RaspberryInteraction::readPatchString(const std::string& patch_line) {
     std::string patch_infostr = patch_line.substr(3);
     std::stringstream ss(patch_infostr);
     int iTypeID, iColor, iState, iActivation;
-    float fStrength;
+    number fStrength, fPatchDist;
     std::string vecStr, oriStr;
     LR_vector position, orientation;
 
@@ -416,7 +450,16 @@ void RaspberryInteraction::readPatchString(const std::string& patch_line) {
         throw oxDNAException("Invalid patch type str `" + patch_line + "`!");
     }
 
-
+    // patch distance
+    if (!(ss >> fPatchDist) || (fPatchDist == 0)) {
+        if (m_nDefaultAlpha > 0){
+            fPatchDist = m_nDefaultAlpha;
+        }
+        else {
+            throw oxDNAException("Interaction distance not specified (generic) in input file or (specific) in `" + patch_line + "`!");
+        }
+    }
+    assert(fPatchDist > 0);
 
     // following values are optional!
     if (!(ss >> iState && ss >> iActivation)){
@@ -427,7 +470,15 @@ void RaspberryInteraction::readPatchString(const std::string& patch_line) {
         throw oxDNAException("Invalid patch type ID %d", iTypeID);
     }
     // TODO: polyTs, sequence?
-    m_PatchesTypes[iTypeID] = {iTypeID, position, orientation, iColor, fStrength, iState, iActivation, 0, ""};
+    m_PatchesTypes[iTypeID] = {iTypeID,
+                               position,
+                               orientation,
+                               iColor,
+                               fStrength,
+                               iState,
+                               iActivation,
+                               fPatchDist,
+                               ""};
 }
 
 void RaspberryInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
@@ -437,7 +488,7 @@ void RaspberryInteraction::check_input_sanity(std::vector<BaseParticle *> &parti
 //
 //    p->pos = LR_vector(0,0,0);
 //
-//    for (double pp_dist =0.36; pp_dist < 0.52 ; pp_dist+=0.001)
+//    for (double pp_dist = 1; pp_dist < 1.125 ; pp_dist+=0.001)
 //    {
 //        _computed_r = q->pos = LR_vector(pp_dist, 0, 0);
 //        p->force = {0,0,0};
@@ -584,20 +635,21 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
         // iter patches on particle q
         for(int qpatch_idx = 0; qpatch_idx < std::get<PTYPE_PATCH_IDS>(q_type).size(); qpatch_idx++) {
             // note: do NOT use the position from this, since it's not rotated
-            int qpatch_tid = std::get<PTYPE_PATCH_IDS>(p_type)[qpatch_idx];
+            int qpatch_tid = std::get<PTYPE_PATCH_IDS>(q_type)[qpatch_idx];
 
             number e_2patch = 0.;
 
             // if patches can interact based on color, and both patches are active and not bound to another patch
+            // todo maybe pass patch types so we don't need to recompute these in patches_can_interact
             if (patches_can_interact(p, q,
                                      ppatch_idx,
                                      qpatch_idx))
             {
-                LR_vector qpatch = getParticlePatchPosition(p, ppatch_idx);
+                LR_vector qpatch = getParticlePatchPosition(q, qpatch_idx);
                 number eps = std::get<PP_INT_EPS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
 
-
                 // get displacement vector between patches p and q
+                // DO NOT apply particle orientation here! that is already applied!
                 LR_vector patch_dist = _computed_r + qpatch - ppatch;
                 // compute distancesquared
                 number patch_dist_sqr = patch_dist.norm();
@@ -607,33 +659,52 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
 
                 //printf("Patches %d and %d distance %f  cutoff is: %f,\n",pp->patches[pi].id,qq->patches[pj].id,dist,SQR(PATCHY_CUTOFF));
 
-                if (patch_dist_sqr < PATCHY_CUTOFF) {
-                    // wait till now to look up either patch align, since we only expect to get here for one p,q pair tops
+                number dist_sqr_cutoff = std::get<PP_MAX_DIST_SQR>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                if (patch_dist_sqr < dist_sqr_cutoff) {
+                    // wait till now to look up either patch align, since most of the time we won't get this far
                     LR_vector qpatch_a1 = getParticlePatchAlign(q, qpatch_idx);
                     LR_vector ppatch_a1 = getParticlePatchAlign(p, ppatch_idx);
 
-                    number r_p = sqrt(patch_dist_sqr);
-                    number sigma_ss = std::get<PP_INT_SIGMA_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
-                    number rcut_ss = std::get<PP_INT_RCUT_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
-                    number b_part = std::get<PP_INT_B_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
-                    number a_part = std::get<PP_INT_A_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
-                    number exp_part = exp(sigma_ss / (r_p - rcut_ss));
-                    number tmp_energy = eps * a_part * exp_part * (b_part / patch_dist_sqr - 1.);
+                    // compute ( r^2 )^4 / alpha
+//                    const Patch& ppatchtype = getParticlePatchType(p, ppatch_idx);
+//                    const Patch& qpatchtype = getParticlePatchType(q, qpatch_idx);
+                    // alpha ** 10
+                    number alpha_exp = std::get<PP_INT_ALPHA_POW>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+                    // cocmpute r^8 / a^10 here so we can use it for forces later
+                    number r8b10;
+                    number exp_part = eps * compute_energy(patch_dist_sqr, alpha_exp, r8b10);
+                    e_2patch += exp_part;
+                    // lorenzo version
+//                    number r_p = sqrt(patch_dist_sqr);
+//                    number sigma_ss = std::get<PP_INT_SIGMA_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+//                    number rcut_ss = std::get<PP_INT_RCUT_SS>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+//                    number b_part = std::get<PP_INT_B_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+//                    number a_part = std::get<PP_INT_A_PART>(m_PatchPatchInteractions[{ppatch_tid, qpatch_tid}]);
+//                    number exp_part = exp(sigma_ss / (r_p - rcut_ss));
+//                    number tmp_energy = eps * a_part * exp_part * (b_part / patch_dist_sqr - 1.);
 
-                    e_2patch += tmp_energy;
+//                    e_2patch += tmp_energy;
+
 
 
                     if (update_forces) {
-                        // i gotta deal with this
-                        number force_mod = eps * a_part * exp_part * (4. * b_part / (SQR(r_p) * r_p)) +
-                                           sigma_ss * tmp_energy / SQR(r_p - rcut_ss);
-                        LR_vector tmp_force = patch_dist * (force_mod / r_p);
+                        // lorenzo version
+//                        // i gotta deal with this
+//                        number force_mod = eps * a_part * exp_part * (4. * b_part / (SQR(r_p) * r_p)) +
+//                                           sigma_ss * tmp_energy / SQR(r_p - rcut_ss);
+//                        LR_vector tmp_force = patch_dist * (force_mod / r_p);
+                        // compute force magnitude
+                        number f1D = (5 * exp_part * r8b10);
 
-                        LR_vector p_torque = p->orientationT * ppatch.cross(tmp_force);
-                        LR_vector q_torque = q->orientationT * qpatch.cross(tmp_force);
+                        LR_vector tmp_force = patch_dist * f1D;
 
                         p->force -= tmp_force;
                         q->force += tmp_force;
+
+                        // TODO: better torque?
+                        LR_vector p_torque = p->orientationT * ppatch.cross(tmp_force);
+                        LR_vector q_torque = q->orientationT * qpatch.cross(tmp_force);
+
 
                         p->torque -= p_torque;
                         q->torque += q_torque;
@@ -662,6 +733,13 @@ number RaspberryInteraction::patchy_pt_interaction(BaseParticle *p, BaseParticle
     return energy;
 }
 
+number RaspberryInteraction::compute_energy(number patch_dist_sqr, number alpha_exp, number &r8b10) {
+    // exponential factor (for debugging)
+    r8b10 = patch_dist_sqr * patch_dist_sqr * patch_dist_sqr * patch_dist_sqr / alpha_exp;
+    // exponential part = -1.001 e^((r/alpha)
+    return  -1.001 * exp(-r8b10 * patch_dist_sqr);
+}
+
 /**
  *
  * @param p
@@ -674,8 +752,17 @@ bool RaspberryInteraction::patches_can_interact(BaseParticle *p,
                                                 BaseParticle *q,
                                                 int ppatch_idx,
                                                 int qpatch_idx) const {
-    const Patch ppatch_type = m_PatchesTypes[ppatch_idx];
-    const Patch qpatch_type = m_PatchesTypes[qpatch_idx];
+
+    const Patch& ppatch_type = getParticlePatchType(p, ppatch_idx);
+    const Patch& qpatch_type = getParticlePatchType(q, qpatch_idx);
+
+//    const ParticleType& p_type = m_ParticleTypes[p->type];
+//    const ParticleType& q_type = m_ParticleTypes[q->type];
+//    const int ppatch_tid = std::get<PTYPE_PATCH_IDS>(p_type)[ppatch_idx];
+//    const int qpatch_tid = std::get<PTYPE_PATCH_IDS>(q_type)[qpatch_idx];
+//    const Patch ppatch_type = m_PatchesTypes[ppatch_tid];
+//    const Patch qpatch_type = m_PatchesTypes[qpatch_tid];
+
     // if patch types can't interact, these two patches can't interact. full stop.
     if (!patch_types_interact(ppatch_type, qpatch_type)){
         return false;
@@ -717,13 +804,13 @@ bool RaspberryInteraction::patch_types_interact(const RaspberryInteraction::Patc
                                                 const RaspberryInteraction::Patch &qpatch_type) const {
     return m_PatchPatchInteractions.count(
             {
-                std::get<3>(ppatch_type),
-                std::get<3>(qpatch_type)
+                std::get<PPATCH_TYPE_ID>(ppatch_type),
+                std::get<PPATCH_TYPE_ID>(qpatch_type)
             }) > 0 &&
             std::get<PP_INT_EPS>(m_PatchPatchInteractions.at(
             {
-                std::get<3>(ppatch_type),
-                std::get<3>(qpatch_type)
+                std::get<PPATCH_TYPE_ID>(ppatch_type),
+                std::get<PPATCH_TYPE_ID>(qpatch_type)
             }
         )) != 0.;
 }
@@ -745,6 +832,7 @@ bool RaspberryInteraction::patch_bound(BaseParticle *p, int patch_idx) const {
  */
 const RaspberryInteraction::ParticlePatch& RaspberryInteraction::patch_bound_to(BaseParticle *p,
                                                                                 int patch_idx) const {
+    assert(m_PatchyBonds[p->get_index()].size() > patch_idx);
     return m_PatchyBonds[p->get_index()][patch_idx];
 }
 
