@@ -759,6 +759,7 @@ void DNA3Interaction::init() {
 						sprintf(key, "CRST_K_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55][k][i][j][l] = tmp_value;
 
+
 						//tetramer dependent
 						sprintf(key, "CRST_R0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33][i][j][k][l] = tmp_value;
@@ -808,11 +809,20 @@ void DNA3Interaction::init() {
             }
 		}
 
-    //Set parameters for ends (average of complete junctions)
+    //Set parameters for ends junctions
 
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 4; j++) {
             for(int k = 0; k < 4; k++) {
+
+                    //For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
+
+                    F2_SD_K[CRST_F2_33][k][i][j][5] = F2_SD_K[CRST_F2_33][0][i][j][0];
+                    F2_SD_K[CRST_F2_33][5][i][j][k] = F2_SD_K[CRST_F2_33][0][i][j][0];
+
+                    F2_SD_K[CRST_F2_55][k][i][j][5] = F2_SD_K[CRST_F2_55][0][i][j][0];
+                    F2_SD_K[CRST_F2_55][5][i][j][k] = F2_SD_K[CRST_F2_55][0][i][j][0];
+
 
                     //fene
                     _fene_delta_SD[i][j][k][5] = get_average_par(_fene_delta_SD);
