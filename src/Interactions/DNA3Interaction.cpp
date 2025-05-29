@@ -817,11 +817,11 @@ void DNA3Interaction::init() {
 
                     //For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
-                    F2_SD_K[CRST_F2_33][k][i][j][5] = F2_SD_K[CRST_F2_33][0][i][j][0];
-                    F2_SD_K[CRST_F2_33][5][i][j][k] = F2_SD_K[CRST_F2_33][0][i][j][0];
+                    F2_SD_K[CRST_F2_33][i][j][k][5] = F2_SD_K[CRST_F2_33][0][j][k][0];
+                    F2_SD_K[CRST_F2_33][5][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
 
-                    F2_SD_K[CRST_F2_55][k][i][j][5] = F2_SD_K[CRST_F2_55][0][i][j][0];
-                    F2_SD_K[CRST_F2_55][5][i][j][k] = F2_SD_K[CRST_F2_55][0][i][j][0];
+                    F2_SD_K[CRST_F2_55][k][j][k][5] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55][5][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
 
 
                     //fene
@@ -1739,6 +1739,7 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
 		energy = f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33
 			+ f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55;
+
 
 		// makes sense since the above functions can return exactly 0
 		if(update_forces && energy != (number) 0.f) {
