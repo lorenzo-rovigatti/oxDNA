@@ -126,6 +126,7 @@ MU_RED_REW_COV_m1 = None
 COV_RED_IDS = None
 MU_RED_IDS = None
 PROP_IDS = None
+TWIST_IDS = None
 LP_RED_IDS = None
 
 LP_JK_IDS = None
@@ -679,6 +680,7 @@ def build_masks_and_symm_tensors() :
     global COV_RED_IDS
     global MU_RED_IDS
     global PROP_IDS
+    global TWIST_IDS
 
     #persistence length calculation masks
     global LP_RED_IDS
@@ -704,6 +706,7 @@ def build_masks_and_symm_tensors() :
     mrids = []
     lpids = []
     propids = []
+    twistids = []
 
     print(cg.ids)
     print(cg.ids_gs)
@@ -716,11 +719,14 @@ def build_masks_and_symm_tensors() :
         if cg.ids[i%len(cg.ids)] in cg.ids_gs: mrids.append(i)
         if cg.ids[i%len(cg.ids)] in cg.ids_lp: lpids.append(i)
         if cg.ids[i%len(cg.ids)] == 1: propids.append(i)
+        if cg.ids[i%len(cg.ids)] == 8: twistids.append(i)
+
 
     COV_RED_IDS = torch.tensor(crids,device=device)
     MU_RED_IDS = torch.tensor(mrids,device=device)
     LP_RED_IDS = torch.tensor(lpids,device=device)
     if 1 in cg.ids_gs: PROP_IDS = torch.tensor(propids,device=device)
+    if 8 in cg.ids_gs: TWIST_IDS = torch.tensor(twistids,device=device)
 
     red_n = (cg.fin_j[l]-cg.in_j[l]+1)*(len(cg.ids)-len(cg.ids_gs))
 
@@ -1069,6 +1075,16 @@ def reduce_targets() :
 
     TMP = TARGET_COV[:,:,COV_RED_IDS]
     COV_RED_TARGET_COV = TMP[:,COV_RED_IDS]
+
+    #correct target mu to fix pitch length
+
+    if 8 in cg.ids:
+        print("Correcting pitch length. Adding "+str(cg.twist_correction)+" to the target twist GS.")
+        print("TARGET_MU before correction:")
+        print(TARGET_MU)
+        TARGET_MU[:,TWIST_IDS] += cg.twist_correction
+        print("TARGET_MU after correction:")
+        print(TARGET_MU)
 
     #TMP = torch.zeros(cg.Nseq,cg.ids_cov,device=device)
 

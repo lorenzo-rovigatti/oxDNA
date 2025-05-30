@@ -65,3 +65,6 @@ weight_gs = 1.
 modelh = path_opticode+"/model.h"
 
 stck_fact_eps = 0.18 #for reweighting temperature
+
+twist_correction = 0.043633  #Add 0.5deg to the target twist. This is to adjust the pitch length
+

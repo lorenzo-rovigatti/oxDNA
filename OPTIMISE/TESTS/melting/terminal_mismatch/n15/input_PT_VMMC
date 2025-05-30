@@ -1,0 +1,58 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+seed = 20683
+
+####    SIM PARAMETERS    ####
+sim_type = PT_VMMC
+ensemble = NVT
+#equilibration_steps = 1e6
+steps = 5e7
+
+delta_translation = 0.22
+delta_rotation = 0.22
+T = 6.7C
+salt_concentration = 0.5
+verlet_skin = 1.00
+umbrella_sampling = 1
+op_file = op_n15.txt
+weights_file = wfile_n15.txt
+
+pt_temp_list = 64C, 66C, 68C, 70C, 74C, 76C, 80C
+pt_every = 2000
+
+extrapolate_hist = 64C, 66C, 68C, 70C, 74C, 76C, 80C
+
+interaction_type = DNA3
+
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = oxDNA_sequence_dependent_parameters_in.txt
+small_system = 1
+####    INPUT / OUTPUT    ####
+topology = generated.top
+conf_file = generated.dat
+trajectory_file = trajectory.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e4
+print_energy_every = 1e4
+time_scale = linear
+#external_forces = 1
+
+data_output_1 = {
+name = split_energy.dat
+print_every = 1e4
+col_1 = {
+type = step
+}
+col_2 = {
+type = potential_energy
+split = true
+}
+col_3 = {
+type = total_energy
+}
+}
+

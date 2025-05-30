@@ -1,0 +1,4 @@
+seqs=( AACTCG AGTATC ACTTCG ATCGAT GACTCG GGTATC GCTTCG GTCGAT CACTCG CGTATC CCTTCG CTCGAT TACTCG TGTATC TCTTCG TTCGAT )
+OP_files=( op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt op_n5.txt )
+nbps=( 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 )
+mTs=( 24.79 11.90 27.47 16.90 26.11 11.51 21.47 19.54 19.83 6.588 23.83 13.05 23.74 9.122 25.41 12.90 )

@@ -92,15 +92,33 @@ N_PT_reps_n5 = 8 #number of pt replicas n5
 N_PT_reps_n8 = 8 #number of pt replicas n8
 N_PT_reps_n15 = 8 #number of pt replicas n15
 
-Nconfs_per_pt_rep = 0 #sampled confs per pt replica - in_snap
-tot_Nconfs_per_pt_rep = 0 #Nconfs_per_pt_rep * Nreps
-tot_time = 0 #for pt, this is the sim time of each replica
-delta_time = 0 #time interval between snapshots
-delta_print_en = 0 #time interval between printing energy
-delta_split_en = 0 #time interval between printing split_energy
+Nconfs_per_pt_rep_n5 = 0 #sampled confs per pt replica - in_snap
+tot_Nconfs_per_pt_rep_n5 = 0 #Nconfs_per_pt_rep * Nreps
+tot_time_n5 = 0 #for pt, this is the sim time of each replica
+delta_time_n5 = 0 #time interval between snapshots
+delta_print_en_n5 = 0 #time interval between printing energy
+delta_split_en_n5 = 0 #time interval between printing split_energy
+
+Nconfs_per_pt_rep_n8 = 0 #sampled confs per pt replica - in_snap
+tot_Nconfs_per_pt_rep_n8 = 0 #Nconfs_per_pt_rep * Nreps
+tot_time_n8 = 0 #for pt, this is the sim time of each replica
+delta_time_n8 = 0 #time interval between snapshots
+delta_print_en_n8 = 0 #time interval between printing energy
+delta_split_en_n8 = 0 #time interval between printing split_energy
+
+Nconfs_per_pt_rep_n15 = 0 #sampled confs per pt replica - in_snap
+tot_Nconfs_per_pt_rep_n15 = 0 #Nconfs_per_pt_rep * Nreps
+tot_time_n15 = 0 #for pt, this is the sim time of each replica
+delta_time_n15 = 0 #time interval between snapshots
+delta_print_en_n15 = 0 #time interval between printing energy
+delta_split_en_n15 = 0 #time interval between printing split_energy
+
+
+
+
 
 Diter_Trange = 0 #boh
-nevery_uprewTs = 1 #update reweighting Ts every n iteration
+nevery_uprewTs = 2 #update reweighting Ts every n iteration
 
 Ct_n5 = [] #total single strand concentration (in M (mol/L)) -- for a single double helix: 2/box_size^3*2.6868 M, where the 2 accounts for the two strands.
 Cs_n5 = [] #salt concentartion (in M)
@@ -126,6 +144,8 @@ symm_stck = False #Not used anymore, I think.
 
 debye_huckel = False
 
+#good=False when we are skipping a seq in the computation of the cost function.
+#this allows to ignore sequences which mT is out of sampled range. It happens.
 good_n5 = []
 good_n8 = []
 good_n15 = []

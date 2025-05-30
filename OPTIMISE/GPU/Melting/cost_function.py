@@ -1486,16 +1486,18 @@ def extend_Ts_and_weights_for_PT() :
     global BIAS_WEIGHTS_EXT_n8
     global BIAS_WEIGHTS_EXT_n15
 
-    print(SIM_Ts_n5)
-    print("repeats", cg.tot_Nconfs_per_pt_rep)
+    #print(SIM_Ts_n5)
+    #print("repeats n5", cg.tot_Nconfs_per_pt_rep_n5)
+    #print("repeats n8", cg.tot_Nconfs_per_pt_rep_n8)
+    #print("repeats n15", cg.tot_Nconfs_per_pt_rep_n15)
 
-    if len(SIM_Ts_n5) > 0 : SIM_Ts_EXT_n5 = torch.repeat_interleave(SIM_Ts_n5, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-    if len(SIM_Ts_n8) > 0 : SIM_Ts_EXT_n8 = torch.repeat_interleave(SIM_Ts_n8, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-    if len(SIM_Ts_n15) > 0 : SIM_Ts_EXT_n15 = torch.repeat_interleave(SIM_Ts_n15, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+    if len(SIM_Ts_n5) > 0 : SIM_Ts_EXT_n5 = torch.repeat_interleave(SIM_Ts_n5, repeats=cg.tot_Nconfs_per_pt_rep_n5, dim=1)
+    if len(SIM_Ts_n8) > 0 : SIM_Ts_EXT_n8 = torch.repeat_interleave(SIM_Ts_n8, repeats=cg.tot_Nconfs_per_pt_rep_n8, dim=1)
+    if len(SIM_Ts_n15) > 0 : SIM_Ts_EXT_n15 = torch.repeat_interleave(SIM_Ts_n15, repeats=cg.tot_Nconfs_per_pt_rep_n15, dim=1)
 
-    if len(BIAS_WEIGHTS_n5) > 0 : BIAS_WEIGHTS_EXT_n5 = torch.repeat_interleave(BIAS_WEIGHTS_n5, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-    if len(BIAS_WEIGHTS_n8) > 0 : BIAS_WEIGHTS_EXT_n8 = torch.repeat_interleave(BIAS_WEIGHTS_n8, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-    if len(BIAS_WEIGHTS_n15) > 0 : BIAS_WEIGHTS_EXT_n15 = torch.repeat_interleave(BIAS_WEIGHTS_n15, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+    if len(BIAS_WEIGHTS_n5) > 0 : BIAS_WEIGHTS_EXT_n5 = torch.repeat_interleave(BIAS_WEIGHTS_n5, repeats=cg.tot_Nconfs_per_pt_rep_n5, dim=1)
+    if len(BIAS_WEIGHTS_n8) > 0 : BIAS_WEIGHTS_EXT_n8 = torch.repeat_interleave(BIAS_WEIGHTS_n8, repeats=cg.tot_Nconfs_per_pt_rep_n8, dim=1)
+    if len(BIAS_WEIGHTS_n15) > 0 : BIAS_WEIGHTS_EXT_n15 = torch.repeat_interleave(BIAS_WEIGHTS_n15, repeats=cg.tot_Nconfs_per_pt_rep_n15, dim=1)
 
     return
 
@@ -1507,9 +1509,9 @@ def extend_lambda_for_debye_huckel() :
     global DH_LAMBDA_EXT_n15
 
     if cg.parallel_tempering:
-        if len(SIM_Ts_n5) > 0 : DH_LAMBDA_EXT_n5 = torch.repeat_interleave(DH_LAMBDA_n5, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-        if len(SIM_Ts_n8) > 0 : DH_LAMBDA_EXT_n8 = torch.repeat_interleave(DH_LAMBDA_n8, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
-        if len(SIM_Ts_n15) > 0 : DH_LAMBDA_EXT_n15 = torch.repeat_interleave(DH_LAMBDA_n15, repeats=cg.tot_Nconfs_per_pt_rep, dim=1)
+        if len(SIM_Ts_n5) > 0 : DH_LAMBDA_EXT_n5 = torch.repeat_interleave(DH_LAMBDA_n5, repeats=cg.tot_Nconfs_per_pt_rep_n5, dim=1)
+        if len(SIM_Ts_n8) > 0 : DH_LAMBDA_EXT_n8 = torch.repeat_interleave(DH_LAMBDA_n8, repeats=cg.tot_Nconfs_per_pt_rep_n8, dim=1)
+        if len(SIM_Ts_n15) > 0 : DH_LAMBDA_EXT_n15 = torch.repeat_interleave(DH_LAMBDA_n15, repeats=cg.tot_Nconfs_per_pt_rep_n15, dim=1)
 
     else:
         if len(SIM_Ts_n5) > 0 : DH_LAMBDA_EXT_n5 = torch.repeat_interleave(DH_LAMBDA_n5, repeats=DH_R_n5.shape[1], dim=1)
@@ -3009,7 +3011,7 @@ def COST(PARS) :
             #TMP_HIST_REW = torch.einsum('jk,lj->lk', TMP_HIST, TMP_BW)
             #print(TMP_HIST_REW)
 
-            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep,dim=2)))
+            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep_n5,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep_n5,dim=2)))
             #print(HISTS_REW)
             #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
             #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
@@ -3106,7 +3108,7 @@ def COST(PARS) :
             HISTS = torch.einsum('ijk,ijk->ijk',HISTS,1./BIAS_WEIGHTS_EXT_n8)
             #here we normalise and sum the histograms of different pt replicas
             #HISTS_REW[seq][op][rewT][pt_rep]
-            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep,dim=2)))
+            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep_n8,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep_n8,dim=2)))
             #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
             #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
             MAX_V = torch.amax(HISTS_REW,dim=(1,2))
@@ -3198,7 +3200,7 @@ def COST(PARS) :
             HISTS = torch.einsum('ijk,ijk->ijk',HISTS,1./BIAS_WEIGHTS_EXT_n15)
             #here we normalise and sum the histograms of different pt replicas
             #HISTS_REW[seq][op][rewT][pt_rep]
-            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep,dim=2)))
+            HISTS_REW = torch.einsum('zijk,zlij->iklz',torch.stack(torch.split(HISTS,cg.tot_Nconfs_per_pt_rep_n15,dim=1)), torch.stack(torch.split(BOLTZ_WEIGHTS,cg.tot_Nconfs_per_pt_rep_n15,dim=2)))
             #normalise the histogram of each replica (divide every histogram[rewT][op] by max entry)
             #and sum histograms of every pt replica (rew Ts are the same for each pt replica)
             MAX_V = torch.amax(HISTS_REW,dim=(1,2))
