@@ -820,7 +820,7 @@ void DNA3Interaction::init() {
                     F2_SD_K[CRST_F2_33][i][j][k][5] = F2_SD_K[CRST_F2_33][0][j][k][0];
                     F2_SD_K[CRST_F2_33][5][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
 
-                    F2_SD_K[CRST_F2_55][k][j][k][5] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55][i][j][k][5] = F2_SD_K[CRST_F2_55][0][j][k][0];
                     F2_SD_K[CRST_F2_55][5][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
 
 
