@@ -1,0 +1,74 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+sim_type = MD
+backend = CPU
+backend_precision = double
+#debug = 1
+seed = 42
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 0
+thermostat = no
+
+#interaction_type = DNA2
+interaction_type = DNA3
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = /Users/ohenrich/Work/code/oxdna/oxDNA3_sequence_dependent_parameters_07052025.txt
+#seq_dep_file = /Users/ohenrich/Work/code/oxdna/oxDNA2_sequence_dependent_parameters.txt
+
+list_type = cells
+fix_diffusion = 0
+
+T = 0.1
+dt = 1e-5
+verlet_skin = 2.0
+salt_concentration = 0.2
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = data.compressed_duplex.top
+conf_file = data.compressed_duplex.oxdna
+lastconf_file = last_conf.dat
+trajectory_file = trajectory.dat
+refresh_vel = 0
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1
+print_energy_every = 1
+time_scale = linear
+external_forces = 0
+
+data_output_1 = {
+  name = forces_torques.dat
+  print_every = 1
+  col_1 = {
+          type = step
+#          units = MD
+  }
+  col_2 = {
+    type = force_and_torque
+    particle = all
+  }
+}
+
+data_output_2 = {
+name = split_energy.dat
+print_every = 1
+col_1 = {
+type = step
+}
+col_2 = {
+type = potential_energy
+split = true
+}
+col_3 = {
+type = total_energy
+}
+}
