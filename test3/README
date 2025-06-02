@@ -1,7 +1,6 @@
-README
-Tests for oxDNA3 implementation and porting.
+Tests and utilities for oxDNA3 implementation and porting.
 
-The sequence of test is as follows:
+A. The sequence of test is as follows:
 
 (1) fene_basestep: single base step, two nucleotides.
 (2) fene_bench: 5 bp duplex (ACGTA) at low temperature
@@ -9,7 +8,8 @@ The sequence of test is as follows:
 (4) stk_bench: 5 bp duplex (ACGTA)
 (5) hbond_bench: 5 bp duplex (ACGTA)
 (6) dh_bench: 5 bp duplex (ACGTA) with half charged ends disabled
+(7) xstk_bench: 5bp duplex (ACGTA)
 
-Upcoming:
-
-(7) xstk_bench: cross-stacking interaction is WIP
+B. The script 'extractPotentialParameters.py' creates the LAMMPS oxDNA3 potential file 
+by mainly reading out parameters from oxDNA3_sequence_dependent_parameters.txt and
+setting a few others.
