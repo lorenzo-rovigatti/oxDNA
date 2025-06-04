@@ -2,7 +2,7 @@ from oxDNA_analysis_tools.UTILS.RyeReader import Configuration, TopInfo
 from IPython.display import display, HTML
 from random import randint
 from json import dumps
-from typing import List, Union
+from typing import List, Union,Dict
     
 def __compress_dat(conf):
     """ generate me a compressed double escaped dat file """
@@ -103,14 +103,14 @@ def from_path(*args:Union[List[str],List[List[str]]] , **kwargs):
     
     
     
-def oxdna_conf(top: TopInfo, conf:Configuration, overlay:str = None, forces_path:str = None, par_file_path:str = None , script_file_path:str = None, inbox_settings:List[str] = ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/", height:int = 500):
+def oxdna_conf(top: TopInfo, conf:Configuration, overlay:Dict[str,List] = None, forces_path:str = None, par_file_path:str = None , script_file_path:str = None, inbox_settings:List[str] = ["Monomer", "Origin"], oxview_src:str = "https://sulcgroup.github.io/oxdna-viewer/", height:int = 500):
     """
         Display an oxDNA configuration in oxview
 
         Parameters:
             top (TopInfo) : the top file data
             conf (Configuration) : the configuration data
-            overlay (str) : (optional) the path to the overlay file
+            overlay Dict[str:List] : (optional) dictionary with the color overlay
             forces_path (str) : (optional) the path to the forces file
             par_file_path (str) : (optional) the path to the par file
             script_file_path (str) : (optional) the path to the script file (js)
