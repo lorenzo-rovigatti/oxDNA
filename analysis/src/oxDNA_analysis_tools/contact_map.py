@@ -100,11 +100,14 @@ def main():
 
     fig, ax = plt.subplots()
     a = ax.imshow(distances, cmap='viridis', origin='lower')
-    ax.set(title = "interaction network",
-    ylabel="nucleotide id",
-    xlabel="nucleotide id")
-    b = fig.colorbar(a, ax=ax)
-    b.set_label("distance (nm)", rotation = 270, labelpad=15)
+    ax.set_xlabel('Nucleotide ID')
+    ax.set_ylabel('Nucleotide ID')
+    ax.tick_params('both')
+    ax.set_xticks(np.linspace(0, top_info.nbases-1, 4, dtype=int))
+    ax.set_yticks(np.linspace(0, top_info.nbases-1, 4, dtype=int))
+    b = fig.colorbar(a, ax=ax, ticks=[0, np.max(distances)/2, np.max(distances)])
+    b.ax.set_yticklabels([f'0', f'{np.max(distances)/2:.2f}', f'{np.max(distances):.2f}'])
+    b.set_label("Distance (nm)", rotation=270, labelpad=15)
     plt.tight_layout()
     log("Saving contact map to '{}'".format(graph_name))
     plt.savefig(graph_name, dpi=FIG_DPI)
