@@ -1,6 +1,6 @@
 import sys
 # Specify the file path and the string to match
-file_path = 'oxDNA3_sequence_dependent_parameters_07052025.txt'
+file_path = 'oxDNA3_sequence_dependent_parameters.txt'
 
 lines_fene_delta = []
 start_string = 'FENE_DELTA'
@@ -145,6 +145,132 @@ with open(file_path, 'r') as file:
             lines_stk_t4ts.append(part[2])
 file.close()
 
+lines_xstk_r033 = []
+start_string = 'CRST_R0_33'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_r033.append(part[2])
+file.close()
+
+lines_xstk_r055 = []
+start_string = 'CRST_R0_55'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_r055.append(part[2])
+file.close()
+
+lines_xstk_rc33 = []
+start_string = 'CRST_RC_33'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rc33.append(part[2])
+file.close()
+
+lines_xstk_rc55 = []
+start_string = 'CRST_RC_55'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rc55.append(part[2])
+file.close()
+
+lines_xstk_rlo33 = []
+start_string = 'CRST_RLOW_33'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rlo33.append(part[2])
+file.close()
+
+lines_xstk_rlo33 = []
+start_string = 'CRST_RLOW_33'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rlo33.append(part[2])
+file.close()
+
+lines_xstk_rlo55 = []
+start_string = 'CRST_RLOW_55'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rlo55.append(part[2])
+file.close()
+
+lines_xstk_rhi33 = []
+start_string = 'CRST_RHIGH_33'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rhi33.append(part[2])
+file.close()
+
+lines_xstk_rhi55 = []
+start_string = 'CRST_RHIGH_55'
+
+# Open the file and read line by line
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_xstk_rhi55.append(part[2])
+file.close()
+
 lines_xstk_t4a33 = []
 start_string = 'CRST_THETA4_A_33'
 
@@ -284,7 +410,24 @@ print("2 3 hbond   1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0.0 0.7 1.5 0.0 0.7 1.5 0.0 
 print("")
 
 # Write xstk
-print("* * xstk    76.0 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68", end=" ")
+print("* * xstk    76.0", end=" ")
+for i in range(len(lines_xstk_r033)):
+    print("%21.15le" % float(lines_xstk_r033[i]), end=" ")
+for i in range(len(lines_xstk_r055)):
+    print("%21.15le" % float(lines_xstk_r055[i]), end=" ")
+for i in range(len(lines_xstk_rc33)):
+    print("%21.15le" % float(lines_xstk_rc33[i]), end=" ")
+for i in range(len(lines_xstk_rc55)):
+    print("%21.15le" % float(lines_xstk_rc55[i]), end=" ")
+for i in range(len(lines_xstk_rlo33)):
+    print("%21.15le" % float(lines_xstk_rlo33[i]), end=" ")
+for i in range(len(lines_xstk_rlo55)):
+    print("%21.15le" % float(lines_xstk_rlo55[i]), end=" ")
+for i in range(len(lines_xstk_rhi33)):
+    print("%21.15le" % float(lines_xstk_rhi33[i]), end=" ")
+for i in range(len(lines_xstk_rhi55)):
+    print("%21.15le" % float(lines_xstk_rhi55[i]), end=" ")
+print("2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68", end=" ")
 for i in range(len(lines_xstk_t4a33)):
     print("%21.15le" % float(lines_xstk_t4a33[i]), end=" ")
 for i in range(len(lines_xstk_t4t033)):
