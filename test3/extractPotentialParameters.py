@@ -215,20 +215,6 @@ with open(file_path, 'r') as file:
             lines_xstk_rlo33.append(part[2])
 file.close()
 
-lines_xstk_rlo33 = []
-start_string = 'CRST_RLOW_33'
-
-# Open the file and read line by line
-with open(file_path, 'r') as file:
-    for line in file:
-        # Remove leading/trailing whitespace
-        stripped_line = line.strip()
-        # Check if the line starts with the specified string
-        if stripped_line.startswith(start_string):
-            part = stripped_line.split(' ')
-            lines_xstk_rlo33.append(part[2])
-file.close()
-
 lines_xstk_rlo55 = []
 start_string = 'CRST_RLOW_55'
 
