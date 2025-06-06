@@ -384,7 +384,7 @@ print(end=" ")
 for i in range(len(lines_stk_t4ts)):
     print("%21.15le" % float(lines_stk_t4ts[i]), end=" ")
 print(end=" ")
-print("0.6845288748916817 0.0 1.0893036876027333 0.6845288748916817 0.0 1.0893036876027333 2.0 0.65 2.0 0.65", end=" ")
+print("1.0 0.0 0.901249 1.0 0.0 0.901249 2.0 0.65 2.0 0.65", end=" ")
 print("")
 
 # Write hbond
