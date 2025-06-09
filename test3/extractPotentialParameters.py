@@ -436,3 +436,242 @@ print("")
 # Write dh
 print("* * dh      0.815", end=" ")
 print("")
+
+# relative stacking strengths
+lines_stk_eta_seq = []
+lines_stk_eta_value = []
+
+start_string = 'STCK_A_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+print(" ")
+print("RELATIVE STACKING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
+for i in range(len(lines_stk_eta_value)):
+    print(lines_stk_eta_seq[i], end=" ")
+    print(float(lines_stk_eta_value[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1))
+
+
+# relative hydrogen bonding strengths
+
+lines_hb_alpha_seq = []
+lines_hb_alpha_value = []
+
+start_string = 'HYDR_A_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_hb_alpha_seq.append('A_T')
+            lines_hb_alpha_value.append(part[2])
+file.close()
+
+start_string = 'HYDR_C_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_hb_alpha_seq.append('C_G')
+            lines_hb_alpha_value.append(part[2])
+file.close()
+
+print(" ")
+print("RELATIVE HYDROGEN BONDING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
+for i in range(len(lines_hb_alpha_value)):
+    print(lines_hb_alpha_seq[i], end=" ")
+    print(float(lines_hb_alpha_value[i]))
+
