@@ -673,5 +673,5 @@ print(" ")
 print("RELATIVE HYDROGEN BONDING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
 for i in range(len(lines_hb_alpha_value)):
     print(lines_hb_alpha_seq[i], end=" ")
-    print(float(lines_hb_alpha_value[i]))
+    print(float(lines_hb_alpha_value[i])/1.0678)
 
