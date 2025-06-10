@@ -1,0 +1,19 @@
+{
+order_parameter = bond
+name = all_native_bonds
+pair1 = 0, 29
+pair2 = 1, 28
+pair3 = 2, 27
+pair4 = 3, 26
+pair5 = 4, 25
+pair6 = 5, 24
+pair7 = 6, 23
+pair8 = 7, 22
+pair9 = 8, 21
+pair10 = 9, 20
+pair11 = 10, 19
+pair12 = 11, 18
+pair13 = 12, 17
+pair14 = 13, 16
+pair15 = 14, 15
+}

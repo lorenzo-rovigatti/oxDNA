@@ -40,8 +40,8 @@ par_index = parl.par_index
 ############## INITIALISE PARAMETERS FROM model.h E SD PARAMETERS FILE ############################
 ###################################################################################################
 
-print(torch.cuda.memory_summary(device=None, abbreviated=False))
-torch.cuda.empty_cache()
+#print(torch.cuda.memory_summary(device=None, abbreviated=False))
+#torch.cuda.empty_cache()
 
 #print(stck_fact_eps)
 

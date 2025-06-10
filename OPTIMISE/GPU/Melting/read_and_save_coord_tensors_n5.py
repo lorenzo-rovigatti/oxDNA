@@ -134,20 +134,6 @@ print_memory_usage()
 ############## READ TRAJECTORY, COMPUTE OXDNA COORDINATES (i.e angles and distances) AND INTERNAL COORDINATES ###########
 #########################################################################################################################
 
-nevery_en = int(cg.delta_time/cg.delta_print_en)
-nevery_split = int(cg.delta_time/cg.delta_split_en)
-
-if nevery_en == 0 or nevery_split == 0:
-    if nevery_en == 0:
-        print("Energy was printed less frequently than snapshots were sampled.")
-        print("Cannot read order parameter value for all snapshots")
-        print("Aborting.")
-    if nevery_split == 0:
-        print("Split_energy was printed less frequently than snapshots were sampled.")
-        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots")
-        print("Aborting.")
-
-    exit(1)
 
 #################
 ### nbps = 5 ####

@@ -101,6 +101,14 @@ def read_config(cfile_name) :
     Seq_counter_n15 = -1
     Ts_index_n15 = -1
 
+
+    #flags for delta times
+    stf = [False, False, False]
+    dtf = [False, False, False]
+    dpf = [False, False, False]
+    dsf = [False, False, False]
+
+
     for line in cfile.readlines() :
         vals = line.split()
         if len(vals) == 0:
@@ -155,6 +163,8 @@ def read_config(cfile_name) :
             nbp = len(vals[1])
 
             if nbp == 5:
+
+                cg.good_n5.append(True)
 
                 Seq_counter_n5 += 1
                 Ts_index_n5 += 1
@@ -309,6 +319,8 @@ def read_config(cfile_name) :
 
             elif nbp == 8:
 
+                cg.good_n8.append(True)
+
                 Seq_counter_n8 += 1
                 Ts_index_n8 += 1
 
@@ -456,6 +468,7 @@ def read_config(cfile_name) :
 
             elif nbp == 15:
 
+                cg.good_n15.append(True)
                 Seq_counter_n15 += 1
                 Ts_index_n15 += 1
 
@@ -600,6 +613,13 @@ def read_config(cfile_name) :
                         cfun.weights_n15.append(weights)
                         #ws_n15_read = True
 
+        if(vals[0] == "SKIP") :
+            if vals[1] == "n5" :
+                for k in range(2,len(vals)): cg.good_n5[int(vals[k])] = False
+            if vals[1] == "n8" :
+                for k in range(2,len(vals)): cg.good_n8[int(vals[k])] = False
+            if vals[1] == "n15" :
+                for k in range(2,len(vals)): cg.good_n15[int(vals[k])] = False
 
         #read snapshots to discard (equilibration)
         if(vals[0] == "IN_SNAP") :
@@ -618,20 +638,52 @@ def read_config(cfile_name) :
             checklist[3] = 1
 
         if(vals[0] == "SIM_TIME") :
-            cg.tot_time = int(float(vals[1]))
-            checklist[14] = 1
+            if vals[1] == "n5" :
+                cg.tot_time_n5 = int(float(vals[2]))
+                stf[0] = True
+            if vals[1] == "n8" :
+                cg.tot_time_n8 = int(float(vals[2]))
+                stf[1] = True
+            if vals[1] == "n15" :
+                cg.tot_time_n15 = int(float(vals[2]))
+                stf[2] = True
+            if stf[0] and stf[1] and stf[2] : checklist[14] = 1
 
         if(vals[0] == "DELTA_TIME") :
-            cg.delta_time = int(float(vals[1]))
-            checklist[15] = 1
+            if vals[1] == "n5":
+                cg.delta_time_n5 = int(float(vals[2]))
+                dtf[0] = True
+            if vals[1] == "n8":
+                cg.delta_time_n8 = int(float(vals[2]))
+                dtf[1] = True
+            if vals[1] == "n15":
+                cg.delta_time_n15 = int(float(vals[2]))
+                dtf[2] = True
+            if dtf[0] and dtf[1] and dtf[2] : checklist[15] = 1
 
         if(vals[0] == "DELTA_PRINT_EN") :
-            cg.delta_print_en = int(float(vals[1]))
-            checklist[16] = 1
+            if vals[1] == "n5":
+                cg.delta_print_en_n5 = int(float(vals[2]))
+                dpf[0] = True
+            if vals[1] == "n8":
+                cg.delta_print_en_n8 = int(float(vals[2]))
+                dpf[1] = True
+            if vals[1] == "n15":
+                cg.delta_print_en_n15 = int(float(vals[2]))
+                dpf[2] = True
+            if dpf[0] and dpf[1] and dpf[2] : checklist[16] = 1
 
         if(vals[0] == "DELTA_PRINT_SPLIT_EN") :
-            cg.delta_split_en = int(float(vals[1]))
-            checklist[17] = 1
+            if vals[1] == "n5":
+                cg.delta_split_en_n5 = int(float(vals[2]))
+                dsf[0] = True
+            if vals[1] == "n8":
+                cg.delta_split_en_n8 = int(float(vals[2]))
+                dsf[1] = True
+            if vals[1] == "n15":
+                cg.delta_split_en_n15 = int(float(vals[2]))
+                dsf[2] = True
+            if dsf[0] and dsf[1] and dsf[2] : checklist[17] = 1
 
         if(vals[0] == "ALGO") :
             cg.algo = vals[1]
@@ -723,6 +775,8 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n5[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n5[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n5[i]) + " M")
+                if cg.good_n5[i] == False : print("EXCLUDED")
+
 
                 string = ""
 
@@ -733,11 +787,12 @@ def read_config(cfile_name) :
                 print("Reweighted temperatures: " + string)
 
                 string = ""
-
+                """
                 for l in range(len(cfun.weights_n5)) :
                     string = string + str(cfun.weights_n5[l]) + " "
 
                 print("Weights: " +  string)
+                """
 
         cg.Nseq_n8 = len(cg.seq_n8)
 
@@ -748,6 +803,7 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n8[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n8[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n8[i]) + " M")
+                if cg.good_n8[i] == False : print("EXCLUDED")
 
                 string = ""
 
@@ -759,10 +815,12 @@ def read_config(cfile_name) :
 
                 string = ""
 
+                """
                 for l in range(len(cfun.weights_n8)) :
                     string = string + str(cfun.weights_n8[l]) + " "
 
                 print("Weights: " +  string)
+                """
 
         cg.Nseq_n15 = len(cg.seq_n15)
 
@@ -773,6 +831,7 @@ def read_config(cfile_name) :
                 print("Single strand concentration: " + str(cg.Ct_n15[i]) + " M")
                 print("Salt concentration: " + str(cg.Cs_n15[i]) + " M")
                 print("Sim temperature: " + str(cfun.sim_Ts_n15[i]) + " M")
+                if cg.good_n15[i] == False : print("EXCLUDED")
 
                 string = ""
 
@@ -784,10 +843,12 @@ def read_config(cfile_name) :
 
                 string = ""
 
+                """
                 for l in range(len(cfun.weights_n15)) :
                     string = string + str(cfun.weights_n15[l]) + " "
 
                 print("Weights: " +  string)
+                """
 
     else:
         print("MANDATORY. Sequences missing from input file.")
@@ -923,39 +984,58 @@ def read_config(cfile_name) :
         print("print_coords_to_file True")
 
         if checklist[14] == 1:
-            print("Total simulation time = "+str(cg.tot_time))
+            print("Total simulation time n5 = "+str(cg.tot_time_n5))
+            print("Total simulation time n8 = "+str(cg.tot_time_n8))
+            print("Total simulation time n15 = "+str(cg.tot_time_n15))
         else :
             print("MANDATORY. Total simulation time")
             print("Usage:")
-            print("SIM_TIME tot_time")
+            print("SIM_TIME nx tot_time")
             return False
 
     if checklist[15] == 1:
-        print("Delta t between snapshots = "+str(cg.delta_time))
-        cg.Nconfs_per_pt_rep = int(cg.tot_time/cg.delta_time)-cg.in_snap
-        cg.tot_Nconfs_per_pt_rep = cg.Nreps*cg.Nconfs_per_pt_rep
-        print("Number of sampled configurations per replica = "+str(cg.Nconfs_per_pt_rep))
-        print("Total number of sampled configurations per replica (accounting for Nreps simulations)= "+str(cg.tot_Nconfs_per_pt_rep))
+        print("n5")
+        print("Delta t between snapshots = "+str(cg.delta_time_n5))
+        cg.Nconfs_per_pt_rep_n5 = int(cg.tot_time_n5/cg.delta_time_n5)-cg.in_snap
+        cg.tot_Nconfs_per_pt_rep_n5 = cg.Nreps*cg.Nconfs_per_pt_rep_n5
+        print("Number of sampled configurations per replica = "+str(cg.Nconfs_per_pt_rep_n5))
+        print("Total number of sampled configurations per replica (accounting for Nreps simulations)= "+str(cg.tot_Nconfs_per_pt_rep_n5))
+        print("n8")
+        print("Delta t between snapshots = "+str(cg.delta_time_n8))
+        cg.Nconfs_per_pt_rep_n8 = int(cg.tot_time_n8/cg.delta_time_n8)-cg.in_snap
+        cg.tot_Nconfs_per_pt_rep_n8 = cg.Nreps*cg.Nconfs_per_pt_rep_n8
+        print("Number of sampled configurations per replica = "+str(cg.Nconfs_per_pt_rep_n8))
+        print("Total number of sampled configurations per replica (accounting for Nreps simulations)= "+str(cg.tot_Nconfs_per_pt_rep_n8))
+        print("n15")
+        print("Delta t between snapshots = "+str(cg.delta_time_n15))
+        cg.Nconfs_per_pt_rep_n15 = int(cg.tot_time_n15/cg.delta_time_n15)-cg.in_snap
+        cg.tot_Nconfs_per_pt_rep_n15 = cg.Nreps*cg.Nconfs_per_pt_rep_n15
+        print("Number of sampled configurations per replica = "+str(cg.Nconfs_per_pt_rep_n15))
+        print("Total number of sampled configurations per replica (accounting for Nreps simulations)= "+str(cg.tot_Nconfs_per_pt_rep_n15))
     else :
         print("MANDATORY. Delta t between snapshots")
         print("Usage:")
-        print("DELTA_TIME snap_time")
+        print("DELTA_TIME nx snap_time")
         return False
 
     if checklist[16] == 1:
-        print("Delta t between printing energy = "+str(cg.delta_print_en))
+        print("Delta t between printing energy n5 = "+str(cg.delta_print_en_n5))
+        print("Delta t between printing energy n8 = "+str(cg.delta_print_en_n8))
+        print("Delta t between printing energy n15 = "+str(cg.delta_print_en_n15))
     else :
         print("MANDATORY. Delta t between printing energy")
         print("Usage:")
-        print("DELTA_PRINT_EN en_print_time")
+        print("DELTA_PRINT_EN nx en_print_time")
         return False
 
     if checklist[17] == 1:
-        print("Delta t between printing split energy = "+str(cg.delta_print_en))
+        print("Delta t between printing split energy n5 = "+str(cg.delta_print_en_n5))
+        print("Delta t between printing split energy n8 = "+str(cg.delta_print_en_n8))
+        print("Delta t between printing split energy n15 = "+str(cg.delta_print_en_n15))
     else :
         print("MANDATORY. Delta t between printing split energy")
         print("Usage:")
-        print("DELTA_PRINT_SPLIT_EN split_en_print_time")
+        print("DELTA_PRINT_SPLIT_EN nx split_en_print_time")
         return False
 
 
@@ -1796,6 +1876,79 @@ def print_final_pfile(FOPARS,infile) :
                 print(line.strip(),file=ofile)
 
     ofile.close()
+
+#takes a list with the optimised parameters and the initial SD file, and produces the final SD dep file.
+def print_final_pfile_AllFromOpt(FOPARS,infile) :
+
+    ofile = open("oxDNA_sequence_dependent_parameters_fin_opt.txt",'w')
+
+    #CREATE TENSOR WITH FINAL VALUES OF ALL PARAMETERS
+    #we do that on the cpu and copy it to the cpu
+
+    CURR_PARS = torch.tensor(cfun.PAR0,device=cfun.device)
+    PARS_OPTI = torch.tensor(FOPARS,device=cfun.device)
+
+    CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
+    CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
+
+    FIN_PARS = torch.tensor(CURR_PARS,device='cpu')
+
+    #PARSE SD IN FILE UPDATE EVERYTHING
+
+    for line in infile.readlines() :
+        vals = line.strip().split()
+        if len(vals) == 0:
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0][0] == '#':
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0] == "STCK_FACT_EPS":
+            print(line.strip(),file=ofile)
+            continue
+
+        vals_cn = vals[0].split("_")
+
+        #4D parameters
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-4):
+                par_name+="_"+vals_cn[i]
+            index = PARS_LIST.index(par_name)
+
+            ty3 = base_to_id(vals_cn[len(vals_cn)-1])
+            ty2 = base_to_id(vals_cn[len(vals_cn)-2])
+            ty1 = base_to_id(vals_cn[len(vals_cn)-3])
+            ty0 = base_to_id(vals_cn[len(vals_cn)-4])
+
+            ty = ty0+ty1*5+ty2*25+ty3*125
+
+            print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+
+        #2D parameters
+        else:
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-2):
+                par_name+="_"+vals_cn[i]
+
+            if par_name == "STCK" or par_name == "HYDR":
+                par_name += "_EPS"
+
+            index = PARS_LIST.index(par_name)
+
+            ty2 = base_to_id(vals_cn[len(vals_cn)-1])
+            ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+
+            ty = ty1*5+ty2*25
+
+            print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+
+
+    ofile.close()
+
 
 
 ###################################################################################################

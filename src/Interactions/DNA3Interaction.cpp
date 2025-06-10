@@ -759,6 +759,7 @@ void DNA3Interaction::init() {
 						sprintf(key, "CRST_K_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55][k][i][j][l] = tmp_value;
 
+
 						//tetramer dependent
 						sprintf(key, "CRST_R0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33][i][j][k][l] = tmp_value;
@@ -808,11 +809,20 @@ void DNA3Interaction::init() {
             }
 		}
 
-    //Set parameters for ends (average of complete junctions)
+    //Set parameters for ends junctions
 
     for(int i = 0; i < 6; i++) {
         for(int j = 0; j < 4; j++) {
             for(int k = 0; k < 4; k++) {
+
+                    //For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
+
+                    F2_SD_K[CRST_F2_33][i][j][k][5] = F2_SD_K[CRST_F2_33][0][j][k][0];
+                    F2_SD_K[CRST_F2_33][5][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
+
+                    F2_SD_K[CRST_F2_55][i][j][k][5] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55][5][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
+
 
                     //fene
                     _fene_delta_SD[i][j][k][5] = get_average_par(_fene_delta_SD);
@@ -864,9 +874,10 @@ void DNA3Interaction::init() {
 
                     //f4
                     for(int m = 0; m < 21; m++) {
-                        if(m == 2 || m == 3 || m == 4 || m == 5) continue;
-                        if(m == 10 || m == 11 || m == 12) continue;
-                        if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
+                        //these ifs skip the parameters we haven't changed; saves a few operations, but it is a bit dangerous when developing the model.
+                        //if(m == 2 || m == 3 || m == 4 || m == 5) continue;
+                        //if(m == 10 || m == 11 || m == 12) continue;
+                        //if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
                         F4_SD_THETA_A[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_A);
                         F4_SD_THETA_T0[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_T0);
                         F4_SD_THETA_TS[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_TS);
@@ -1679,56 +1690,89 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
 	*/
 
-	int type_n3_2_33 = 5;
-	int type_n5_2_33 = 5;
+	int type_p_n3 = 5;
+	int type_q_n3 = 5;
 
-	if (q->n5 != P_VIRTUAL) type_n3_2_33 = q->n5->type;
-	if (p->n5 != P_VIRTUAL) type_n5_2_33 = p->n5->type;
+	if (p->n3 != P_VIRTUAL) type_p_n3 = p->n3->type;
+	if (q->n3 != P_VIRTUAL) type_q_n3 = q->n3->type;
 
 	//if (q->n5 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2_33 = type_n5_2_33;
 	//if (p->n5 == P_VIRTUAL && q->n5 != P_VIRTUAL) type_n5_2_33 = type_n3_2_33;
 
 
-	int type_n3_2_55 = 5;
-	int type_n5_2_55 = 5;
+	int type_p_n5 = 5;
+	int type_q_n5 = 5;
 
-	if (q->n3 != P_VIRTUAL) type_n3_2_55 = q->n3->type;
-	if (p->n3 != P_VIRTUAL) type_n5_2_55 = p->n3->type;
+	if (p->n5 != P_VIRTUAL) type_p_n5 = p->n5->type;
+	if (q->n5 != P_VIRTUAL) type_q_n5 = q->n5->type;
 
 	//if (q->n3 == P_VIRTUAL && p->n3 != P_VIRTUAL) type_n3_2_55 = type_n5_2_55;
 	//if (p->n3 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2_55 = type_n3_2_55;
 
-	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33]) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55]) ) {
+	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33][type_q_n3][q->type][p->type][type_p_n3] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33][type_q_n3][q->type][p->type][type_p_n3]) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55][type_q_n5][q->type][p->type][type_p_n5] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55][type_q_n5][q->type][p->type][type_p_n5]) ) {
 
-		// angles involved in the CRST interaction
-		number cost1 = -a1 * b1;
-		number cost2 = -b1 * rcstackdir;
-		number cost3 = a1 * rcstackdir;
-		number cost4 = a3 * b3;
 
-		// functions called at their relevant arguments
-		// 3'3' diagonal
-		number f2_33 = _f2_SD(rcstackmod, CRST_F2_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		//std::cout << f2_33 << std::endl;
-		number f4t1_33 = _custom_f4_SD(cost1, CRST_F4_THETA1_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		number f4t2_33 = _custom_f4_SD(cost2, CRST_F4_THETA2_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		number f4t3_33 = _custom_f4_SD(cost3, CRST_F4_THETA3_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		number f4t4_33 = _custom_f4_SD(cost4, CRST_F4_THETA4_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		number f4t7_33 = _custom_f4_SD(cost7, CRST_F4_THETA7_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-		number f4t8_33 = _custom_f4_SD(cost8, CRST_F4_THETA8_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
+                // angles involved in the CRST interaction
+                number cost1 = -a1 * b1;
+                number cost2 = -b1 * rcstackdir;
+                number cost3 = a1 * rcstackdir;
+                number cost4 = a3 * b3;
 
-		//5'5' diagonal
-		number f2_55 = _f2_SD(rcstackmod, CRST_F2_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		//std::cout << f2_55 << std::endl;
-		number f4t1_55 = _custom_f4_SD(cost1, CRST_F4_THETA1_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		number f4t2_55 = _custom_f4_SD(cost2, CRST_F4_THETA2_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		number f4t3_55 = _custom_f4_SD(cost3, CRST_F4_THETA3_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		number f4t4_55 = _custom_f4_SD(cost4, CRST_F4_THETA4_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		number f4t7_55 = _custom_f4_SD(cost7, CRST_F4_THETA7_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-		number f4t8_55 = _custom_f4_SD(cost8, CRST_F4_THETA8_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
+                // functions called at their relevant arguments
+                // 3'3' diagonal
+                number f2_33 = _f2_SD(rcstackmod, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
+                //std::cout << f2_33 << std::endl;
+                number f4t1_33 = _custom_f4_SD(cost1, CRST_F4_THETA1_33, type_q_n3, q->type, p->type, type_p_n3);
+                number f4t2_33 = _custom_f4_SD(cost2, CRST_F4_THETA2_33, type_q_n3, q->type, p->type, type_p_n3);
+                number f4t3_33 = _custom_f4_SD(cost3, CRST_F4_THETA3_33, type_q_n3, q->type, p->type, type_p_n3);
+                number f4t4_33 = _custom_f4_SD(cost4, CRST_F4_THETA4_33, type_q_n3, q->type, p->type, type_p_n3);
+                number f4t7_33 = _custom_f4_SD(cost7, CRST_F4_THETA7_33, type_q_n3, q->type, p->type, type_p_n3);
+                number f4t8_33 = _custom_f4_SD(cost8, CRST_F4_THETA8_33, type_q_n3, q->type, p->type, type_p_n3);
+
+                //5'5' diagonal
+                number f2_55 = _f2_SD(rcstackmod, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
+                //std::cout << f2_55 << std::endl;
+                number f4t1_55 = _custom_f4_SD(cost1, CRST_F4_THETA1_55, type_q_n5, q->type, p->type, type_p_n5);
+                number f4t2_55 = _custom_f4_SD(cost2, CRST_F4_THETA2_55, type_q_n5, q->type, p->type, type_p_n5);
+                number f4t3_55 = _custom_f4_SD(cost3, CRST_F4_THETA3_55, type_q_n5, q->type, p->type, type_p_n5);
+                number f4t4_55 = _custom_f4_SD(cost4, CRST_F4_THETA4_55, type_q_n5, q->type, p->type, type_p_n5);
+                number f4t7_55 = _custom_f4_SD(cost7, CRST_F4_THETA7_55, type_q_n5, q->type, p->type, type_p_n5);
+                number f4t8_55 = _custom_f4_SD(cost8, CRST_F4_THETA8_55, type_q_n5, q->type, p->type, type_p_n5);
+
+
+
+/*
+int type_p_33 = type_p_n3;
+int type_q_33 = type_q_n3;
+int type_p_55 = type_p_n5;
+int type_q_55 = type_q_n5;
+
+
+printf("33 %d %d %d %d %d %d  %le %le %le %le %le %le %le   %le\n", p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, f2_33, f4t1_33, f4t2_33 , f4t3_33 , f4t4_33 , f4t7_33 , f4t8_33, f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33);
+
+printf("55 %d %d %d %d %d %d  %le %le %le %le %le %le %le   %le\n", p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, f2_55, f4t1_55, f4t2_55 , f4t3_55 , f4t4_55 , f4t7_55 , f4t8_55, f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55);
+
+
+printf("33 %d %d %le  %le   %le %le %le %le %le  %le %le \n",p->get_index(), q->get_index(), F2_SD_K[CRST_F2_33][type_q_33][q->type][p->type][type_p_33], F2_SD_R0[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RC[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_BLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],
+F2_SD_BHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RCLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RCHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33]);
+
+printf("55 %d %d %le  %le   %le %le %le %le %le  %le %le \n",p->get_index(), q->get_index() , F2_SD_K[CRST_F2_55][type_q_55][q->type][p->type][type_p_55], F2_SD_R0[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RC[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_BLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],
+F2_SD_BHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RCLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RCHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55]);
+//printf("33 %d %d   %d %d %d %d  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, cost4 , F4_SD_THETA_A[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33], F4_SD_THETA_T0[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TS[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_B[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TC[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33], f4t4_33); 
+
+//printf("55 %d %d   %d %d %d %d  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), type_q_55, q->type, p->type, type_p_55, cost4 , F4_SD_THETA_A[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55], F4_SD_THETA_T0[CRST_F4_THETA4_55][type_p_55][q->type][p->type][type_p_55],F4_SD_THETA_TS[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_B[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TC[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55], f4t4_55); 
+
+
+
+//printf("33 %d %d %le  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), cost7, cost8 , F4_SD_THETA_A[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33], F4_SD_THETA_T0[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TS[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_B[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TC[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33], f4t8_33);
+
+//printf("55 %d %d  %le %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), cost7, cost8 , F4_SD_THETA_A[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55], F4_SD_THETA_T0[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TS[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_B[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TC[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55], f4t8_55);
+
+*/
 
 		energy = f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33
 			+ f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55;
+
 
 		// makes sense since the above functions can return exactly 0
 		if(update_forces && energy != (number) 0.f) {
@@ -1736,24 +1780,26 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 			LR_vector torquep(0, 0, 0);
 			LR_vector torqueq(0, 0, 0);
 
-			// derivatives called at the relevant arguments
-			number f2D_33 = _f2D_SD(rcstackmod, CRST_F2_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			//std::cout << f2D_33 << std::endl;
-			number f4t1Dsin_33 = _custom_f4D_SD(cost1, CRST_F4_THETA1_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			number f4t2Dsin_33 = _custom_f4D_SD(cost2, CRST_F4_THETA2_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			number f4t3Dsin_33 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			number f4t4Dsin_33 = -_custom_f4D_SD(cost4, CRST_F4_THETA4_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			number f4t7Dsin_33 = _custom_f4D_SD(cost7, CRST_F4_THETA7_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
-			number f4t8Dsin_33 = -_custom_f4D_SD(cost8, CRST_F4_THETA8_33, type_n3_2_33, q->type, p->type, type_n5_2_33);
 
-			number f2D_55 = _f2D_SD(rcstackmod, CRST_F2_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			//std::cout << f2D_55 << std::endl;
-			number f4t1Dsin_55 = _custom_f4D_SD(cost1, CRST_F4_THETA1_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			number f4t2Dsin_55 = _custom_f4D_SD(cost2, CRST_F4_THETA2_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			number f4t3Dsin_55 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			number f4t4Dsin_55 = -_custom_f4D_SD(cost4, CRST_F4_THETA4_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			number f4t7Dsin_55 = _custom_f4D_SD(cost7, CRST_F4_THETA7_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
-			number f4t8Dsin_55 = -_custom_f4D_SD(cost8, CRST_F4_THETA8_55, type_n3_2_55, q->type, p->type, type_n5_2_55);
+                        // derivatives called at the relevant arguments
+                        number f2D_33 = _f2D_SD(rcstackmod, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
+                        //std::cout << f2D_33 << std::endl;
+                        number f4t1Dsin_33 = _custom_f4D_SD(cost1, CRST_F4_THETA1_33, type_q_n3, q->type, p->type, type_p_n3);
+                        number f4t2Dsin_33 = _custom_f4D_SD(cost2, CRST_F4_THETA2_33, type_q_n3, q->type, p->type, type_p_n3);
+                        number f4t3Dsin_33 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_33, type_q_n3, q->type, p->type, type_p_n3);
+                        number f4t4Dsin_33 = -_custom_f4D_SD(cost4, CRST_F4_THETA4_33, type_q_n3, q->type, p->type, type_p_n3);
+                        number f4t7Dsin_33 = _custom_f4D_SD(cost7, CRST_F4_THETA7_33, type_q_n3, q->type, p->type, type_p_n3);
+                        number f4t8Dsin_33 = -_custom_f4D_SD(cost8, CRST_F4_THETA8_33, type_q_n3, q->type, p->type, type_p_n3);
+
+                        number f2D_55 = _f2D_SD(rcstackmod, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
+                        //std::cout << f2D_55 << std::endl;
+                        number f4t1Dsin_55 = _custom_f4D_SD(cost1, CRST_F4_THETA1_55, type_q_n5, q->type, p->type, type_p_n5);
+                        number f4t2Dsin_55 = _custom_f4D_SD(cost2, CRST_F4_THETA2_55, type_q_n5, q->type, p->type, type_p_n5);
+                        number f4t3Dsin_55 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_55, type_q_n5, q->type, p->type, type_p_n5);
+                        number f4t4Dsin_55 = -_custom_f4D_SD(cost4, CRST_F4_THETA4_55, type_q_n5, q->type, p->type, type_p_n5);
+                        number f4t7Dsin_55 = _custom_f4D_SD(cost7, CRST_F4_THETA7_55, type_q_n5, q->type, p->type, type_p_n5);
+                        number f4t8Dsin_55 = -_custom_f4D_SD(cost8, CRST_F4_THETA8_55, type_q_n5, q->type, p->type, type_p_n5);
+
 
 			// RADIAL PART
 			force = -rcstackdir * ((f2D_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33)

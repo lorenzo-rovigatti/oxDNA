@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jul 31 12:04:54 2024
@@ -71,22 +70,6 @@ OXPS_zero, shifts = fun.init_oxpars(pars_from_modelh, vals_from_modelh, over_ind
 if fun.read_config(config_file) == False :
     sys.exit()
 
-
-#this allows to remove any weird sequence from the cost function
-for n in range(cg.Nseq_n5):
-    cg.good_n5.append(True)
-
-for n in range(cg.Nseq_n8):
-    cg.good_n8.append(True)
-
-for n in range(cg.Nseq_n15):
-    cg.good_n15.append(True)
-
-cg.good_n5[3] = False
-
-cg.good_n8[0] = False
-cg.good_n8[2] = False
-
 cfun.convert_Ts_to_ox_units()
 
 print("Converting temepratures to oxdna units")
@@ -129,20 +112,50 @@ print_memory_usage()
 ############## READ TRAJECTORY, COMPUTE OXDNA COORDINATES (i.e angles and distances) AND INTERNAL COORDINATES ###########
 #########################################################################################################################
 
-nevery_en = int(cg.delta_time/cg.delta_print_en)
-nevery_split = int(cg.delta_time/cg.delta_split_en)
+nevery_en_n5 = int(cg.delta_time_n5/cg.delta_print_en_n5)
+nevery_split_n5 = int(cg.delta_time_n5/cg.delta_split_en_n5)
+nevery_en_n8 = int(cg.delta_time_n8/cg.delta_print_en_n8)
+nevery_split_n8 = int(cg.delta_time_n8/cg.delta_split_en_n8)
+nevery_en_n15 = int(cg.delta_time_n15/cg.delta_print_en_n15)
+nevery_split_n15 = int(cg.delta_time_n15/cg.delta_split_en_n15)
 
-if nevery_en == 0 or nevery_split == 0:
-    if nevery_en == 0:
-        print("Energy was printed less frequently than snapshots were sampled.")
-        print("Cannot read order parameter value for all snapshots")
+if nevery_en_n5 == 0 or nevery_split_n5 == 0:
+    if nevery_en_n5 == 0:
+        print("Energy was printed less frequently than snapshots were sampled (n5).")
+        print("Cannot read order parameter value for all snapshots (n5)")
         print("Aborting.")
-    if nevery_split == 0:
-        print("Split_energy was printed less frequently than snapshots were sampled.")
-        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots")
+    if nevery_split_n5 == 0:
+        print("Split_energy was printed less frequently than snapshots were sampled (n5).")
+        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots (n5)")
         print("Aborting.")
 
     exit(1)
+
+if nevery_en_n8 == 0 or nevery_split_n8 == 0:
+    if nevery_en_n8 == 0:
+        print("Energy was printed less frequently than snapshots were sampled (n8).")
+        print("Cannot read order parameter value for all snapshots (n8)")
+        print("Aborting.")
+    if nevery_split_n8 == 0:
+        print("Split_energy was printed less frequently than snapshots were sampled (n8).")
+        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots (n8)")
+        print("Aborting.")
+
+    exit(1)
+
+if nevery_en_n15 == 0 or nevery_split_n15 == 0:
+    if nevery_en_n15 == 0:
+        print("Energy was printed less frequently than snapshots were sampled (n15).")
+        print("Cannot read order parameter value for all snapshots (n15)")
+        print("Aborting.")
+    if nevery_split_n15 == 0:
+        print("Split_energy was printed less frequently than snapshots were sampled (n15).")
+        print("Cannot read constant energy terms (e.g. coaxial) for all snapshots (n15)")
+        print("Aborting.")
+
+    exit(1)
+
+
 
 #################
 ### nbps = 5 ####
@@ -184,12 +197,12 @@ for l in range(cg.Nseq_n5):
 
             nline = 0
             for line in split_en_file.readlines():
-                if nline % nevery_split == 0:
-                    if nline / nevery_split <= cg.in_snap :
+                if nline % nevery_split_n5 == 0:
+                    if nline / nevery_split_n5 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n5 != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
                     off = float(vals[2]) + float(vals[4]) + float(vals[7])
                     if cg.debye_huckel == False: off += float(vals[8])  #excl (2,4) + coaxial (7) + Debye (8)
@@ -199,12 +212,12 @@ for l in range(cg.Nseq_n5):
 
             nline = 0
             for line in en_file.readlines():
-                if nline % nevery_en == 0:
-                    if nline / nevery_en <= cg.in_snap :
+                if nline % nevery_en_n5 == 0:
+                    if nline / nevery_en_n5 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n5 != 0 :
                         print("Something weird when reading hbs_sampled. Snap time is off")
                     hbs_s_1.append(int(vals[5]))  #hbs
                     #print(vals[0],vals[5])
@@ -434,12 +447,12 @@ for l in range(cg.Nseq_n8):
 
             nline = 0
             for line in split_en_file.readlines():
-                if nline % nevery_split == 0:
-                    if nline / nevery_split <= cg.in_snap :
+                if nline % nevery_split_n8 == 0:
+                    if nline / nevery_split_n8 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n8 != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
                     off = float(vals[2]) + float(vals[4]) + float(vals[7])
                     if cg.debye_huckel == False: off += float(vals[8])  #excl + coaxial + Debye
@@ -449,12 +462,12 @@ for l in range(cg.Nseq_n8):
 
             nline = 0
             for line in en_file.readlines():
-                if nline % nevery_en == 0:
-                    if nline / nevery_en <= cg.in_snap :
+                if nline % nevery_en_n8 == 0:
+                    if nline / nevery_en_n8 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n8 != 0 :
                         print("Something weird when reading hbs_sampled. Snap time is off")
                     hbs_s_1.append(int(vals[5]))  #hbs
                     #print(vals[0],vals[5])
@@ -653,12 +666,12 @@ for l in range(cg.Nseq_n15):
 
             nline = 0
             for line in split_en_file.readlines():
-                if nline % nevery_split == 0:
-                    if nline / nevery_split <= cg.in_snap :
+                if nline % nevery_split_n15 == 0:
+                    if nline / nevery_split_n15 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n15 != 0 :
                         print("Something weird when reading en_offset. Snap time is off")
                     off = float(vals[2]) + float(vals[4]) + float(vals[7])
                     if cg.debye_huckel == False: off += float(vals[8])  #excl + coaxial + Debye
@@ -668,12 +681,12 @@ for l in range(cg.Nseq_n15):
 
             nline = 0
             for line in en_file.readlines():
-                if nline % nevery_en == 0:
-                    if nline / nevery_en <= cg.in_snap :
+                if nline % nevery_en_n15 == 0:
+                    if nline / nevery_en_n15 <= cg.in_snap :
                         nline += 1
                         continue
                     vals = line.strip().split()
-                    if int(vals[0]) % cg.delta_time != 0 :
+                    if int(vals[0]) % cg.delta_time_n15 != 0 :
                         print("Something weird when reading hbs_sampled. Snap time is off")
                     hbs_s_1.append(int(vals[5]))  #hbs
                     #print(vals[0],vals[5])
@@ -1016,6 +1029,7 @@ def Callback(sol):
 
     if cg.Nseq_n5 > 0:
         print("mTs n5 at iteration "+str(cg.Niter)+":")
+        print(cg.good_n5)
         print(cfun.current_mT_n5)
 
         print("Target mTs n5:")
@@ -1023,6 +1037,7 @@ def Callback(sol):
 
     if cg.Nseq_n8 > 0:
         print("mTs n8 at iteration "+str(cg.Niter)+":")
+        print(cg.good_n8)
         print(cfun.current_mT_n8)
 
         print("Target mTs n8:")
@@ -1030,6 +1045,7 @@ def Callback(sol):
 
     if cg.Nseq_n15 > 0:
         print("mTs n15 at iteration "+str(cg.Niter)+":")
+        print(cg.good_n15)
         print(cfun.current_mT_n15)
 
         print("Target mTs n15:")
@@ -1068,7 +1084,9 @@ timefile.close()
 #printing final SD file
 in_SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
 fun.print_final_pfile(sol.x,in_SD_par_file)
-#fun.print_final_pfile(OPTI_PAR,in_SD_par_file)
+in_SD_par_file.close()
+in_SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
+fun.print_final_pfile_AllFromOpt(sol.x,in_SD_par_file)
 in_SD_par_file.close()
 
 print("DONE")
