@@ -3,22 +3,26 @@
 
 #include "DNA2Interaction.h"
 
+#define DIM_A 6
+#define DIM_B 5
+#define DIM_C 5
+#define DIM_D 6
 
 class DNA3Interaction: public DNA2Interaction {
 
 protected:
 
 	/// here we store the r0, which is different in oxDNA and oxDNA2, and is set in the constructor
-	number _fene_r0_SD[6][5][5][6];
-	number _fene_delta_SD[6][5][5][6];
-	number _fene_delta2_SD[6][5][5][6];
-	number _mbf_xmax_SD[6][5][5][6];
+	number _fene_r0_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+	number _fene_delta_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+	number _fene_delta2_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+	number _mbf_xmax_SD[DIM_A][DIM_B][DIM_C][DIM_D];
     number _fene_eps;
 
-    number _rcut_SD[6][5][5][6];
-	number _sqr_rcut_SD[6][5][5][6];
+    number _rcut_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+	number _sqr_rcut_SD[DIM_A][DIM_B][DIM_C][DIM_D];
 
-	Mesh _mesh_f4_SD[21][6][5][5][6];
+	Mesh _mesh_f4_SD[21][DIM_A][DIM_B][DIM_C][DIM_D];
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -57,52 +61,52 @@ public:
 	virtual void init();
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	number F1_SD_A[2][6][5][5][6];
-	number F1_SD_RC[2][6][5][5][6];
-	number F1_SD_R0[2][6][5][5][6];
-	number F1_SD_BLOW[2][6][5][5][6];
-	number F1_SD_BHIGH[2][6][5][5][6];
-	number F1_SD_RLOW[2][6][5][5][6];
-	number F1_SD_RHIGH[2][6][5][5][6];
-	number F1_SD_RCLOW[2][6][5][5][6];
-	number F1_SD_RCHIGH[2][6][5][5][6];
-	number F1_SD_SHIFT[2][6][5][5][6];
+	number F1_SD_A[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_RC[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_R0[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_BLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_BHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_RLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_RHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_RCLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_RCHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F1_SD_SHIFT[2][DIM_A][DIM_B][DIM_C][DIM_D];
 
-	number F2_SD_K[4][6][5][5][6];
-	number F2_SD_RC[4][6][5][5][6];
-	number F2_SD_R0[4][6][5][5][6];
-	number F2_SD_BLOW[4][6][5][5][6];
-	number F2_SD_RLOW[4][6][5][5][6];
-	number F2_SD_RCLOW[4][6][5][5][6];
-	number F2_SD_BHIGH[4][6][5][5][6];
-	number F2_SD_RCHIGH[4][6][5][5][6];
-	number F2_SD_RHIGH[4][6][5][5][6];
+	number F2_SD_K[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_RC[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_R0[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_BLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_RLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_RCLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_BHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_RCHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F2_SD_RHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
 
-	number F4_SD_THETA_A[21][6][5][5][6];
-	number F4_SD_THETA_B[21][6][5][5][6];
-	number F4_SD_THETA_T0[21][6][5][5][6];
-	number F4_SD_THETA_TS[21][6][5][5][6];
-	number F4_SD_THETA_TC[21][6][5][5][6];
+	number F4_SD_THETA_A[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F4_SD_THETA_B[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F4_SD_THETA_T0[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F4_SD_THETA_TS[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F4_SD_THETA_TC[21][DIM_A][DIM_B][DIM_C][DIM_D];
 
 
-	number F5_SD_PHI_A[4][6][5][5][6];
-	number F5_SD_PHI_B[4][6][5][5][6];
-	number F5_SD_PHI_XC[4][6][5][5][6];
-	number F5_SD_PHI_XS[4][6][5][5][6];
+	number F5_SD_PHI_A[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F5_SD_PHI_B[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F5_SD_PHI_XC[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	number F5_SD_PHI_XS[4][DIM_A][DIM_B][DIM_C][DIM_D];
 
-    number _excl_s[7][6][5][5][6];
-	number _excl_r[7][6][5][5][6];
-	number _excl_b[7][6][5][5][6];
-	number _excl_rc[7][6][5][5][6];
+    number _excl_s[7][DIM_A][DIM_B][DIM_C][DIM_D];
+	number _excl_r[7][DIM_A][DIM_B][DIM_C][DIM_D];
+	number _excl_b[7][DIM_A][DIM_B][DIM_C][DIM_D];
+	number _excl_rc[7][DIM_A][DIM_B][DIM_C][DIM_D];
 
-	number MESH_F4_SD_POINTS[21][6][5][5][6];
+	number MESH_F4_SD_POINTS[21][DIM_A][DIM_B][DIM_C][DIM_D];
 
     number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD[ty1][ty2][ty3][ty4]; }
     number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD[ty1][ty2][ty3][ty4]; }
     number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD[ty1][ty2][ty3][ty4]; }
 
-    number get_average_par(number par[6][5][5][6]);
-    number get_average_par(int m, number par[][6][5][5][6]);
+    number get_average_par(number par[DIM_A][DIM_B][DIM_C][DIM_D]);
+    number get_average_par(int m, number par[][DIM_A][DIM_B][DIM_C][DIM_D]);
 
     ~DNA3Interaction();
 };

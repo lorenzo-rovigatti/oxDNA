@@ -9,17 +9,16 @@
 DNA3Interaction::DNA3Interaction() :
                                 DNA2Interaction() {
         std::cout << "\n \n \n  using DNA3Interaction \n \n \n" ;
-        //std::cout << "Ciao!" << std::endl;
         _grooving = 2;
 
         _fene_eps = FENE_EPS;
 
-        //initaialise all sequence dependent parameters with their average value.
+        //initialise all sequence dependent parameters with their average value.
         //these values are overwritten with the sequence dependent values in init().
-        for(int i = 0; i < 6; i++) {
-      	  for(int j = 0; j < 5; j++) {
-			for(int k = 0; k < 5; k++) {
-				for(int l = 0; l < 6; l++)  {
+        for(int i = 0; i < DIM_A; i++) {
+      	  for(int j = 0; j < DIM_B; j++) {
+			for(int k = 0; k < DIM_C; k++) {
+				for(int l = 0; l < DIM_D; l++)  {
 
 					_fene_r0_SD[i][j][k][l] = FENE_R0_OXDNA2;
 					_fene_delta_SD[i][j][k][l] = FENE_DELTA;
@@ -340,7 +339,7 @@ DNA3Interaction::DNA3Interaction() :
 }
 
 
-number DNA3Interaction::get_average_par(number par[6][5][5][6]) {
+number DNA3Interaction::get_average_par(number par[DIM_A][DIM_B][DIM_C][DIM_D]) {
     number average = 0.;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -354,7 +353,7 @@ number DNA3Interaction::get_average_par(number par[6][5][5][6]) {
     return average;
 }
 
-number DNA3Interaction::get_average_par(int m, number par[][6][5][5][6]) {
+number DNA3Interaction::get_average_par(int m, number par[][DIM_A][DIM_B][DIM_C][DIM_D]) {
     number average = 0.;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
@@ -399,10 +398,10 @@ void DNA3Interaction::init() {
 
 		//read independent parameters from SD file
 		//independent = not set by continuity and differentiability
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < 4; j++) {
-				for(int k = 0; k < 4; k++) {
-					for(int l = 0; l < 4; l++) {
+		for(int i = 0; i < DIM_A - 2; i++) {
+			for(int j = 0; j < DIM_B - 1; j++) {
+				for(int k = 0; k < DIM_C - 1; k++) {
+					for(int l = 0; l < DIM_D - 2; l++) {
 
 						//EXCLUDED VOLUME
 
@@ -811,64 +810,64 @@ void DNA3Interaction::init() {
 
     //Set parameters for ends junctions
 
-    for(int i = 0; i < 6; i++) {
-        for(int j = 0; j < 4; j++) {
-            for(int k = 0; k < 4; k++) {
+    for(int i = 0; i < DIM_A; i++) {
+        for(int j = 0; j < DIM_B - 1; j++) {
+            for(int k = 0; k < DIM_C - 1; k++) {
 
                     //For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
-                    F2_SD_K[CRST_F2_33][i][j][k][5] = F2_SD_K[CRST_F2_33][0][j][k][0];
-                    F2_SD_K[CRST_F2_33][5][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
+                    F2_SD_K[CRST_F2_33][i][j][k][DIM_D - 1] = F2_SD_K[CRST_F2_33][0][j][k][0];
+                    F2_SD_K[CRST_F2_33][DIM_A - 1][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
 
-                    F2_SD_K[CRST_F2_55][i][j][k][5] = F2_SD_K[CRST_F2_55][0][j][k][0];
-                    F2_SD_K[CRST_F2_55][5][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55][i][j][k][DIM_D - 1] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55][DIM_A - 1][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
 
 
                     //fene
-                    _fene_delta_SD[i][j][k][5] = get_average_par(_fene_delta_SD);
+                    _fene_delta_SD[i][j][k][DIM_D - 1] = get_average_par(_fene_delta_SD);
                     //if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
-                    _fene_delta_SD[5][j][k][i] = get_average_par(_fene_delta_SD);
-                    _fene_r0_SD[i][j][k][5] = get_average_par(_fene_r0_SD);
+                    _fene_delta_SD[DIM_A - 1][j][k][i] = get_average_par(_fene_delta_SD);
+                    _fene_r0_SD[i][j][k][DIM_D - 1] = get_average_par(_fene_r0_SD);
                     //if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
-                    _fene_r0_SD[5][j][k][i] = get_average_par(_fene_r0_SD);
+                    _fene_r0_SD[DIM_A - 1][j][k][i] = get_average_par(_fene_r0_SD);
 
                     //f1
                     for(int m = 0; m < 2; m++) {
-                        F1_SD_A[m][i][j][k][5] = get_average_par(m,F1_SD_A);
-                        F1_SD_R0[m][i][j][k][5] = get_average_par(m,F1_SD_R0);
-                        F1_SD_RC[m][i][j][k][5] = get_average_par(m,F1_SD_RC);
-                        F1_SD_RLOW[m][i][j][k][5] = get_average_par(m,F1_SD_RLOW);
-                        F1_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F1_SD_RHIGH);
+                        F1_SD_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_A);
+                        F1_SD_R0[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_R0);
+                        F1_SD_RC[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RC);
+                        F1_SD_RLOW[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RLOW);
+                        F1_SD_RHIGH[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RHIGH);
 
-                        F1_SD_A[m][5][j][k][i] = get_average_par(m,F1_SD_A);
-                        F1_SD_R0[m][5][j][k][i] = get_average_par(m,F1_SD_R0);
-                        F1_SD_RC[m][5][j][k][i] = get_average_par(m,F1_SD_RC);
-                        F1_SD_RLOW[m][5][j][k][i] = get_average_par(m,F1_SD_RLOW);
-                        F1_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F1_SD_RHIGH);
+                        F1_SD_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_A);
+                        F1_SD_R0[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_R0);
+                        F1_SD_RC[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RC);
+                        F1_SD_RLOW[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RLOW);
+                        F1_SD_RHIGH[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RHIGH);
                     }
 
 
                     //f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m][i][j][k][5] = get_average_par(m,F2_SD_R0);
-                        F2_SD_RC[m][i][j][k][5] = get_average_par(m,F2_SD_RC);
-                        F2_SD_RLOW[m][i][j][k][5] = get_average_par(m,F2_SD_RLOW);
-                        F2_SD_RHIGH[m][i][j][k][5] = get_average_par(m,F2_SD_RHIGH);
+                        F2_SD_R0[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_R0);
+                        F2_SD_RC[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RC);
+                        F2_SD_RLOW[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RLOW);
+                        F2_SD_RHIGH[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RHIGH);
 
-                        F2_SD_R0[m][5][j][k][i] = get_average_par(m,F2_SD_R0);
-                        F2_SD_RC[m][5][j][k][i] = get_average_par(m,F2_SD_RC);
-                        F2_SD_RLOW[m][5][j][k][i] = get_average_par(m,F2_SD_RLOW);
-                        F2_SD_RHIGH[m][5][j][k][i] = get_average_par(m,F2_SD_RHIGH);
+                        F2_SD_R0[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_R0);
+                        F2_SD_RC[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RC);
+                        F2_SD_RLOW[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RLOW);
+                        F2_SD_RHIGH[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RHIGH);
                     }
 
 
                     //f3
                     for(int m = 0; m < 7; m++) {
-                        _excl_s[m][i][j][k][5] = get_average_par(m, _excl_s);
-                        _excl_r[m][i][j][k][5] = get_average_par(m, _excl_r);
+                        _excl_s[m][i][j][k][DIM_D - 1] = get_average_par(m, _excl_s);
+                        _excl_r[m][i][j][k][DIM_D - 1] = get_average_par(m, _excl_r);
 
-                        _excl_s[m][5][j][k][i] = get_average_par(m, _excl_s);
-                        _excl_r[m][5][j][k][i] = get_average_par(m, _excl_r);
+                        _excl_s[m][DIM_A - 1][j][k][i] = get_average_par(m, _excl_s);
+                        _excl_r[m][DIM_A - 1][j][k][i] = get_average_par(m, _excl_r);
                     }
 
 
@@ -878,22 +877,22 @@ void DNA3Interaction::init() {
                         //if(m == 2 || m == 3 || m == 4 || m == 5) continue;
                         //if(m == 10 || m == 11 || m == 12) continue;
                         //if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
-                        F4_SD_THETA_A[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_A);
-                        F4_SD_THETA_T0[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_T0);
-                        F4_SD_THETA_TS[m][i][j][k][5] = get_average_par(m,F4_SD_THETA_TS);
+                        F4_SD_THETA_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_A);
+                        F4_SD_THETA_T0[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_T0);
+                        F4_SD_THETA_TS[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_TS);
 
-                        F4_SD_THETA_A[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_A);
-                        F4_SD_THETA_T0[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_T0);
-                        F4_SD_THETA_TS[m][5][j][k][i] = get_average_par(m,F4_SD_THETA_TS);
+                        F4_SD_THETA_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_A);
+                        F4_SD_THETA_T0[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_T0);
+                        F4_SD_THETA_TS[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_TS);
 
                     }
                     //f5
                     for(int m = 0; m < 4; m++) {
-                        F5_SD_PHI_A[m][i][j][k][5] = get_average_par(m,F5_SD_PHI_A);
-                        F5_SD_PHI_XS[m][i][j][k][5] = get_average_par(m,F5_SD_PHI_XS);
+                        F5_SD_PHI_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F5_SD_PHI_A);
+                        F5_SD_PHI_XS[m][i][j][k][DIM_D - 1] = get_average_par(m,F5_SD_PHI_XS);
 
-                        F5_SD_PHI_A[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_A);
-                        F5_SD_PHI_XS[m][5][j][k][i] = get_average_par(m,F5_SD_PHI_XS);
+                        F5_SD_PHI_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F5_SD_PHI_A);
+                        F5_SD_PHI_XS[m][DIM_A - 1][j][k][i] = get_average_par(m,F5_SD_PHI_XS);
 
                   }
                 }
@@ -902,10 +901,10 @@ void DNA3Interaction::init() {
 
 		//Set enslaved parameters
 		//Enslaved = set by continuity and differentiability
-		for(int i = 0; i < 6; i++) {
-			for(int j = 0; j < 4; j++) {
-				for(int k = 0; k < 4; k++) {
-					for(int l = 0; l < 6; l++) {
+		for(int i = 0; i < DIM_A; i++) {
+			for(int j = 0; j < DIM_B - 1; j++) {
+				for(int k = 0; k < DIM_C - 1; k++) {
+					for(int l = 0; l < DIM_D; l++) {
 
 						//delta2
 						_fene_delta2_SD[i][j][k][l] = SQR(_fene_delta_SD[i][j][k][l]);
@@ -972,10 +971,10 @@ void DNA3Interaction::init() {
 
 		if(_use_mbf) {
 
-			for(int i = 0; i < 6; i++) {
-				for(int j = 0; j < 5; j++) {
-					for(int k = 0; k < 5; k++) {
-						for(int l = 0; l < 6; l++) {
+			for(int i = 0; i < DIM_A; i++) {
+				for(int j = 0; j < DIM_B; j++) {
+					for(int k = 0; k < DIM_C; k++) {
+						for(int l = 0; l < DIM_D; l++) {
 							_mbf_xmax_SD[i][j][k][l] = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD[i][j][k][l])) / (2.f * _mbf_fmax);
 							// if we use mbf, we should tell the user
 							OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD[i][j][k][l]);
@@ -985,14 +984,11 @@ void DNA3Interaction::init() {
 			}
 		}
 
-
-
-
 		//We don't have to change this, since we are not toching the unbonded excluded volume.
 		//Fixing rcut (cut distance for nonbonded interaction computation)
 		//We loop through all bases combinations, and pick the largest cutoff distance possible.
 		//Can be made more efficient if we define an SD version and use the right rcut depending on the types of interacting particles,
-//But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would  we gain?).
+		//But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would  we gain?).
         number rcutbase;
         number rcutback;
         number rcutbase_max = 0.;
@@ -1001,20 +997,20 @@ void DNA3Interaction::init() {
         number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
         number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
         for(int i = 0; i < 6; i++) {
-                for(int j = 0; j < 4; j++) {
-                        for(int k = 0; k < 4; k++) {
-                                for(int l = 0; l < 6; l++) {
-                                        for(int m = 0; m < 4; m++) {
-                                                for(int n = 0; n < 4; n++) {
-                                                    rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0][i][j][k][l];
-                                                    if(rcutback > rcutback_max) rcutback_max = rcutback;
-                                                    rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0][i][j][k][k];
-                                                    if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
-                                                }
-                                        }
-                                }
-                        }
-                }
+			for(int j = 0; j < 4; j++) {
+				for(int k = 0; k < 4; k++) {
+					for(int l = 0; l < 6; l++) {
+						for(int m = 0; m < 4; m++) {
+							for(int n = 0; n < 4; n++) {
+								rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0][i][j][k][l];
+								if(rcutback > rcutback_max) rcutback_max = rcutback;
+								rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0][i][j][k][k]; // CHECK INDEXES
+								if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
+							}
+						}
+					}
+				}
+			}
         }
 
 		//std::cout << "rcut0: " << _rcut  << std::endl;
@@ -1055,19 +1051,16 @@ void DNA3Interaction::init() {
 			// the order of the interpolation interval extremes is reversed,
 			// due to the cosine being monotonically decreasing with increasing
 			// x
-			for(int j = 0; j < 6; j++) {
-				for(int z = 0; z < 5; z++) {
-					for(int k = 0; k < 5; k++) {
-						for(int l = 0; l < 6; l++) {
+			for(int j = 0; j < DIM_A; j++) {
+				for(int z = 0; z < DIM_B; z++) {
+					for(int k = 0; k < DIM_C; k++) {
+						for(int l = 0; l < DIM_D; l++) {
 
-							//std::cout << i << " " << j << " " << z << std::endl;
 							int points = MESH_F4_SD_POINTS[i][j][z][k][l];
 							number upplimit = cos(fmax(0, F4_SD_THETA_T0[i][j][z][k][l] - F4_SD_THETA_TC[i][j][z][k][l]));
 							number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[i][j][z][k][l] + F4_SD_THETA_TC[i][j][z][k][l]));
 
-							int tmp_args[5];
-							tmp_args[0] = i;  tmp_args[1] = j; tmp_args[2] = z; tmp_args[3] = k; tmp_args[4] = l;
-							//std::cout << "We are here!" << std::endl;
+							int tmp_args[5] = {i, j, z, k, l};
 							_mesh_f4_SD[i][j][z][k][l].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void*) tmp_args, points, lowlimit, upplimit);
 							assert(lowlimit < upplimit);
 						}
@@ -1080,7 +1073,6 @@ void DNA3Interaction::init() {
 
 	//std::cout << "DNA3 initialisation done" << std::endl;
 }
-
 
 number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
