@@ -90,6 +90,10 @@ public:
 
     const std::array<size_t, N>& shape() const { return _sizes; }
 
+    void set_all_to(number value) {
+        _data.fill(value);
+    }
+
     number get_average_par() const {
         static_assert(N == 4, "Cannot take the average of an array with a number of indices != 4");
         number average = 0.;

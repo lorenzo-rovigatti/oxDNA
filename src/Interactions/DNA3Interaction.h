@@ -98,7 +98,7 @@ public:
 	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_b[7];
 	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_rc[7];
 
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> MESH_F4_SD_POINTS[21];
+	std::array<int, 21> MESH_F4_SD_POINTS;
 
     number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD(ty1, ty2, ty3, ty4); }
     number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD(ty1, ty2, ty3, ty4); }
