@@ -20,294 +20,294 @@ DNA3Interaction::DNA3Interaction() :
 			for(int k = 0; k < DIM_C; k++) {
 				for(int l = 0; l < DIM_D; l++)  {
 
-					_fene_r0_SD[i][j][k][l] = FENE_R0_OXDNA2;
-					_fene_delta_SD[i][j][k][l] = FENE_DELTA;
-					_fene_delta2_SD[i][j][k][l] = FENE_DELTA2;
+					_fene_r0_SD(i, j, k, l) = FENE_R0_OXDNA2;
+					_fene_delta_SD(i, j, k, l) = FENE_DELTA;
+					_fene_delta2_SD(i, j, k, l) = FENE_DELTA2;
 
-					_excl_s[0][i][j][k][l] = EXCL_S1;
-                    _excl_s[1][i][j][k][l] = EXCL_S2;
-                    _excl_s[2][i][j][k][l] = EXCL_S3;
-                    _excl_s[3][i][j][k][l] = EXCL_S4;
-                    _excl_s[4][i][j][k][l] = EXCL_S5;
-                    _excl_s[5][i][j][k][l] = EXCL_S6;
-                    _excl_s[6][i][j][k][l] = EXCL_S7;
+					_excl_s[0](i, j, k, l) = EXCL_S1;
+                    _excl_s[1](i, j, k, l) = EXCL_S2;
+                    _excl_s[2](i, j, k, l) = EXCL_S3;
+                    _excl_s[3](i, j, k, l) = EXCL_S4;
+                    _excl_s[4](i, j, k, l) = EXCL_S5;
+                    _excl_s[5](i, j, k, l) = EXCL_S6;
+                    _excl_s[6](i, j, k, l) = EXCL_S7;
 
-                    _excl_r[0][i][j][k][l] = EXCL_R1;
-                    _excl_r[1][i][j][k][l] = EXCL_R2;
-                    _excl_r[2][i][j][k][l] = EXCL_R3;
-                    _excl_r[3][i][j][k][l] = EXCL_R4;
-                    _excl_r[4][i][j][k][l] = EXCL_R5;
-                    _excl_r[5][i][j][k][l] = EXCL_R6;
-                    _excl_r[6][i][j][k][l] = EXCL_R7;
+                    _excl_r[0](i, j, k, l) = EXCL_R1;
+                    _excl_r[1](i, j, k, l) = EXCL_R2;
+                    _excl_r[2](i, j, k, l) = EXCL_R3;
+                    _excl_r[3](i, j, k, l) = EXCL_R4;
+                    _excl_r[4](i, j, k, l) = EXCL_R5;
+                    _excl_r[5](i, j, k, l) = EXCL_R6;
+                    _excl_r[6](i, j, k, l) = EXCL_R7;
 
-                    _excl_b[0][i][j][k][l] = EXCL_B1;
-                    _excl_b[1][i][j][k][l] = EXCL_B2;
-                    _excl_b[2][i][j][k][l] = EXCL_B3;
-                    _excl_b[3][i][j][k][l] = EXCL_B4;
-                    _excl_b[4][i][j][k][l] = EXCL_B5;
-                    _excl_b[5][i][j][k][l] = EXCL_B6;
-                    _excl_b[6][i][j][k][l] = EXCL_B7;
+                    _excl_b[0](i, j, k, l) = EXCL_B1;
+                    _excl_b[1](i, j, k, l) = EXCL_B2;
+                    _excl_b[2](i, j, k, l) = EXCL_B3;
+                    _excl_b[3](i, j, k, l) = EXCL_B4;
+                    _excl_b[4](i, j, k, l) = EXCL_B5;
+                    _excl_b[5](i, j, k, l) = EXCL_B6;
+                    _excl_b[6](i, j, k, l) = EXCL_B7;
 
-                    _excl_rc[0][i][j][k][l] = EXCL_RC1;
-                    _excl_rc[1][i][j][k][l] = EXCL_RC2;
-                    _excl_rc[2][i][j][k][l] = EXCL_RC3;
-                    _excl_rc[3][i][j][k][l] = EXCL_RC4;
-                    _excl_rc[4][i][j][k][l] = EXCL_RC5;
-                    _excl_rc[5][i][j][k][l] = EXCL_RC6;
-                    _excl_rc[6][i][j][k][l] = EXCL_RC7;
-
-
-					F1_SD_A[0][i][j][k][l]  = HYDR_A;
-					F1_SD_A[1][i][j][k][l]  = STCK_A;
-
-					F1_SD_RC[0][i][j][k][l]  = HYDR_RC;
-					F1_SD_RC[1][i][j][k][l]  = STCK_RC;
-
-					F1_SD_R0[0][i][j][k][l]  = HYDR_R0;
-					F1_SD_R0[1][i][j][k][l]  = STCK_R0;
-
-					F1_SD_BLOW[0][i][j][k][l]  = HYDR_BLOW;
-					F1_SD_BLOW[1][i][j][k][l]  = STCK_BLOW;
-
-					F1_SD_BHIGH[0][i][j][k][l]  = HYDR_BHIGH;
-					F1_SD_BHIGH[1][i][j][k][l]  = STCK_BHIGH;
-
-					F1_SD_RLOW[0][i][j][k][l]  = HYDR_RLOW;
-					F1_SD_RLOW[1][i][j][k][l]  = STCK_RLOW;
-
-					F1_SD_RHIGH[0][i][j][k][l]  = HYDR_RHIGH;
-					F1_SD_RHIGH[1][i][j][k][l]  = STCK_RHIGH;
-
-					F1_SD_RCLOW[0][i][j][k][l]  = HYDR_RCLOW;
-					F1_SD_RCLOW[1][i][j][k][l]  = STCK_RCLOW;
-
-					F1_SD_RCHIGH[0][i][j][k][l]  = HYDR_RCHIGH;
-					F1_SD_RCHIGH[1][i][j][k][l]  = STCK_RCHIGH;
-
-					F4_SD_THETA_A[0][i][j][k][l]  = STCK_THETA4_A;
-					F4_SD_THETA_A[1][i][j][k][l]  = STCK_THETA5_A;
-
-					F4_SD_THETA_A[0][i][j][k][l]  = STCK_THETA4_A;
-					F4_SD_THETA_A[1][i][j][k][l]  = STCK_THETA5_A;
-
-					F4_SD_THETA_A[2][i][j][k][l]  = HYDR_THETA1_A;
-					F4_SD_THETA_A[3][i][j][k][l]  = HYDR_THETA2_A;
-					F4_SD_THETA_A[4][i][j][k][l]  = HYDR_THETA4_A;
-					F4_SD_THETA_A[5][i][j][k][l]  = HYDR_THETA7_A;
-
-					F4_SD_THETA_A[6][i][j][k][l]  = CRST_THETA1_A;
-					F4_SD_THETA_A[7][i][j][k][l]  = CRST_THETA2_A;
-					F4_SD_THETA_A[8][i][j][k][l]  = CRST_THETA4_A;
-					F4_SD_THETA_A[9][i][j][k][l]  = CRST_THETA7_A;
-
-					F4_SD_THETA_A[10][i][j][k][l]  = CXST_THETA1_A;
-					F4_SD_THETA_A[11][i][j][k][l]  = CXST_THETA4_A;
-					F4_SD_THETA_A[12][i][j][k][l]  = CXST_THETA5_A;
-
-					F4_SD_THETA_A[13][i][j][k][l] = CRST_THETA1_A_33;
-					F4_SD_THETA_A[14][i][j][k][l] = CRST_THETA2_A_33;
-					F4_SD_THETA_A[15][i][j][k][l] = CRST_THETA4_A_33;
-					F4_SD_THETA_A[16][i][j][k][l] = CRST_THETA7_A_33;
-					F4_SD_THETA_A[17][i][j][k][l] = CRST_THETA1_A_55;
-					F4_SD_THETA_A[18][i][j][k][l] = CRST_THETA2_A_55;
-					F4_SD_THETA_A[19][i][j][k][l] = CRST_THETA4_A_55;
-					F4_SD_THETA_A[20][i][j][k][l] = CRST_THETA7_A_55;
-
-					F4_SD_THETA_B[0][i][j][k][l]  = STCK_THETA4_B;
-					F4_SD_THETA_B[1][i][j][k][l]  = STCK_THETA5_B;
-
-					F4_SD_THETA_B[2][i][j][k][l]  = HYDR_THETA1_B;
-					F4_SD_THETA_B[3][i][j][k][l]  = HYDR_THETA2_B;
-					F4_SD_THETA_B[4][i][j][k][l]  = HYDR_THETA4_B;
-					F4_SD_THETA_B[5][i][j][k][l]  = HYDR_THETA7_B;
-
-					F4_SD_THETA_B[6][i][j][k][l]  = CRST_THETA1_B;
-					F4_SD_THETA_B[7][i][j][k][l]  = CRST_THETA2_B;
-					F4_SD_THETA_B[8][i][j][k][l] = CRST_THETA4_B;
-					F4_SD_THETA_B[9][i][j][k][l] = CRST_THETA7_B;
-
-					F4_SD_THETA_B[10][i][j][k][l] = CXST_THETA1_B;
-					F4_SD_THETA_B[11][i][j][k][l] = CXST_THETA4_B;
-					F4_SD_THETA_B[12][i][j][k][l] = CXST_THETA5_B;
-
-					F4_SD_THETA_B[13][i][j][k][l] = CRST_THETA1_B_33;
-					F4_SD_THETA_B[14][i][j][k][l] = CRST_THETA2_B_33;
-					F4_SD_THETA_B[15][i][j][k][l] = CRST_THETA4_B_33;
-					F4_SD_THETA_B[16][i][j][k][l] = CRST_THETA7_B_33;
-					F4_SD_THETA_B[17][i][j][k][l] = CRST_THETA1_B_55;
-					F4_SD_THETA_B[18][i][j][k][l] = CRST_THETA2_B_55;
-					F4_SD_THETA_B[19][i][j][k][l] = CRST_THETA4_B_55;
-					F4_SD_THETA_B[20][i][j][k][l] = CRST_THETA7_B_55;
-
-					F4_SD_THETA_T0[0][i][j][k][l] = STCK_THETA4_T0;
-					F4_SD_THETA_T0[1][i][j][k][l] = STCK_THETA5_T0;
-
-					F4_SD_THETA_T0[2][i][j][k][l] = HYDR_THETA1_T0;
-					F4_SD_THETA_T0[3][i][j][k][l] = HYDR_THETA2_T0;
-					F4_SD_THETA_T0[4][i][j][k][l] = HYDR_THETA4_T0;
-					F4_SD_THETA_T0[5][i][j][k][l] = HYDR_THETA7_T0;
-
-					F4_SD_THETA_T0[6][i][j][k][l] = CRST_THETA1_T0;
-					F4_SD_THETA_T0[7][i][j][k][l] = CRST_THETA2_T0;
-					F4_SD_THETA_T0[8][i][j][k][l] = CRST_THETA4_T0;
-					F4_SD_THETA_T0[9][i][j][k][l] = CRST_THETA7_T0;
-
-					F4_SD_THETA_T0[10][i][j][k][l] = CXST_THETA1_T0_OXDNA;
-					F4_SD_THETA_T0[11][i][j][k][l] = CXST_THETA4_T0;
-					F4_SD_THETA_T0[12][i][j][k][l] = CXST_THETA5_T0;
-					F4_SD_THETA_T0[13][i][j][k][l] = CRST_THETA1_T0_33;
-					F4_SD_THETA_T0[14][i][j][k][l] = CRST_THETA2_T0_33;
-					F4_SD_THETA_T0[15][i][j][k][l] = CRST_THETA4_T0_33;
-					F4_SD_THETA_T0[16][i][j][k][l] = CRST_THETA7_T0_33;
-					F4_SD_THETA_T0[17][i][j][k][l] = CRST_THETA1_T0_55;
-					F4_SD_THETA_T0[18][i][j][k][l] = CRST_THETA2_T0_55;
-					F4_SD_THETA_T0[19][i][j][k][l] = CRST_THETA4_T0_55;
-					F4_SD_THETA_T0[20][i][j][k][l] = CRST_THETA7_T0_55;
-
-					F4_SD_THETA_TS[0][i][j][k][l] = STCK_THETA4_TS;
-					F4_SD_THETA_TS[1][i][j][k][l] = STCK_THETA5_TS;
-
-					F4_SD_THETA_TS[2][i][j][k][l] = HYDR_THETA1_TS;
-					F4_SD_THETA_TS[3][i][j][k][l] = HYDR_THETA2_TS;
-					F4_SD_THETA_TS[4][i][j][k][l] = HYDR_THETA4_TS;
-					F4_SD_THETA_TS[5][i][j][k][l] = HYDR_THETA7_TS;
-
-					F4_SD_THETA_TS[6][i][j][k][l] = CRST_THETA1_TS;
-					F4_SD_THETA_TS[7][i][j][k][l] = CRST_THETA2_TS;
-					F4_SD_THETA_TS[8][i][j][k][l] = CRST_THETA4_TS;
-					F4_SD_THETA_TS[9][i][j][k][l] = CRST_THETA7_TS;
-
-					F4_SD_THETA_TS[10][i][j][k][l] = CXST_THETA1_TS;
-					F4_SD_THETA_TS[11][i][j][k][l] = CXST_THETA4_TS;
-					F4_SD_THETA_TS[12][i][j][k][l] = CXST_THETA5_TS;
-
-					F4_SD_THETA_TS[13][i][j][k][l] = CRST_THETA1_TS_33;
-					F4_SD_THETA_TS[14][i][j][k][l] = CRST_THETA2_TS_33;
-					F4_SD_THETA_TS[15][i][j][k][l] = CRST_THETA4_TS_33;
-					F4_SD_THETA_TS[16][i][j][k][l] = CRST_THETA7_TS_33;
-					F4_SD_THETA_TS[17][i][j][k][l] = CRST_THETA1_TS_55;
-					F4_SD_THETA_TS[18][i][j][k][l] = CRST_THETA2_TS_55;
-					F4_SD_THETA_TS[19][i][j][k][l] = CRST_THETA4_TS_55;
-					F4_SD_THETA_TS[20][i][j][k][l] = CRST_THETA7_TS_55;
-
-					F4_SD_THETA_TC[0][i][j][k][l] = STCK_THETA4_TC;
-					F4_SD_THETA_TC[1][i][j][k][l] = STCK_THETA5_TC;
-
-					F4_SD_THETA_TC[2][i][j][k][l] = HYDR_THETA1_TC;
-					F4_SD_THETA_TC[3][i][j][k][l] = HYDR_THETA2_TC;
-					F4_SD_THETA_TC[4][i][j][k][l] = HYDR_THETA4_TC;
-					F4_SD_THETA_TC[5][i][j][k][l] = HYDR_THETA7_TC;
-
-					F4_SD_THETA_TC[6][i][j][k][l] = CRST_THETA1_TC;
-					F4_SD_THETA_TC[7][i][j][k][l] = CRST_THETA2_TC;
-					F4_SD_THETA_TC[8][i][j][k][l] = CRST_THETA4_TC;
-					F4_SD_THETA_TC[9][i][j][k][l] = CRST_THETA7_TC;
-
-					F4_SD_THETA_TC[10][i][j][k][l] = CXST_THETA1_TC;
-					F4_SD_THETA_TC[11][i][j][k][l] = CXST_THETA4_TC;
-					F4_SD_THETA_TC[12][i][j][k][l] = CXST_THETA5_TC;
-
-					F4_SD_THETA_TC[13][i][j][k][l] = CRST_THETA1_TC_33;
-					F4_SD_THETA_TC[14][i][j][k][l] = CRST_THETA2_TC_33;
-					F4_SD_THETA_TC[15][i][j][k][l] = CRST_THETA4_TC_33;
-					F4_SD_THETA_TC[16][i][j][k][l] = CRST_THETA7_TC_33;
-					F4_SD_THETA_TC[17][i][j][k][l] = CRST_THETA1_TC_55;
-					F4_SD_THETA_TC[18][i][j][k][l] = CRST_THETA2_TC_55;
-					F4_SD_THETA_TC[19][i][j][k][l] = CRST_THETA4_TC_55;
-					F4_SD_THETA_TC[20][i][j][k][l] = CRST_THETA7_TC_55;
-
-					MESH_F4_SD_POINTS[HYDR_F4_THETA1][i][j][k][l] = HYDR_T1_MESH_POINTS;
-					MESH_F4_SD_POINTS[HYDR_F4_THETA2][i][j][k][l] = HYDR_T2_MESH_POINTS;
-					MESH_F4_SD_POINTS[HYDR_F4_THETA4][i][j][k][l] = HYDR_T4_MESH_POINTS;
-					MESH_F4_SD_POINTS[HYDR_F4_THETA7][i][j][k][l] = HYDR_T7_MESH_POINTS;
-
-					MESH_F4_SD_POINTS[STCK_F4_THETA4][i][j][k][l] = STCK_T4_MESH_POINTS;
-					MESH_F4_SD_POINTS[STCK_F4_THETA5][i][j][k][l] = STCK_T5_MESH_POINTS;
-
-					MESH_F4_SD_POINTS[CRST_F4_THETA1][i][j][k][l] = CRST_T1_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA2][i][j][k][l] = CRST_T2_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA4][i][j][k][l] = CRST_T4_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA7][i][j][k][l] = CRST_T7_MESH_POINTS;
-
-					MESH_F4_SD_POINTS[CXST_F4_THETA1][i][j][k][l] = CXST_T1_MESH_POINTS;
-					MESH_F4_SD_POINTS[CXST_F4_THETA4][i][j][k][l] = CXST_T4_MESH_POINTS;
-					MESH_F4_SD_POINTS[CXST_F4_THETA5][i][j][k][l] = CXST_T5_MESH_POINTS;
-
-					MESH_F4_SD_POINTS[CRST_F4_THETA1_33][i][j][k][l] = CRST_T1_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA2_33][i][j][k][l] = CRST_T2_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA4_33][i][j][k][l] = CRST_T4_33_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA7_33][i][j][k][l] = CRST_T7_MESH_POINTS;
-
-					MESH_F4_SD_POINTS[CRST_F4_THETA1_55][i][j][k][l] = CRST_T1_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA2_55][i][j][k][l] = CRST_T2_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA4_55][i][j][k][l] = CRST_T4_55_MESH_POINTS;
-					MESH_F4_SD_POINTS[CRST_F4_THETA7_55][i][j][k][l] = CRST_T7_MESH_POINTS;
-
-					F2_SD_K[0][i][j][k][l]  = CRST_K;
-					F2_SD_K[1][i][j][k][l]  = CXST_K_OXDNA;
-					F2_SD_K[2][i][j][k][l] = CRST_K_33;
-					F2_SD_K[3][i][j][k][l] = CRST_K_55;
-
-					F2_SD_RC[0][i][j][k][l]  = CRST_RC;
-					F2_SD_RC[1][i][j][k][l]  = CXST_RC;
-					F2_SD_RC[2][i][j][k][l] = CRST_RC_33;
-					F2_SD_RC[3][i][j][k][l] = CRST_RC_55;
-
-					F2_SD_R0[0][i][j][k][l]  = CRST_R0;
-					F2_SD_R0[1][i][j][k][l]  = CXST_R0;
-					F2_SD_R0[2][i][j][k][l] = CRST_R0_33;
-					F2_SD_R0[3][i][j][k][l] = CRST_R0_55;
-
-					F2_SD_BLOW[0][i][j][k][l]  = CRST_BLOW;
-					F2_SD_BLOW[1][i][j][k][l]  = CXST_BLOW;
-					F2_SD_BLOW[2][i][j][k][l] = CRST_BLOW_33;
-					F2_SD_BLOW[3][i][j][k][l] = CRST_BLOW_55;
-
-					F2_SD_BHIGH[0][i][j][k][l]  = CRST_BHIGH;
-					F2_SD_BHIGH[1][i][j][k][l]  = CXST_BHIGH;
-					F2_SD_BHIGH[2][i][j][k][l] = CRST_BHIGH_33;
-					F2_SD_BHIGH[3][i][j][k][l] = CRST_BHIGH_55;
-
-					F2_SD_RLOW[0][i][j][k][l]  = CRST_RLOW;
-					F2_SD_RLOW[1][i][j][k][l]  = CXST_RLOW;
-					F2_SD_RLOW[2][i][j][k][l] = CRST_RLOW_33;
-					F2_SD_RLOW[3][i][j][k][l] = CRST_RLOW_55;
-
-					F2_SD_RHIGH[0][i][j][k][l]  = CRST_RHIGH;
-					F2_SD_RHIGH[1][i][j][k][l]  = CXST_RHIGH;
-					F2_SD_RHIGH[2][i][j][k][l] = CRST_RHIGH_33;
-					F2_SD_RHIGH[3][i][j][k][l] = CRST_RHIGH_55;
-
-					F2_SD_RCLOW[0][i][j][k][l] = CRST_RCLOW;
-					F2_SD_RCLOW[1][i][j][k][l]  = CXST_RCLOW;
-					F2_SD_RCLOW[2][i][j][k][l] = CRST_RCLOW_33;
-					F2_SD_RCLOW[3][i][j][k][l] = CRST_RCLOW_55;
-
-					F2_SD_RCHIGH[0][i][j][k][l]  = CRST_RCHIGH;
-					F2_SD_RCHIGH[1][i][j][k][l]  = CXST_RCHIGH;
-					F2_SD_RCHIGH[2][i][j][k][l] = CRST_RCHIGH_33;
-					F2_SD_RCHIGH[3][i][j][k][l] = CRST_RCHIGH_55;
+                    _excl_rc[0](i, j, k, l) = EXCL_RC1;
+                    _excl_rc[1](i, j, k, l) = EXCL_RC2;
+                    _excl_rc[2](i, j, k, l) = EXCL_RC3;
+                    _excl_rc[3](i, j, k, l) = EXCL_RC4;
+                    _excl_rc[4](i, j, k, l) = EXCL_RC5;
+                    _excl_rc[5](i, j, k, l) = EXCL_RC6;
+                    _excl_rc[6](i, j, k, l) = EXCL_RC7;
 
 
-                    F5_SD_PHI_A[0][i][j][k][l] = STCK_PHI1_A;
-                    F5_SD_PHI_A[1][i][j][k][l] = STCK_PHI2_A;
-                    F5_SD_PHI_A[2][i][j][k][l] = CXST_PHI3_A;
-                    F5_SD_PHI_A[3][i][j][k][l] = CXST_PHI4_A;
+					F1_SD_A[0](i, j, k, l)  = HYDR_A;
+					F1_SD_A[1](i, j, k, l)  = STCK_A;
 
-                    F5_SD_PHI_B[0][i][j][k][l] = STCK_PHI1_B;
-                    F5_SD_PHI_B[1][i][j][k][l] = STCK_PHI2_B;
-                    F5_SD_PHI_B[2][i][j][k][l] = CXST_PHI3_B;
-                    F5_SD_PHI_B[3][i][j][k][l] = CXST_PHI3_B;
+					F1_SD_RC[0](i, j, k, l)  = HYDR_RC;
+					F1_SD_RC[1](i, j, k, l)  = STCK_RC;
 
-                    F5_SD_PHI_XC[0][i][j][k][l] = STCK_PHI1_XC;
-                    F5_SD_PHI_XC[1][i][j][k][l] = STCK_PHI2_XC;
-                    F5_SD_PHI_XC[2][i][j][k][l] = CXST_PHI3_XC;
-                    F5_SD_PHI_XC[3][i][j][k][l] = CXST_PHI4_XC;
+					F1_SD_R0[0](i, j, k, l)  = HYDR_R0;
+					F1_SD_R0[1](i, j, k, l)  = STCK_R0;
 
-                    F5_SD_PHI_XS[0][i][j][k][l] = STCK_PHI1_XS;
-   		            F5_SD_PHI_XS[1][i][j][k][l] = STCK_PHI2_XS;
-                    F5_SD_PHI_XS[2][i][j][k][l] = CXST_PHI3_XS;
-		            F5_SD_PHI_XS[3][i][j][k][l] = CXST_PHI4_XS;
+					F1_SD_BLOW[0](i, j, k, l)  = HYDR_BLOW;
+					F1_SD_BLOW[1](i, j, k, l)  = STCK_BLOW;
+
+					F1_SD_BHIGH[0](i, j, k, l)  = HYDR_BHIGH;
+					F1_SD_BHIGH[1](i, j, k, l)  = STCK_BHIGH;
+
+					F1_SD_RLOW[0](i, j, k, l)  = HYDR_RLOW;
+					F1_SD_RLOW[1](i, j, k, l)  = STCK_RLOW;
+
+					F1_SD_RHIGH[0](i, j, k, l)  = HYDR_RHIGH;
+					F1_SD_RHIGH[1](i, j, k, l)  = STCK_RHIGH;
+
+					F1_SD_RCLOW[0](i, j, k, l)  = HYDR_RCLOW;
+					F1_SD_RCLOW[1](i, j, k, l)  = STCK_RCLOW;
+
+					F1_SD_RCHIGH[0](i, j, k, l)  = HYDR_RCHIGH;
+					F1_SD_RCHIGH[1](i, j, k, l)  = STCK_RCHIGH;
+
+					F4_SD_THETA_A[0](i, j, k, l)  = STCK_THETA4_A;
+					F4_SD_THETA_A[1](i, j, k, l)  = STCK_THETA5_A;
+
+					F4_SD_THETA_A[0](i, j, k, l)  = STCK_THETA4_A;
+					F4_SD_THETA_A[1](i, j, k, l)  = STCK_THETA5_A;
+
+					F4_SD_THETA_A[2](i, j, k, l)  = HYDR_THETA1_A;
+					F4_SD_THETA_A[3](i, j, k, l)  = HYDR_THETA2_A;
+					F4_SD_THETA_A[4](i, j, k, l)  = HYDR_THETA4_A;
+					F4_SD_THETA_A[5](i, j, k, l)  = HYDR_THETA7_A;
+
+					F4_SD_THETA_A[6](i, j, k, l)  = CRST_THETA1_A;
+					F4_SD_THETA_A[7](i, j, k, l)  = CRST_THETA2_A;
+					F4_SD_THETA_A[8](i, j, k, l)  = CRST_THETA4_A;
+					F4_SD_THETA_A[9](i, j, k, l)  = CRST_THETA7_A;
+
+					F4_SD_THETA_A[10](i, j, k, l)  = CXST_THETA1_A;
+					F4_SD_THETA_A[11](i, j, k, l)  = CXST_THETA4_A;
+					F4_SD_THETA_A[12](i, j, k, l)  = CXST_THETA5_A;
+
+					F4_SD_THETA_A[13](i, j, k, l) = CRST_THETA1_A_33;
+					F4_SD_THETA_A[14](i, j, k, l) = CRST_THETA2_A_33;
+					F4_SD_THETA_A[15](i, j, k, l) = CRST_THETA4_A_33;
+					F4_SD_THETA_A[16](i, j, k, l) = CRST_THETA7_A_33;
+					F4_SD_THETA_A[17](i, j, k, l) = CRST_THETA1_A_55;
+					F4_SD_THETA_A[18](i, j, k, l) = CRST_THETA2_A_55;
+					F4_SD_THETA_A[19](i, j, k, l) = CRST_THETA4_A_55;
+					F4_SD_THETA_A[20](i, j, k, l) = CRST_THETA7_A_55;
+
+					F4_SD_THETA_B[0](i, j, k, l)  = STCK_THETA4_B;
+					F4_SD_THETA_B[1](i, j, k, l)  = STCK_THETA5_B;
+
+					F4_SD_THETA_B[2](i, j, k, l)  = HYDR_THETA1_B;
+					F4_SD_THETA_B[3](i, j, k, l)  = HYDR_THETA2_B;
+					F4_SD_THETA_B[4](i, j, k, l)  = HYDR_THETA4_B;
+					F4_SD_THETA_B[5](i, j, k, l)  = HYDR_THETA7_B;
+
+					F4_SD_THETA_B[6](i, j, k, l)  = CRST_THETA1_B;
+					F4_SD_THETA_B[7](i, j, k, l)  = CRST_THETA2_B;
+					F4_SD_THETA_B[8](i, j, k, l) = CRST_THETA4_B;
+					F4_SD_THETA_B[9](i, j, k, l) = CRST_THETA7_B;
+
+					F4_SD_THETA_B[10](i, j, k, l) = CXST_THETA1_B;
+					F4_SD_THETA_B[11](i, j, k, l) = CXST_THETA4_B;
+					F4_SD_THETA_B[12](i, j, k, l) = CXST_THETA5_B;
+
+					F4_SD_THETA_B[13](i, j, k, l) = CRST_THETA1_B_33;
+					F4_SD_THETA_B[14](i, j, k, l) = CRST_THETA2_B_33;
+					F4_SD_THETA_B[15](i, j, k, l) = CRST_THETA4_B_33;
+					F4_SD_THETA_B[16](i, j, k, l) = CRST_THETA7_B_33;
+					F4_SD_THETA_B[17](i, j, k, l) = CRST_THETA1_B_55;
+					F4_SD_THETA_B[18](i, j, k, l) = CRST_THETA2_B_55;
+					F4_SD_THETA_B[19](i, j, k, l) = CRST_THETA4_B_55;
+					F4_SD_THETA_B[20](i, j, k, l) = CRST_THETA7_B_55;
+
+					F4_SD_THETA_T0[0](i, j, k, l) = STCK_THETA4_T0;
+					F4_SD_THETA_T0[1](i, j, k, l) = STCK_THETA5_T0;
+
+					F4_SD_THETA_T0[2](i, j, k, l) = HYDR_THETA1_T0;
+					F4_SD_THETA_T0[3](i, j, k, l) = HYDR_THETA2_T0;
+					F4_SD_THETA_T0[4](i, j, k, l) = HYDR_THETA4_T0;
+					F4_SD_THETA_T0[5](i, j, k, l) = HYDR_THETA7_T0;
+
+					F4_SD_THETA_T0[6](i, j, k, l) = CRST_THETA1_T0;
+					F4_SD_THETA_T0[7](i, j, k, l) = CRST_THETA2_T0;
+					F4_SD_THETA_T0[8](i, j, k, l) = CRST_THETA4_T0;
+					F4_SD_THETA_T0[9](i, j, k, l) = CRST_THETA7_T0;
+
+					F4_SD_THETA_T0[10](i, j, k, l) = CXST_THETA1_T0_OXDNA;
+					F4_SD_THETA_T0[11](i, j, k, l) = CXST_THETA4_T0;
+					F4_SD_THETA_T0[12](i, j, k, l) = CXST_THETA5_T0;
+					F4_SD_THETA_T0[13](i, j, k, l) = CRST_THETA1_T0_33;
+					F4_SD_THETA_T0[14](i, j, k, l) = CRST_THETA2_T0_33;
+					F4_SD_THETA_T0[15](i, j, k, l) = CRST_THETA4_T0_33;
+					F4_SD_THETA_T0[16](i, j, k, l) = CRST_THETA7_T0_33;
+					F4_SD_THETA_T0[17](i, j, k, l) = CRST_THETA1_T0_55;
+					F4_SD_THETA_T0[18](i, j, k, l) = CRST_THETA2_T0_55;
+					F4_SD_THETA_T0[19](i, j, k, l) = CRST_THETA4_T0_55;
+					F4_SD_THETA_T0[20](i, j, k, l) = CRST_THETA7_T0_55;
+
+					F4_SD_THETA_TS[0](i, j, k, l) = STCK_THETA4_TS;
+					F4_SD_THETA_TS[1](i, j, k, l) = STCK_THETA5_TS;
+
+					F4_SD_THETA_TS[2](i, j, k, l) = HYDR_THETA1_TS;
+					F4_SD_THETA_TS[3](i, j, k, l) = HYDR_THETA2_TS;
+					F4_SD_THETA_TS[4](i, j, k, l) = HYDR_THETA4_TS;
+					F4_SD_THETA_TS[5](i, j, k, l) = HYDR_THETA7_TS;
+
+					F4_SD_THETA_TS[6](i, j, k, l) = CRST_THETA1_TS;
+					F4_SD_THETA_TS[7](i, j, k, l) = CRST_THETA2_TS;
+					F4_SD_THETA_TS[8](i, j, k, l) = CRST_THETA4_TS;
+					F4_SD_THETA_TS[9](i, j, k, l) = CRST_THETA7_TS;
+
+					F4_SD_THETA_TS[10](i, j, k, l) = CXST_THETA1_TS;
+					F4_SD_THETA_TS[11](i, j, k, l) = CXST_THETA4_TS;
+					F4_SD_THETA_TS[12](i, j, k, l) = CXST_THETA5_TS;
+
+					F4_SD_THETA_TS[13](i, j, k, l) = CRST_THETA1_TS_33;
+					F4_SD_THETA_TS[14](i, j, k, l) = CRST_THETA2_TS_33;
+					F4_SD_THETA_TS[15](i, j, k, l) = CRST_THETA4_TS_33;
+					F4_SD_THETA_TS[16](i, j, k, l) = CRST_THETA7_TS_33;
+					F4_SD_THETA_TS[17](i, j, k, l) = CRST_THETA1_TS_55;
+					F4_SD_THETA_TS[18](i, j, k, l) = CRST_THETA2_TS_55;
+					F4_SD_THETA_TS[19](i, j, k, l) = CRST_THETA4_TS_55;
+					F4_SD_THETA_TS[20](i, j, k, l) = CRST_THETA7_TS_55;
+
+					F4_SD_THETA_TC[0](i, j, k, l) = STCK_THETA4_TC;
+					F4_SD_THETA_TC[1](i, j, k, l) = STCK_THETA5_TC;
+
+					F4_SD_THETA_TC[2](i, j, k, l) = HYDR_THETA1_TC;
+					F4_SD_THETA_TC[3](i, j, k, l) = HYDR_THETA2_TC;
+					F4_SD_THETA_TC[4](i, j, k, l) = HYDR_THETA4_TC;
+					F4_SD_THETA_TC[5](i, j, k, l) = HYDR_THETA7_TC;
+
+					F4_SD_THETA_TC[6](i, j, k, l) = CRST_THETA1_TC;
+					F4_SD_THETA_TC[7](i, j, k, l) = CRST_THETA2_TC;
+					F4_SD_THETA_TC[8](i, j, k, l) = CRST_THETA4_TC;
+					F4_SD_THETA_TC[9](i, j, k, l) = CRST_THETA7_TC;
+
+					F4_SD_THETA_TC[10](i, j, k, l) = CXST_THETA1_TC;
+					F4_SD_THETA_TC[11](i, j, k, l) = CXST_THETA4_TC;
+					F4_SD_THETA_TC[12](i, j, k, l) = CXST_THETA5_TC;
+
+					F4_SD_THETA_TC[13](i, j, k, l) = CRST_THETA1_TC_33;
+					F4_SD_THETA_TC[14](i, j, k, l) = CRST_THETA2_TC_33;
+					F4_SD_THETA_TC[15](i, j, k, l) = CRST_THETA4_TC_33;
+					F4_SD_THETA_TC[16](i, j, k, l) = CRST_THETA7_TC_33;
+					F4_SD_THETA_TC[17](i, j, k, l) = CRST_THETA1_TC_55;
+					F4_SD_THETA_TC[18](i, j, k, l) = CRST_THETA2_TC_55;
+					F4_SD_THETA_TC[19](i, j, k, l) = CRST_THETA4_TC_55;
+					F4_SD_THETA_TC[20](i, j, k, l) = CRST_THETA7_TC_55;
+
+					MESH_F4_SD_POINTS[HYDR_F4_THETA1](i, j, k, l) = HYDR_T1_MESH_POINTS;
+					MESH_F4_SD_POINTS[HYDR_F4_THETA2](i, j, k, l) = HYDR_T2_MESH_POINTS;
+					MESH_F4_SD_POINTS[HYDR_F4_THETA4](i, j, k, l) = HYDR_T4_MESH_POINTS;
+					MESH_F4_SD_POINTS[HYDR_F4_THETA7](i, j, k, l) = HYDR_T7_MESH_POINTS;
+
+					MESH_F4_SD_POINTS[STCK_F4_THETA4](i, j, k, l) = STCK_T4_MESH_POINTS;
+					MESH_F4_SD_POINTS[STCK_F4_THETA5](i, j, k, l) = STCK_T5_MESH_POINTS;
+
+					MESH_F4_SD_POINTS[CRST_F4_THETA1](i, j, k, l) = CRST_T1_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA2](i, j, k, l) = CRST_T2_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA4](i, j, k, l) = CRST_T4_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA7](i, j, k, l) = CRST_T7_MESH_POINTS;
+
+					MESH_F4_SD_POINTS[CXST_F4_THETA1](i, j, k, l) = CXST_T1_MESH_POINTS;
+					MESH_F4_SD_POINTS[CXST_F4_THETA4](i, j, k, l) = CXST_T4_MESH_POINTS;
+					MESH_F4_SD_POINTS[CXST_F4_THETA5](i, j, k, l) = CXST_T5_MESH_POINTS;
+
+					MESH_F4_SD_POINTS[CRST_F4_THETA1_33](i, j, k, l) = CRST_T1_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA2_33](i, j, k, l) = CRST_T2_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA4_33](i, j, k, l) = CRST_T4_33_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA7_33](i, j, k, l) = CRST_T7_MESH_POINTS;
+
+					MESH_F4_SD_POINTS[CRST_F4_THETA1_55](i, j, k, l) = CRST_T1_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA2_55](i, j, k, l) = CRST_T2_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA4_55](i, j, k, l) = CRST_T4_55_MESH_POINTS;
+					MESH_F4_SD_POINTS[CRST_F4_THETA7_55](i, j, k, l) = CRST_T7_MESH_POINTS;
+
+					F2_SD_K[0](i, j, k, l)  = CRST_K;
+					F2_SD_K[1](i, j, k, l)  = CXST_K_OXDNA;
+					F2_SD_K[2](i, j, k, l) = CRST_K_33;
+					F2_SD_K[3](i, j, k, l) = CRST_K_55;
+
+					F2_SD_RC[0](i, j, k, l)  = CRST_RC;
+					F2_SD_RC[1](i, j, k, l)  = CXST_RC;
+					F2_SD_RC[2](i, j, k, l) = CRST_RC_33;
+					F2_SD_RC[3](i, j, k, l) = CRST_RC_55;
+
+					F2_SD_R0[0](i, j, k, l)  = CRST_R0;
+					F2_SD_R0[1](i, j, k, l)  = CXST_R0;
+					F2_SD_R0[2](i, j, k, l) = CRST_R0_33;
+					F2_SD_R0[3](i, j, k, l) = CRST_R0_55;
+
+					F2_SD_BLOW[0](i, j, k, l) = CRST_BLOW;
+					F2_SD_BLOW[1](i, j, k, l) = CXST_BLOW;
+					F2_SD_BLOW[2](i, j, k, l) = CRST_BLOW_33;
+					F2_SD_BLOW[3](i, j, k, l) = CRST_BLOW_55;
+
+					F2_SD_BHIGH[0](i, j, k, l) = CRST_BHIGH;
+					F2_SD_BHIGH[1](i, j, k, l) = CXST_BHIGH;
+					F2_SD_BHIGH[2](i, j, k, l) = CRST_BHIGH_33;
+					F2_SD_BHIGH[3](i, j, k, l) = CRST_BHIGH_55;
+
+					F2_SD_RLOW[0](i, j, k, l) = CRST_RLOW;
+					F2_SD_RLOW[1](i, j, k, l) = CXST_RLOW;
+					F2_SD_RLOW[2](i, j, k, l) = CRST_RLOW_33;
+					F2_SD_RLOW[3](i, j, k, l) = CRST_RLOW_55;
+
+					F2_SD_RHIGH[0](i, j, k, l) = CRST_RHIGH;
+					F2_SD_RHIGH[1](i, j, k, l) = CXST_RHIGH;
+					F2_SD_RHIGH[2](i, j, k, l) = CRST_RHIGH_33;
+					F2_SD_RHIGH[3](i, j, k, l) = CRST_RHIGH_55;
+
+					F2_SD_RCLOW[0](i, j, k, l) = CRST_RCLOW;
+					F2_SD_RCLOW[1](i, j, k, l) = CXST_RCLOW;
+					F2_SD_RCLOW[2](i, j, k, l) = CRST_RCLOW_33;
+					F2_SD_RCLOW[3](i, j, k, l) = CRST_RCLOW_55;
+
+					F2_SD_RCHIGH[0](i, j, k, l) = CRST_RCHIGH;
+					F2_SD_RCHIGH[1](i, j, k, l) = CXST_RCHIGH;
+					F2_SD_RCHIGH[2](i, j, k, l) = CRST_RCHIGH_33;
+					F2_SD_RCHIGH[3](i, j, k, l) = CRST_RCHIGH_55;
+
+
+                    F5_SD_PHI_A[0](i, j, k, l) = STCK_PHI1_A;
+                    F5_SD_PHI_A[1](i, j, k, l) = STCK_PHI2_A;
+                    F5_SD_PHI_A[2](i, j, k, l) = CXST_PHI3_A;
+                    F5_SD_PHI_A[3](i, j, k, l) = CXST_PHI4_A;
+
+                    F5_SD_PHI_B[0](i, j, k, l) = STCK_PHI1_B;
+                    F5_SD_PHI_B[1](i, j, k, l) = STCK_PHI2_B;
+                    F5_SD_PHI_B[2](i, j, k, l) = CXST_PHI3_B;
+                    F5_SD_PHI_B[3](i, j, k, l) = CXST_PHI3_B;
+
+                    F5_SD_PHI_XC[0](i, j, k, l) = STCK_PHI1_XC;
+                    F5_SD_PHI_XC[1](i, j, k, l) = STCK_PHI2_XC;
+                    F5_SD_PHI_XC[2](i, j, k, l) = CXST_PHI3_XC;
+                    F5_SD_PHI_XC[3](i, j, k, l) = CXST_PHI4_XC;
+
+                    F5_SD_PHI_XS[0](i, j, k, l) = STCK_PHI1_XS;
+   		            F5_SD_PHI_XS[1](i, j, k, l) = STCK_PHI2_XS;
+                    F5_SD_PHI_XS[2](i, j, k, l) = CXST_PHI3_XS;
+		            F5_SD_PHI_XS[3](i, j, k, l) = CXST_PHI4_XS;
 
 				}
 			}
@@ -336,35 +336,6 @@ DNA3Interaction::DNA3Interaction() :
 	}
 	*/
 
-}
-
-
-number DNA3Interaction::get_average_par(number par[DIM_A][DIM_B][DIM_C][DIM_D]) {
-    number average = 0.;
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            for(int k = 0; k < 4; k++) {
-                for(int l = 0; l < 4; l++) {
-                    average += par[i][j][k][l]/256.;
-                }
-            }
-        }
-    }
-    return average;
-}
-
-number DNA3Interaction::get_average_par(int m, number par[][DIM_A][DIM_B][DIM_C][DIM_D]) {
-    number average = 0.;
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            for(int k = 0; k < 4; k++) {
-                for(int l = 0; l < 4; l++) {
-                    average += par[m][i][j][k][l]/256.;
-                }
-            }
-        }
-    }
-    return average;
 }
 
 void DNA3Interaction::init() {
@@ -406,236 +377,236 @@ void DNA3Interaction::init() {
 						//EXCLUDED VOLUME
 
                         sprintf(key, "EXCL_S1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6](i, j, k, l) = tmp_value;
 
                         sprintf(key, "EXCL_R1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6](i, j, k, l) = tmp_value;
 
 						/*
                         sprintf(key, "EXCL_B1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[0][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[1][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[2][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[3][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[4][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[5][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_B7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[6][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_b[6](i, j, k, l) = tmp_value;
 
                         sprintf(key, "EXCL_RC1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[0][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[1][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[2][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[3][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[4][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[5][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_RC7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[6][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_rc[6](i, j, k, l) = tmp_value;
 						*/
 
 						//FENE
 
 						sprintf(key, "FENE_R0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_r0_SD[i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_r0_SD(i, j, k, l) = tmp_value;
 						sprintf(key, "FENE_DELTA_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta_SD[i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta_SD(i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "FENE_DELTA2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta2_SD[i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta2_SD(i, j, k, l) = tmp_value;
 					        */
 
 						//F1
 						sprintf(key, "HYDR_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_RC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_R0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_RLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_RHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[HYDR_F1](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_RCLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_RCHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_BLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[HYDR_F1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_BHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[HYDR_F1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[HYDR_F1](k, i, j, l) = tmp_value;
 						*/
 
 						//update shift
-						//F1_SD_SHIFT[HYDR_F1][i][j][k][l] = F1_EPS[HYDR_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1][i][j][k][l] - F1_SD_R0[HYDR_F1][i][j][k][l]) * F1_SD_A[HYDR_F1][i][j][k][l]));
+						//F1_SD_SHIFT[HYDR_F1](i, j, k, l) = F1_EPS[HYDR_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1](i, j, k, l) - F1_SD_R0[HYDR_F1](i, j, k, l)) * F1_SD_A[HYDR_F1](i, j, k, l)));
 
 						//STACKING
 
 						sprintf(key, "STCK_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_RC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_R0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_RLOW_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_RHIGH_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[STCK_F1](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "STCK_RCLOW_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_RCHIGH_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_BLOW_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[STCK_F1](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_BHIGH_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[STCK_F1][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[STCK_F1](i, j, k, l) = tmp_value;
 						*/
 
 						//update shift
-						//F1_SD_SHIFT[STCK_F1][i][j][k][l] = F1_EPS[STCK_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[STCK_F1][i][j][k][l] - F1_SD_R0[STCK_F1][i][j][k][l]) * F1_SD_A[STCK_F1][i][j][k][l]));
+						//F1_SD_SHIFT[STCK_F1](i, j, k, l) = F1_EPS[STCK_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[STCK_F1](i, j, k, l) - F1_SD_R0[STCK_F1](i, j, k, l)) * F1_SD_A[STCK_F1](i, j, k, l)));
 
 						//F4
 
 						//HYDROGEN
 						sprintf(key, "HYDR_THETA1_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA1_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA1_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA1_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA1_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA1][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
 						*/
 
 						sprintf(key, "HYDR_THETA2_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA2][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA2_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA2][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA2_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA2][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA2_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA2][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA2_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA2][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
 						*/
 
 						sprintf(key, "HYDR_THETA3_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA3][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA3_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA3][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA3_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA3][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA3_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA3][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA3_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA3][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
 						*/
 
 						sprintf(key, "HYDR_THETA4_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA4][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA4_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA4][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA4_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA4][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA4_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA4][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA4_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA4][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
 						*/
 
 						sprintf(key, "HYDR_THETA7_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA7][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA7_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA7][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA7_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA7][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA7_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA7][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA7_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA7][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
 						*/
 
 						sprintf(key, "HYDR_THETA8_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA8][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA8_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA8][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA8_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA8][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
 						/*
 						sprintf(key, "HYDR_THETA8_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA8][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
 						sprintf(key, "HYDR_THETA8_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA8][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
 						*/
 
 						//STACKING
 
 						sprintf(key, "STCK_THETA4_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA4][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA4](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA4_T0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA4][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA4](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA4_TS_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA4][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA4](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "STCK_THETA4_TC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA4][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA4](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA4_B_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA4][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA4](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "STCK_THETA5_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA5][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA5](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA5_T0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA5][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA5](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA5_TS_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA5][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA5](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "STCK_THETA5_TC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA5][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA5](i, j, k, l) = tmp_value;
 						sprintf(key, "STCK_THETA5_B_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA5][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA5](i, j, k, l) = tmp_value;
 						*/
 
 						//CROSS STACKING
@@ -643,107 +614,107 @@ void DNA3Interaction::init() {
 						//tetramer dependent
 
                         sprintf(key, "CRST_THETA4_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA4_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         */
 
                         sprintf(key, "CRST_THETA4_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA4_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55][i][j][k][l] = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         */
 
 						sprintf(key, "CRST_THETA1_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA1_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_THETA2_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA2_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_THETA7_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA7_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_THETA1_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA1_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA1_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_THETA2_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA2_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA2_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_THETA7_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
 						/*
 						sprintf(key, "CRST_THETA7_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_THETA7_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
 						*/
 
 						//F2
@@ -754,50 +725,50 @@ void DNA3Interaction::init() {
 
 						//this is pair type dependent
 						sprintf(key, "CRST_K_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_33][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_33](k, i, j, l) = tmp_value;
 						sprintf(key, "CRST_K_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55][k][i][j][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55](k, i, j, l) = tmp_value;
 
 
 						//tetramer dependent
 						sprintf(key, "CRST_R0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RLOW_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RHIGH_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_33](i, j, k, l) = tmp_value;
 
 						/*
 						sprintf(key, "CRST_BLOW_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_BHIGH_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RCLOW_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_33](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RCHIGH_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_33][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_33](i, j, k, l) = tmp_value;
 						*/
 
 						sprintf(key, "CRST_R0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RLOW_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RHIGH_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
 
 						/*
 						sprintf(key, "CRST_BLOW_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_BHIGH_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RCLOW_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_55](i, j, k, l) = tmp_value;
 						sprintf(key, "CRST_RCHIGH_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_55][i][j][k][l] = tmp_value;
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
 						*/
 
 						//F5 -- TODO, eventually
@@ -816,58 +787,58 @@ void DNA3Interaction::init() {
 
                     //For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
-                    F2_SD_K[CRST_F2_33][i][j][k][DIM_D - 1] = F2_SD_K[CRST_F2_33][0][j][k][0];
-                    F2_SD_K[CRST_F2_33][DIM_A - 1][j][k][i] = F2_SD_K[CRST_F2_33][0][j][k][0];
+                    F2_SD_K[CRST_F2_33](i, j, k, DIM_D - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
+                    F2_SD_K[CRST_F2_33](DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_33](0, j, k, 0);
 
-                    F2_SD_K[CRST_F2_55][i][j][k][DIM_D - 1] = F2_SD_K[CRST_F2_55][0][j][k][0];
-                    F2_SD_K[CRST_F2_55][DIM_A - 1][j][k][i] = F2_SD_K[CRST_F2_55][0][j][k][0];
+                    F2_SD_K[CRST_F2_55](i, j, k, DIM_D - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                    F2_SD_K[CRST_F2_55](DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
 
 
                     //fene
-                    _fene_delta_SD[i][j][k][DIM_D - 1] = get_average_par(_fene_delta_SD);
+                    _fene_delta_SD(i, j, k, DIM_D - 1) = _fene_delta_SD.get_average_par();
                     //if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
-                    _fene_delta_SD[DIM_A - 1][j][k][i] = get_average_par(_fene_delta_SD);
-                    _fene_r0_SD[i][j][k][DIM_D - 1] = get_average_par(_fene_r0_SD);
+                    _fene_delta_SD(DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par();
+                    _fene_r0_SD(i, j, k, DIM_D - 1) = _fene_r0_SD.get_average_par();
                     //if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
-                    _fene_r0_SD[DIM_A - 1][j][k][i] = get_average_par(_fene_r0_SD);
+                    _fene_r0_SD(DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par();
 
                     //f1
                     for(int m = 0; m < 2; m++) {
-                        F1_SD_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_A);
-                        F1_SD_R0[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_R0);
-                        F1_SD_RC[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RC);
-                        F1_SD_RLOW[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RLOW);
-                        F1_SD_RHIGH[m][i][j][k][DIM_D - 1] = get_average_par(m,F1_SD_RHIGH);
+                        F1_SD_A[m](i, j, k, DIM_D - 1) = F1_SD_A[m].get_average_par();
+                        F1_SD_R0[m](i, j, k, DIM_D - 1) = F1_SD_R0[m].get_average_par();
+                        F1_SD_RC[m](i, j, k, DIM_D - 1) = F1_SD_RC[m].get_average_par();
+                        F1_SD_RLOW[m](i, j, k, DIM_D - 1) = F1_SD_RLOW[m].get_average_par();
+                        F1_SD_RHIGH[m](i, j, k, DIM_D - 1) = F1_SD_RHIGH[m].get_average_par();
 
-                        F1_SD_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_A);
-                        F1_SD_R0[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_R0);
-                        F1_SD_RC[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RC);
-                        F1_SD_RLOW[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RLOW);
-                        F1_SD_RHIGH[m][DIM_A - 1][j][k][i] = get_average_par(m,F1_SD_RHIGH);
+                        F1_SD_A[m](DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par();
+                        F1_SD_R0[m](DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par();
+                        F1_SD_RC[m](DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par();
+                        F1_SD_RLOW[m](DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par();
+                        F1_SD_RHIGH[m](DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par();
                     }
 
 
                     //f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_R0);
-                        F2_SD_RC[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RC);
-                        F2_SD_RLOW[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RLOW);
-                        F2_SD_RHIGH[m][i][j][k][DIM_D - 1] = get_average_par(m,F2_SD_RHIGH);
+                        F2_SD_R0[m](i, j, k, DIM_D - 1) = F2_SD_R0[m].get_average_par();
+                        F2_SD_RC[m](i, j, k, DIM_D - 1) = F2_SD_RC[m].get_average_par();
+                        F2_SD_RLOW[m](i, j, k, DIM_D - 1) = F2_SD_RLOW[m].get_average_par();
+                        F2_SD_RHIGH[m](i, j, k, DIM_D - 1) = F2_SD_RHIGH[m].get_average_par();
 
-                        F2_SD_R0[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_R0);
-                        F2_SD_RC[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RC);
-                        F2_SD_RLOW[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RLOW);
-                        F2_SD_RHIGH[m][DIM_A - 1][j][k][i] = get_average_par(m,F2_SD_RHIGH);
+                        F2_SD_R0[m](DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par();
+                        F2_SD_RC[m](DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par();
+                        F2_SD_RLOW[m](DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par();
+                        F2_SD_RHIGH[m](DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par();
                     }
 
 
                     //f3
                     for(int m = 0; m < 7; m++) {
-                        _excl_s[m][i][j][k][DIM_D - 1] = get_average_par(m, _excl_s);
-                        _excl_r[m][i][j][k][DIM_D - 1] = get_average_par(m, _excl_r);
+                        _excl_s[m](i, j, k, DIM_D - 1) = _excl_s[m].get_average_par();
+                        _excl_r[m](i, j, k, DIM_D - 1) = _excl_r[m].get_average_par();
 
-                        _excl_s[m][DIM_A - 1][j][k][i] = get_average_par(m, _excl_s);
-                        _excl_r[m][DIM_A - 1][j][k][i] = get_average_par(m, _excl_r);
+                        _excl_s[m](DIM_A - 1, j, k, i) = _excl_s[m].get_average_par();
+                        _excl_r[m](DIM_A - 1, j, k, i) = _excl_r[m].get_average_par();
                     }
 
 
@@ -877,22 +848,22 @@ void DNA3Interaction::init() {
                         //if(m == 2 || m == 3 || m == 4 || m == 5) continue;
                         //if(m == 10 || m == 11 || m == 12) continue;
                         //if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
-                        F4_SD_THETA_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_A);
-                        F4_SD_THETA_T0[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_T0);
-                        F4_SD_THETA_TS[m][i][j][k][DIM_D - 1] = get_average_par(m,F4_SD_THETA_TS);
+                        F4_SD_THETA_A[m](i, j, k, DIM_D - 1) = F4_SD_THETA_A[m].get_average_par();
+                        F4_SD_THETA_T0[m](i, j, k, DIM_D - 1) = F4_SD_THETA_T0[m].get_average_par();
+                        F4_SD_THETA_TS[m](i, j, k, DIM_D - 1) = F4_SD_THETA_TS[m].get_average_par();
 
-                        F4_SD_THETA_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_A);
-                        F4_SD_THETA_T0[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_T0);
-                        F4_SD_THETA_TS[m][DIM_A - 1][j][k][i] = get_average_par(m,F4_SD_THETA_TS);
+                        F4_SD_THETA_A[m](DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par();
+                        F4_SD_THETA_T0[m](DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par();
+                        F4_SD_THETA_TS[m](DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par();
 
                     }
                     //f5
                     for(int m = 0; m < 4; m++) {
-                        F5_SD_PHI_A[m][i][j][k][DIM_D - 1] = get_average_par(m,F5_SD_PHI_A);
-                        F5_SD_PHI_XS[m][i][j][k][DIM_D - 1] = get_average_par(m,F5_SD_PHI_XS);
+                        F5_SD_PHI_A[m](i, j, k, DIM_D - 1) = F5_SD_PHI_A[m].get_average_par();
+                        F5_SD_PHI_XS[m](i, j, k, DIM_D - 1) = F5_SD_PHI_XS[m].get_average_par();
 
-                        F5_SD_PHI_A[m][DIM_A - 1][j][k][i] = get_average_par(m,F5_SD_PHI_A);
-                        F5_SD_PHI_XS[m][DIM_A - 1][j][k][i] = get_average_par(m,F5_SD_PHI_XS);
+                        F5_SD_PHI_A[m](DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par();
+                        F5_SD_PHI_XS[m](DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par();
 
                   }
                 }
@@ -907,60 +878,60 @@ void DNA3Interaction::init() {
 					for(int l = 0; l < DIM_D; l++) {
 
 						//delta2
-						_fene_delta2_SD[i][j][k][l] = SQR(_fene_delta_SD[i][j][k][l]);
+						_fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
 
 
 						//f1
 						number term1, term2, term3;
 						for(int m = 0; m < 2; m++) {
-							term1 = exp( -F1_SD_A[m][i][j][k][l]*(F1_SD_RLOW[m][i][j][k][l]-F1_SD_R0[m][i][j][k][l]) );
-							term2 = exp( -F1_SD_A[m][i][j][k][l]*(F1_SD_RC[m][i][j][k][l]-F1_SD_R0[m][i][j][k][l]) );
-							term3 = exp( -F1_SD_A[m][i][j][k][l]*(F1_SD_RHIGH[m][i][j][k][l]-F1_SD_R0[m][i][j][k][l]) );
+							term1 = exp( -F1_SD_A[m](i, j, k, l)*(F1_SD_RLOW[m](i, j, k, l)-F1_SD_R0[m](i, j, k, l)) );
+							term2 = exp( -F1_SD_A[m](i, j, k, l)*(F1_SD_RC[m](i, j, k, l)-F1_SD_R0[m](i, j, k, l)) );
+							term3 = exp( -F1_SD_A[m](i, j, k, l)*(F1_SD_RHIGH[m](i, j, k, l)-F1_SD_R0[m](i, j, k, l)) );
 
-							F1_SD_BLOW[m][i][j][k][l] = SQR( F1_SD_A[m][i][j][k][l]*term1*(1-term1) )/( SQR(1-term1)-SQR(1-term2) );
-							F1_SD_BHIGH[m][i][j][k][l] = SQR( F1_SD_A[m][i][j][k][l]*term3*(1-term3) )/( SQR(1-term3)-SQR(1-term2) );
+							F1_SD_BLOW[m](i, j, k, l) = SQR( F1_SD_A[m](i, j, k, l)*term1*(1-term1) )/( SQR(1-term1)-SQR(1-term2) );
+							F1_SD_BHIGH[m](i, j, k, l) = SQR( F1_SD_A[m](i, j, k, l)*term3*(1-term3) )/( SQR(1-term3)-SQR(1-term2) );
 
-							F1_SD_RCLOW[m][i][j][k][l] = F1_SD_RLOW[m][i][j][k][l] - F1_SD_A[m][i][j][k][l]/F1_SD_BLOW[m][i][j][k][l]*(term1*(1-term1));
-							F1_SD_RCHIGH[m][i][j][k][l] = F1_SD_RHIGH[m][i][j][k][l] - F1_SD_A[m][i][j][k][l]/F1_SD_BHIGH[m][i][j][k][l]*(term3*(1-term3));
+							F1_SD_RCLOW[m](i, j, k, l) = F1_SD_RLOW[m](i, j, k, l) - F1_SD_A[m](i, j, k, l)/F1_SD_BLOW[m](i, j, k, l)*(term1*(1-term1));
+							F1_SD_RCHIGH[m](i, j, k, l) = F1_SD_RHIGH[m](i, j, k, l) - F1_SD_A[m](i, j, k, l)/F1_SD_BHIGH[m](i, j, k, l)*(term3*(1-term3));
 
-							F1_SD_SHIFT[m][i][j][k][l] = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m][i][j][k][l] - F1_SD_R0[m][i][j][k][l]) * F1_SD_A[m][i][j][k][l]));
+							F1_SD_SHIFT[m](i, j, k, l) = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
 						}
 						//f2
 						for(int m = 0; m < 4; m++) {
-							term1 = F2_SD_RLOW[m][i][j][k][l]-F2_SD_R0[m][i][j][k][l];
-							term2 = F2_SD_RHIGH[m][i][j][k][l]-F2_SD_R0[m][i][j][k][l];
-							term3 = F2_SD_RC[m][i][j][k][l]-F2_SD_R0[m][i][j][k][l];
+							term1 = F2_SD_RLOW[m](i, j, k, l)-F2_SD_R0[m](i, j, k, l);
+							term2 = F2_SD_RHIGH[m](i, j, k, l)-F2_SD_R0[m](i, j, k, l);
+							term3 = F2_SD_RC[m](i, j, k, l)-F2_SD_R0[m](i, j, k, l);
 
-							F2_SD_RCLOW[m][i][j][k][l] = F2_SD_RLOW[m][i][j][k][l] - term1 + SQR(term3)/term1;
-							F2_SD_RCHIGH[m][i][j][k][l] = F2_SD_RHIGH[m][i][j][k][l] - term2 + SQR(term3)/term2;
+							F2_SD_RCLOW[m](i, j, k, l) = F2_SD_RLOW[m](i, j, k, l) - term1 + SQR(term3)/term1;
+							F2_SD_RCHIGH[m](i, j, k, l) = F2_SD_RHIGH[m](i, j, k, l) - term2 + SQR(term3)/term2;
 
-							F2_SD_BLOW[m][i][j][k][l] = -0.5*term1/( F2_SD_RCLOW[m][i][j][k][l] - F2_SD_RLOW[m][i][j][k][l] );
-							F2_SD_BHIGH[m][i][j][k][l] = -0.5*term2/( F2_SD_RCHIGH[m][i][j][k][l] - F2_SD_RHIGH[m][i][j][k][l] );
+							F2_SD_BLOW[m](i, j, k, l) = -0.5*term1/( F2_SD_RCLOW[m](i, j, k, l) - F2_SD_RLOW[m](i, j, k, l) );
+							F2_SD_BHIGH[m](i, j, k, l) = -0.5*term2/( F2_SD_RCHIGH[m](i, j, k, l) - F2_SD_RHIGH[m](i, j, k, l) );
 						}
 
 						//f3
 						for(int m = 0; m < 7; m++) {
-							number tmp = SQR( _excl_s[m][i][j][k][l] / _excl_r[m][i][j][k][l] );
+							number tmp = SQR( _excl_s[m](i, j, k, l) / _excl_r[m](i, j, k, l) );
 							term1 = tmp*tmp*tmp;
 							term2 = 4.*( SQR(term1) - term1 );
-							term3 = 12./_excl_r[m][i][j][k][l]*( 2.*SQR(term1) - term1 );
+							term3 = 12./_excl_r[m](i, j, k, l)*( 2.*SQR(term1) - term1 );
 
-							_excl_rc[m][i][j][k][l] = term2/term3 + _excl_r[m][i][j][k][l];
-							_excl_b[m][i][j][k][l] = SQR(term3)/term2;
+							_excl_rc[m](i, j, k, l) = term2/term3 + _excl_r[m](i, j, k, l);
+							_excl_b[m](i, j, k, l) = SQR(term3)/term2;
 						}
 
 						//f4
 						for(int m = 0; m < 21; m++) {
-							F4_SD_THETA_TC[m][i][j][k][l] = 1./F4_SD_THETA_A[m][i][j][k][l]/F4_SD_THETA_TS[m][i][j][k][l];
-							F4_SD_THETA_B[m][i][j][k][l] = F4_SD_THETA_A[m][i][j][k][l]*F4_SD_THETA_TS[m][i][j][k][l]/( F4_SD_THETA_TC[m][i][j][k][l] - F4_SD_THETA_TS[m][i][j][k][l] );
+							F4_SD_THETA_TC[m](i, j, k, l) = 1./F4_SD_THETA_A[m](i, j, k, l)/F4_SD_THETA_TS[m](i, j, k, l);
+							F4_SD_THETA_B[m](i, j, k, l) = F4_SD_THETA_A[m](i, j, k, l)*F4_SD_THETA_TS[m](i, j, k, l)/( F4_SD_THETA_TC[m](i, j, k, l) - F4_SD_THETA_TS[m](i, j, k, l) );
 						}
 						//f5
 						for(int m = 0; m < 4; m++) {
-							term1 = 1.-F5_SD_PHI_A[m][i][j][k][l]*SQR(F5_SD_PHI_XS[m][i][j][k][l]);
-							term2 = F5_SD_PHI_A[m][i][j][k][l]*F5_SD_PHI_XS[m][i][j][k][l];
+							term1 = 1.-F5_SD_PHI_A[m](i, j, k, l)*SQR(F5_SD_PHI_XS[m](i, j, k, l));
+							term2 = F5_SD_PHI_A[m](i, j, k, l)*F5_SD_PHI_XS[m](i, j, k, l);
 
-							F5_SD_PHI_XC[m][i][j][k][l] = term1/term2 + F5_SD_PHI_XS[m][i][j][k][l];
-							F5_SD_PHI_B[m][i][j][k][l] = SQR(term2)/term1;
+							F5_SD_PHI_XC[m](i, j, k, l) = term1/term2 + F5_SD_PHI_XS[m](i, j, k, l);
+							F5_SD_PHI_B[m](i, j, k, l) = SQR(term2)/term1;
 						}
 					}
 				}
@@ -975,9 +946,9 @@ void DNA3Interaction::init() {
 				for(int j = 0; j < DIM_B; j++) {
 					for(int k = 0; k < DIM_C; k++) {
 						for(int l = 0; l < DIM_D; l++) {
-							_mbf_xmax_SD[i][j][k][l] = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD[i][j][k][l])) / (2.f * _mbf_fmax);
+							_mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
 							// if we use mbf, we should tell the user
-							OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD[i][j][k][l]);
+							OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
 						}
 					}
 				}
@@ -1002,9 +973,9 @@ void DNA3Interaction::init() {
 					for(int l = 0; l < 6; l++) {
 						for(int m = 0; m < 4; m++) {
 							for(int n = 0; n < 4; n++) {
-								rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0][i][j][k][l];
+								rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
 								if(rcutback > rcutback_max) rcutback_max = rcutback;
-								rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0][i][j][k][k]; // CHECK INDEXES
+								rcutbase = fabs(pba[n])+fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, k); // CHECK INDEXES
 								if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
 							}
 						}
@@ -1056,9 +1027,9 @@ void DNA3Interaction::init() {
 					for(int k = 0; k < DIM_C; k++) {
 						for(int l = 0; l < DIM_D; l++) {
 
-							int points = MESH_F4_SD_POINTS[i][j][z][k][l];
-							number upplimit = cos(fmax(0, F4_SD_THETA_T0[i][j][z][k][l] - F4_SD_THETA_TC[i][j][z][k][l]));
-							number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[i][j][z][k][l] + F4_SD_THETA_TC[i][j][z][k][l]));
+							int points = MESH_F4_SD_POINTS[i](j, z, k, l);
+							number upplimit = cos(fmax(0, F4_SD_THETA_T0[i](j, z, k, l) - F4_SD_THETA_TC[i](j, z, k, l)));
+							number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[i](j, z, k, l) + F4_SD_THETA_TC[i](j, z, k, l)));
 
 							int tmp_args[5] = {i, j, z, k, l};
 							_mesh_f4_SD[i][j][z][k][l].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void*) tmp_args, points, lowlimit, upplimit);
@@ -1095,8 +1066,8 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
         if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
 	LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
-	number energy = _repulsive_lj(rcenter, force, _excl_s[4][type_n3_2][q->type][p->type][type_n5_2],_excl_r[4][type_n3_2][q->type][p->type][type_n5_2],
-			 _excl_b[4][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[4][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	number energy = _repulsive_lj(rcenter, force, _excl_s[4](type_n3_2, q->type, p->type, type_n5_2),_excl_r[4](type_n3_2, q->type, p->type, type_n5_2),
+			 _excl_b[4](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[4](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1110,8 +1081,8 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 
 	// P-BASE vs. Q-BACK
 	rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
-	energy += _repulsive_lj(rcenter, force, _excl_s[5][type_n3_2][q->type][p->type][type_n5_2],_excl_r[5][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[5][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[5][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	energy += _repulsive_lj(rcenter, force, _excl_s[5](type_n3_2, q->type, p->type, type_n5_2),_excl_r[5](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[5](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[5](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1125,8 +1096,8 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 
 	// P-BACK vs. Q-BASE
 	rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
-	energy += _repulsive_lj(rcenter, force, _excl_s[6][type_n3_2][q->type][p->type][type_n5_2],_excl_r[6][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[6][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[6][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	energy += _repulsive_lj(rcenter, force, _excl_s[6](type_n3_2, q->type, p->type, type_n5_2),_excl_r[6](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[6](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[6](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep -= p->int_centers[DNANucleotide::BACK].cross(force);
@@ -1163,8 +1134,8 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
 	// BASE-BASE
 	LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
-	number energy = _repulsive_lj(rcenter, force, _excl_s[1][type_n3_2][q->type][p->type][type_n5_2],_excl_r[1][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[1][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[1][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	number energy = _repulsive_lj(rcenter, force, _excl_s[1](type_n3_2, q->type, p->type, type_n5_2),_excl_r[1](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[1](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[1](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep = -p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1178,8 +1149,8 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
 	// P-BACK vs. Q-BASE
 	rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
-	energy += _repulsive_lj(rcenter, force, _excl_s[3][type_n3_2][q->type][p->type][type_n5_2],_excl_r[3][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[3][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[3][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	energy += _repulsive_lj(rcenter, force, _excl_s[3](type_n3_2, q->type, p->type, type_n5_2),_excl_r[3](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[3](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[3](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
@@ -1193,8 +1164,8 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
 	// P-BASE vs. Q-BACK
 	rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
-	energy += _repulsive_lj(rcenter, force, _excl_s[2][type_n3_2][q->type][p->type][type_n5_2],_excl_r[2][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[2][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[2][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	energy += _repulsive_lj(rcenter, force, _excl_s[2](type_n3_2, q->type, p->type, type_n5_2),_excl_r[2](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[2](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[2](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep += -p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1208,8 +1179,8 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
 	// BACK-BACK
 	rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
-	energy += _repulsive_lj(rcenter, force, _excl_s[0][type_n3_2][q->type][p->type][type_n5_2],_excl_r[0][type_n3_2][q->type][p->type][type_n5_2],
-                         _excl_b[0][type_n3_2][q->type][p->type][type_n5_2],_excl_rc[0][type_n3_2][q->type][p->type][type_n5_2], update_forces);
+	energy += _repulsive_lj(rcenter, force, _excl_s[0](type_n3_2, q->type, p->type, type_n5_2),_excl_r[0](type_n3_2, q->type, p->type, type_n5_2),
+                         _excl_b[0](type_n3_2, q->type, p->type, type_n5_2),_excl_rc[0](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
 	if(update_forces) {
 		torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
@@ -1254,33 +1225,33 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 
 	LR_vector rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackmod = rback.module();
-	number rbackr0 = rbackmod - _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2];
+	number rbackr0 = rbackmod - _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2);
 
 	LR_vector force;
 	number energy;
 
-	if(_use_mbf && fabs(rbackr0) > _mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2]) {
+	if(_use_mbf && fabs(rbackr0) > _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) {
 		// we use the "log"  potential
-		number fene_xmax = -(_fene_eps / 2.f) * log(1.f - SQR(_mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2]) / _fene_delta2_SD[type_n3_2][q->type][p->type][type_n5_2]);
-		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2] * log(_mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2]) + _mbf_finf * _mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2];
-		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2] * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+		number fene_xmax = -(_fene_eps / 2.f) * log(1.f - SQR(_mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) / _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2));
+		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) * log(_mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) + _mbf_finf * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2);
+		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
 		if(update_forces)
-			force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax_SD[type_n3_2][q->type][p->type][type_n5_2] / fabs(rbackr0) + _mbf_finf) / rbackmod);
+			force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) / fabs(rbackr0) + _mbf_finf) / rbackmod);
 	}
 	else {
 		// we check whether we ended up OUTSIDE of the FENE range
-		if(fabs(rbackr0) > _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2] - DBL_EPSILON) {
-			std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2  << q->type  << p->type  << type_n5_2  << " " << rbackmod << " " << _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] << " " << _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2]<< " " << _fene_delta2_SD[type_n3_2][q->type][p->type][type_n5_2] << std::endl;
+		if(fabs(rbackr0) > _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) - DBL_EPSILON) {
+			std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2  << q->type  << p->type  << type_n5_2  << " " << rbackmod << " " << _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2)<< " " << _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2) << std::endl;
 			if(update_forces && !_allow_broken_fene) {
-				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2]), fabs(_fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2]));
+				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2)), fabs(_fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2)));
 			}
 			return (number) (1.e12);
 		}
 
 		// if not, we just do the right thing
-		energy = -(_fene_eps / 2.f) * log(1.f - SQR(rbackr0) / _fene_delta2_SD[type_n3_2][q->type][p->type][type_n5_2]);
+		energy = -(_fene_eps / 2.f) * log(1.f - SQR(rbackr0) / _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2));
 		if(update_forces) {
-			force = rback * (-(_fene_eps * rbackr0 / (_fene_delta2_SD[type_n3_2][q->type][p->type][type_n5_2] - SQR(rbackr0))) / rbackmod);
+			force = rback * (-(_fene_eps * rbackr0 / (_fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2) - SQR(rbackr0))) / rbackmod);
 		}
 	}
 
@@ -1357,8 +1328,8 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
         if(type_n3_2 ==5 || type_n5_2 == 5) {
 	    std::cout << "type" << type_n3_2 << " " << q->type << " " << p->type << " " << type_n5_2 << "stacking energy: " << energy << std::endl;
 	    std::cout << f1 << " " << f4t4 << " " << f4t5 << " " << f4t6 << " " << f5phi1 << " " << f5phi2 << std::endl;
-            std::cout << F4_SD_THETA_A[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_B[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_T0[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2]
-<< " " << F4_SD_THETA_TS[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << " " << F4_SD_THETA_TC[STCK_F4_THETA4][type_n3_2][q->type][p->type][type_n5_2] << std::endl;
+            std::cout << F4_SD_THETA_A[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_B[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_T0[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2)
+<< " " << F4_SD_THETA_TS[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_TC[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << std::endl;
         }
 */
 	if(update_forces && energy != (number) 0.f) {
@@ -1505,7 +1476,7 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
 	LR_vector rhydro = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number rhydromod = rhydro.module();
 	number energy = (number) 0.f;
-	if(is_pair && F1_SD_RCLOW[HYDR_F1][0][q->type][p->type][0] < rhydromod && rhydromod < F1_SD_RCHIGH[HYDR_F1][0][q->type][p->type][0]) {
+	if(is_pair && F1_SD_RCLOW[HYDR_F1](0, q->type, p->type, 0) < rhydromod && rhydromod < F1_SD_RCHIGH[HYDR_F1](0, q->type, p->type, 0)) {
 
 		// vector, versor and magnitude of the base-base separation
 		LR_vector rhydrodir = rhydro / rhydromod;
@@ -1701,8 +1672,7 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 	//if (q->n3 == P_VIRTUAL && p->n3 != P_VIRTUAL) type_n3_2_55 = type_n5_2_55;
 	//if (p->n3 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2_55 = type_n3_2_55;
 
-	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33][type_q_n3][q->type][p->type][type_p_n3] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33][type_q_n3][q->type][p->type][type_p_n3]) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55][type_q_n5][q->type][p->type][type_p_n5] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55][type_q_n5][q->type][p->type][type_p_n5]) ) {
-
+	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3)) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5)) ) {
 
                 // angles involved in the CRST interaction
                 number cost1 = -a1 * b1;
@@ -1868,20 +1838,18 @@ F2_SD_BHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RLOW[CRST_
 	return energy;
 }
 
-
-
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
-	if(r < F1_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(r > F1_SD_RHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F1_EPS[type][n3_1][n5_1] * F1_SD_BHIGH[type][n3_2][n3_1][n5_1][n5_2] * SQR(r - F1_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]);
+	if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F1_EPS[type][n3_1][n5_1] * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
 		}
-		else if(r > F1_SD_RLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			number tmp = 1 - exp(-(r - F1_SD_R0[type][n3_2][n3_1][n5_1][n5_2]) * F1_SD_A[type][n3_2][n3_1][n5_1][n5_2]);
-			val = F1_EPS[type][n3_1][n5_1] * SQR(tmp) - F1_SD_SHIFT[type][n3_2][n3_1][n5_1][n5_2];
+		else if(r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			number tmp = 1 - exp(-(r - F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
+			val = F1_EPS[type][n3_1][n5_1] * SQR(tmp) - F1_SD_SHIFT[type](n3_2, n3_1, n5_1, n5_2);
 		}
-		else if(r > F1_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F1_EPS[type][n3_1][n5_1] * F1_SD_BLOW[type][n3_2][n3_1][n5_1][n5_2] * SQR(r - F1_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]);
+		else if(r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F1_EPS[type][n3_1][n5_1] * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
 		}
 	}
 
@@ -1890,16 +1858,16 @@ number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1,
 
 number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
-	if(r < F1_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(r > F1_SD_RHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = 2 * F1_SD_BHIGH[type][n3_2][n3_1][n5_1][n5_2] * (r - F1_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]);
+	if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2 * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
 		}
-		else if(r > F1_SD_RLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			number tmp = exp(-(r - F1_SD_R0[type][n3_2][n3_1][n5_1][n5_2]) * F1_SD_A[type][n3_2][n3_1][n5_1][n5_2]);
-			val = 2 * (1 - tmp) * tmp * F1_SD_A[type][n3_2][n3_1][n5_1][n5_2];
+		else if(r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			number tmp = exp(-(r - F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
+			val = 2 * (1 - tmp) * tmp * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2);
 		}
-		else if(r > F1_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = 2 * F1_SD_BLOW[type][n3_2][n3_1][n5_1][n5_2] * (r - F1_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]);
+		else if(r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2 * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
 		}
 	}
 
@@ -1909,15 +1877,15 @@ number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1
 
 number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0.;
-	if(r < F2_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(r > F2_SD_RHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] * F2_SD_BHIGH[type][n3_2][n3_1][n5_1][n5_2] * SQR(r - F2_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]);
+	if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
 		}
-		else if(r > F2_SD_RLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = (F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] / 2.) * (SQR(r - F2_SD_R0[type][n3_2][n3_1][n5_1][n5_2]) - SQR(F2_SD_RC[type][n3_2][n3_1][n5_1][n5_2] - F2_SD_R0[type][n3_2][n3_1][n5_1][n5_2]));
+		else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = (F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
 		}
-		else if(r > F2_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] * F2_SD_BLOW[type][n3_2][n3_1][n5_1][n5_2] * SQR(r - F2_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]);
+		else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
 		}
 	}
 	return val;
@@ -1925,15 +1893,15 @@ number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1,
 
 number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0.;
-	if(r < F2_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(r > F2_SD_RHIGH[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = 2. * F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] * F2_SD_BHIGH[type][n3_2][n3_1][n5_1][n5_2] * (r - F2_SD_RCHIGH[type][n3_2][n3_1][n5_1][n5_2]);
+	if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
 		}
-		else if(r > F2_SD_RLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] * (r - F2_SD_R0[type][n3_2][n3_1][n5_1][n5_2]);
+		else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
 		}
-		else if(r > F2_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = 2. * F2_SD_K[type][n3_2][n3_1][n5_1][n5_2] * F2_SD_BLOW[type][n3_2][n3_1][n5_1][n5_2] * (r - F2_SD_RCLOW[type][n3_2][n3_1][n5_1][n5_2]);
+		else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
 		}
 	}
 	return val;
@@ -1962,17 +1930,17 @@ number DNA3Interaction::_fakef4D_SD(number t, void *par) {
 number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
 	//std::cout << "f4_SD args: " << t << " " << type << " " << n3 << " " << n5 << std::endl;
-	t -= F4_SD_THETA_T0[type][n3_2][n3_1][n5_1][n5_2];
+	t -= F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
 	if(t < 0)
 		t *= -1;
 
-	if(t < F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(t > F4_SD_THETA_TS[type][n3_2][n3_1][n5_1][n5_2]) {
+	if(t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
 			// smoothing
-			val = F4_SD_THETA_B[type][n3_2][n3_1][n5_1][n5_2] * SQR(F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2] - t);
+			val = F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
 		}
 		else
-			val = (number) 1.f - F4_SD_THETA_A[type][n3_2][n3_1][n5_1][n5_2] * SQR(t);
+			val = (number) 1.f - F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
 	}
 
 	return val;
@@ -1981,7 +1949,7 @@ number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1,
 number DNA3Interaction::_f4D_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
 	number m = (number) 1;
-	t -= F4_SD_THETA_T0[type][n3_2][n3_1][n5_1][n5_2];
+	t -= F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
 	// this function is a parabola centered in t0. If t < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
 	if(t < 0) {
@@ -1989,13 +1957,13 @@ number DNA3Interaction::_f4D_SD(number t, int type, int n3_2, int n3_1, int n5_1
 		m = (number) -1;
 	}
 
-	if(t < F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(t > F4_SD_THETA_TS[type][n3_2][n3_1][n5_1][n5_2]) {
+	if(t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
 			// smoothing
-			val = m * 2 * F4_SD_THETA_B[type][n3_2][n3_1][n5_1][n5_2] * (t - F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2]);
+			val = m * 2 * F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * (t - F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2));
 		}
 		else
-			val = -m * 2 * F4_SD_THETA_A[type][n3_2][n3_1][n5_1][n5_2] * t;
+			val = -m * 2 * F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * t;
 	}
 
 	return val;
@@ -2004,7 +1972,7 @@ number DNA3Interaction::_f4D_SD(number t, int type, int n3_2, int n3_1, int n5_1
 number DNA3Interaction::_f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
 	number m = (number) 1;
-	number tt0 = t - F4_SD_THETA_T0[type][n3_2][n3_1][n5_1][n5_2];
+	number tt0 = t - F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
 	// this function is a parabola centered in t0. If t < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
 	if(tt0 < 0) {
@@ -2012,17 +1980,17 @@ number DNA3Interaction::_f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n
 		m = (number) -1;
 	}
 
-	if(tt0 < F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2]) {
+	if(tt0 < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
 		number sint = sin(t);
-		if(tt0 > F4_SD_THETA_TS[type][n3_2][n3_1][n5_1][n5_2]) {
+		if(tt0 > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
 			// smoothing
-			val = m * 2 * F4_SD_THETA_B[type][n3_2][n3_1][n5_1][n5_2] * (tt0 - F4_SD_THETA_TC[type][n3_2][n3_1][n5_1][n5_2]) / sint;
+			val = m * 2 * F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * (tt0 - F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) / sint;
 		}
 		else {
 			if(SQR(sint) > 1e-8)
-				val = -m * 2 * F4_SD_THETA_A[type][n3_2][n3_1][n5_1][n5_2] * tt0 / sint;
+				val = -m * 2 * F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * tt0 / sint;
 			else
-				val = -m * 2 * F4_SD_THETA_A[type][n3_2][n3_1][n5_1][n5_2];
+				val = -m * 2 * F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2);
 		}
 	}
 
@@ -2033,12 +2001,12 @@ number DNA3Interaction::_f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n
 number DNA3Interaction::_f5_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
 
-	if(f > F5_SD_PHI_XC[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(f < F5_SD_PHI_XS[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = F5_SD_PHI_B[type][n3_2][n3_1][n5_1][n5_2] * SQR(F5_SD_PHI_XC[type][n3_2][n3_1][n5_1][n5_2] - f);
+	if(f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2) - f);
 		}
 		else if(f < 0) {
-			val = (number) 1.f - F5_SD_PHI_A[type][n3_2][n3_1][n5_1][n5_2] * SQR(f);
+			val = (number) 1.f - F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(f);
 		}
 		else
 			val = (number) 1;
@@ -2050,12 +2018,12 @@ number DNA3Interaction::_f5_SD(number f, int type, int n3_2, int n3_1, int n5_1,
 number DNA3Interaction::_f5D_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	number val = (number) 0;
 
-	if(f > F5_SD_PHI_XC[type][n3_2][n3_1][n5_1][n5_2]) {
-		if(f < F5_SD_PHI_XS[type][n3_2][n3_1][n5_1][n5_2]) {
-			val = 2 * F5_SD_PHI_B[type][n3_2][n3_1][n5_1][n5_2] * (f - F5_SD_PHI_XC[type][n3_2][n3_1][n5_1][n5_2]);
+	if(f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2 * F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * (f - F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2));
 		}
 		else if(f < 0) {
-			val = (number) -2.f * F5_SD_PHI_A[type][n3_2][n3_1][n5_1][n5_2] * f;
+			val = (number) -2.f * F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * f;
 		}
 		else
 			val = (number) 0;
@@ -2099,8 +2067,8 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 			//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
 			//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
-			mind = _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] - _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
-			maxd = _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] + _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
+			mind = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
+			maxd = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv * rv);
@@ -2127,8 +2095,8 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 			//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
 			//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
-			mind = _fene_r0_SD[type_n3_2][p->type][q->type][type_n5_2] - _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
-			maxd = _fene_r0_SD[type_n3_2][p->type][q->type][type_n5_2] + _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
+			mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
+			maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv * rv);

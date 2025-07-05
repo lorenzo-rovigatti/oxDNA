@@ -1,28 +1,29 @@
 #ifndef DNA3_INTERACTION_H
 #define DNA3_INTERACTION_H
 
-#include "DNA2Interaction.h"
-
 #define DIM_A 6
 #define DIM_B 5
 #define DIM_C 5
 #define DIM_D 6
+
+#include "DNA2Interaction.h"
+#include "../Utilities/oxdna3_utils.h"
 
 class DNA3Interaction: public DNA2Interaction {
 
 protected:
 
 	/// here we store the r0, which is different in oxDNA and oxDNA2, and is set in the constructor
-	number _fene_r0_SD[DIM_A][DIM_B][DIM_C][DIM_D];
-	number _fene_delta_SD[DIM_A][DIM_B][DIM_C][DIM_D];
-	number _fene_delta2_SD[DIM_A][DIM_B][DIM_C][DIM_D];
-	number _mbf_xmax_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_r0_SD;
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_delta_SD;
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_delta2_SD;
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _mbf_xmax_SD;
     number _fene_eps;
 
-    number _rcut_SD[DIM_A][DIM_B][DIM_C][DIM_D];
-	number _sqr_rcut_SD[DIM_A][DIM_B][DIM_C][DIM_D];
+    MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _rcut_SD;
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _sqr_rcut_SD;
 
-	Mesh _mesh_f4_SD[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	Mesh _mesh_f4_SD[21][DIM_A][DIM_B][DIM_C][DIM_D]; // this is not used by the GPU so we can keep using C-style arrays
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -43,8 +44,7 @@ protected:
 	number _fakef4_SD(number t, void * par);
 	number _fakef4D_SD(number t, void * par);
 
-	//virtual number _custom_f4_SD (number cost, int i, int n3, int n5) { return this->_mesh_f4_SD[i][n3][n5].query(cost); }
-	virtual number _custom_f4_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return this->_mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query(cost); }
+	virtual number _custom_f4_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query(cost); }
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -52,8 +52,7 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	//virtual number _custom_f4D_SD (number cost, int i, int n3, int n5) { return this->_mesh_f4_SD[i][n3][n5].query_derivative(cost); }
-	virtual number _custom_f4D_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return this->_mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query_derivative(cost); }
+	virtual number _custom_f4D_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query_derivative(cost); }
 
 public:
 	DNA3Interaction();
@@ -61,52 +60,49 @@ public:
 	virtual void init();
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	number F1_SD_A[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_RC[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_R0[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_BLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_BHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_RLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_RHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_RCLOW[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_RCHIGH[2][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F1_SD_SHIFT[2][DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_A[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RC[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_R0[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_BLOW[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_BHIGH[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RLOW[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RHIGH[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RCLOW[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RCHIGH[2];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_SHIFT[2];
 
-	number F2_SD_K[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_RC[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_R0[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_BLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_RLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_RCLOW[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_BHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_RCHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F2_SD_RHIGH[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_K[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RC[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_R0[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_BLOW[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RLOW[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RCLOW[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_BHIGH[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RCHIGH[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RHIGH[4];
 
-	number F4_SD_THETA_A[21][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F4_SD_THETA_B[21][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F4_SD_THETA_T0[21][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F4_SD_THETA_TS[21][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F4_SD_THETA_TC[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_A[21];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_B[21];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_T0[21];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_TS[21];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_TC[21];
 
 
-	number F5_SD_PHI_A[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F5_SD_PHI_B[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F5_SD_PHI_XC[4][DIM_A][DIM_B][DIM_C][DIM_D];
-	number F5_SD_PHI_XS[4][DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_A[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_B[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_XC[4];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_XS[4];
 
-    number _excl_s[7][DIM_A][DIM_B][DIM_C][DIM_D];
-	number _excl_r[7][DIM_A][DIM_B][DIM_C][DIM_D];
-	number _excl_b[7][DIM_A][DIM_B][DIM_C][DIM_D];
-	number _excl_rc[7][DIM_A][DIM_B][DIM_C][DIM_D];
+    MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_s[7];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_r[7];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_b[7];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_rc[7];
 
-	number MESH_F4_SD_POINTS[21][DIM_A][DIM_B][DIM_C][DIM_D];
+	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> MESH_F4_SD_POINTS[21];
 
-    number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD[ty1][ty2][ty3][ty4]; }
-    number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD[ty1][ty2][ty3][ty4]; }
-    number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD[ty1][ty2][ty3][ty4]; }
-
-    number get_average_par(number par[DIM_A][DIM_B][DIM_C][DIM_D]);
-    number get_average_par(int m, number par[][DIM_A][DIM_B][DIM_C][DIM_D]);
+    number get_fene_delta2_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta2_SD(ty1, ty2, ty3, ty4); }
+    number get_fene_delta_SD(int ty1, int ty2, int ty3, int ty4) { return _fene_delta_SD(ty1, ty2, ty3, ty4); }
+    number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD(ty1, ty2, ty3, ty4); }
 
     ~DNA3Interaction();
 };
