@@ -923,7 +923,7 @@ void DNA3Interaction::init() {
                             for (int n = 0; n < 4; n++) {
                                 rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
                                 if (rcutback > rcutback_max) rcutback_max = rcutback;
-                                rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, k);  // QUESTION: are these indexes correct?
+                                rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, l);
                                 if (rcutbase > rcutbase_max) rcutbase_max = rcutbase;
                             }
                         }
