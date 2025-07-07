@@ -20,9 +20,6 @@ protected:
 	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _mbf_xmax_SD;
     number _fene_eps;
 
-    MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _rcut_SD;
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _sqr_rcut_SD;
-
 	Mesh _mesh_f4_SD[21][DIM_A][DIM_B][DIM_C][DIM_D]; // this is not used by the GPU so we can keep using C-style arrays
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);

@@ -42,265 +42,265 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
 
     // initialise all sequence dependent parameters with their average value.
     // these values are overwritten with the sequence dependent values in init().
-    _fene_r0_SD.set_all_to(FENE_R0_OXDNA2);
-    _fene_delta_SD.set_all_to(FENE_DELTA);
-    _fene_delta2_SD.set_all_to(FENE_DELTA2);
+    _fene_r0_SD.fill(FENE_R0_OXDNA2);
+    _fene_delta_SD.fill(FENE_DELTA);
+    _fene_delta2_SD.fill(FENE_DELTA2);
 
-    _excl_s[0].set_all_to(EXCL_S1);
-    _excl_s[1].set_all_to(EXCL_S2);
-    _excl_s[2].set_all_to(EXCL_S3);
-    _excl_s[3].set_all_to(EXCL_S4);
-    _excl_s[4].set_all_to(EXCL_S5);
-    _excl_s[5].set_all_to(EXCL_S6);
-    _excl_s[6].set_all_to(EXCL_S7);
+    _excl_s[0].fill(EXCL_S1);
+    _excl_s[1].fill(EXCL_S2);
+    _excl_s[2].fill(EXCL_S3);
+    _excl_s[3].fill(EXCL_S4);
+    _excl_s[4].fill(EXCL_S5);
+    _excl_s[5].fill(EXCL_S6);
+    _excl_s[6].fill(EXCL_S7);
 
-    _excl_r[0].set_all_to(EXCL_R1);
-    _excl_r[1].set_all_to(EXCL_R2);
-    _excl_r[2].set_all_to(EXCL_R3);
-    _excl_r[3].set_all_to(EXCL_R4);
-    _excl_r[4].set_all_to(EXCL_R5);
-    _excl_r[5].set_all_to(EXCL_R6);
-    _excl_r[6].set_all_to(EXCL_R7);
+    _excl_r[0].fill(EXCL_R1);
+    _excl_r[1].fill(EXCL_R2);
+    _excl_r[2].fill(EXCL_R3);
+    _excl_r[3].fill(EXCL_R4);
+    _excl_r[4].fill(EXCL_R5);
+    _excl_r[5].fill(EXCL_R6);
+    _excl_r[6].fill(EXCL_R7);
 
-    _excl_b[0].set_all_to(EXCL_B1);
-    _excl_b[1].set_all_to(EXCL_B2);
-    _excl_b[2].set_all_to(EXCL_B3);
-    _excl_b[3].set_all_to(EXCL_B4);
-    _excl_b[4].set_all_to(EXCL_B5);
-    _excl_b[5].set_all_to(EXCL_B6);
-    _excl_b[6].set_all_to(EXCL_B7);
+    _excl_b[0].fill(EXCL_B1);
+    _excl_b[1].fill(EXCL_B2);
+    _excl_b[2].fill(EXCL_B3);
+    _excl_b[3].fill(EXCL_B4);
+    _excl_b[4].fill(EXCL_B5);
+    _excl_b[5].fill(EXCL_B6);
+    _excl_b[6].fill(EXCL_B7);
 
-    _excl_rc[0].set_all_to(EXCL_RC1);
-    _excl_rc[1].set_all_to(EXCL_RC2);
-    _excl_rc[2].set_all_to(EXCL_RC3);
-    _excl_rc[3].set_all_to(EXCL_RC4);
-    _excl_rc[4].set_all_to(EXCL_RC5);
-    _excl_rc[5].set_all_to(EXCL_RC6);
-    _excl_rc[6].set_all_to(EXCL_RC7);
+    _excl_rc[0].fill(EXCL_RC1);
+    _excl_rc[1].fill(EXCL_RC2);
+    _excl_rc[2].fill(EXCL_RC3);
+    _excl_rc[3].fill(EXCL_RC4);
+    _excl_rc[4].fill(EXCL_RC5);
+    _excl_rc[5].fill(EXCL_RC6);
+    _excl_rc[6].fill(EXCL_RC7);
 
-    F1_SD_A[0].set_all_to(HYDR_A);
-    F1_SD_A[1].set_all_to(STCK_A);
+    F1_SD_A[0].fill(HYDR_A);
+    F1_SD_A[1].fill(STCK_A);
 
-    F1_SD_RC[0].set_all_to(HYDR_RC);
-    F1_SD_RC[1].set_all_to(STCK_RC);
+    F1_SD_RC[0].fill(HYDR_RC);
+    F1_SD_RC[1].fill(STCK_RC);
 
-    F1_SD_R0[0].set_all_to(HYDR_R0);
-    F1_SD_R0[1].set_all_to(STCK_R0);
+    F1_SD_R0[0].fill(HYDR_R0);
+    F1_SD_R0[1].fill(STCK_R0);
 
-    F1_SD_BLOW[0].set_all_to(HYDR_BLOW);
-    F1_SD_BLOW[1].set_all_to(STCK_BLOW);
+    F1_SD_BLOW[0].fill(HYDR_BLOW);
+    F1_SD_BLOW[1].fill(STCK_BLOW);
 
-    F1_SD_BHIGH[0].set_all_to(HYDR_BHIGH);
-    F1_SD_BHIGH[1].set_all_to(STCK_BHIGH);
+    F1_SD_BHIGH[0].fill(HYDR_BHIGH);
+    F1_SD_BHIGH[1].fill(STCK_BHIGH);
 
-    F1_SD_RLOW[0].set_all_to(HYDR_RLOW);
-    F1_SD_RLOW[1].set_all_to(STCK_RLOW);
+    F1_SD_RLOW[0].fill(HYDR_RLOW);
+    F1_SD_RLOW[1].fill(STCK_RLOW);
 
-    F1_SD_RHIGH[0].set_all_to(HYDR_RHIGH);
-    F1_SD_RHIGH[1].set_all_to(STCK_RHIGH);
+    F1_SD_RHIGH[0].fill(HYDR_RHIGH);
+    F1_SD_RHIGH[1].fill(STCK_RHIGH);
 
-    F1_SD_RCLOW[0].set_all_to(HYDR_RCLOW);
-    F1_SD_RCLOW[1].set_all_to(STCK_RCLOW);
+    F1_SD_RCLOW[0].fill(HYDR_RCLOW);
+    F1_SD_RCLOW[1].fill(STCK_RCLOW);
 
-    F1_SD_RCHIGH[0].set_all_to(HYDR_RCHIGH);
-    F1_SD_RCHIGH[1].set_all_to(STCK_RCHIGH);
+    F1_SD_RCHIGH[0].fill(HYDR_RCHIGH);
+    F1_SD_RCHIGH[1].fill(STCK_RCHIGH);
 
-    F4_SD_THETA_A[0].set_all_to(STCK_THETA4_A);
-    F4_SD_THETA_A[1].set_all_to(STCK_THETA5_A);
+    F4_SD_THETA_A[0].fill(STCK_THETA4_A);
+    F4_SD_THETA_A[1].fill(STCK_THETA5_A);
 
-    F4_SD_THETA_A[0].set_all_to(STCK_THETA4_A);
-    F4_SD_THETA_A[1].set_all_to(STCK_THETA5_A);
+    F4_SD_THETA_A[0].fill(STCK_THETA4_A);
+    F4_SD_THETA_A[1].fill(STCK_THETA5_A);
 
-    F4_SD_THETA_A[2].set_all_to(HYDR_THETA1_A);
-    F4_SD_THETA_A[3].set_all_to(HYDR_THETA2_A);
-    F4_SD_THETA_A[4].set_all_to(HYDR_THETA4_A);
-    F4_SD_THETA_A[5].set_all_to(HYDR_THETA7_A);
+    F4_SD_THETA_A[2].fill(HYDR_THETA1_A);
+    F4_SD_THETA_A[3].fill(HYDR_THETA2_A);
+    F4_SD_THETA_A[4].fill(HYDR_THETA4_A);
+    F4_SD_THETA_A[5].fill(HYDR_THETA7_A);
 
-    F4_SD_THETA_A[6].set_all_to(CRST_THETA1_A);
-    F4_SD_THETA_A[7].set_all_to(CRST_THETA2_A);
-    F4_SD_THETA_A[8].set_all_to(CRST_THETA4_A);
-    F4_SD_THETA_A[9].set_all_to(CRST_THETA7_A);
+    F4_SD_THETA_A[6].fill(CRST_THETA1_A);
+    F4_SD_THETA_A[7].fill(CRST_THETA2_A);
+    F4_SD_THETA_A[8].fill(CRST_THETA4_A);
+    F4_SD_THETA_A[9].fill(CRST_THETA7_A);
 
-    F4_SD_THETA_A[10].set_all_to(CXST_THETA1_A);
-    F4_SD_THETA_A[11].set_all_to(CXST_THETA4_A);
-    F4_SD_THETA_A[12].set_all_to(CXST_THETA5_A);
+    F4_SD_THETA_A[10].fill(CXST_THETA1_A);
+    F4_SD_THETA_A[11].fill(CXST_THETA4_A);
+    F4_SD_THETA_A[12].fill(CXST_THETA5_A);
 
-    F4_SD_THETA_A[13].set_all_to(CRST_THETA1_A_33);
-    F4_SD_THETA_A[14].set_all_to(CRST_THETA2_A_33);
-    F4_SD_THETA_A[15].set_all_to(CRST_THETA4_A_33);
-    F4_SD_THETA_A[16].set_all_to(CRST_THETA7_A_33);
-    F4_SD_THETA_A[17].set_all_to(CRST_THETA1_A_55);
-    F4_SD_THETA_A[18].set_all_to(CRST_THETA2_A_55);
-    F4_SD_THETA_A[19].set_all_to(CRST_THETA4_A_55);
-    F4_SD_THETA_A[20].set_all_to(CRST_THETA7_A_55);
+    F4_SD_THETA_A[13].fill(CRST_THETA1_A_33);
+    F4_SD_THETA_A[14].fill(CRST_THETA2_A_33);
+    F4_SD_THETA_A[15].fill(CRST_THETA4_A_33);
+    F4_SD_THETA_A[16].fill(CRST_THETA7_A_33);
+    F4_SD_THETA_A[17].fill(CRST_THETA1_A_55);
+    F4_SD_THETA_A[18].fill(CRST_THETA2_A_55);
+    F4_SD_THETA_A[19].fill(CRST_THETA4_A_55);
+    F4_SD_THETA_A[20].fill(CRST_THETA7_A_55);
 
-    F4_SD_THETA_B[0].set_all_to(STCK_THETA4_B);
-    F4_SD_THETA_B[1].set_all_to(STCK_THETA5_B);
+    F4_SD_THETA_B[0].fill(STCK_THETA4_B);
+    F4_SD_THETA_B[1].fill(STCK_THETA5_B);
 
-    F4_SD_THETA_B[2].set_all_to(HYDR_THETA1_B);
-    F4_SD_THETA_B[3].set_all_to(HYDR_THETA2_B);
-    F4_SD_THETA_B[4].set_all_to(HYDR_THETA4_B);
-    F4_SD_THETA_B[5].set_all_to(HYDR_THETA7_B);
+    F4_SD_THETA_B[2].fill(HYDR_THETA1_B);
+    F4_SD_THETA_B[3].fill(HYDR_THETA2_B);
+    F4_SD_THETA_B[4].fill(HYDR_THETA4_B);
+    F4_SD_THETA_B[5].fill(HYDR_THETA7_B);
 
-    F4_SD_THETA_B[6].set_all_to(CRST_THETA1_B);
-    F4_SD_THETA_B[7].set_all_to(CRST_THETA2_B);
-    F4_SD_THETA_B[8].set_all_to(CRST_THETA4_B);
-    F4_SD_THETA_B[9].set_all_to(CRST_THETA7_B);
+    F4_SD_THETA_B[6].fill(CRST_THETA1_B);
+    F4_SD_THETA_B[7].fill(CRST_THETA2_B);
+    F4_SD_THETA_B[8].fill(CRST_THETA4_B);
+    F4_SD_THETA_B[9].fill(CRST_THETA7_B);
 
-    F4_SD_THETA_B[10].set_all_to(CXST_THETA1_B);
-    F4_SD_THETA_B[11].set_all_to(CXST_THETA4_B);
-    F4_SD_THETA_B[12].set_all_to(CXST_THETA5_B);
+    F4_SD_THETA_B[10].fill(CXST_THETA1_B);
+    F4_SD_THETA_B[11].fill(CXST_THETA4_B);
+    F4_SD_THETA_B[12].fill(CXST_THETA5_B);
 
-    F4_SD_THETA_B[13].set_all_to(CRST_THETA1_B_33);
-    F4_SD_THETA_B[14].set_all_to(CRST_THETA2_B_33);
-    F4_SD_THETA_B[15].set_all_to(CRST_THETA4_B_33);
-    F4_SD_THETA_B[16].set_all_to(CRST_THETA7_B_33);
-    F4_SD_THETA_B[17].set_all_to(CRST_THETA1_B_55);
-    F4_SD_THETA_B[18].set_all_to(CRST_THETA2_B_55);
-    F4_SD_THETA_B[19].set_all_to(CRST_THETA4_B_55);
-    F4_SD_THETA_B[20].set_all_to(CRST_THETA7_B_55);
+    F4_SD_THETA_B[13].fill(CRST_THETA1_B_33);
+    F4_SD_THETA_B[14].fill(CRST_THETA2_B_33);
+    F4_SD_THETA_B[15].fill(CRST_THETA4_B_33);
+    F4_SD_THETA_B[16].fill(CRST_THETA7_B_33);
+    F4_SD_THETA_B[17].fill(CRST_THETA1_B_55);
+    F4_SD_THETA_B[18].fill(CRST_THETA2_B_55);
+    F4_SD_THETA_B[19].fill(CRST_THETA4_B_55);
+    F4_SD_THETA_B[20].fill(CRST_THETA7_B_55);
 
-    F4_SD_THETA_T0[0].set_all_to(STCK_THETA4_T0);
-    F4_SD_THETA_T0[1].set_all_to(STCK_THETA5_T0);
+    F4_SD_THETA_T0[0].fill(STCK_THETA4_T0);
+    F4_SD_THETA_T0[1].fill(STCK_THETA5_T0);
 
-    F4_SD_THETA_T0[2].set_all_to(HYDR_THETA1_T0);
-    F4_SD_THETA_T0[3].set_all_to(HYDR_THETA2_T0);
-    F4_SD_THETA_T0[4].set_all_to(HYDR_THETA4_T0);
-    F4_SD_THETA_T0[5].set_all_to(HYDR_THETA7_T0);
+    F4_SD_THETA_T0[2].fill(HYDR_THETA1_T0);
+    F4_SD_THETA_T0[3].fill(HYDR_THETA2_T0);
+    F4_SD_THETA_T0[4].fill(HYDR_THETA4_T0);
+    F4_SD_THETA_T0[5].fill(HYDR_THETA7_T0);
 
-    F4_SD_THETA_T0[6].set_all_to(CRST_THETA1_T0);
-    F4_SD_THETA_T0[7].set_all_to(CRST_THETA2_T0);
-    F4_SD_THETA_T0[8].set_all_to(CRST_THETA4_T0);
-    F4_SD_THETA_T0[9].set_all_to(CRST_THETA7_T0);
+    F4_SD_THETA_T0[6].fill(CRST_THETA1_T0);
+    F4_SD_THETA_T0[7].fill(CRST_THETA2_T0);
+    F4_SD_THETA_T0[8].fill(CRST_THETA4_T0);
+    F4_SD_THETA_T0[9].fill(CRST_THETA7_T0);
 
-    F4_SD_THETA_T0[10].set_all_to(CXST_THETA1_T0_OXDNA);
-    F4_SD_THETA_T0[11].set_all_to(CXST_THETA4_T0);
-    F4_SD_THETA_T0[12].set_all_to(CXST_THETA5_T0);
-    F4_SD_THETA_T0[13].set_all_to(CRST_THETA1_T0_33);
-    F4_SD_THETA_T0[14].set_all_to(CRST_THETA2_T0_33);
-    F4_SD_THETA_T0[15].set_all_to(CRST_THETA4_T0_33);
-    F4_SD_THETA_T0[16].set_all_to(CRST_THETA7_T0_33);
-    F4_SD_THETA_T0[17].set_all_to(CRST_THETA1_T0_55);
-    F4_SD_THETA_T0[18].set_all_to(CRST_THETA2_T0_55);
-    F4_SD_THETA_T0[19].set_all_to(CRST_THETA4_T0_55);
-    F4_SD_THETA_T0[20].set_all_to(CRST_THETA7_T0_55);
+    F4_SD_THETA_T0[10].fill(CXST_THETA1_T0_OXDNA);
+    F4_SD_THETA_T0[11].fill(CXST_THETA4_T0);
+    F4_SD_THETA_T0[12].fill(CXST_THETA5_T0);
+    F4_SD_THETA_T0[13].fill(CRST_THETA1_T0_33);
+    F4_SD_THETA_T0[14].fill(CRST_THETA2_T0_33);
+    F4_SD_THETA_T0[15].fill(CRST_THETA4_T0_33);
+    F4_SD_THETA_T0[16].fill(CRST_THETA7_T0_33);
+    F4_SD_THETA_T0[17].fill(CRST_THETA1_T0_55);
+    F4_SD_THETA_T0[18].fill(CRST_THETA2_T0_55);
+    F4_SD_THETA_T0[19].fill(CRST_THETA4_T0_55);
+    F4_SD_THETA_T0[20].fill(CRST_THETA7_T0_55);
 
-    F4_SD_THETA_TS[0].set_all_to(STCK_THETA4_TS);
-    F4_SD_THETA_TS[1].set_all_to(STCK_THETA5_TS);
+    F4_SD_THETA_TS[0].fill(STCK_THETA4_TS);
+    F4_SD_THETA_TS[1].fill(STCK_THETA5_TS);
 
-    F4_SD_THETA_TS[2].set_all_to(HYDR_THETA1_TS);
-    F4_SD_THETA_TS[3].set_all_to(HYDR_THETA2_TS);
-    F4_SD_THETA_TS[4].set_all_to(HYDR_THETA4_TS);
-    F4_SD_THETA_TS[5].set_all_to(HYDR_THETA7_TS);
+    F4_SD_THETA_TS[2].fill(HYDR_THETA1_TS);
+    F4_SD_THETA_TS[3].fill(HYDR_THETA2_TS);
+    F4_SD_THETA_TS[4].fill(HYDR_THETA4_TS);
+    F4_SD_THETA_TS[5].fill(HYDR_THETA7_TS);
 
-    F4_SD_THETA_TS[6].set_all_to(CRST_THETA1_TS);
-    F4_SD_THETA_TS[7].set_all_to(CRST_THETA2_TS);
-    F4_SD_THETA_TS[8].set_all_to(CRST_THETA4_TS);
-    F4_SD_THETA_TS[9].set_all_to(CRST_THETA7_TS);
+    F4_SD_THETA_TS[6].fill(CRST_THETA1_TS);
+    F4_SD_THETA_TS[7].fill(CRST_THETA2_TS);
+    F4_SD_THETA_TS[8].fill(CRST_THETA4_TS);
+    F4_SD_THETA_TS[9].fill(CRST_THETA7_TS);
 
-    F4_SD_THETA_TS[10].set_all_to(CXST_THETA1_TS);
-    F4_SD_THETA_TS[11].set_all_to(CXST_THETA4_TS);
-    F4_SD_THETA_TS[12].set_all_to(CXST_THETA5_TS);
+    F4_SD_THETA_TS[10].fill(CXST_THETA1_TS);
+    F4_SD_THETA_TS[11].fill(CXST_THETA4_TS);
+    F4_SD_THETA_TS[12].fill(CXST_THETA5_TS);
 
-    F4_SD_THETA_TS[13].set_all_to(CRST_THETA1_TS_33);
-    F4_SD_THETA_TS[14].set_all_to(CRST_THETA2_TS_33);
-    F4_SD_THETA_TS[15].set_all_to(CRST_THETA4_TS_33);
-    F4_SD_THETA_TS[16].set_all_to(CRST_THETA7_TS_33);
-    F4_SD_THETA_TS[17].set_all_to(CRST_THETA1_TS_55);
-    F4_SD_THETA_TS[18].set_all_to(CRST_THETA2_TS_55);
-    F4_SD_THETA_TS[19].set_all_to(CRST_THETA4_TS_55);
-    F4_SD_THETA_TS[20].set_all_to(CRST_THETA7_TS_55);
+    F4_SD_THETA_TS[13].fill(CRST_THETA1_TS_33);
+    F4_SD_THETA_TS[14].fill(CRST_THETA2_TS_33);
+    F4_SD_THETA_TS[15].fill(CRST_THETA4_TS_33);
+    F4_SD_THETA_TS[16].fill(CRST_THETA7_TS_33);
+    F4_SD_THETA_TS[17].fill(CRST_THETA1_TS_55);
+    F4_SD_THETA_TS[18].fill(CRST_THETA2_TS_55);
+    F4_SD_THETA_TS[19].fill(CRST_THETA4_TS_55);
+    F4_SD_THETA_TS[20].fill(CRST_THETA7_TS_55);
 
-    F4_SD_THETA_TC[0].set_all_to(STCK_THETA4_TC);
-    F4_SD_THETA_TC[1].set_all_to(STCK_THETA5_TC);
+    F4_SD_THETA_TC[0].fill(STCK_THETA4_TC);
+    F4_SD_THETA_TC[1].fill(STCK_THETA5_TC);
 
-    F4_SD_THETA_TC[2].set_all_to(HYDR_THETA1_TC);
-    F4_SD_THETA_TC[3].set_all_to(HYDR_THETA2_TC);
-    F4_SD_THETA_TC[4].set_all_to(HYDR_THETA4_TC);
-    F4_SD_THETA_TC[5].set_all_to(HYDR_THETA7_TC);
+    F4_SD_THETA_TC[2].fill(HYDR_THETA1_TC);
+    F4_SD_THETA_TC[3].fill(HYDR_THETA2_TC);
+    F4_SD_THETA_TC[4].fill(HYDR_THETA4_TC);
+    F4_SD_THETA_TC[5].fill(HYDR_THETA7_TC);
 
-    F4_SD_THETA_TC[6].set_all_to(CRST_THETA1_TC);
-    F4_SD_THETA_TC[7].set_all_to(CRST_THETA2_TC);
-    F4_SD_THETA_TC[8].set_all_to(CRST_THETA4_TC);
-    F4_SD_THETA_TC[9].set_all_to(CRST_THETA7_TC);
+    F4_SD_THETA_TC[6].fill(CRST_THETA1_TC);
+    F4_SD_THETA_TC[7].fill(CRST_THETA2_TC);
+    F4_SD_THETA_TC[8].fill(CRST_THETA4_TC);
+    F4_SD_THETA_TC[9].fill(CRST_THETA7_TC);
 
-    F4_SD_THETA_TC[10].set_all_to(CXST_THETA1_TC);
-    F4_SD_THETA_TC[11].set_all_to(CXST_THETA4_TC);
-    F4_SD_THETA_TC[12].set_all_to(CXST_THETA5_TC);
+    F4_SD_THETA_TC[10].fill(CXST_THETA1_TC);
+    F4_SD_THETA_TC[11].fill(CXST_THETA4_TC);
+    F4_SD_THETA_TC[12].fill(CXST_THETA5_TC);
 
-    F4_SD_THETA_TC[13].set_all_to(CRST_THETA1_TC_33);
-    F4_SD_THETA_TC[14].set_all_to(CRST_THETA2_TC_33);
-    F4_SD_THETA_TC[15].set_all_to(CRST_THETA4_TC_33);
-    F4_SD_THETA_TC[16].set_all_to(CRST_THETA7_TC_33);
-    F4_SD_THETA_TC[17].set_all_to(CRST_THETA1_TC_55);
-    F4_SD_THETA_TC[18].set_all_to(CRST_THETA2_TC_55);
-    F4_SD_THETA_TC[19].set_all_to(CRST_THETA4_TC_55);
-    F4_SD_THETA_TC[20].set_all_to(CRST_THETA7_TC_55);
+    F4_SD_THETA_TC[13].fill(CRST_THETA1_TC_33);
+    F4_SD_THETA_TC[14].fill(CRST_THETA2_TC_33);
+    F4_SD_THETA_TC[15].fill(CRST_THETA4_TC_33);
+    F4_SD_THETA_TC[16].fill(CRST_THETA7_TC_33);
+    F4_SD_THETA_TC[17].fill(CRST_THETA1_TC_55);
+    F4_SD_THETA_TC[18].fill(CRST_THETA2_TC_55);
+    F4_SD_THETA_TC[19].fill(CRST_THETA4_TC_55);
+    F4_SD_THETA_TC[20].fill(CRST_THETA7_TC_55);
 
-    F2_SD_K[0].set_all_to(CRST_K);
-    F2_SD_K[1].set_all_to(CXST_K_OXDNA);
-    F2_SD_K[2].set_all_to(CRST_K_33);
-    F2_SD_K[3].set_all_to(CRST_K_55);
+    F2_SD_K[0].fill(CRST_K);
+    F2_SD_K[1].fill(CXST_K_OXDNA);
+    F2_SD_K[2].fill(CRST_K_33);
+    F2_SD_K[3].fill(CRST_K_55);
 
-    F2_SD_RC[0].set_all_to(CRST_RC);
-    F2_SD_RC[1].set_all_to(CXST_RC);
-    F2_SD_RC[2].set_all_to(CRST_RC_33);
-    F2_SD_RC[3].set_all_to(CRST_RC_55);
+    F2_SD_RC[0].fill(CRST_RC);
+    F2_SD_RC[1].fill(CXST_RC);
+    F2_SD_RC[2].fill(CRST_RC_33);
+    F2_SD_RC[3].fill(CRST_RC_55);
 
-    F2_SD_R0[0].set_all_to(CRST_R0);
-    F2_SD_R0[1].set_all_to(CXST_R0);
-    F2_SD_R0[2].set_all_to(CRST_R0_33);
-    F2_SD_R0[3].set_all_to(CRST_R0_55);
+    F2_SD_R0[0].fill(CRST_R0);
+    F2_SD_R0[1].fill(CXST_R0);
+    F2_SD_R0[2].fill(CRST_R0_33);
+    F2_SD_R0[3].fill(CRST_R0_55);
 
-    F2_SD_BLOW[0].set_all_to(CRST_BLOW);
-    F2_SD_BLOW[1].set_all_to(CXST_BLOW);
-    F2_SD_BLOW[2].set_all_to(CRST_BLOW_33);
-    F2_SD_BLOW[3].set_all_to(CRST_BLOW_55);
+    F2_SD_BLOW[0].fill(CRST_BLOW);
+    F2_SD_BLOW[1].fill(CXST_BLOW);
+    F2_SD_BLOW[2].fill(CRST_BLOW_33);
+    F2_SD_BLOW[3].fill(CRST_BLOW_55);
 
-    F2_SD_BHIGH[0].set_all_to(CRST_BHIGH);
-    F2_SD_BHIGH[1].set_all_to(CXST_BHIGH);
-    F2_SD_BHIGH[2].set_all_to(CRST_BHIGH_33);
-    F2_SD_BHIGH[3].set_all_to(CRST_BHIGH_55);
+    F2_SD_BHIGH[0].fill(CRST_BHIGH);
+    F2_SD_BHIGH[1].fill(CXST_BHIGH);
+    F2_SD_BHIGH[2].fill(CRST_BHIGH_33);
+    F2_SD_BHIGH[3].fill(CRST_BHIGH_55);
 
-    F2_SD_RLOW[0].set_all_to(CRST_RLOW);
-    F2_SD_RLOW[1].set_all_to(CXST_RLOW);
-    F2_SD_RLOW[2].set_all_to(CRST_RLOW_33);
-    F2_SD_RLOW[3].set_all_to(CRST_RLOW_55);
+    F2_SD_RLOW[0].fill(CRST_RLOW);
+    F2_SD_RLOW[1].fill(CXST_RLOW);
+    F2_SD_RLOW[2].fill(CRST_RLOW_33);
+    F2_SD_RLOW[3].fill(CRST_RLOW_55);
 
-    F2_SD_RHIGH[0].set_all_to(CRST_RHIGH);
-    F2_SD_RHIGH[1].set_all_to(CXST_RHIGH);
-    F2_SD_RHIGH[2].set_all_to(CRST_RHIGH_33);
-    F2_SD_RHIGH[3].set_all_to(CRST_RHIGH_55);
+    F2_SD_RHIGH[0].fill(CRST_RHIGH);
+    F2_SD_RHIGH[1].fill(CXST_RHIGH);
+    F2_SD_RHIGH[2].fill(CRST_RHIGH_33);
+    F2_SD_RHIGH[3].fill(CRST_RHIGH_55);
 
-    F2_SD_RCLOW[0].set_all_to(CRST_RCLOW);
-    F2_SD_RCLOW[1].set_all_to(CXST_RCLOW);
-    F2_SD_RCLOW[2].set_all_to(CRST_RCLOW_33);
-    F2_SD_RCLOW[3].set_all_to(CRST_RCLOW_55);
+    F2_SD_RCLOW[0].fill(CRST_RCLOW);
+    F2_SD_RCLOW[1].fill(CXST_RCLOW);
+    F2_SD_RCLOW[2].fill(CRST_RCLOW_33);
+    F2_SD_RCLOW[3].fill(CRST_RCLOW_55);
 
-    F2_SD_RCHIGH[0].set_all_to(CRST_RCHIGH);
-    F2_SD_RCHIGH[1].set_all_to(CXST_RCHIGH);
-    F2_SD_RCHIGH[2].set_all_to(CRST_RCHIGH_33);
-    F2_SD_RCHIGH[3].set_all_to(CRST_RCHIGH_55);
+    F2_SD_RCHIGH[0].fill(CRST_RCHIGH);
+    F2_SD_RCHIGH[1].fill(CXST_RCHIGH);
+    F2_SD_RCHIGH[2].fill(CRST_RCHIGH_33);
+    F2_SD_RCHIGH[3].fill(CRST_RCHIGH_55);
 
-    F5_SD_PHI_A[0].set_all_to(STCK_PHI1_A);
-    F5_SD_PHI_A[1].set_all_to(STCK_PHI2_A);
-    F5_SD_PHI_A[2].set_all_to(CXST_PHI3_A);
-    F5_SD_PHI_A[3].set_all_to(CXST_PHI4_A);
+    F5_SD_PHI_A[0].fill(STCK_PHI1_A);
+    F5_SD_PHI_A[1].fill(STCK_PHI2_A);
+    F5_SD_PHI_A[2].fill(CXST_PHI3_A);
+    F5_SD_PHI_A[3].fill(CXST_PHI4_A);
 
-    F5_SD_PHI_B[0].set_all_to(STCK_PHI1_B);
-    F5_SD_PHI_B[1].set_all_to(STCK_PHI2_B);
-    F5_SD_PHI_B[2].set_all_to(CXST_PHI3_B);
-    F5_SD_PHI_B[3].set_all_to(CXST_PHI3_B);
+    F5_SD_PHI_B[0].fill(STCK_PHI1_B);
+    F5_SD_PHI_B[1].fill(STCK_PHI2_B);
+    F5_SD_PHI_B[2].fill(CXST_PHI3_B);
+    F5_SD_PHI_B[3].fill(CXST_PHI3_B);
 
-    F5_SD_PHI_XC[0].set_all_to(STCK_PHI1_XC);
-    F5_SD_PHI_XC[1].set_all_to(STCK_PHI2_XC);
-    F5_SD_PHI_XC[2].set_all_to(CXST_PHI3_XC);
-    F5_SD_PHI_XC[3].set_all_to(CXST_PHI4_XC);
+    F5_SD_PHI_XC[0].fill(STCK_PHI1_XC);
+    F5_SD_PHI_XC[1].fill(STCK_PHI2_XC);
+    F5_SD_PHI_XC[2].fill(CXST_PHI3_XC);
+    F5_SD_PHI_XC[3].fill(CXST_PHI4_XC);
 
-    F5_SD_PHI_XS[0].set_all_to(STCK_PHI1_XS);
-    F5_SD_PHI_XS[1].set_all_to(STCK_PHI2_XS);
-    F5_SD_PHI_XS[2].set_all_to(CXST_PHI3_XS);
-    F5_SD_PHI_XS[3].set_all_to(CXST_PHI4_XS);
+    F5_SD_PHI_XS[0].fill(STCK_PHI1_XS);
+    F5_SD_PHI_XS[1].fill(STCK_PHI2_XS);
+    F5_SD_PHI_XS[2].fill(CXST_PHI3_XS);
+    F5_SD_PHI_XS[3].fill(CXST_PHI4_XS);
 }
 
 void DNA3Interaction::init() {

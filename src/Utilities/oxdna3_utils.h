@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cstddef>
 
-using number = double; // CHANGE IT SO THAT IT USES THE ONE DEFINED IN defs.h
+using number = double; // QUESTION: SHOULD WE CHANGE IT SO THAT IT USES THE ONE DEFINED IN defs.h
 
 // Helper to compute total size at compile time
 template<size_t... Dims>
@@ -90,7 +90,7 @@ public:
 
     const std::array<size_t, N>& shape() const { return _sizes; }
 
-    void set_all_to(number value) {
+    void fill(number value) {
         _data.fill(value);
     }
 
