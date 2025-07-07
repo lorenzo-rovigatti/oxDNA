@@ -9,12 +9,52 @@
 #define CUDADNA3INTERACTION_H_
 
 #include "CUDABaseInteraction.h"
-#include "../../Interactions/DNAInteraction.h"
+#include "../../Interactions/DNA3Interaction.h"
+
+// We need PODs (plain old data) for constant memory
+struct OxDNA3Params {
+    static constexpr int D0 = DIM_A;
+    static constexpr int D1 = DIM_B;
+    static constexpr int D2 = DIM_C;
+    static constexpr int D3 = DIM_D;
+    static constexpr int total_size = D0 * D1 * D2 * D3;
+
+    // Strides for row-major layout
+    static constexpr int STR0 = D1 * D2 * D3;
+    static constexpr int STR1 = D2 * D3;
+    static constexpr int STR2 = D3;
+    static constexpr int STR3 = 1;
+
+    // Flat data storage
+    number data[total_size];
+
+    // Element access
+    __host__ __device__
+    number& operator()(int i, int j, int k, int l) {
+        return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
+    }
+
+    __host__ __device__
+    const number& operator()(int i, int j, int k, int l) const {
+        return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
+    }
+
+    // Raw access (for memcpy or cudaMemcpyToSymbol)
+    __host__ __device__
+    number* raw_data() { return data; }
+
+    __host__ __device__
+    const number* raw_data() const { return data; }
+
+    // Size getter
+    __host__ __device__
+    int size() const { return total_size; }
+};
 
 /**
  * @brief CUDA implementation of the oxDNA3 model, as provided by DNA3Interaction.
  */
-class CUDADNA3Interaction: public CUDABaseInteraction, public DNAInteraction {
+class CUDADNA3Interaction: public CUDABaseInteraction, public DNA3Interaction {
 public:
 	enum {
 		DEBYE_HUCKEL = 7

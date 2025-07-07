@@ -12,6 +12,8 @@
 #include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNA2Interaction.h"
 
+#include "../CUDAUtils.h"
+
 CUDADNA3Interaction::CUDADNA3Interaction() {
 	_edge_compatible = true;
 	_use_debye_huckel = false;
@@ -60,7 +62,7 @@ void CUDADNA3Interaction::get_settings(input_file &inp) {
 
 void CUDADNA3Interaction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	DNAInteraction::init();
+	DNA3Interaction::init();
 
 	float f_copy = this->_hb_multiplier;
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));
@@ -109,6 +111,16 @@ void CUDADNA3Interaction::cuda_init(int N) {
 	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_B, this->F5_PHI_B, 4);
 	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XC, this->F5_PHI_XC, 4);
 	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XS, this->F5_PHI_XS, 4);
+
+	// oxDNA3
+	cudaMemcpyToSymbol(MD_fene_r0_SD, &this->_fene_r0_SD, sizeof(OxDNA3Params));
+	cudaMemcpyToSymbol(MD_fene_delta2_SD, &this->_fene_delta2_SD, sizeof(OxDNA3Params));
+	cudaMemcpyToSymbol(MD_mbf_xmax_SD, &this->_mbf_xmax_SD, sizeof(OxDNA3Params));
+	COPY_NUMBER_TO_FLOAT(MD_fene_eps, this->_fene_eps);
+	/*__constant__ OxDNA3Params MD_fene_r0_SD[1];
+	__constant__ OxDNA3Params MD_fene_delta2_SD[1];
+	__constant__ OxDNA3Params MD_mbf_xmax_SD[1];
+	__constant__ float MD_fene_eps[1];*/
 
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 	if(_use_debye_huckel) {
@@ -187,7 +199,7 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 
 		DNA3_forces_edge_bonded
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _use_mbf, _mbf_xmax,
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _use_mbf,
 			_mbf_finf, _update_st, _d_st);
 	}
 	else {
@@ -195,7 +207,10 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs,
 			d_bonds, _grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, _use_mbf,
-			_mbf_xmax, _mbf_finf, _update_st, _d_st, d_box);
+			_mbf_finf, _update_st, _d_st, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
+
+	GpuUtils::print_device_array(d_forces, this->_N);
+	GpuUtils::print_device_array(d_torques, this->_N);
 }
