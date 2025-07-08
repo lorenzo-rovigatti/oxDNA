@@ -16,9 +16,6 @@
 
 CUDADNA3Interaction::CUDADNA3Interaction() {
 	_edge_compatible = true;
-	_use_debye_huckel = false;
-	_use_oxDNA2_coaxial_stacking = false;
-	_use_oxDNA2_FENE = false;
 }
 
 CUDADNA3Interaction::~CUDADNA3Interaction() {
@@ -28,36 +25,7 @@ CUDADNA3Interaction::~CUDADNA3Interaction() {
 }
 
 void CUDADNA3Interaction::get_settings(input_file &inp) {
-	std::string inter_type;
-	if(getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND) {
-		if(inter_type.compare("DNA2") == 0) {
-			_use_debye_huckel = true;
-			_use_oxDNA2_coaxial_stacking = true;
-			_use_oxDNA2_FENE = true;
-
-			// we don't need the F4_... terms as the macros are used in the CUDA_DNA.cuh file; this doesn't apply for the F2_K term
-			F2_K[1] = CXST_K_OXDNA2;
-			_debye_huckel_half_charged_ends = true;
-			this->_grooving = true;
-			// end copy from DNA2Interaction
-
-			// copied from DNA2Interaction::get_settings() (CPU), the least bad way of doing things
-			getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
-			getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
-
-			// lambda-factor (the dh length at T = 300K, I = 1.0)
-			_debye_huckel_lambdafactor = 0.3616455f;
-			getInputFloat(&inp, "dh_lambda", &_debye_huckel_lambdafactor, 0);
-
-			// the prefactor to the Debye-Huckel term
-			_debye_huckel_prefactor = 0.0543f;
-			getInputFloat(&inp, "dh_strength", &_debye_huckel_prefactor, 0);
-			// End copy from DNA2Interaction
-		}
-	}
-
-	// this needs to be here so that the default value of this->_grooving can be overwritten
-	DNAInteraction::get_settings(inp);
+	DNA3Interaction::get_settings(inp);
 }
 
 void CUDADNA3Interaction::cuda_init(int N) {
@@ -123,44 +91,13 @@ void CUDADNA3Interaction::cuda_init(int N) {
 	__constant__ float MD_fene_eps[1];*/
 
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
-	if(_use_debye_huckel) {
-		// copied from DNA2Interaction::init() (CPU), the least bad way of doing things
-		// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide this->_T by 0.1
-		c_number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
-		// RHIGH gives the distance at which the smoothing begins
-		_debye_huckel_RHIGH = 3.0 * lambda;
-		_minus_kappa = -1.0 / lambda;
 
-		// these are just for convenience for the smoothing parameter computation
-		c_number x = _debye_huckel_RHIGH;
-		c_number q = _debye_huckel_prefactor;
-		c_number l = lambda;
-
-		// compute the some smoothing parameters
-		_debye_huckel_B = -(exp(-x / l) * q * q * (x + l) * (x + l)) / (-4. * x * x * x * l * l * q);
-		_debye_huckel_RC = x * (q * x + 3. * q * l) / (q * (x + l));
-
-		c_number debyecut;
-		if(this->_grooving) {
-			debyecut = 2.0f * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
-		}
-		else {
-			debyecut = 2.0f * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
-		}
-		// the cutoff radius for the potential should be the larger of rcut and debyecut
-		if(debyecut > this->_rcut) {
-			this->_rcut = debyecut;
-			this->_sqr_rcut = debyecut * debyecut;
-		}
-		// End copy from DNA2Interaction
-
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_RC, &_debye_huckel_RC, sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_RHIGH, &_debye_huckel_RHIGH, sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_prefactor, &_debye_huckel_prefactor, sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_B, &_debye_huckel_B, sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_minus_kappa, &_minus_kappa, sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_half_charged_ends, &_debye_huckel_half_charged_ends, sizeof(bool)));
-	}
+	COPY_NUMBER_TO_FLOAT(MD_dh_RC, _debye_huckel_RC);
+	COPY_NUMBER_TO_FLOAT(MD_dh_RHIGH, _debye_huckel_RHIGH);
+	COPY_NUMBER_TO_FLOAT(MD_dh_prefactor, _debye_huckel_prefactor);
+	COPY_NUMBER_TO_FLOAT(MD_dh_B, _debye_huckel_B);
+	COPY_NUMBER_TO_FLOAT(MD_dh_minus_kappa, _minus_kappa);
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_half_charged_ends, &_debye_huckel_half_charged_ends, sizeof(bool)));
 }
 
 void CUDADNA3Interaction::_on_T_update() {
@@ -185,29 +122,27 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
 			DNA3_forces_edge_nonbonded
 				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end,
-				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _update_st, _d_st, d_box);
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end, 
+				_update_st, _d_st, d_box);
 		}
 		else { // sum required, somewhat slower
 			DNA3_forces_edge_nonbonded
 				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end,
-				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _update_st, _d_st, d_box);
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end, 
+				_update_st, _d_st, d_box);
 
 			_sum_edge_forces_torques(d_forces, d_torques);
 		}
 
 		DNA3_forces_edge_bonded
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _use_mbf,
-			_mbf_finf, _update_st, _d_st);
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _use_mbf, _mbf_finf, _update_st, _d_st);
 	}
 	else {
 		DNA3_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs,
-			d_bonds, _grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, _use_mbf,
-			_mbf_finf, _update_st, _d_st, d_box);
+			d_bonds, _use_mbf, _mbf_finf, _update_st, _d_st, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 

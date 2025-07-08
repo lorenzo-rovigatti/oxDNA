@@ -22,12 +22,11 @@ public:
 	const static LR_vector stack_axis;
 	const static LR_vector third_axis;
 
-        float _POS_BACK ;
-        float _POS_MM_BACK1 ;
-        float _POS_MM_BACK2 ;
-        float _POS_STACK ;
-        float _POS_BASE ;
-
+	float _POS_BACK ;
+	float _POS_MM_BACK1 ;
+	float _POS_MM_BACK2 ;
+	float _POS_STACK ;
+	float _POS_BASE ;
 
 	enum Site {
 		BACK = 0,
@@ -36,7 +35,6 @@ public:
 	};
 
 	DNANucleotide() = delete;
-//        DNANucleotide(bool grooving);
 	DNANucleotide(int grooving);
 	virtual ~DNANucleotide();
 

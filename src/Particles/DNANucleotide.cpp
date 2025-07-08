@@ -12,7 +12,6 @@ LR_vector const DNANucleotide::principal_axis(1, 0, 0);
 LR_vector const DNANucleotide::stack_axis(0, 0, 1);
 LR_vector const DNANucleotide::third_axis(0, 1, 0);
 
-//DNANucleotide::DNANucleotide(enum grooving) :
 DNANucleotide::DNANucleotide(int grooving) :
 				BaseParticle()
 {
@@ -22,7 +21,6 @@ DNANucleotide::DNANucleotide(int grooving) :
 	// -- Ben 1/8/13
 	int_centers.resize(3);
 	_grooving = grooving;
-
 }
 
 DNANucleotide::~DNANucleotide() {
@@ -34,50 +32,49 @@ bool DNANucleotide::is_bonded(BaseParticle *q) {
 }
 
 void DNANucleotide::set_positions() {
-        if(_grooving==2) {
-	        if (btype==0){
+        if(_grooving == 2) {
+	        if(btype == 0) {
         	        _POS_MM_BACK1 = POS_MM_BACK1_A;
                 	_POS_MM_BACK2 = POS_MM_BACK2_A;
 	                _POS_STACK = POS_STACK_A;
         	        _POS_BASE =  POS_BASE_A;
-		}
-	        else if (btype==1){
+			}
+	        else if(btype == 1) {
                         _POS_MM_BACK1 = POS_MM_BACK1_G;
                         _POS_MM_BACK2 = POS_MM_BACK2_G;
                         _POS_STACK = POS_STACK_G;
                         _POS_BASE =  POS_BASE_G;
-		}
-	        else if (btype==2){
+			}
+	        else if(btype == 2) {
                         _POS_MM_BACK1 = POS_MM_BACK1_C;
                         _POS_MM_BACK2 = POS_MM_BACK2_C;
                         _POS_STACK = POS_STACK_C;
                         _POS_BASE =  POS_BASE_C;
         	}
-        	else if (btype==3){
+        	else if(btype == 3) {
                         _POS_MM_BACK1 = POS_MM_BACK1_T;
                         _POS_MM_BACK2 = POS_MM_BACK2_T;
                         _POS_STACK = POS_STACK_T;
                         _POS_BASE =  POS_BASE_T;
         	}
-        	else if (btype==4){
+        	else if(btype == 4) {
                 	_POS_MM_BACK1 = -0.3400f;
 	                _POS_MM_BACK2 = 0.3408f ;
         	        _POS_STACK = 0.34f ;
                 	_POS_BASE =  0.4f;
-		}
-
-                int_centers[BACK] = orientation * principal_axis * _POS_MM_BACK1 + orientation * third_axis * _POS_MM_BACK2;
-                int_centers[STACK] = orientation * principal_axis * _POS_STACK;
-                int_centers[BASE] = int_centers[STACK] * (_POS_BASE / _POS_STACK);
+			}
+			int_centers[BACK] = orientation * principal_axis * _POS_MM_BACK1 + orientation * third_axis * _POS_MM_BACK2;
+			int_centers[STACK] = orientation * principal_axis * _POS_STACK;
+			int_centers[BASE] = int_centers[STACK] * (_POS_BASE / _POS_STACK);
 
         }
-	else if(_grooving==1) {
+	else if(_grooving == 1) {
 		int_centers[BACK] = orientation * principal_axis * POS_MM_BACK1 + orientation * third_axis * POS_MM_BACK2;
 		int_centers[STACK] = orientation * principal_axis * POS_STACK;
 	        int_centers[BASE] = int_centers[STACK] * (POS_BASE / POS_STACK);
 
 	}
-	else if(_grooving==0) {
+	else if(_grooving == 0) {
 		int_centers[BACK] = orientation * principal_axis * POS_BACK;
 		int_centers[STACK] = int_centers[BACK] * (POS_STACK / POS_BACK);
         	int_centers[BASE] = int_centers[STACK] * (POS_BASE / POS_STACK);
