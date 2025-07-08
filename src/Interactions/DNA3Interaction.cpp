@@ -319,50 +319,50 @@ void DNA3Interaction::init() {
     float tmp_value;
 
     sprintf(key, "FENE_EPS");
-    if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_eps = tmp_value;
+    if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_eps = tmp_value;
 
-    if (!_average) {
-        if (seq_file.state == ERROR) {
+    if(!_average) {
+        if(seq_file.state == ERROR) {
             throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
         }
 
         // read independent parameters from SD file
         // independent = not set by continuity and differentiability
-        for (int i = 0; i < DIM_A - 2; i++) {
-            for (int j = 0; j < DIM_B - 1; j++) {
-                for (int k = 0; k < DIM_C - 1; k++) {
-                    for (int l = 0; l < DIM_D - 2; l++) {
+        for(int i = 0; i < DIM_A - 2; i++) {
+            for(int j = 0; j < DIM_B - 1; j++) {
+                for(int k = 0; k < DIM_C - 1; k++) {
+                    for(int l = 0; l < DIM_D - 2; l++) {
                         // EXCLUDED VOLUME
 
                         sprintf(key, "EXCL_S1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_S7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_s[6](i, j, k, l) = tmp_value;
 
                         sprintf(key, "EXCL_R1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[0](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[1](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R3_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[2](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R4_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[3](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R5_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[4](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R6_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[5](i, j, k, l) = tmp_value;
                         sprintf(key, "EXCL_R7_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _excl_r[6](i, j, k, l) = tmp_value;
 
                         /*
                         sprintf(key, "EXCL_B1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
@@ -399,9 +399,9 @@ void DNA3Interaction::init() {
                         // FENE
 
                         sprintf(key, "FENE_R0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_r0_SD(i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_r0_SD(i, j, k, l) = tmp_value;
                         sprintf(key, "FENE_DELTA_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta_SD(i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta_SD(i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "FENE_DELTA2_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_delta2_SD(i, j, k, l) = tmp_value;
@@ -409,15 +409,15 @@ void DNA3Interaction::init() {
 
                         // F1
                         sprintf(key, "HYDR_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_RC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[HYDR_F1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[HYDR_F1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_R0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[HYDR_F1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[HYDR_F1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_RLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[HYDR_F1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[HYDR_F1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_RHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[HYDR_F1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[HYDR_F1](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_RCLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[HYDR_F1](k, i, j, l) = tmp_value;
@@ -435,15 +435,15 @@ void DNA3Interaction::init() {
                         // STACKING
 
                         sprintf(key, "STCK_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_RC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[STCK_F1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[STCK_F1](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_R0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[STCK_F1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[STCK_F1](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_RLOW_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[STCK_F1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[STCK_F1](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_RHIGH_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[STCK_F1](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[STCK_F1](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "STCK_RCLOW_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j),Utils::encode_base(k),Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[STCK_F1](i, j, k, l) = tmp_value;
@@ -462,11 +462,11 @@ void DNA3Interaction::init() {
 
                         // HYDROGEN
                         sprintf(key, "HYDR_THETA1_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA1_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA1_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA1_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA1](k, i, j, l) = tmp_value;
@@ -475,11 +475,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "HYDR_THETA2_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA2_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA2_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA2_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA2](k, i, j, l) = tmp_value;
@@ -488,11 +488,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "HYDR_THETA3_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA3_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA3_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA3_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA3](k, i, j, l) = tmp_value;
@@ -501,11 +501,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "HYDR_THETA4_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA4_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA4_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA4_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA4](k, i, j, l) = tmp_value;
@@ -514,11 +514,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "HYDR_THETA7_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA7_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA7_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA7_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA7](k, i, j, l) = tmp_value;
@@ -527,11 +527,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "HYDR_THETA8_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA8_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_THETA8_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
                         /*
                         sprintf(key, "HYDR_THETA8_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA8](k, i, j, l) = tmp_value;
@@ -542,11 +542,11 @@ void DNA3Interaction::init() {
                         // STACKING
 
                         sprintf(key, "STCK_THETA4_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA4](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA4](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_THETA4_T0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA4](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA4](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_THETA4_TS_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA4](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA4](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "STCK_THETA4_TC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA4](i, j, k, l) = tmp_value;
@@ -555,11 +555,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "STCK_THETA5_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA5](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA5](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_THETA5_T0_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA5](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA5](i, j, k, l) = tmp_value;
                         sprintf(key, "STCK_THETA5_TS_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA5](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA5](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "STCK_THETA5_TC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA5](i, j, k, l) = tmp_value;
@@ -572,11 +572,11 @@ void DNA3Interaction::init() {
                         // tetramer dependent
 
                         sprintf(key, "CRST_THETA4_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA4_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33](i, j, k, l) = tmp_value;
@@ -585,11 +585,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA4_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA4_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA4_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55](i, j, k, l) = tmp_value;
@@ -598,11 +598,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA1_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA1_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA1_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA1_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_33](i, j, k, l) = tmp_value;
@@ -611,11 +611,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA2_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA2_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA2_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA2_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_33](i, j, k, l) = tmp_value;
@@ -624,11 +624,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA7_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA7_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA7_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA7_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_33](i, j, k, l) = tmp_value;
@@ -637,11 +637,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA1_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA1_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA1_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA1_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_55](i, j, k, l) = tmp_value;
@@ -650,11 +650,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA2_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA2_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA2_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA2_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_55](i, j, k, l) = tmp_value;
@@ -663,11 +663,11 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_THETA7_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA7_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_THETA7_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
                         /*
                         sprintf(key, "CRST_THETA7_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_55](i, j, k, l) = tmp_value;
@@ -683,19 +683,19 @@ void DNA3Interaction::init() {
 
                         // this is pair type dependent
                         sprintf(key, "CRST_K_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_33](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_33](k, i, j, l) = tmp_value;
                         sprintf(key, "CRST_K_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55](k, i, j, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55](k, i, j, l) = tmp_value;
 
                         // tetramer dependent
                         sprintf(key, "CRST_R0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RLOW_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_33](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RHIGH_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_33](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_33](i, j, k, l) = tmp_value;
 
                         /*
                         sprintf(key, "CRST_BLOW_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
@@ -709,13 +709,13 @@ void DNA3Interaction::init() {
                         */
 
                         sprintf(key, "CRST_R0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RLOW_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_55](i, j, k, l) = tmp_value;
                         sprintf(key, "CRST_RHIGH_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
-                        if (getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
 
                         /*
                         sprintf(key, "CRST_BLOW_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
@@ -737,9 +737,9 @@ void DNA3Interaction::init() {
         }
 
         // Set parameters for ends junctions
-        for (int i = 0; i < DIM_A; i++) {
-            for (int j = 0; j < DIM_B - 1; j++) {
-                for (int k = 0; k < DIM_C - 1; k++) {
+        for(int i = 0; i < DIM_A; i++) {
+            for(int j = 0; j < DIM_B - 1; j++) {
+                for(int k = 0; k < DIM_C - 1; k++) {
                     // For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
                     F2_SD_K[CRST_F2_33](i, j, k, DIM_D - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
@@ -757,7 +757,7 @@ void DNA3Interaction::init() {
                     _fene_r0_SD(DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par();
 
                     // f1
-                    for (int m = 0; m < 2; m++) {
+                    for(int m = 0; m < 2; m++) {
                         F1_SD_A[m](i, j, k, DIM_D - 1) = F1_SD_A[m].get_average_par();
                         F1_SD_R0[m](i, j, k, DIM_D - 1) = F1_SD_R0[m].get_average_par();
                         F1_SD_RC[m](i, j, k, DIM_D - 1) = F1_SD_RC[m].get_average_par();
@@ -772,7 +772,7 @@ void DNA3Interaction::init() {
                     }
 
                     // f2
-                    for (int m = 0; m < 4; m++) {
+                    for(int m = 0; m < 4; m++) {
                         F2_SD_R0[m](i, j, k, DIM_D - 1) = F2_SD_R0[m].get_average_par();
                         F2_SD_RC[m](i, j, k, DIM_D - 1) = F2_SD_RC[m].get_average_par();
                         F2_SD_RLOW[m](i, j, k, DIM_D - 1) = F2_SD_RLOW[m].get_average_par();
@@ -785,7 +785,7 @@ void DNA3Interaction::init() {
                     }
 
                     // f3
-                    for (int m = 0; m < 7; m++) {
+                    for(int m = 0; m < 7; m++) {
                         _excl_s[m](i, j, k, DIM_D - 1) = _excl_s[m].get_average_par();
                         _excl_r[m](i, j, k, DIM_D - 1) = _excl_r[m].get_average_par();
 
@@ -794,7 +794,7 @@ void DNA3Interaction::init() {
                     }
 
                     // f4
-                    for (int m = 0; m < 21; m++) {
+                    for(int m = 0; m < 21; m++) {
                         // these ifs skip the parameters we haven't changed; saves a few operations, but it is a bit dangerous when developing the model.
                         // if(m == 2 || m == 3 || m == 4 || m == 5) continue;
                         // if(m == 10 || m == 11 || m == 12) continue;
@@ -809,7 +809,7 @@ void DNA3Interaction::init() {
                     }
 
                     // f5
-                    for (int m = 0; m < 4; m++) {
+                    for(int m = 0; m < 4; m++) {
                         F5_SD_PHI_A[m](i, j, k, DIM_D - 1) = F5_SD_PHI_A[m].get_average_par();
                         F5_SD_PHI_XS[m](i, j, k, DIM_D - 1) = F5_SD_PHI_XS[m].get_average_par();
 
@@ -822,16 +822,16 @@ void DNA3Interaction::init() {
 
         // Set enslaved parameters
         // Enslaved = set by continuity and differentiability
-        for (int i = 0; i < DIM_A; i++) {
-            for (int j = 0; j < DIM_B - 1; j++) {
-                for (int k = 0; k < DIM_C - 1; k++) {
-                    for (int l = 0; l < DIM_D; l++) {
+        for(int i = 0; i < DIM_A; i++) {
+            for(int j = 0; j < DIM_B - 1; j++) {
+                for(int k = 0; k < DIM_C - 1; k++) {
+                    for(int l = 0; l < DIM_D; l++) {
                         // delta2
                         _fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
 
                         // f1
                         number term1, term2, term3;
-                        for (int m = 0; m < 2; m++) {
+                        for(int m = 0; m < 2; m++) {
                             term1 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RLOW[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
                             term2 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
                             term3 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RHIGH[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
@@ -845,7 +845,7 @@ void DNA3Interaction::init() {
                             F1_SD_SHIFT[m](i, j, k, l) = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
                         }
                         // f2
-                        for (int m = 0; m < 4; m++) {
+                        for(int m = 0; m < 4; m++) {
                             term1 = F2_SD_RLOW[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term2 = F2_SD_RHIGH[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term3 = F2_SD_RC[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
@@ -858,7 +858,7 @@ void DNA3Interaction::init() {
                         }
 
                         // f3
-                        for (int m = 0; m < 7; m++) {
+                        for(int m = 0; m < 7; m++) {
                             number tmp = SQR(_excl_s[m](i, j, k, l) / _excl_r[m](i, j, k, l));
                             term1 = tmp * tmp * tmp;
                             term2 = 4. * (SQR(term1) - term1);
@@ -869,12 +869,12 @@ void DNA3Interaction::init() {
                         }
 
                         // f4
-                        for (int m = 0; m < 21; m++) {
+                        for(int m = 0; m < 21; m++) {
                             F4_SD_THETA_TC[m](i, j, k, l) = 1. / F4_SD_THETA_A[m](i, j, k, l) / F4_SD_THETA_TS[m](i, j, k, l);
                             F4_SD_THETA_B[m](i, j, k, l) = F4_SD_THETA_A[m](i, j, k, l) * F4_SD_THETA_TS[m](i, j, k, l) / (F4_SD_THETA_TC[m](i, j, k, l) - F4_SD_THETA_TS[m](i, j, k, l));
                         }
                         // f5
-                        for (int m = 0; m < 4; m++) {
+                        for(int m = 0; m < 4; m++) {
                             term1 = 1. - F5_SD_PHI_A[m](i, j, k, l) * SQR(F5_SD_PHI_XS[m](i, j, k, l));
                             term2 = F5_SD_PHI_A[m](i, j, k, l) * F5_SD_PHI_XS[m](i, j, k, l);
 
@@ -888,11 +888,11 @@ void DNA3Interaction::init() {
 
         // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
 
-        if (_use_mbf) {
-            for (int i = 0; i < DIM_A; i++) {
-                for (int j = 0; j < DIM_B; j++) {
-                    for (int k = 0; k < DIM_C; k++) {
-                        for (int l = 0; l < DIM_D; l++) {
+        if(_use_mbf) {
+            for(int i = 0; i < DIM_A; i++) {
+                for(int j = 0; j < DIM_B; j++) {
+                    for(int k = 0; k < DIM_C; k++) {
+                        for(int l = 0; l < DIM_D; l++) {
                             _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
                             // if we use mbf, we should tell the user
                             OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
@@ -915,16 +915,16 @@ void DNA3Interaction::init() {
         number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
         number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
         number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 4; j++) {
-                for (int k = 0; k < 4; k++) {
-                    for (int l = 0; l < 6; l++) {
-                        for (int m = 0; m < 4; m++) {
-                            for (int n = 0; n < 4; n++) {
+        for(int i = 0; i < 6; i++) {
+            for(int j = 0; j < 4; j++) {
+                for(int k = 0; k < 4; k++) {
+                    for(int l = 0; l < 6; l++) {
+                        for(int m = 0; m < 4; m++) {
+                            for(int n = 0; n < 4; n++) {
                                 rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
-                                if (rcutback > rcutback_max) rcutback_max = rcutback;
+                                if(rcutback > rcutback_max) rcutback_max = rcutback;
                                 rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, l);
-                                if (rcutbase > rcutbase_max) rcutbase_max = rcutbase;
+                                if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
                             }
                         }
                     }
@@ -952,19 +952,19 @@ void DNA3Interaction::init() {
 
         debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
         // the cutoff radius for the potential should be the larger of rcut and debyecut
-        if (debyecut > _rcut) {
+        if(debyecut > _rcut) {
             _rcut = debyecut;
             _sqr_rcut = debyecut * debyecut;
         }
 
         // build mesh for the f4s
-        for (int int_type = 0; int_type < 21; int_type++) {
+        for(int int_type = 0; int_type < 21; int_type++) {
             // the order of the interpolation interval extremes is reversed,
             // due to the cosine being monotonically decreasing with increasing x
-            for (int i = 0; i < DIM_A; i++) {
-                for (int j = 0; j < DIM_B; j++) {
-                    for (int k = 0; k < DIM_C; k++) {
-                        for (int l = 0; l < DIM_D; l++) {
+            for(int i = 0; i < DIM_A; i++) {
+                for(int j = 0; j < DIM_B; j++) {
+                    for(int k = 0; k < DIM_C; k++) {
+                        for(int l = 0; l < DIM_D; l++) {
                             int points = MESH_F4_SD_POINTS[int_type];
                             number upplimit = cos(fmax(0, F4_SD_THETA_T0[int_type](i, j, k, l) - F4_SD_THETA_TC[int_type](i, j, k, l)));
                             number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[int_type](i, j, k, l) + F4_SD_THETA_TC[int_type](i, j, k, l)));
@@ -981,11 +981,11 @@ void DNA3Interaction::init() {
 }
 
 number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (!_check_bonded_neighbour(&p, &q, compute_r)) {
+    if(!_check_bonded_neighbour(&p, &q, compute_r)) {
         return (number)0.f;
     }
 
-    if (compute_r) {
+    if(compute_r) {
         _computed_r = q->pos - p->pos;
     }
 
@@ -994,17 +994,17 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
     LR_vector torqueq(0, 0, 0);
     LR_vector torquep(0, 0, 0);
 
-    int type_n3_2 = 5;
-    int type_n5_2 = 5;
+    int type_n3_2 = NO_TYPE;
+    int type_n5_2 = NO_TYPE;
 
-    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+    if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
     LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
     number energy = _repulsive_lj(rcenter, force, _excl_s[4](type_n3_2, q->type, p->type, type_n5_2), _excl_r[4](type_n3_2, q->type, p->type, type_n5_2),
                                   _excl_b[4](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[4](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
         torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
@@ -1019,7 +1019,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
     energy += _repulsive_lj(rcenter, force, _excl_s[5](type_n3_2, q->type, p->type, type_n5_2), _excl_r[5](type_n3_2, q->type, p->type, type_n5_2),
                             _excl_b[5](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[5](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
         torqueq += q->int_centers[DNANucleotide::BACK].cross(force);
 
@@ -1034,7 +1034,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
     energy += _repulsive_lj(rcenter, force, _excl_s[6](type_n3_2, q->type, p->type, type_n5_2), _excl_r[6](type_n3_2, q->type, p->type, type_n5_2),
                             _excl_b[6](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[6](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BACK].cross(force);
         torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
@@ -1052,7 +1052,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 }
 
 number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (p->is_bonded(q)) {
+    if(p->is_bonded(q)) {
         return (number)0.f;
     }
 
@@ -1062,15 +1062,15 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
     // for non bonded we don't look at the flanking; we just take a length that can accomodate all crst and hydr
     // otherwise we would have to introduce a ton of parameters
-    int type_n3_2 = 5;
-    int type_n5_2 = 5;
+    int type_n3_2 = NO_TYPE;
+    int type_n5_2 = NO_TYPE;
 
     // BASE-BASE
     LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
     number energy = _repulsive_lj(rcenter, force, _excl_s[1](type_n3_2, q->type, p->type, type_n5_2), _excl_r[1](type_n3_2, q->type, p->type, type_n5_2),
                                   _excl_b[1](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[1](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep = -p->int_centers[DNANucleotide::BASE].cross(force);
         torqueq = q->int_centers[DNANucleotide::BASE].cross(force);
 
@@ -1085,7 +1085,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
     energy += _repulsive_lj(rcenter, force, _excl_s[3](type_n3_2, q->type, p->type, type_n5_2), _excl_r[3](type_n3_2, q->type, p->type, type_n5_2),
                             _excl_b[3](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[3](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
         torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
@@ -1100,7 +1100,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
     energy += _repulsive_lj(rcenter, force, _excl_s[2](type_n3_2, q->type, p->type, type_n5_2), _excl_r[2](type_n3_2, q->type, p->type, type_n5_2),
                             _excl_b[2](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[2](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BASE].cross(force);
         torqueq += q->int_centers[DNANucleotide::BACK].cross(force);
 
@@ -1115,7 +1115,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
     energy += _repulsive_lj(rcenter, force, _excl_s[0](type_n3_2, q->type, p->type, type_n5_2), _excl_r[0](type_n3_2, q->type, p->type, type_n5_2),
                             _excl_b[0](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[0](type_n3_2, q->type, p->type, type_n5_2), update_forces);
 
-    if (update_forces) {
+    if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
         torqueq += q->int_centers[DNANucleotide::BACK].cross(force);
 
@@ -1133,23 +1133,20 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 }
 
 number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (!_check_bonded_neighbour(&p, &q, compute_r)) {
+    if(!_check_bonded_neighbour(&p, &q, compute_r)) {
         return (number)0.f;
     }
 
-    if (compute_r) {
+    if(compute_r) {
         _computed_r = q->pos - p->pos;
     }
 
-    int type_n3_2 = 5;
-    int type_n5_2 = 5;
-
-    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    int type_n3_2 = (q->n3 != P_VIRTUAL) ? q->n3->type : NO_TYPE;
+    int type_n5_2 = (p->n5 != P_VIRTUAL) ? p->n5->type : NO_TYPE;
 
     // These two conditions are needed if we impose complementarity symmetry in bonded interaction.
-    // if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-    // if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+    // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
+    // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
     // std::cout << "ptypes: " << q->get_index() << "," << p->get_index() << ", " << type_n3_2 << " " << q->type << " " << p->type << " " <<  type_n5_2 << std::endl;
 
@@ -1160,31 +1157,34 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
     LR_vector force;
     number energy;
 
-    if (_use_mbf && fabs(rbackr0) > _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) {
+    number mbf_xmax = _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2);
+    number fene_delta2 = _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2);
+    if(_use_mbf && fabs(rbackr0) > mbf_xmax) {
         // we use the "log"  potential
-        number fene_xmax = -(_fene_eps / 2.f) * log(1.f - SQR(_mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) / _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2));
-        number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) * log(_mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2)) + _mbf_finf * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2);
-        energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
-        if (update_forces)
-            force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2) / fabs(rbackr0) + _mbf_finf) / rbackmod);
-    } else {
+        number fene_xmax = -(_fene_eps / 2.f) * log(1.f - SQR(mbf_xmax) /fene_delta2);
+        number long_xmax = (_mbf_fmax - _mbf_finf) * mbf_xmax * log(mbf_xmax) + _mbf_finf * mbf_xmax;
+        energy = (_mbf_fmax - _mbf_finf) * mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+        if(update_forces)
+            force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * mbf_xmax / fabs(rbackr0) + _mbf_finf) / rbackmod);
+    } 
+    else {
         // we check whether we ended up OUTSIDE of the FENE range
-        if (fabs(rbackr0) > _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) - DBL_EPSILON) {
-            std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2 << q->type << p->type << type_n5_2 << " " << rbackmod << " " << _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2) << std::endl;
-            if (update_forces && !_allow_broken_fene) {
+        if(fabs(rbackr0) > _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) - DBL_EPSILON) {
+            std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2 << q->type << p->type << type_n5_2 << " " << rbackmod << " " << _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << fene_delta2 << std::endl;
+            if(update_forces && !_allow_broken_fene) {
                 throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2)), fabs(_fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2)));
             }
             return (number)(1.e12);
         }
 
         // if not, we just do the right thing
-        energy = -(_fene_eps / 2.f) * log(1.f - SQR(rbackr0) / _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2));
-        if (update_forces) {
-            force = rback * (-(_fene_eps * rbackr0 / (_fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2) - SQR(rbackr0))) / rbackmod);
+        energy = -(_fene_eps / 2.f) * log(1.f - SQR(rbackr0) / fene_delta2);
+        if(update_forces) {
+            force = rback * (-(_fene_eps * rbackr0 / (fene_delta2 - SQR(rbackr0))) / rbackmod);
         }
     }
 
-    if (update_forces) {
+    if(update_forces) {
         p->force -= force;
         q->force += force;
 
@@ -1198,7 +1198,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 }
 
 number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (!_check_bonded_neighbour(&p, &q, compute_r)) {
+    if(!_check_bonded_neighbour(&p, &q, compute_r)) {
         return (number)0.f;
     }
 
@@ -1209,7 +1209,7 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
     LR_vector &b2 = q->orientationT.v2;
     LR_vector &b3 = q->orientationT.v3;
 
-    if (compute_r) {
+    if(compute_r) {
         _computed_r = q->pos - p->pos;
     }
 
@@ -1231,15 +1231,15 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
     number cosphi2 = b2 * rbackref / rbackrefmod;
 
     // functions and their derivatives needed for energies and forces
-    int type_n3_2 = 5;
-    int type_n5_2 = 5;
+    int type_n3_2 = NO_TYPE;
+    int type_n5_2 = NO_TYPE;
 
-    if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-    if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+    if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+    if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
     // These two conditions are needed if we impose complementarity symmetry in bonded interaction.
-    // if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-    // if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+    // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
+    // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
     number f1 = _f1_SD(rstackmod, STCK_F1, type_n3_2, q->type, p->type, type_n5_2);
     number f4t4 = _custom_f4_SD(cost4, STCK_F4_THETA4, type_n3_2, q->type, p->type, type_n5_2);
@@ -1258,7 +1258,7 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
     << " " << F4_SD_THETA_TS[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_TC[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << std::endl;
             }
     */
-    if (update_forces && energy != (number)0.f) {
+    if(update_forces && energy != (number)0.f) {
         LR_vector torquep(0, 0, 0);
         LR_vector torqueq(0, 0, 0);
 
@@ -1394,7 +1394,7 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 }
 
 number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (p->is_bonded(q)) {
+    if(p->is_bonded(q)) {
         return (number)0.f;
     }
 
@@ -1405,7 +1405,7 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
     LR_vector rhydro = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
     number rhydromod = rhydro.module();
     number energy = (number)0.f;
-    if (is_pair && F1_SD_RCLOW[HYDR_F1](0, q->type, p->type, 0) < rhydromod && rhydromod < F1_SD_RCHIGH[HYDR_F1](0, q->type, p->type, 0)) {
+    if(is_pair && F1_SD_RCLOW[HYDR_F1](0, q->type, p->type, 0) < rhydromod && rhydromod < F1_SD_RCHIGH[HYDR_F1](0, q->type, p->type, 0)) {
         // vector, versor and magnitude of the base-base separation
         LR_vector rhydrodir = rhydro / rhydromod;
 
@@ -1439,7 +1439,7 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
         // std::cout << "hydrogen energy: " << energy << std::endl;
         // std::cout << f1 << " " << f4t1 << " " << f4t2 << " " << f4t3 << " " << f4t4 << " " << f4t7 << " " << f4t8 << std::endl;
         //  makes sense, since the above functions may return 0. exactly
-        if (update_forces && energy != 0.) {
+        if(update_forces && energy != 0.) {
             LR_vector force(0, 0, 0);
             LR_vector torquep(0, 0, 0);
             LR_vector torqueq(0, 0, 0);
@@ -1519,7 +1519,7 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
 }
 
 number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (p->is_bonded(q)) {
+    if(p->is_bonded(q)) {
         return (number)0.f;
     }
 
@@ -1540,7 +1540,7 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
     // number cosalpha;
     // number cosbetha;
     /*
-    if (p->n5 != P_VIRTUAL)	{
+    if(p->n5 != P_VIRTUAL)	{
             LR_vector rbackp = p->n5->pos - p->pos + p->n5->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
             cosalpha = a3*rbackp;
     }
@@ -1548,7 +1548,7 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
             LR_vector rbackp = p->n3->pos - p->pos + p->n3->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
             cosalpha = -a3*rbackp;
     }
-    if (q->n5 != P_VIRTUAL)	{
+    if(q->n5 != P_VIRTUAL)	{
             LR_vector rbackq = q->n5->pos - q->pos + q->n5->int_centers[DNANucleotide::BACK] - q->int_centers[DNANucleotide::BACK];
             cosbetha = b3*rbackq;
     }
@@ -1558,13 +1558,13 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
     }
 
 
-    if (p->n5 != P_VIRTUAL)	{
+    if(p->n5 != P_VIRTUAL)	{
             cosalpha = a3*p->n5->orientationT.v3;
     }
     else {
             cosalpha = -a3*p->n3->orientationT.v3;
     }
-    if (q->n5 != P_VIRTUAL)	{
+    if(q->n5 != P_VIRTUAL)	{
             cosbetha = b3*q->n5->orientationT.v3;
     }
     else {
@@ -1579,25 +1579,25 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
     */
 
-    int type_p_n3 = 5;
-    int type_q_n3 = 5;
+    int type_p_n3 = NO_TYPE;
+    int type_q_n3 = NO_TYPE;
 
-    if (p->n3 != P_VIRTUAL) type_p_n3 = p->n3->type;
-    if (q->n3 != P_VIRTUAL) type_q_n3 = q->n3->type;
+    if(p->n3 != P_VIRTUAL) type_p_n3 = p->n3->type;
+    if(q->n3 != P_VIRTUAL) type_q_n3 = q->n3->type;
 
-    // if (q->n5 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2_33 = type_n5_2_33;
-    // if (p->n5 == P_VIRTUAL && q->n5 != P_VIRTUAL) type_n5_2_33 = type_n3_2_33;
+    // if(q->n5 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2_33 = type_n5_2_33;
+    // if(p->n5 == P_VIRTUAL && q->n5 != P_VIRTUAL) type_n5_2_33 = type_n3_2_33;
 
-    int type_p_n5 = 5;
-    int type_q_n5 = 5;
+    int type_p_n5 = NO_TYPE;
+    int type_q_n5 = NO_TYPE;
 
-    if (p->n5 != P_VIRTUAL) type_p_n5 = p->n5->type;
-    if (q->n5 != P_VIRTUAL) type_q_n5 = q->n5->type;
+    if(p->n5 != P_VIRTUAL) type_p_n5 = p->n5->type;
+    if(q->n5 != P_VIRTUAL) type_q_n5 = q->n5->type;
 
-    // if (q->n3 == P_VIRTUAL && p->n3 != P_VIRTUAL) type_n3_2_55 = type_n5_2_55;
-    // if (p->n3 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2_55 = type_n3_2_55;
+    // if(q->n3 == P_VIRTUAL && p->n3 != P_VIRTUAL) type_n3_2_55 = type_n5_2_55;
+    // if(p->n3 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2_55 = type_n3_2_55;
 
-    if ((cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3)) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5))) {
+    if((cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3)) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5) < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5))) {
         // angles involved in the CRST interaction
         number cost1 = -a1 * b1;
         number cost2 = -b1 * rcstackdir;
@@ -1657,7 +1657,7 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
         energy = f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55;
 
         // makes sense since the above functions can return exactly 0
-        if (update_forces && energy != (number)0.f) {
+        if(update_forces && energy != (number)0.f) {
             LR_vector force(0, 0, 0);
             LR_vector torquep(0, 0, 0);
             LR_vector torqueq(0, 0, 0);
@@ -1747,13 +1747,13 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
-    if (r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F1_EPS[type][n3_1][n5_1] * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             number tmp = 1 - exp(-(r - F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
             val = F1_EPS[type][n3_1][n5_1] * SQR(tmp) - F1_SD_SHIFT[type](n3_2, n3_1, n5_1, n5_2);
-        } else if (r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F1_EPS[type][n3_1][n5_1] * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
@@ -1763,13 +1763,13 @@ number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1,
 
 number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
-    if (r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2 * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             number tmp = exp(-(r - F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
             val = 2 * (1 - tmp) * tmp * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2);
-        } else if (r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2 * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
@@ -1779,12 +1779,12 @@ number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1
 
 number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0.;
-    if (r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = (F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
-        } else if (r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
@@ -1793,12 +1793,12 @@ number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1,
 
 number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0.;
-    if (r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
@@ -1807,17 +1807,17 @@ number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1
 
 number DNA3Interaction::_fakef4_SD(number t, void *par) {
     // std::cout << "fakef4_SD args: " << ((int*) par)[0] << " " << ((int*) par)[1] << " " << ((int*) par)[2] << std::endl;
-    if ((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
+    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
         throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-    if ((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
+    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
         t = (number)copysign(1, t);
     return _f4_SD(acos(t), ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
 }
 
 number DNA3Interaction::_fakef4D_SD(number t, void *par) {
-    if ((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
+    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
         throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-    if ((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
+    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
         t = (number)copysign(1, t);
     return -_f4Dsin_SD(acos(t), ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
 }
@@ -1826,11 +1826,11 @@ number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1,
     number val = (number)0;
     // std::cout << "f4_SD args: " << t << " " << type << " " << n3 << " " << n5 << std::endl;
     t -= F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
-    if (t < 0)
+    if(t < 0)
         t *= -1;
 
-    if (t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
             // smoothing
             val = F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
         } else
@@ -1846,13 +1846,13 @@ number DNA3Interaction::_f4D_SD(number t, int type, int n3_2, int n3_1, int n5_1
     t -= F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
     // this function is a parabola centered in t0. If t < 0 then the value of the function
     // is the same but the value of its derivative has the opposite sign, so m = -1
-    if (t < 0) {
+    if(t < 0) {
         t *= -1;
         m = (number)-1;
     }
 
-    if (t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(t < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
             // smoothing
             val = m * 2 * F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * (t - F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2));
         } else
@@ -1868,18 +1868,18 @@ number DNA3Interaction::_f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n
     number tt0 = t - F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
     // this function is a parabola centered in t0. If t < 0 then the value of the function
     // is the same but the value of its derivative has the opposite sign, so m = -1
-    if (tt0 < 0) {
+    if(tt0 < 0) {
         tt0 *= -1;
         m = (number)-1;
     }
 
-    if (tt0 < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(tt0 < F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
         number sint = sin(t);
-        if (tt0 > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(tt0 > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
             // smoothing
             val = m * 2 * F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * (tt0 - F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) / sint;
         } else {
-            if (SQR(sint) > 1e-8)
+            if(SQR(sint) > 1e-8)
                 val = -m * 2 * F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * tt0 / sint;
             else
                 val = -m * 2 * F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2);
@@ -1892,10 +1892,10 @@ number DNA3Interaction::_f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n
 number DNA3Interaction::_f5_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
 
-    if (f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
             val = F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2) - f);
-        } else if (f < 0) {
+        } else if(f < 0) {
             val = (number)1.f - F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(f);
         } else
             val = (number)1;
@@ -1907,10 +1907,10 @@ number DNA3Interaction::_f5_SD(number f, int type, int n3_2, int n3_1, int n5_1,
 number DNA3Interaction::_f5D_SD(number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
 
-    if (f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
-        if (f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+    if(f > F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(f < F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2 * F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * (f - F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2));
-        } else if (f < 0) {
+        } else if(f < 0) {
             val = (number)-2.f * F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * f;
         } else
             val = (number)0;
@@ -1922,53 +1922,53 @@ number DNA3Interaction::_f5D_SD(number f, int type, int n3_2, int n3_1, int n5_1
 void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles) {
     int N = particles.size();
 
-    for (int i = 0; i < N; i++) {
+    for(int i = 0; i < N; i++) {
         BaseParticle *p = particles[i];
-        if (p->n3 != P_VIRTUAL && p->n3->index >= N) {
+        if(p->n3 != P_VIRTUAL && p->n3->index >= N) {
             throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
         }
-        if (p->n5 != P_VIRTUAL && p->n5->index >= N) {
+        if(p->n5 != P_VIRTUAL && p->n5->index >= N) {
             throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
         }
 
-        if (_use_mbf)
+        if(_use_mbf)
             continue;
 
         // check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 
-        int type_n3_2 = 5;
-        int type_n5_2 = 5;
+        int type_n3_2 = NO_TYPE;
+        int type_n5_2 = NO_TYPE;
         number mind;
         number maxd;
-        if (p->n3 != P_VIRTUAL) {
+        if(p->n3 != P_VIRTUAL) {
             BaseParticle *q = p->n3;
-            if (q->n3 != P_VIRTUAL) {
+            if(q->n3 != P_VIRTUAL) {
                 type_n3_2 = q->n3->type;
                 // std::cout << "check ptypes1: " << q->get_index() << "," << p->get_index() << ", " << q->n3->type << " " << q->type << " " << p->type << std::endl;
             }
-            if (p->n5 != P_VIRTUAL) {
+            if(p->n5 != P_VIRTUAL) {
                 type_n5_2 = p->n5->type;
                 // std::cout << "check ptypes2: " << q->get_index() << "," << p->get_index() << ", " << " " << q->type << " " << p->type << " " << p->n5->type << std::endl;
             }
-            // if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-            // if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+            // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
+            // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
             mind = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
             maxd = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
             q->set_positions();
             LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
             number r = sqrt(rv * rv);
-            if (r > maxd || r < mind) {
+            if(r > maxd || r < mind) {
                 throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
             }
         }
 
-        type_n3_2 = 5;
-        type_n5_2 = 5;
+        type_n3_2 = NO_TYPE;
+        type_n5_2 = NO_TYPE;
 
-        if (p->n5 != P_VIRTUAL) {
+        if(p->n5 != P_VIRTUAL) {
             BaseParticle *q = p->n5;
-            if (q->n3 != P_VIRTUAL) {
+            if(q->n3 != P_VIRTUAL) {
                 type_n3_2 = q->n3->type;
                 // std::cout << "check ptypes3: " << q->get_index() << "," << p->get_index() << ", " << q->n3->type << " " << q->type << " " << p->type << std::endl;
             }
@@ -1976,15 +1976,15 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles)
             type_n5_2 = p->n5->type;
             // std::cout << "check ptypes4: " << q->get_index() << "," << p->get_index() << ", " << " " << q->type << " " << p->type << " " << p->n5->type << std::endl;
 
-            // if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-            // if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+            // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
+            // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
             mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
             maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
             q->set_positions();
             LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
             number r = sqrt(rv * rv);
-            if (r > maxd || r < mind) {
+            if(r > maxd || r < mind) {
                 throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
             }
         }

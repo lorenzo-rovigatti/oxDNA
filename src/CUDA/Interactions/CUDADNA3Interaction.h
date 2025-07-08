@@ -62,6 +62,7 @@ public:
 	CUDADNA3Interaction();
 	virtual ~CUDADNA3Interaction();
 
+    uint8_t *_d_particle_types = nullptr; // QUESTION: maybe it is accessed in a coalesced way... try with int
 	int *_d_is_strand_end = nullptr;
 
 	void get_settings(input_file &inp) override;

@@ -6,6 +6,8 @@
 #define DIM_C 5
 #define DIM_D 6
 
+#define NO_TYPE 5
+
 #include "DNA2Interaction.h"
 #include "../Utilities/oxdna3_utils.h"
 

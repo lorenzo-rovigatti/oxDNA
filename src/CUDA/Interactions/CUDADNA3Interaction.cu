@@ -22,6 +22,9 @@ CUDADNA3Interaction::~CUDADNA3Interaction() {
 	if(_d_is_strand_end != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_is_strand_end));
 	}
+	if(_d_particle_types != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_particle_types));
+	}
 }
 
 void CUDADNA3Interaction::get_settings(input_file &inp) {
@@ -85,10 +88,13 @@ void CUDADNA3Interaction::cuda_init(int N) {
 	cudaMemcpyToSymbol(MD_fene_delta2_SD, &this->_fene_delta2_SD, sizeof(OxDNA3Params));
 	cudaMemcpyToSymbol(MD_mbf_xmax_SD, &this->_mbf_xmax_SD, sizeof(OxDNA3Params));
 	COPY_NUMBER_TO_FLOAT(MD_fene_eps, this->_fene_eps);
-	/*__constant__ OxDNA3Params MD_fene_r0_SD[1];
-	__constant__ OxDNA3Params MD_fene_delta2_SD[1];
-	__constant__ OxDNA3Params MD_mbf_xmax_SD[1];
-	__constant__ float MD_fene_eps[1];*/
+
+	std::vector<uint8_t> particle_types(this->_N);
+	for(int i = 0; i < _N; i++) {
+		particle_types[i] = CONFIG_INFO->particles()[i]->type;
+	}
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<uint8_t>(&_d_particle_types, sizeof(int) * _N));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_particle_types, particle_types.data(), sizeof(int) * _N, cudaMemcpyHostToDevice));
 
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 
@@ -119,6 +125,7 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 	}
 
 	if(_use_edge) {
+		throw oxDNAException("use_edge will be supported soon-ish!");
 		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
 			DNA3_forces_edge_nonbonded
 				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
@@ -142,7 +149,7 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 		DNA3_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs,
-			d_bonds, _use_mbf, _mbf_finf, _update_st, _d_st, d_box);
+			d_bonds, _use_mbf, _mbf_finf, _d_particle_types, _update_st, _d_st, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 
