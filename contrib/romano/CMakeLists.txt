@@ -13,8 +13,8 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 	#) 
 
 ADD_CUSTOM_TARGET(romano
-	#	DEPENDS PatchyShapeParticle PatchyShapeInteraction DirkInteraction DirkInteraction2 DirkInteractionBias NematicS Icosahedron HardIcoInteraction
-	DEPENDS Reappear ChargedCylInteraction SideChange NematicS ClosestN
+	#	DEPENDS DirkInteraction DirkInteraction2 DirkInteractionBias NematicS Icosahedron HardIcoInteraction
+	DEPENDS Reappear ChargedCylInteraction SideChange NematicS ClosestN PatchyShapeParticle PatchyShapeInteraction PLCluster
 ) 
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")

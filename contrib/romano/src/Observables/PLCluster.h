@@ -19,22 +19,17 @@ particle1_id = <int> (particle 1 id)
 particle2_id = <int> (particle 2 id)
 @endverbatim
  */
-template<typename number>
-class PLCluster: public BaseObservable<number> {
+class PLCluster: public BaseObservable {
 protected:
 
     bool _show_types ;
 public:
 	PLCluster();
-	virtual ~PLCluster();
+	~PLCluster() override;
 
-	std::string get_output_string(llint curr_step);
+	std::string get_output_string(llint curr_step) override;
 
-	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
+	void get_settings(input_file &my_inp, input_file &sim_inp) override;
 };
-
-extern "C" BaseObservable<float> * make_PLCluster_float() { return new PLCluster<float>(); }
-extern "C" BaseObservable<double> * make_PLCluster_double() { return new PLCluster<double>(); }
-
 
 #endif /* PAIRENERGY_H_ */
