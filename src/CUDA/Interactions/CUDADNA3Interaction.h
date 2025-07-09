@@ -13,10 +13,10 @@
 
 // We need PODs (plain old data) for constant memory
 struct OxDNA3Params {
-    static constexpr int D0 = DIM_A;
-    static constexpr int D1 = DIM_B;
-    static constexpr int D2 = DIM_C;
-    static constexpr int D3 = DIM_D;
+    static constexpr int D0 = TETRAMER_DIM_A;
+    static constexpr int D1 = TETRAMER_DIM_B;
+    static constexpr int D2 = TETRAMER_DIM_B;
+    static constexpr int D3 = TETRAMER_DIM_A;
     static constexpr int total_size = D0 * D1 * D2 * D3;
 
     // Strides for row-major layout

@@ -1,10 +1,8 @@
 #ifndef DNA3_INTERACTION_H
 #define DNA3_INTERACTION_H
 
-#define DIM_A 6
-#define DIM_B 5
-#define DIM_C 5
-#define DIM_D 6
+#define TETRAMER_DIM_A 6 // this is the number of nucleotide types including dummies
+#define TETRAMER_DIM_B 5 // this is the number of nucleotide types
 
 #define NO_TYPE 5
 
@@ -16,13 +14,13 @@ class DNA3Interaction: public DNA2Interaction {
 protected:
 
 	/// here we store the r0, which is different in oxDNA and oxDNA2, and is set in the constructor
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_r0_SD;
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_delta_SD;
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _fene_delta2_SD;
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _mbf_xmax_SD;
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _fene_r0_SD;
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _fene_delta_SD;
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _fene_delta2_SD;
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _mbf_xmax_SD;
     number _fene_eps;
 
-	Mesh _mesh_f4_SD[21][DIM_A][DIM_B][DIM_C][DIM_D]; // this is not used by the GPU so we can keep using C-style arrays
+	Mesh _mesh_f4_SD[21][TETRAMER_DIM_A][TETRAMER_DIM_B][TETRAMER_DIM_B][TETRAMER_DIM_A]; // this is not used by the GPU so we can keep using C-style arrays
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -59,43 +57,43 @@ public:
 	virtual void init();
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_A[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RC[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_R0[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_BLOW[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_BHIGH[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RLOW[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RHIGH[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RCLOW[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_RCHIGH[2];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F1_SD_SHIFT[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_A[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RC[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_R0[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_BLOW[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_BHIGH[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RLOW[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RHIGH[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RCLOW[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RCHIGH[2];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_SHIFT[2];
 
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_K[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RC[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_R0[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_BLOW[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RLOW[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RCLOW[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_BHIGH[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RCHIGH[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F2_SD_RHIGH[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_K[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RC[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_R0[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_BLOW[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RLOW[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RCLOW[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_BHIGH[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RCHIGH[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RHIGH[4];
 
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_A[21];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_B[21];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_T0[21];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_TS[21];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F4_SD_THETA_TC[21];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F4_SD_THETA_A[21];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F4_SD_THETA_B[21];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F4_SD_THETA_T0[21];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F4_SD_THETA_TS[21];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F4_SD_THETA_TC[21];
 
 
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_A[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_B[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_XC[4];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> F5_SD_PHI_XS[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F5_SD_PHI_A[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F5_SD_PHI_B[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F5_SD_PHI_XC[4];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F5_SD_PHI_XS[4];
 
-    MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_s[7];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_r[7];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_b[7];
-	MultiDimArray<DIM_A, DIM_B, DIM_C, DIM_D> _excl_rc[7];
+    MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _excl_s[7];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _excl_r[7];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _excl_b[7];
+	MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _excl_rc[7];
 
 	std::array<int, 21> MESH_F4_SD_POINTS;
 

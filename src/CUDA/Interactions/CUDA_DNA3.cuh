@@ -246,25 +246,25 @@ __device__ void DNA3_set_interaction_sites(int type, int btype, const c_number4 
 		pos_base =  POS_BASE;
 	}
 	else {
-		if(type == 0) {
+		if(type == N_A) {
 			pos_mm_back1 = POS_MM_BACK1_A;
 			pos_mm_back2 = POS_MM_BACK2_A;
 			pos_stack = POS_STACK_A;
 			pos_base =  POS_BASE_A;
 		}
-		else if(type == 1) {
+		else if(type == N_G) {
 			pos_mm_back1 = POS_MM_BACK1_G;
 			pos_mm_back2 = POS_MM_BACK2_G;
 			pos_stack = POS_STACK_G;
 			pos_base =  POS_BASE_G;
 		}
-		else if(type == 2) {
+		else if(type == N_C) {
 			pos_mm_back1 = POS_MM_BACK1_C;
 			pos_mm_back2 = POS_MM_BACK2_C;
 			pos_stack = POS_STACK_C;
 			pos_base =  POS_BASE_C;
 		}
-		else if(type == 3) {
+		else if(type == N_T) {
 			pos_mm_back1 = POS_MM_BACK1_T;
 			pos_mm_back2 = POS_MM_BACK2_T;
 			pos_stack = POS_STACK_T;

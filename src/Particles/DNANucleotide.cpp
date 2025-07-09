@@ -35,35 +35,37 @@ void DNANucleotide::set_positions() {
 	if(_grooving == 2) {
 		// QUESTION: since the type is going to be constant throughout the simulation, we probably
 		// want to do this just once
-		if(btype == 0) {
-			_POS_MM_BACK1 = POS_MM_BACK1_A;
-			_POS_MM_BACK2 = POS_MM_BACK2_A;
-			_POS_STACK = POS_STACK_A;
-			_POS_BASE =  POS_BASE_A;
-		}
-		else if(btype == 1) {
-			_POS_MM_BACK1 = POS_MM_BACK1_G;
-			_POS_MM_BACK2 = POS_MM_BACK2_G;
-			_POS_STACK = POS_STACK_G;
-			_POS_BASE =  POS_BASE_G;
-		}
-		else if(btype == 2) {
-			_POS_MM_BACK1 = POS_MM_BACK1_C;
-			_POS_MM_BACK2 = POS_MM_BACK2_C;
-			_POS_STACK = POS_STACK_C;
-			_POS_BASE =  POS_BASE_C;
-		}
-		else if(btype == 3) {
-			_POS_MM_BACK1 = POS_MM_BACK1_T;
-			_POS_MM_BACK2 = POS_MM_BACK2_T;
-			_POS_STACK = POS_STACK_T;
-			_POS_BASE =  POS_BASE_T;
-		}
-		else if(btype == 4) {
+		if(btype == 4) {
 			_POS_MM_BACK1 = POS_MM_BACK1;
 			_POS_MM_BACK2 = POS_MM_BACK2;
 			_POS_STACK = POS_STACK;
 			_POS_BASE =  POS_BASE;
+		}
+		else {
+			if(type == N_A) {
+				_POS_MM_BACK1 = POS_MM_BACK1_A;
+				_POS_MM_BACK2 = POS_MM_BACK2_A;
+				_POS_STACK = POS_STACK_A;
+				_POS_BASE =  POS_BASE_A;
+			}
+			else if(type == N_G) {
+				_POS_MM_BACK1 = POS_MM_BACK1_G;
+				_POS_MM_BACK2 = POS_MM_BACK2_G;
+				_POS_STACK = POS_STACK_G;
+				_POS_BASE =  POS_BASE_G;
+			}
+			else if(type == N_C) {
+				_POS_MM_BACK1 = POS_MM_BACK1_C;
+				_POS_MM_BACK2 = POS_MM_BACK2_C;
+				_POS_STACK = POS_STACK_C;
+				_POS_BASE =  POS_BASE_C;
+			}
+			else if(type == N_T) {
+				_POS_MM_BACK1 = POS_MM_BACK1_T;
+				_POS_MM_BACK2 = POS_MM_BACK2_T;
+				_POS_STACK = POS_STACK_T;
+				_POS_BASE =  POS_BASE_T;
+			}
 		}
 		int_centers[BACK] = orientation * principal_axis * _POS_MM_BACK1 + orientation * third_axis * _POS_MM_BACK2;
 		int_centers[STACK] = orientation * principal_axis * _POS_STACK;

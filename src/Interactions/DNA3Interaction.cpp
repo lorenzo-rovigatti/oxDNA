@@ -328,10 +328,10 @@ void DNA3Interaction::init() {
 
         // read independent parameters from SD file
         // independent = not set by continuity and differentiability
-        for(int i = 0; i < DIM_A - 2; i++) {
-            for(int j = 0; j < DIM_B - 1; j++) {
-                for(int k = 0; k < DIM_C - 1; k++) {
-                    for(int l = 0; l < DIM_D - 2; l++) {
+        for(int i = 0; i < TETRAMER_DIM_A - 2; i++) {
+            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                    for(int l = 0; l < TETRAMER_DIM_A - 2; l++) {
                         // EXCLUDED VOLUME
 
                         sprintf(key, "EXCL_S1_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
@@ -737,60 +737,60 @@ void DNA3Interaction::init() {
         }
 
         // Set parameters for ends junctions
-        for(int i = 0; i < DIM_A; i++) {
-            for(int j = 0; j < DIM_B - 1; j++) {
-                for(int k = 0; k < DIM_C - 1; k++) {
+        for(int i = 0; i < TETRAMER_DIM_A; i++) {
+            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
                     // For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
-                    F2_SD_K[CRST_F2_33](i, j, k, DIM_D - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
-                    F2_SD_K[CRST_F2_33](DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_33](0, j, k, 0);
+                    F2_SD_K[CRST_F2_33](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
+                    F2_SD_K[CRST_F2_33](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_33](0, j, k, 0);
 
-                    F2_SD_K[CRST_F2_55](i, j, k, DIM_D - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
-                    F2_SD_K[CRST_F2_55](DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                    F2_SD_K[CRST_F2_55](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                    F2_SD_K[CRST_F2_55](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
 
                     // fene
-                    _fene_delta_SD(i, j, k, DIM_D - 1) = _fene_delta_SD.get_average_par();
+                    _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par();
                     // if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
-                    _fene_delta_SD(DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par();
-                    _fene_r0_SD(i, j, k, DIM_D - 1) = _fene_r0_SD.get_average_par();
+                    _fene_delta_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par();
+                    _fene_r0_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_r0_SD.get_average_par();
                     // if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
-                    _fene_r0_SD(DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par();
+                    _fene_r0_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par();
 
                     // f1
                     for(int m = 0; m < 2; m++) {
-                        F1_SD_A[m](i, j, k, DIM_D - 1) = F1_SD_A[m].get_average_par();
-                        F1_SD_R0[m](i, j, k, DIM_D - 1) = F1_SD_R0[m].get_average_par();
-                        F1_SD_RC[m](i, j, k, DIM_D - 1) = F1_SD_RC[m].get_average_par();
-                        F1_SD_RLOW[m](i, j, k, DIM_D - 1) = F1_SD_RLOW[m].get_average_par();
-                        F1_SD_RHIGH[m](i, j, k, DIM_D - 1) = F1_SD_RHIGH[m].get_average_par();
+                        F1_SD_A[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_A[m].get_average_par();
+                        F1_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_R0[m].get_average_par();
+                        F1_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RC[m].get_average_par();
+                        F1_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RLOW[m].get_average_par();
+                        F1_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RHIGH[m].get_average_par();
 
-                        F1_SD_A[m](DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par();
-                        F1_SD_R0[m](DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par();
-                        F1_SD_RC[m](DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par();
-                        F1_SD_RLOW[m](DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par();
-                        F1_SD_RHIGH[m](DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par();
+                        F1_SD_A[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par();
+                        F1_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par();
+                        F1_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par();
+                        F1_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par();
+                        F1_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par();
                     }
 
                     // f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m](i, j, k, DIM_D - 1) = F2_SD_R0[m].get_average_par();
-                        F2_SD_RC[m](i, j, k, DIM_D - 1) = F2_SD_RC[m].get_average_par();
-                        F2_SD_RLOW[m](i, j, k, DIM_D - 1) = F2_SD_RLOW[m].get_average_par();
-                        F2_SD_RHIGH[m](i, j, k, DIM_D - 1) = F2_SD_RHIGH[m].get_average_par();
+                        F2_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_R0[m].get_average_par();
+                        F2_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RC[m].get_average_par();
+                        F2_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RLOW[m].get_average_par();
+                        F2_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RHIGH[m].get_average_par();
 
-                        F2_SD_R0[m](DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par();
-                        F2_SD_RC[m](DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par();
-                        F2_SD_RLOW[m](DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par();
-                        F2_SD_RHIGH[m](DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par();
+                        F2_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par();
+                        F2_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par();
+                        F2_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par();
+                        F2_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par();
                     }
 
                     // f3
                     for(int m = 0; m < 7; m++) {
-                        _excl_s[m](i, j, k, DIM_D - 1) = _excl_s[m].get_average_par();
-                        _excl_r[m](i, j, k, DIM_D - 1) = _excl_r[m].get_average_par();
+                        _excl_s[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_s[m].get_average_par();
+                        _excl_r[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_r[m].get_average_par();
 
-                        _excl_s[m](DIM_A - 1, j, k, i) = _excl_s[m].get_average_par();
-                        _excl_r[m](DIM_A - 1, j, k, i) = _excl_r[m].get_average_par();
+                        _excl_s[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_s[m].get_average_par();
+                        _excl_r[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_r[m].get_average_par();
                     }
 
                     // f4
@@ -799,22 +799,22 @@ void DNA3Interaction::init() {
                         // if(m == 2 || m == 3 || m == 4 || m == 5) continue;
                         // if(m == 10 || m == 11 || m == 12) continue;
                         // if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
-                        F4_SD_THETA_A[m](i, j, k, DIM_D - 1) = F4_SD_THETA_A[m].get_average_par();
-                        F4_SD_THETA_T0[m](i, j, k, DIM_D - 1) = F4_SD_THETA_T0[m].get_average_par();
-                        F4_SD_THETA_TS[m](i, j, k, DIM_D - 1) = F4_SD_THETA_TS[m].get_average_par();
+                        F4_SD_THETA_A[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_A[m].get_average_par();
+                        F4_SD_THETA_T0[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_T0[m].get_average_par();
+                        F4_SD_THETA_TS[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_TS[m].get_average_par();
 
-                        F4_SD_THETA_A[m](DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par();
-                        F4_SD_THETA_T0[m](DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par();
-                        F4_SD_THETA_TS[m](DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par();
+                        F4_SD_THETA_A[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par();
+                        F4_SD_THETA_T0[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par();
+                        F4_SD_THETA_TS[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par();
                     }
 
                     // f5
                     for(int m = 0; m < 4; m++) {
-                        F5_SD_PHI_A[m](i, j, k, DIM_D - 1) = F5_SD_PHI_A[m].get_average_par();
-                        F5_SD_PHI_XS[m](i, j, k, DIM_D - 1) = F5_SD_PHI_XS[m].get_average_par();
+                        F5_SD_PHI_A[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_A[m].get_average_par();
+                        F5_SD_PHI_XS[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_XS[m].get_average_par();
 
-                        F5_SD_PHI_A[m](DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par();
-                        F5_SD_PHI_XS[m](DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par();
+                        F5_SD_PHI_A[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par();
+                        F5_SD_PHI_XS[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par();
                     }
                 }
             }
@@ -822,10 +822,10 @@ void DNA3Interaction::init() {
 
         // Set enslaved parameters
         // Enslaved = set by continuity and differentiability
-        for(int i = 0; i < DIM_A; i++) {
-            for(int j = 0; j < DIM_B - 1; j++) {
-                for(int k = 0; k < DIM_C - 1; k++) {
-                    for(int l = 0; l < DIM_D; l++) {
+        for(int i = 0; i < TETRAMER_DIM_A; i++) {
+            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                    for(int l = 0; l < TETRAMER_DIM_A; l++) {
                         // delta2
                         _fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
 
@@ -889,10 +889,10 @@ void DNA3Interaction::init() {
         // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
 
         if(_use_mbf) {
-            for(int i = 0; i < DIM_A; i++) {
-                for(int j = 0; j < DIM_B; j++) {
-                    for(int k = 0; k < DIM_C; k++) {
-                        for(int l = 0; l < DIM_D; l++) {
+            for(int i = 0; i < TETRAMER_DIM_A; i++) {
+                for(int j = 0; j < TETRAMER_DIM_B; j++) {
+                    for(int k = 0; k < TETRAMER_DIM_B; k++) {
+                        for(int l = 0; l < TETRAMER_DIM_A; l++) {
                             _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
                             // if we use mbf, we should tell the user
                             OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
@@ -961,10 +961,10 @@ void DNA3Interaction::init() {
         for(int int_type = 0; int_type < 21; int_type++) {
             // the order of the interpolation interval extremes is reversed,
             // due to the cosine being monotonically decreasing with increasing x
-            for(int i = 0; i < DIM_A; i++) {
-                for(int j = 0; j < DIM_B; j++) {
-                    for(int k = 0; k < DIM_C; k++) {
-                        for(int l = 0; l < DIM_D; l++) {
+            for(int i = 0; i < TETRAMER_DIM_A; i++) {
+                for(int j = 0; j < TETRAMER_DIM_B; j++) {
+                    for(int k = 0; k < TETRAMER_DIM_B; k++) {
+                        for(int l = 0; l < TETRAMER_DIM_A; l++) {
                             int points = MESH_F4_SD_POINTS[int_type];
                             number upplimit = cos(fmax(0, F4_SD_THETA_T0[int_type](i, j, k, l) - F4_SD_THETA_TC[int_type](i, j, k, l)));
                             number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[int_type](i, j, k, l) + F4_SD_THETA_TC[int_type](i, j, k, l)));
