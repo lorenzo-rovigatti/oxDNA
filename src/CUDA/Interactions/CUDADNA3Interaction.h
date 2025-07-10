@@ -26,29 +26,18 @@ struct OxDNA3Params {
     static constexpr int STR3 = 1;
 
     // Flat data storage
-    number data[total_size];
+    c_number data[total_size];
 
     // Element access
     __host__ __device__
-    number& operator()(int i, int j, int k, int l) {
+    c_number& operator()(int i, int j, int k, int l) {
         return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
     }
 
     __host__ __device__
-    const number& operator()(int i, int j, int k, int l) const {
+    const c_number& operator()(int i, int j, int k, int l) const {
         return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
     }
-
-    // Raw access (for memcpy or cudaMemcpyToSymbol)
-    __host__ __device__
-    number* raw_data() { return data; }
-
-    __host__ __device__
-    const number* raw_data() const { return data; }
-
-    // Size getter
-    __host__ __device__
-    int size() const { return total_size; }
 };
 
 /**
@@ -74,6 +63,7 @@ public:
 	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_qorientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 
 protected:
+	std::vector<float> _convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays);
 	void _on_T_update() override;
 	void _init_strand_ends(LR_bonds *d_bonds);
 };

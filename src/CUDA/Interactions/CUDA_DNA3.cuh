@@ -44,6 +44,44 @@ __constant__ OxDNA3Params MD_fene_delta2_SD[1];
 __constant__ OxDNA3Params MD_mbf_xmax_SD[1];
 __constant__ float MD_fene_eps[1];
 
+// global memory arrays. Probably we will have to find a better way to handle all these arrays (textures?).
+__device__ OxDNA3Params MD_excl_s[7];
+__device__ OxDNA3Params MD_excl_r[7];
+__device__ OxDNA3Params MD_excl_b[7];
+__device__ OxDNA3Params MD_excl_rc[7];
+
+__device__ OxDNA3Params MD_F1_SD_A[2];
+__device__ OxDNA3Params MD_F1_SD_RC[2];
+__device__ OxDNA3Params MD_F1_SD_R0[2];
+__device__ OxDNA3Params MD_F1_SD_BLOW[2];
+__device__ OxDNA3Params MD_F1_SD_BHIGH[2];
+__device__ OxDNA3Params MD_F1_SD_RLOW[2];
+__device__ OxDNA3Params MD_F1_SD_RHIGH[2];
+__device__ OxDNA3Params MD_F1_SD_RCLOW[2];
+__device__ OxDNA3Params MD_F1_SD_RCHIGH[2];
+__device__ OxDNA3Params MD_F1_SD_SHIFT[2];
+
+__device__ OxDNA3Params MD_F2_SD_K[4];
+__device__ OxDNA3Params MD_F2_SD_RC[4];
+__device__ OxDNA3Params MD_F2_SD_R0[4];
+__device__ OxDNA3Params MD_F2_SD_BLOW[4];
+__device__ OxDNA3Params MD_F2_SD_RLOW[4];
+__device__ OxDNA3Params MD_F2_SD_RCLOW[4];
+__device__ OxDNA3Params MD_F2_SD_BHIGH[4];
+__device__ OxDNA3Params MD_F2_SD_RCHIGH[4];
+__device__ OxDNA3Params MD_F2_SD_RHIGH[4];
+
+__device__ OxDNA3Params MD_F4_SD_THETA_A[21];
+__device__ OxDNA3Params MD_F4_SD_THETA_B[21];
+__device__ OxDNA3Params MD_F4_SD_THETA_T0[21];
+__device__ OxDNA3Params MD_F4_SD_THETA_TS[21];
+__device__ OxDNA3Params MD_F4_SD_THETA_TC[21];
+
+__device__ OxDNA3Params MD_F5_SD_PHI_A[4];
+__device__ OxDNA3Params MD_F5_SD_PHI_B[4];
+__device__ OxDNA3Params MD_F5_SD_PHI_XC[4];
+__device__ OxDNA3Params MD_F5_SD_PHI_XS[4];
+
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
@@ -211,28 +249,88 @@ __forceinline__ __device__ c_number _f5D(c_number f, int type) {
 }
 
 template<bool qIsN3>
-__device__ void _DNA3_bonded_excluded_volume(const c_number4 &r, const c_number4 &n3pos_base, const c_number4 &n3pos_back, const c_number4 &n5pos_base,
-		const c_number4 &n5pos_back, c_number4 &F, c_number4 &T) {
+__device__ void _DNA3_bonded_excluded_volume(const c_number4 &r, const c_number4 &n3pos_base, const c_number4 &n3pos_back, 
+		int n3_type, int neigh_n3_type, const c_number4 &n5pos_base, const c_number4 &n5pos_back, int n5_type, int neigh_n5_type,
+		c_number4 &F, c_number4 &T) {
 	c_number4 Ftmp;
 	// BASE-BASE
 	c_number4 rcenter = r + n3pos_base - n5pos_base;
-	_excluded_volume(rcenter, Ftmp, EXCL_S2, EXCL_R2, EXCL_B2, EXCL_RC2);
+	c_number s = MD_excl_s[4](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	c_number rstar = MD_excl_r[4](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	c_number b = MD_excl_b[4](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	c_number rc = MD_excl_rc[4](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
 	c_number4 torquep1 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
 
 	// n5-BASE vs. n3-BACK
 	rcenter = r + n3pos_back - n5pos_base;
-	_excluded_volume(rcenter, Ftmp, EXCL_S3, EXCL_R3, EXCL_B3, EXCL_RC3);
+	s = MD_excl_s[5](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	rstar = MD_excl_r[5](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	b = MD_excl_b[5](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	rc = MD_excl_rc[5](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
 	c_number4 torquep2 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_back, Ftmp);
 	F += Ftmp;
 
 	// n5-BACK vs. n3-BASE
 	rcenter = r + n3pos_base - n5pos_back;
-	_excluded_volume(rcenter, Ftmp, EXCL_S4, EXCL_R4, EXCL_B4, EXCL_RC4);
+	s = MD_excl_s[6](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	rstar = MD_excl_r[6](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	b = MD_excl_b[6](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	rc = MD_excl_rc[6](neigh_n3_type, n3_type, n5_type, neigh_n5_type);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
 	c_number4 torquep3 = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
 
 	T += torquep1 + torquep2 + torquep3;
+}
+
+__device__ void _DNA3_nonbonded_excluded_volume(const c_number4 &r, const c_number4 &qpos_base, const c_number4 &qpos_back, 
+		int qtype, int neigh_qtype, const c_number4 &ppos_base, const c_number4 &ppos_back, int ptype, int neigh_ptype,
+		c_number4 &F, c_number4 &T) {
+	c_number4 Ftmp;
+	// BASE-BASE
+	c_number4 rcenter = r + qpos_base - ppos_base;
+	c_number s = MD_excl_s[1](neigh_qtype, qtype, ptype, neigh_ptype);
+	c_number rstar = MD_excl_r[1](neigh_qtype, qtype, ptype, neigh_ptype);
+	c_number b = MD_excl_b[1](neigh_qtype, qtype, ptype, neigh_ptype);
+	c_number rc = MD_excl_rc[1](neigh_qtype, qtype, ptype, neigh_ptype);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
+	c_number4 torquep1 = _cross(ppos_base, Ftmp);
+	F += Ftmp;
+
+	// n5-BASE vs. n3-BACK
+	rcenter = r + qpos_back - ppos_base;
+	s = MD_excl_s[3](neigh_qtype, qtype, ptype, neigh_ptype);
+	rstar = MD_excl_r[3](neigh_qtype, qtype, ptype, neigh_ptype);
+	b = MD_excl_b[3](neigh_qtype, qtype, ptype, neigh_ptype);
+	rc = MD_excl_rc[3](neigh_qtype, qtype, ptype, neigh_ptype);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
+	c_number4 torquep2 = _cross(ppos_base, Ftmp);
+	F += Ftmp;
+
+	// n5-BACK vs. n3-BASE
+	rcenter = r + qpos_base - ppos_back;
+	s = MD_excl_s[2](neigh_qtype, qtype, ptype, neigh_ptype);
+	rstar = MD_excl_r[2](neigh_qtype, qtype, ptype, neigh_ptype);
+	b = MD_excl_b[2](neigh_qtype, qtype, ptype, neigh_ptype);
+	rc = MD_excl_rc[2](neigh_qtype, qtype, ptype, neigh_ptype);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
+	c_number4 torquep3 = _cross(ppos_back, Ftmp);
+	F += Ftmp;
+
+	// BACK-BACK
+	rcenter = r + qpos_back - ppos_back;
+	s = MD_excl_s[0](neigh_qtype, qtype, ptype, neigh_ptype);
+	rstar = MD_excl_r[0](neigh_qtype, qtype, ptype, neigh_ptype);
+	b = MD_excl_b[0](neigh_qtype, qtype, ptype, neigh_ptype);
+	rc = MD_excl_rc[0](neigh_qtype, qtype, ptype, neigh_ptype);
+	_excluded_volume(rcenter, Ftmp, s, rstar, b, rc);
+	c_number4 torquep4 = _cross(ppos_back, Ftmp);
+	F += Ftmp;
+
+	T += torquep1 + torquep2 + torquep3 + torquep4;
 }
 
 __device__ void DNA3_set_interaction_sites(int type, int btype, const c_number4 &principal_axis, const c_number4 &third_axis, 
@@ -274,7 +372,7 @@ __device__ void DNA3_set_interaction_sites(int type, int btype, const c_number4 
 	
 	r_back = principal_axis * pos_mm_back1 + third_axis * pos_mm_back2;
 	r_stack = principal_axis * pos_stack;
-	r_base = r_stack * (pos_base / pos_stack);
+	r_base = principal_axis * pos_base;
 }
 
 template<bool qIsN3>
@@ -286,19 +384,21 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 	int n5type = get_particle_type(n5pos);
 	int n3btype = get_particle_btype(n3pos);
 	int n5btype = get_particle_btype(n5pos);
+	int n3_id = get_particle_index(n3pos);
+	int n5_id = get_particle_index(n5pos);
 
 	c_number4 n5pos_back, n5pos_base, n5pos_stack;
-	DNA3_set_interaction_sites(n5type, n5btype, n5x, n5y, n5pos_back, n5pos_base, n5pos_stack);
+	DNA3_set_interaction_sites(n5type, n5btype, n5x, n5y, n5pos_back, n5pos_stack, n5pos_base);
 	c_number4 n3pos_back, n3pos_base, n3pos_stack;
-	DNA3_set_interaction_sites(n3type, n3btype, n3x, n3y, n3pos_back, n3pos_base, n3pos_stack);
+	DNA3_set_interaction_sites(n3type, n3btype, n3x, n3y, n3pos_back, n3pos_stack, n3pos_base);
 
 	c_number4 rback = r + n3pos_back - n5pos_back;
 	c_number rbackmod = _module(rback);
-	number rbackr0 = rbackmod - MD_fene_r0_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
+	c_number rbackr0 = rbackmod - MD_fene_r0_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
 
 	c_number4 Ftmp;
-	number mbf_xmax = MD_mbf_xmax_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
-	number fene_delta2 = MD_fene_delta2_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
+	c_number mbf_xmax = MD_mbf_xmax_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
+	c_number fene_delta2 = MD_fene_delta2_SD[0](neigh_n3_type, n3type, n5type, neigh_n5_type);
 	if(use_mbf == true && fabsf(rbackr0) > mbf_xmax) {
 		// this is the "relax" potential, i.e. the standard FENE up to xmax and then something like A + B log(r) for r>xmax
 		c_number fene_xmax = -(MD_fene_eps[0] / 2.f) * logf(1.f - mbf_xmax * mbf_xmax / fene_delta2);
@@ -314,7 +414,8 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 
 	c_number4 Ttmp = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
-	// _DNA3_bonded_excluded_volume<qIsN3>(r, n3pos_base, n3pos_back, n5pos_base, n5pos_back, Ftmp, Ttmp);
+	_DNA3_bonded_excluded_volume<qIsN3>(r, n3pos_base, n3pos_back, n3type, neigh_n3_type, 
+		n5pos_base, n5pos_back, n5type, neigh_n5_type, Ftmp, Ttmp);
 
 	if(qIsN3) {
 		F += Ftmp;
@@ -324,8 +425,6 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 		F -= Ftmp;
 		T -= Ttmp;
 	}
-
-	return;
 
 	// STACKING
 	c_number4 rstack = r + n3pos_stack - n5pos_stack;
@@ -450,35 +549,27 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 
 __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
 		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, bool p_is_end, bool q_is_end) {
-
-	return;
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
 	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
-	c_number4 ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
-	c_number4 ppos_base = POS_BASE * a1;
-	c_number4 ppos_stack = POS_STACK * a1;
-
-	c_number4 qpos_back = POS_MM_BACK1 * b1 + POS_MM_BACK2 * b2;
-	c_number4 qpos_base = POS_BASE * b1;
-	c_number4 qpos_stack = POS_STACK * b1;
-
+	c_number4 ppos_back, ppos_base, ppos_stack;
+	DNA3_set_interaction_sites(ptype, pbtype, a1, a2, ppos_back, ppos_stack, ppos_base);
+	c_number4 qpos_back, qpos_base, qpos_stack;
+	DNA3_set_interaction_sites(qtype, qbtype, b1, b2, qpos_back, qpos_stack, qpos_base);
 	c_number tot_Tw = T.w;
 
 	// excluded volume
-	// BACK-BACK
 	c_number4 Ftmp = make_c_number4(0, 0, 0, 0);
-	c_number4 rbackbone = r + qpos_back - ppos_back;
-	_excluded_volume(rbackbone, Ftmp, EXCL_S1, EXCL_R1, EXCL_B1, EXCL_RC1);
-	c_number4 Ttmp = _cross(ppos_back, Ftmp);
-	_DNA3_bonded_excluded_volume<true>(r, qpos_base, qpos_back, ppos_base, ppos_back, Ftmp, Ttmp);
-
+	c_number4 Ttmp = make_c_number4(0, 0, 0, 0);
+	_DNA3_nonbonded_excluded_volume(r, qpos_base, qpos_back, qtype, NO_TYPE, ppos_base, ppos_back, ptype, NO_TYPE, Ftmp, Ttmp);
 	F += Ftmp;
 
 	// DEBYE HUCKEL
+	/*
+	c_number4 rbackbone = r + qpos_back - ppos_back;
 	c_number rbackmod = _module(rbackbone);
 	if(rbackmod < MD_dh_RC[0]) {
 		c_number4 rbackdir = rbackbone / rbackmod;
@@ -709,7 +800,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 			Ftmp.w = cxst_energy;
 			F += Ftmp;
 		}
-	}
+	}*/
 
 	T += Ttmp;
 

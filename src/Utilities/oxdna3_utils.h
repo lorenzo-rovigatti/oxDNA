@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cstddef>
 
-using number = double; // QUESTION: SHOULD WE CHANGE IT SO THAT IT USES THE ONE DEFINED IN defs.h
+#include "../defs.h"
 
 // Helper to compute total size at compile time
 template<size_t... Dims>
@@ -35,8 +35,9 @@ public:
     static constexpr size_t N = sizeof...(Dims);
     static constexpr size_t total_size = SizeHelper<Dims...>::value;
 
+    std::array<number, total_size> data;
+    
 private:
-    std::array<number, total_size> _data;
     std::array<size_t, N> _strides;
     std::array<size_t, N> _sizes = {{Dims...}};
 
@@ -65,33 +66,31 @@ public:
     number &operator()(Indices... indices) {
         static_assert(sizeof...(Indices) == N, "Wrong number of indices");
         std::array<size_t, N> idx = {{static_cast<size_t>(indices)...}};
-        return _data[compute_index(idx)];
+        return data[compute_index(idx)];
     }
 
     template<typename... Indices>
     const number &operator()(Indices... indices) const {
         static_assert(sizeof...(Indices) == N, "Wrong number of indices");
         std::array<size_t, N> idx = {{static_cast<size_t>(indices)...}};
-        return _data[compute_index(idx)];
+        return data[compute_index(idx)];
     }
 
     number &operator()(const std::array<size_t, N>& idx) {
-        return _data[compute_index(idx)];
+        return data[compute_index(idx)];
     }
 
     const number &operator()(const std::array<size_t, N>& idx) const {
-        return _data[compute_index(idx)];
+        return data[compute_index(idx)];
     }
 
-    number *raw_data() { return _data.data(); }
-    const number *raw_data() const { return _data.data(); }
-
-    size_t size() const { return total_size; }
+    number *raw_data() { return data.data(); }
+    const number *raw_data() const { return data.data(); }
 
     const std::array<size_t, N>& shape() const { return _sizes; }
 
     void fill(number value) {
-        _data.fill(value);
+        data.fill(value);
     }
 
     number get_average_par() const {

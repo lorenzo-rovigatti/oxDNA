@@ -1001,8 +1001,11 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
     if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
 
     LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
-    number energy = _repulsive_lj(rcenter, force, _excl_s[4](type_n3_2, q->type, p->type, type_n5_2), _excl_r[4](type_n3_2, q->type, p->type, type_n5_2),
-                                  _excl_b[4](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[4](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    number s = _excl_s[4](type_n3_2, q->type, p->type, type_n5_2);
+    number rstar = _excl_r[4](type_n3_2, q->type, p->type, type_n5_2);
+    number b = _excl_b[4](type_n3_2, q->type, p->type, type_n5_2);
+    number rc = _excl_rc[4](type_n3_2, q->type, p->type, type_n5_2);
+    number energy = _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1016,8 +1019,11 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 
     // P-BASE vs. Q-BACK
     rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
-    energy += _repulsive_lj(rcenter, force, _excl_s[5](type_n3_2, q->type, p->type, type_n5_2), _excl_r[5](type_n3_2, q->type, p->type, type_n5_2),
-                            _excl_b[5](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[5](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    s = _excl_s[5](type_n3_2, q->type, p->type, type_n5_2);
+    rstar = _excl_r[5](type_n3_2, q->type, p->type, type_n5_2);
+    b = _excl_b[5](type_n3_2, q->type, p->type, type_n5_2);
+    rc = _excl_rc[5](type_n3_2, q->type, p->type, type_n5_2);
+    energy += _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1031,8 +1037,11 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
 
     // P-BACK vs. Q-BASE
     rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
-    energy += _repulsive_lj(rcenter, force, _excl_s[6](type_n3_2, q->type, p->type, type_n5_2), _excl_r[6](type_n3_2, q->type, p->type, type_n5_2),
-                            _excl_b[6](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[6](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    s = _excl_s[6](type_n3_2, q->type, p->type, type_n5_2);
+    rstar = _excl_r[6](type_n3_2, q->type, p->type, type_n5_2);
+    b = _excl_b[6](type_n3_2, q->type, p->type, type_n5_2);
+    rc = _excl_rc[6](type_n3_2, q->type, p->type, type_n5_2);
+    energy += _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep -= p->int_centers[DNANucleotide::BACK].cross(force);
@@ -1067,8 +1076,11 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
     // BASE-BASE
     LR_vector rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
-    number energy = _repulsive_lj(rcenter, force, _excl_s[1](type_n3_2, q->type, p->type, type_n5_2), _excl_r[1](type_n3_2, q->type, p->type, type_n5_2),
-                                  _excl_b[1](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[1](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    number s = _excl_s[1](type_n3_2, q->type, p->type, type_n5_2);
+    number rstar = _excl_r[1](type_n3_2, q->type, p->type, type_n5_2);
+    number b = _excl_b[1](type_n3_2, q->type, p->type, type_n5_2);
+    number rc = _excl_rc[1](type_n3_2, q->type, p->type, type_n5_2);
+    number energy = _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep = -p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1082,8 +1094,11 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
     // P-BACK vs. Q-BASE
     rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
-    energy += _repulsive_lj(rcenter, force, _excl_s[3](type_n3_2, q->type, p->type, type_n5_2), _excl_r[3](type_n3_2, q->type, p->type, type_n5_2),
-                            _excl_b[3](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[3](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    s = _excl_s[3](type_n3_2, q->type, p->type, type_n5_2);
+    rstar = _excl_r[3](type_n3_2, q->type, p->type, type_n5_2);
+    b = _excl_b[3](type_n3_2, q->type, p->type, type_n5_2);
+    rc = _excl_rc[3](type_n3_2, q->type, p->type, type_n5_2);
+    energy += _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
@@ -1097,8 +1112,11 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
     // P-BASE vs. Q-BACK
     rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
-    energy += _repulsive_lj(rcenter, force, _excl_s[2](type_n3_2, q->type, p->type, type_n5_2), _excl_r[2](type_n3_2, q->type, p->type, type_n5_2),
-                            _excl_b[2](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[2](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    s = _excl_s[2](type_n3_2, q->type, p->type, type_n5_2);
+    rstar = _excl_r[2](type_n3_2, q->type, p->type, type_n5_2);
+    b = _excl_b[2](type_n3_2, q->type, p->type, type_n5_2);
+    rc = _excl_rc[2](type_n3_2, q->type, p->type, type_n5_2);
+    energy += _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BASE].cross(force);
@@ -1112,8 +1130,11 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
 
     // BACK-BACK
     rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
-    energy += _repulsive_lj(rcenter, force, _excl_s[0](type_n3_2, q->type, p->type, type_n5_2), _excl_r[0](type_n3_2, q->type, p->type, type_n5_2),
-                            _excl_b[0](type_n3_2, q->type, p->type, type_n5_2), _excl_rc[0](type_n3_2, q->type, p->type, type_n5_2), update_forces);
+    s = _excl_s[0](type_n3_2, q->type, p->type, type_n5_2);
+    rstar = _excl_r[0](type_n3_2, q->type, p->type, type_n5_2);
+    b = _excl_b[0](type_n3_2, q->type, p->type, type_n5_2);
+    rc = _excl_rc[0](type_n3_2, q->type, p->type, type_n5_2);
+    energy += _repulsive_lj(rcenter, force, s, rstar, b, rc, update_forces);
 
     if(update_forces) {
         torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
