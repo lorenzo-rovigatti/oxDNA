@@ -60,6 +60,7 @@ These are the options that control the overall behaviour of the simulation and o
 * `[checkpoint_trajectory = <string>]`: File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed.
 * `[reload_from = <string>]`: checkpoint to reload from. This option is incompatible with the keys `conf_file` and `seed`, and requires `restart_step_counter = false` as well as `binary_initial_conf = true`. Note that this option is incompatible with `backend = CUDA`.
 * `[print_input = <bool>]`: make oxDNA write the input key=value pairs used by the simulation in a file named input.pid, with pid being the oxDNA pid. Defaults to `false`.
+* `[show_overwrite_warnings = <bool>]` Print a warning for each input file option overwritten (either in the input file itself or with command line arguments). Defaults to `true`.
 * `[equilibration_steps = <int>]`: number of equilibration steps. During equilibration, oxDNA does not generate any output. Defaults to `0`.
 * `[print_conf_ppc = <int>]`: this is the number of printed configurations in a single logarithmic cycle. Mandatory if `time_scale = log_lin`.
 * `[list_type = verlet|cells|no]`: type of neighbouring list to be used in CPU simulations. `no` implies a O(N^2) computational complexity. Defaults to `verlet`.

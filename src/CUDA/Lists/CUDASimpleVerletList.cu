@@ -13,6 +13,7 @@
 #include "../../Particles/BaseParticle.h"
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
+#include <thrust/host_vector.h>
 #include <thrust/scan.h>
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>

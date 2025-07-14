@@ -51,6 +51,7 @@ protected:
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_WCA_rcut;
 	number _PS_sqr_rep_rcut;
+	bool _phantom = false;
 
 	std::vector<LR_vector> _chain_coms;
 

@@ -68,11 +68,14 @@ void StressAutocorrelation::get_settings(input_file &my_inp, input_file &sim_inp
 
 	getInputUInt(&my_inp, "m", &_m, 0);
 	getInputUInt(&my_inp, "p", &_p, 0);
+	getInputBool(&my_inp, "anisotropic", &_anisotropic, 0);
 
 	getInputDouble(&sim_inp, "dt", &_delta_t, 1);
 	_delta_t *= _update_every;
 
 	getInputBool(&my_inp, "serialise", &_enable_serialisation, 0);
+
+	OX_LOG(Logger::LOG_INFO, "Initialising a StressAutocorrelation obs with m = %d, p = %d and anisotropic = %d", _m, _p, _anisotropic);
 }
 
 void StressAutocorrelation::init() {
@@ -161,13 +164,28 @@ std::string StressAutocorrelation::get_output_string(llint curr_step) {
 	double V = _config_info->box->V();
 	double T = _config_info->temperature();
 	for(uint i = 0; i < times.size(); i++) {
-		double Gt = V / (5. * T) * (acf_sigma_xy[i] + acf_sigma_yz[i] + acf_sigma_zx[i]);
-		Gt += V / (30. * T) * (acf_N_xy[i] + acf_N_xz[i] + acf_N_yz[i]);
-
 		double bulk_Gt = V / T * acf_sigma_P[i];
-		double longitudinal_Gt = V / (3. * T) * (acf_sigma_xx[i] + acf_sigma_yy[i] + acf_sigma_zz[i]);
 
-		ss << times[i] << Utils::sformat(" %.8e", Gt) << " " << Utils::sformat(" %.8e", bulk_Gt) << " " << Utils::sformat(" %.8e", longitudinal_Gt) << std::endl;
+		ss << times[i];
+		if(_anisotropic) {
+			double Gxy = V / T * acf_sigma_xy[i];
+			double Gyz = V / T * acf_sigma_yz[i];
+			double Gzx = V / T * acf_sigma_zx[i];
+
+			double longitudinal_Gxx = V / T * acf_sigma_xx[i];
+			double longitudinal_Gyy = V / T * acf_sigma_yy[i];
+			double longitudinal_Gzz = V / T * acf_sigma_zz[i];
+
+			ss << Utils::sformat(" %.8e", Gxy) << Utils::sformat(" %.8e", Gyz) << Utils::sformat(" %.8e", Gzx) << Utils::sformat(" %.8e", bulk_Gt) << Utils::sformat(" %.8e", longitudinal_Gxx) << Utils::sformat(" %.8e", longitudinal_Gyy) << Utils::sformat(" %.8e", longitudinal_Gzz) << std::endl;
+		}
+		else {
+			double Gt = V / (5. * T) * (acf_sigma_xy[i] + acf_sigma_yz[i] + acf_sigma_zx[i]);
+			Gt += V / (30. * T) * (acf_N_xy[i] + acf_N_xz[i] + acf_N_yz[i]);
+
+			double longitudinal_Gt = V / (3. * T) * (acf_sigma_xx[i] + acf_sigma_yy[i] + acf_sigma_zz[i]);
+
+			ss << Utils::sformat(" %.8e", Gt) << Utils::sformat(" %.8e", bulk_Gt) << Utils::sformat(" %.8e", longitudinal_Gt) << std::endl;
+		}
 	}
 
 	return ss.str();

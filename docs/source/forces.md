@@ -177,7 +177,7 @@ The following is an example input for a rotating trap acting on the first nucleo
 
 ## Repulsion plane
 
-This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion.
+This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion. The position of the plane can optionally move with a fixed velocity along its normal.
 
 A force of this kind is specified with `type = repulsion_plane`. The relevant keys are:
 
@@ -185,15 +185,17 @@ A force of this kind is specified with `type = repulsion_plane`. The relevant ke
 * `stiff = <float>`: stiffness of the repulsion.
 * `dir = <float>,<float>,<float>`: the vector normal to the plane: it should point towards the half-plane where the repulsion is not acting.
 * `position = <float>`: defines the position of the plane along the direction identified by the plane normal.
+* `[v = <float>]`: the velocity with which the plane's position moves along the normal, defined in units of inverse number of steps (rather than simulation time, which is number of steps times `dt`). The sign of the velocity controls whether the position moves in the same or opposite direction given by the plane's normal. Defaults to `0`.
+* `[end_position = <float>]`: If the position of the plane reaches this value, the plane will stop moving. Defaults to `1e6` (which practically means that the movement will never stop).
 
-If direction is `dir`{math}` = (u,v,w)`, then the plane contains all the points {math}`(x,y,z)` that satisfy the equation: {math}`u x + v y + w z + {\rm position} = 0`.
-Only nucleotides  with coordinates {math}`(x,y,z)` that satisfy {math}`u x + v y + w z + {\rm position} \lt 0` will feel the force.
-The force exerted on a nucleotide is equal to `stiff` \* *D*, where {math}`D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }` is the distance of the nucleotide from the plane.
-For nucleotides for which {math}`u x + v y + w z + {\rm position} \geq 0`, no force will be exerted.
+If direction is `dir`{math}` = (a,b,c)`, then the plane contains all the points {math}`(x,y,z)` that satisfy the equation: {math}`a x + b y + c z + {\rm position_t} = 0`, where {math}`{\rm position}_t = {\rm position} + v \cdot N_{\rm step}`, where $N_{\rm step}$ is the current time step.
+Only nucleotides  with coordinates {math}`(x,y,z)` that satisfy {math}`a x + b y + c z + {\rm position}_t \lt 0` will feel the force.
+The force exerted on a nucleotide is equal to `stiff` \* *D*, where {math}`D = | ax + by + cz + \mbox{position}_t| / \sqrt{a^2 + b^2 + c^2 }` is the distance of the nucleotide from the plane.
+For nucleotides for which {math}`a x + b y + c z + {\rm position}_t \geq 0`, no force will be exerted.
 
 ````{admonition} Example
 
-The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) will be exerted on all particles . 
+The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) will be exerted on all particles. 
 
 	{
 	type = repulsion_plane
@@ -201,6 +203,18 @@ The following snippet defines a plane that acts on the whole system and will not
 	stiff = 1.00
 	dir = 1, 0, 0
 	position = 0
+	}
+
+In the following example, the plane will move along the $x$ coordinate with a rate of $10^{-6}$ simulation units per time step until the plane's position becomes $10$, which will take $10 / 10^{-6} = 10^7$ steps.
+
+    {
+	type = repulsion_plane
+	particle = -1
+	stiff = 1.00
+	dir = 1, 0, 0
+	position = 0
+    v = 1e-6
+    end_position = 10
 	}
 
 ````

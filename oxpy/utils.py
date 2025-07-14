@@ -1,7 +1,7 @@
 from .core import InputFile
 
 
-def generate_default_input(options=[]):
+def generate_default_input():
     '''Build and return a minimal input file
     
     The returned input file contains the minimum amount of options required to start a simulation. 
