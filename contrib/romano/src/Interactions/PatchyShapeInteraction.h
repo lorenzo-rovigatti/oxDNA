@@ -83,12 +83,18 @@ particle_type_id1 particle_type_id2  patch_1  patch_2
 @endverbatim
  */
 
+enum TorsionVersion {
+    NO_TORSION, // no torsional modulation
+    PARTIAL_TORSION, // only a1 vector angle used (new addition)
+    FULL_TORSION // a1 and a3 vectors used
+};
+
 class PatchyShapeInteraction: public BaseInteraction {
 protected:
 	/// Number of patches per particle
 
-    int _N_patch_types; //the total number of different patch types; each patchy particle can have multiple patches, of different types
-    int _N_particle_types; //number of different particle types
+//    int _N_patch_types; //the total number of different patch types; each patchy particle can have multiple patches, of different types
+//    int _N_particle_types; //number of different particle types
     int N_patches; //total number of patches in the simulation
 
 	/// Repulsive interaction energy at the cut-off
@@ -110,7 +116,7 @@ protected:
 
 
 	int _narrow_type; //the type of angular narrowness used by the patches
-    bool _use_torsion;
+    TorsionVersion _use_torsion;
 
     bool _same_type_bonding; //are particles of the same type allowed to bond, by default yes
 
@@ -124,8 +130,8 @@ protected:
 
     number _lock_cutoff;
 
-	Patch *_patch_types;
-	PatchyShapeParticle *_particle_types;
+	std::vector<Patch> _patch_types;
+	std::vector<PatchyShapeParticle> _particle_types;
 
 	number _sphere_radius;
 
@@ -145,6 +151,8 @@ public:
 	virtual bool _bonding_allowed(PatchyShapeParticle  *p, PatchyShapeParticle  *q, int pi, int pj );
 	bool _patches_compatible(PatchyShapeParticle  *p, PatchyShapeParticle  *q, int pi, int pj );
 
+    int num_patch_types() const {return _patch_types.size();};
+    int num_particle_types() const {return _particle_types.size();};
 
 	number _V_mod(int type, number cosr1);
 	number _V_modD(int type, number cosr1);
@@ -159,13 +167,16 @@ public:
 	number _exc_vol_hs (BaseParticle *ap, BaseParticle *aq, bool compute_r, bool update_forces);
 	//inline number _exc_quadratic_vol_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	inline number _patchy_interaction_torsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	inline number patchy_interaction_full_torsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	inline number patchy_interaction_partial_torsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	inline number patchy_interaction_no_torsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	inline number _patchy_interaction_kf(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	virtual bool multipatch_allowed(void) {return  ! this->_no_multipatch;}
+	virtual bool multipatch_allowed() {return  ! this->_no_multipatch;}
 
-	//true if particles of of this type can interact
-    bool can_interact(BaseParticle *p, BaseParticle *q) {return (bool) this->_interaction_table_types[p->type*_N_particle_types + q->type]; }
+	//true if particles of of this type can interact // todo: use a better container
+    // todo reenable interaction tensors
+//    bool can_interact(BaseParticle *p, BaseParticle *q) {return (bool) this->_interaction_table_types[p->type*  num_particle_types() + q->type]; }
 
 	//virtual int check_valence(ConfigInfo &conf_info) {return 0;} //scans all interacting particles if one patch is bond to more particles, it breaks all bonds but 1;
 	virtual number just_two_patch_interaction(PatchyShapeParticle *p, PatchyShapeParticle *q, int pi,int  qi,LR_vector *r);
