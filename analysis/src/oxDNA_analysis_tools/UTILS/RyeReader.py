@@ -536,6 +536,7 @@ def write_top(path:str, system:System, old_format:bool=False) -> None:
 
     with open(path, 'w+') as f:
         f.write(get_top_string(system, old_format))
+        f.write('\n')
 
 def get_top_string(system:System, old_format:bool=False) -> str:
     """

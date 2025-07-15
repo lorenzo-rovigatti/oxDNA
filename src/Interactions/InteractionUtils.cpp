@@ -872,11 +872,10 @@ bool triangle_intersection(LR_vector * P1, LR_vector * P2, LR_vector * P3, LR_ve
 	// P + a1 * e1 + a2 * e2 = Qi + bi * ei
 
 	// faces and edges
-	// TODO: memory leaks?
-	LR_vector *P = new LR_vector[3];
-	LR_vector *Q = new LR_vector[3];
-	LR_vector *p = new LR_vector[3];
-	LR_vector *q = new LR_vector[3];
+	std::array<LR_vector, 3> P;
+	std::array<LR_vector, 3> Q;
+	std::array<LR_vector, 3> p;
+	std::array<LR_vector, 3> q;
 
 	P[0] = *P1;
 	P[1] = *P2;

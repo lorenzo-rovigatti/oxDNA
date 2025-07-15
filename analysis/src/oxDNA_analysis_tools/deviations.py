@@ -1,6 +1,6 @@
 import argparse
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
@@ -31,7 +31,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return SFs
 
-def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:List[int]=[], ncpus:int=1) -> Tuple[np.ndarray, np.ndarray]:
+def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:Union[List[int],None]=None, ncpus:int=1) -> Tuple[np.ndarray, np.ndarray]:
     """
         Find the deviations of a trajectory from a mean configuration
 
@@ -47,7 +47,7 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             | Root mean squared deviation for each configuration in the trajectory
             | Average fluctuation for each particle in the structure
     """
-    if indexes == []:
+    if indexes == None:
         indexes = list(range(top_info.nbases))
 
     mean_conf = inbox(mean_conf)

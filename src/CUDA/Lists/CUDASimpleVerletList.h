@@ -11,12 +11,9 @@
 #include "CUDABaseList.h"
 #include "../CUDAUtils.h"
 
-#include <thrust/host_vector.h>
-
 /**
  * @brief CUDA implementation of a {@link VerletList Verlet list}.
  */
-
 class CUDASimpleVerletList: public CUDABaseList {
 protected:
 	int _max_neigh = 0;

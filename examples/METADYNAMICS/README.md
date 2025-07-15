@@ -17,10 +17,11 @@ The interface requires the `oxpy` lib (which can be compiled and installed by is
 
 Run the script without any arguments to see the list of supported options. The only mandatory argument is a folder which contains the oxDNA files (at least the input, topology and configuration files) required to run an unbiased simulation of the system that one wishes to study. The only other required file is a file containing the indexes of the particles whose coordinates are used to build the collective variables that will be used to bias the simulations. The name of this file, which by default is `locs.meta`, can be optionally specified with the `--p_fname` switch.
 
+All the options used to run the simulation are dumped in the `metad_details.toml` file at the beginning of each run.
+
 Once launched, the script runs a certain number of metadynamics simulations that can be controlled by the `--Niter` switch and defaults to 10000. After each metadynamics iteration the current bias is saved to the `bias` folder by using [`pickle.dump`](https://docs.python.org/3/library/pickle.html#pickle.dump) and therefore can be loaded back as a `numpy` array with [`pickle.load`](https://docs.python.org/3/library/pickle.html#pickle.load).
 
 When used on CUDA-powered simulations, by default the interface launches the processes without any indication about the device that should be used, and in fact will honour the `CUDA_device` key if found in the base input file. Therefore, if GPUs are not set to run in compute mode "EXCLUSIVE_PROCESS", all the walkers will use the same GPU (the one specified by `CUDA_device` or, if this is not present in the base input file, the first available GPU). The `--use_sequential_GPUs` switch can be used to tell each walker to run on a distinct GPU: walker 0 will run on device 0, walker 1 on device 1, *etc.*
-
 
 ## Supported collective variables
 
