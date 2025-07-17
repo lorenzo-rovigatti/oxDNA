@@ -134,6 +134,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
 
+			if(p->ext_forces.size() > MAX_EXT_FORCES) {
+				throw oxDNAException("On CUDA, the maximum number of external forces that can act on a single particle is %d, particle %d has %d", MAX_EXT_FORCES, i, p->ext_forces.size());
+			}
+
 			for(uint j = 0; j < p->ext_forces.size(); j++) {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 				auto &force_type = typeid(*(p->ext_forces[j]));
