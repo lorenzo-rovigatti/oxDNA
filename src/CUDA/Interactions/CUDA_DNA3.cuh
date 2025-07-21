@@ -128,6 +128,25 @@ __forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
 	return val;
 }
 
+__forceinline__ __device__ c_number _f1_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = (c_number) 0.f;
+	if(r < MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		int eps_index = 25 * type + n3_1 * 5 + n5_1;
+		if(r > MD_F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = MD_F1_EPS[eps_index] * MD_F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+		}
+		else if(r > MD_F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			c_number tmp = 1.f - expf(-(r - MD_F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * MD_F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
+			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SD_SHIFT[type](n3_2, n3_1, n5_1, n5_2);
+		}
+		else if(r > MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = MD_F1_EPS[eps_index] * MD_F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+		}
+	}
+
+	return val;
+}
+
 __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 	c_number val = (c_number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -141,6 +160,25 @@ __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 		}
 		else if(r > MD_F1_RCLOW[type]) {
 			val = 2.f * eps * MD_F1_BLOW[type] * (r - MD_F1_RCLOW[type]);
+		}
+	}
+
+	return val;
+}
+
+__forceinline__ __device__ c_number _f1D_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = (c_number) 0.f;
+	if(r < MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+		float eps = MD_F1_EPS[25 * type + n3_1 * 5 + n5_1];
+		if(r > MD_F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2.f * eps * MD_F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+		}
+		else if(r > MD_F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			c_number tmp = expf(-(r - MD_F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * MD_F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
+			val = 2.f * eps * (1.f - tmp) * tmp * MD_F1_SD_A[type](n3_2, n3_1, n5_1, n5_2);
+		}
+		else if(r > MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2.f * eps * MD_F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
 		}
 	}
 
@@ -190,6 +228,24 @@ __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc
 	return val;
 }
 
+// TODO: this can be optimised as the one in oxDNA2
+__forceinline__ __device__ c_number _f4_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = (number)0;
+    t -= MD_F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
+    if(t < 0)
+        t *= -1;
+
+    if(t < MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(t > MD_F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
+            // smoothing
+            val = MD_F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
+        } else
+            val = (number)1.f - MD_F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
+    }
+
+    return val;
+}
+
 __forceinline__ __device__ c_number _f4_pure_harmonic(c_number t, float a, float b) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
 	t -= b;
@@ -209,6 +265,29 @@ __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float t
 	}
 
 	return val;
+}
+
+// TODO: this can be optimised as the one in oxDNA2
+__forceinline__ __device__ c_number _f4D_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	number val = (number)0;
+    number m = (number)1;
+    t -= MD_F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
+    // this function is a parabola centered in t0. If t < 0 then the value of the function
+    // is the same but the value of its derivative has the opposite sign, so m = -1
+    if(t < 0) {
+        t *= -1;
+        m = (number)-1;
+    }
+
+    if(t < MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(t > MD_F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
+            // smoothing
+            val = m * 2.f * MD_F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * (t - MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2));
+        } else
+            val = -m * 2.f * MD_F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * t;
+    }
+
+    return val;
 }
 
 __forceinline__ __device__ c_number _f4D_pure_harmonic(c_number t, float a, float b) {
@@ -233,6 +312,22 @@ __forceinline__ __device__ c_number _f5(c_number f, int type) {
 	return val;
 }
 
+__forceinline__ __device__ c_number _f5_SD(c_number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = (c_number) 0.f;
+
+	if(f > MD_F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(f < MD_F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = MD_F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(MD_F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2) - f);
+		}
+		else if(f < 0.f) {
+			val = (c_number) 1.f - MD_F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(f);
+		}
+		else val = 1.f;
+	}
+
+	return val;
+}
+
 __forceinline__ __device__ c_number _f5D(c_number f, int type) {
 	c_number val = (c_number) 0.f;
 
@@ -242,6 +337,21 @@ __forceinline__ __device__ c_number _f5D(c_number f, int type) {
 		}
 		else if(f < 0.f) {
 			val = (c_number) -2.f * MD_F5_PHI_A[type] * f;
+		}
+	}
+
+	return val;
+}
+
+__forceinline__ __device__ c_number _f5D_SD(c_number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = (c_number) 0.f;
+
+	if(f > MD_F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2)) {
+		if(f < MD_F5_SD_PHI_XS[type](n3_2, n3_1, n5_1, n5_2)) {
+			val = 2.f * MD_F5_SD_PHI_B[type](n3_2, n3_1, n5_1, n5_2) * (f - MD_F5_SD_PHI_XC[type](n3_2, n3_1, n5_1, n5_2));
+		}
+		else if(f < 0.f) {
+			val = (c_number) -2.f * MD_F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * f;
 		}
 	}
 
@@ -446,23 +556,23 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 	c_number cosphi2 = CUDA_DOT(n3y, rbackref) / rbackrefmod;
 
 	// functions
-	c_number f1 = _f1(rstackmod, STCK_F1, n3type, n5type);
-	c_number f4t4 = _f4(t4, STCK_THETA4_T0, STCK_THETA4_TS, STCK_THETA4_TC, STCK_THETA4_A, STCK_THETA4_B);
-	c_number f4t5 = _f4(PI - t5, STCK_THETA5_T0, STCK_THETA5_TS, STCK_THETA5_TC, STCK_THETA5_A, STCK_THETA5_B);
-	c_number f4t6 = _f4(t6, STCK_THETA6_T0, STCK_THETA6_TS, STCK_THETA6_TC, STCK_THETA6_A, STCK_THETA6_B);
-	c_number f5phi1 = _f5(cosphi1, STCK_F5_PHI1);
-	c_number f5phi2 = _f5(cosphi2, STCK_F5_PHI2);
+	c_number f1 = _f1_SD(rstackmod, STCK_F1, neigh_n3_type, n3type, n5type, neigh_n5_type);
+    c_number f4t4 = _f4_SD(t4, STCK_F4_THETA4, neigh_n3_type, n3type, n5type, neigh_n5_type);
+    c_number f4t5 = _f4_SD(PI - t5, STCK_F4_THETA5, neigh_n3_type, n3type, n5type, neigh_n5_type);
+    c_number f4t6 = _f4_SD(t6, STCK_F4_THETA6, neigh_n3_type, n3type, n5type, neigh_n5_type);
+    c_number f5phi1 = _f5_SD(cosphi1, STCK_F5_PHI1, neigh_n3_type, n3type, n5type, neigh_n5_type);
+    c_number f5phi2 = _f5_SD(cosphi2, STCK_F5_PHI2, neigh_n3_type, n3type, n5type, neigh_n5_type);
 
 	c_number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
 
 	if(energy != (c_number) 0) {
 		// and their derivatives
-		c_number f1D = _f1D(rstackmod, STCK_F1, n3type, n5type);
-		c_number f4t4D = _f4D(t4, STCK_THETA4_T0, STCK_THETA4_TS, STCK_THETA4_TC, STCK_THETA4_A, STCK_THETA4_B);
-		c_number f4t5D = _f4D(PI - t5, STCK_THETA5_T0, STCK_THETA5_TS, STCK_THETA5_TC, STCK_THETA5_A, STCK_THETA5_B);
-		c_number f4t6D = _f4D(t6, STCK_THETA6_T0, STCK_THETA6_TS, STCK_THETA6_TC, STCK_THETA6_A, STCK_THETA6_B);
-		c_number f5phi1D = _f5D(cosphi1, STCK_F5_PHI1);
-		c_number f5phi2D = _f5D(cosphi2, STCK_F5_PHI2);
+		c_number f1D = _f1D_SD(rstackmod, STCK_F1, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t4D = -_f4D_SD(t4, STCK_F4_THETA4, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t5D = -_f4D_SD(PI - t5, STCK_F4_THETA5, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t6D = -_f4D_SD(t6, STCK_F4_THETA6, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f5phi1D = _f5D_SD(cosphi1, STCK_F5_PHI1, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f5phi2D = _f5D_SD(cosphi2, STCK_F5_PHI2, neigh_n3_type, n3type, n5type, neigh_n5_type);
 
 		// RADIAL
 		Ftmp = rstackdir * (energy * f1D / f1);
