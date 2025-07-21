@@ -948,9 +948,7 @@ void DNA3Interaction::init() {
         _debye_huckel_RC = exs * (q * exs + 3. * q * la) / (q * (exs + la));
 
         // note: in oxdna3 POS_MM_BACK1 and POS_MM_BACK2 are the same for all nucleotides
-        number debyecut;
-
-        debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
+        number debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
         // the cutoff radius for the potential should be the larger of rcut and debyecut
         if(debyecut > _rcut) {
             _rcut = debyecut;
@@ -1449,8 +1447,6 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
 
         energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
-        // std::cout << "hydrogen energy: " << energy << std::endl;
-        // std::cout << f1 << " " << f4t1 << " " << f4t2 << " " << f4t3 << " " << f4t4 << " " << f4t7 << " " << f4t8 << std::endl;
         //  makes sense, since the above functions may return 0. exactly
         if(update_forces && energy != 0.) {
             LR_vector force(0, 0, 0);
@@ -1846,8 +1842,10 @@ number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1,
         if(t > F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
             // smoothing
             val = F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
-        } else
+        } 
+        else {
             val = (number)1.f - F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
+        }
     }
 
     return val;

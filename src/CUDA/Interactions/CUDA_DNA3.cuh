@@ -239,8 +239,10 @@ __forceinline__ __device__ c_number _f4_SD(c_number t, int type, int n3_2, int n
         if(t > MD_F4_SD_THETA_TS[type](n3_2, n3_1, n5_1, n5_2)) {
             // smoothing
             val = MD_F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
-        } else
+        }
+		else {
             val = 1.f - MD_F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
+		}
     }
 
     return val;
@@ -489,7 +491,6 @@ template<bool qIsN3>
 __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, const c_number4 &n5x, const c_number4 &n5y, const c_number4 &n5z, uint8_t neigh_n5_type, 
 	const c_number4 &n3pos, const c_number4 &n3x, const c_number4 &n3y, const c_number4 &n3z, uint8_t neigh_n3_type, 
 	c_number4 &F, c_number4 &T, bool use_mbf, c_number mbf_finf) {
-
 	int n3type = get_particle_type(n3pos);
 	int n5type = get_particle_type(n5pos);
 	int n3btype = get_particle_btype(n3pos);
@@ -678,7 +679,6 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 	F += Ftmp;
 
 	// DEBYE HUCKEL
-	/*
 	c_number4 rbackbone = r + qpos_back - ppos_back;
 	c_number rbackmod = _module(rbackbone);
 	if(rbackmod < MD_dh_RC[0]) {
@@ -707,7 +707,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 	// HYDROGEN BONDING
 	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
-	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
+	if(int_type == 3 && SQR(MD_F1_SD_RCLOW[HYDR_F1](NO_TYPE, qtype, ptype, NO_TYPE)) < rhydromodsqr && rhydromodsqr < SQR(MD_F1_SD_RCHIGH[HYDR_F1](NO_TYPE, qtype, ptype, NO_TYPE))) {
 		c_number hb_multi = (abs(qbtype) >= 300 && abs(pbtype) >= 300) ? MD_hb_multi[0] : 1.f;
 		// versor and magnitude of the base-base separation
 		c_number rhydromod = sqrtf(rhydromodsqr);
@@ -726,26 +726,26 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
-		c_number f1 = hb_multi * _f1(rhydromod, HYDR_F1, ptype, qtype);
-		c_number f4t1 = _f4(t1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
-		c_number f4t2 = _f4(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
-		c_number f4t3 = _f4(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
-		c_number f4t4 = _f4(t4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
-		c_number f4t7 = _f4(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
-		c_number f4t8 = _f4(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
+		c_number f1 = hb_multi * _f1_SD(rhydromod, HYDR_F1, 0, qtype, ptype, 0);
+		c_number f4t1 = _f4_SD(t1, HYDR_F4_THETA1, 0, qtype, ptype, 0);
+		c_number f4t2 = _f4_SD(t2, HYDR_F4_THETA2, 0, qtype, ptype, 0);
+		c_number f4t3 = _f4_SD(t3, HYDR_F4_THETA3, 0, qtype, ptype, 0);
+		c_number f4t4 = _f4_SD(t4, HYDR_F4_THETA4, 0, qtype, ptype, 0);
+		c_number f4t7 = _f4_SD(t7, HYDR_F4_THETA7, 0, qtype, ptype, 0);
+		c_number f4t8 = _f4_SD(t8, HYDR_F4_THETA8, 0, qtype, ptype, 0);
 
 		c_number hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 		tot_Tw += hb_energy;
 
 		if(hb_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
-			c_number f1D = hb_multi * _f1D(rhydromod, HYDR_F1, ptype, qtype);
-			c_number f4t1D = -_f4D(t1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
-			c_number f4t2D = -_f4D(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
-			c_number f4t3D = _f4D(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
-			c_number f4t4D = _f4D(t4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
-			c_number f4t7D = -_f4D(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
-			c_number f4t8D = _f4D(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
+			c_number f1D = hb_multi * _f1D_SD(rhydromod, HYDR_F1, 0, qtype, ptype, 0);
+			c_number f4t1D = -_f4D_SD(t1, HYDR_F4_THETA1, 0, qtype, ptype, 0);
+			c_number f4t2D = -_f4D_SD(t2, HYDR_F4_THETA2, 0, qtype, ptype, 0);
+			c_number f4t3D = _f4D_SD(t3, HYDR_F4_THETA3, 0, qtype, ptype, 0);
+			c_number f4t4D = _f4D_SD(t4, HYDR_F4_THETA4, 0, qtype, ptype, 0);
+			c_number f4t7D = -_f4D_SD(t7, HYDR_F4_THETA7, 0, qtype, ptype, 0);
+			c_number f4t8D = _f4D_SD(t8, HYDR_F4_THETA8, 0, qtype, ptype, 0);
 
 			// RADIAL PART
 			Ftmp = rhydrodir * hb_energy * f1D / f1;
@@ -780,6 +780,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 	}
 	// END HYDROGEN BONDING
 
+	/*
 	// CROSS STACKING
 	c_number4 rcstack = rhydro;
 	c_number rcstackmodsqr = rhydromodsqr;
@@ -850,12 +851,9 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 			Ftmp.w = cstk_energy;
 			F += Ftmp;
 		}
-	}
+	}*/
 
 	// COAXIAL STACKING
-	// oxDNA1's coaxial stacking was a bit different in terms of parameters, and also had an additional term
-	// here we try to avoid duplications by using if statements (which are always true or false and therefore
-	// do not branch out), or use ternary operators (sparsely, since they decrease the readability)
 	c_number4 rstack = r + qpos_stack - ppos_stack;
 	c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
 	if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
@@ -910,7 +908,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 			Ftmp.w = cxst_energy;
 			F += Ftmp;
 		}
-	}*/
+	}
 
 	T += Ttmp;
 
