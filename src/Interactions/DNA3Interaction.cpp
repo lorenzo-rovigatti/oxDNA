@@ -1271,14 +1271,6 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 
     number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
 
-    /*
-            if(type_n3_2 ==5 || type_n5_2 == 5) {
-                std::cout << "type" << type_n3_2 << " " << q->type << " " << p->type << " " << type_n5_2 << "stacking energy: " << energy << std::endl;
-                std::cout << f1 << " " << f4t4 << " " << f4t5 << " " << f4t6 << " " << f5phi1 << " " << f5phi2 << std::endl;
-                std::cout << F4_SD_THETA_A[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_B[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_T0[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2)
-    << " " << F4_SD_THETA_TS[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << " " << F4_SD_THETA_TC[STCK_F4_THETA4](type_n3_2, q->type, p->type, type_n5_2) << std::endl;
-            }
-    */
     if(update_forces && energy != (number)0.f) {
         LR_vector torquep(0, 0, 0);
         LR_vector torqueq(0, 0, 0);

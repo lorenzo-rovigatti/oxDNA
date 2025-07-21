@@ -230,7 +230,7 @@ __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc
 
 // TODO: this can be optimised as the one in oxDNA2
 __forceinline__ __device__ c_number _f4_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
-	c_number val = (number)0;
+	c_number val = 0.f;
     t -= MD_F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
     if(t < 0)
         t *= -1;
@@ -240,7 +240,7 @@ __forceinline__ __device__ c_number _f4_SD(c_number t, int type, int n3_2, int n
             // smoothing
             val = MD_F4_SD_THETA_B[type](n3_2, n3_1, n5_1, n5_2) * SQR(MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2) - t);
         } else
-            val = (number)1.f - MD_F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
+            val = 1.f - MD_F4_SD_THETA_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(t);
     }
 
     return val;
@@ -269,14 +269,14 @@ __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float t
 
 // TODO: this can be optimised as the one in oxDNA2
 __forceinline__ __device__ c_number _f4D_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
-	number val = (number)0;
-    number m = (number)1;
+	c_number val = 0.f;
+    c_number m = 1.f;
     t -= MD_F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
     // this function is a parabola centered in t0. If t < 0 then the value of the function
     // is the same but the value of its derivative has the opposite sign, so m = -1
     if(t < 0) {
         t *= -1;
-        m = (number)-1;
+        m = -1.f;
     }
 
     if(t < MD_F4_SD_THETA_TC[type](n3_2, n3_1, n5_1, n5_2)) {
@@ -568,9 +568,9 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 	if(energy != (c_number) 0) {
 		// and their derivatives
 		c_number f1D = _f1D_SD(rstackmod, STCK_F1, neigh_n3_type, n3type, n5type, neigh_n5_type);
-        c_number f4t4D = -_f4D_SD(t4, STCK_F4_THETA4, neigh_n3_type, n3type, n5type, neigh_n5_type);
-        c_number f4t5D = -_f4D_SD(PI - t5, STCK_F4_THETA5, neigh_n3_type, n3type, n5type, neigh_n5_type);
-        c_number f4t6D = -_f4D_SD(t6, STCK_F4_THETA6, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t4D = _f4D_SD(t4, STCK_F4_THETA4, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t5D = _f4D_SD(PI - t5, STCK_F4_THETA5, neigh_n3_type, n3type, n5type, neigh_n5_type);
+        c_number f4t6D = _f4D_SD(t6, STCK_F4_THETA6, neigh_n3_type, n3type, n5type, neigh_n5_type);
         c_number f5phi1D = _f5D_SD(cosphi1, STCK_F5_PHI1, neigh_n3_type, n3type, n5type, neigh_n5_type);
         c_number f5phi2D = _f5D_SD(cosphi2, STCK_F5_PHI2, neigh_n3_type, n3type, n5type, neigh_n5_type);
 
