@@ -1546,47 +1546,6 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
     number cost7 = -b3 * rcstackdir;
     number cost8 = a3 * rcstackdir;
-    // number cosalpha;
-    // number cosbetha;
-    /*
-    if(p->n5 != P_VIRTUAL)	{
-            LR_vector rbackp = p->n5->pos - p->pos + p->n5->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
-            cosalpha = a3*rbackp;
-    }
-    else {
-            LR_vector rbackp = p->n3->pos - p->pos + p->n3->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
-            cosalpha = -a3*rbackp;
-    }
-    if(q->n5 != P_VIRTUAL)	{
-            LR_vector rbackq = q->n5->pos - q->pos + q->n5->int_centers[DNANucleotide::BACK] - q->int_centers[DNANucleotide::BACK];
-            cosbetha = b3*rbackq;
-    }
-    else {
-            LR_vector rbackq = q->n3->pos - q->pos + q->n3->int_centers[DNANucleotide::BACK] - q->int_centers[DNANucleotide::BACK];
-            cosbetha = -b3*rbackq;
-    }
-
-
-    if(p->n5 != P_VIRTUAL)	{
-            cosalpha = a3*p->n5->orientationT.v3;
-    }
-    else {
-            cosalpha = -a3*p->n3->orientationT.v3;
-    }
-    if(q->n5 != P_VIRTUAL)	{
-            cosbetha = b3*q->n5->orientationT.v3;
-    }
-    else {
-            cosbetha = -b3*q->n3->orientationT.v3;
-    }
-
-    //std::cout << cosalpha << " " << cosbetha << std::endl;
-
-    if(cosalpha < 0.95 || cosbetha < 0.95) {
-            return (number) 0.f;
-    }
-
-    */
 
     int type_p_n3 = NO_TYPE;
     int type_q_n3 = NO_TYPE;
@@ -1616,7 +1575,6 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
         // functions called at their relevant arguments
         // 3'3' diagonal
         number f2_33 = _f2_SD(rcstackmod, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
-        // std::cout << f2_33 << std::endl;
         number f4t1_33 = _custom_f4_SD(cost1, CRST_F4_THETA1_33, type_q_n3, q->type, p->type, type_p_n3);
         number f4t2_33 = _custom_f4_SD(cost2, CRST_F4_THETA2_33, type_q_n3, q->type, p->type, type_p_n3);
         number f4t3_33 = _custom_f4_SD(cost3, CRST_F4_THETA3_33, type_q_n3, q->type, p->type, type_p_n3);
@@ -1626,42 +1584,12 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
         // 5'5' diagonal
         number f2_55 = _f2_SD(rcstackmod, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
-        // std::cout << f2_55 << std::endl;
         number f4t1_55 = _custom_f4_SD(cost1, CRST_F4_THETA1_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t2_55 = _custom_f4_SD(cost2, CRST_F4_THETA2_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t3_55 = _custom_f4_SD(cost3, CRST_F4_THETA3_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t4_55 = _custom_f4_SD(cost4, CRST_F4_THETA4_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t7_55 = _custom_f4_SD(cost7, CRST_F4_THETA7_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t8_55 = _custom_f4_SD(cost8, CRST_F4_THETA8_55, type_q_n5, q->type, p->type, type_p_n5);
-
-        /*
-        int type_p_33 = type_p_n3;
-        int type_q_33 = type_q_n3;
-        int type_p_55 = type_p_n5;
-        int type_q_55 = type_q_n5;
-
-
-        printf("33 %d %d %d %d %d %d  %le %le %le %le %le %le %le   %le\n", p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, f2_33, f4t1_33, f4t2_33 , f4t3_33 , f4t4_33 , f4t7_33 , f4t8_33, f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33);
-
-        printf("55 %d %d %d %d %d %d  %le %le %le %le %le %le %le   %le\n", p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, f2_55, f4t1_55, f4t2_55 , f4t3_55 , f4t4_55 , f4t7_55 , f4t8_55, f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55);
-
-
-        printf("33 %d %d %le  %le   %le %le %le %le %le  %le %le \n",p->get_index(), q->get_index(), F2_SD_K[CRST_F2_33][type_q_33][q->type][p->type][type_p_33], F2_SD_R0[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RC[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_BLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],
-        F2_SD_BHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RCLOW[CRST_F2_33][type_q_33][q->type][p->type][type_p_33],F2_SD_RCHIGH[CRST_F2_33][type_q_33][q->type][p->type][type_p_33]);
-
-        printf("55 %d %d %le  %le   %le %le %le %le %le  %le %le \n",p->get_index(), q->get_index() , F2_SD_K[CRST_F2_55][type_q_55][q->type][p->type][type_p_55], F2_SD_R0[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RC[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_BLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],
-        F2_SD_BHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RCLOW[CRST_F2_55][type_q_55][q->type][p->type][type_p_55],F2_SD_RCHIGH[CRST_F2_55][type_q_55][q->type][p->type][type_p_55]);
-        //printf("33 %d %d   %d %d %d %d  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), type_q_33, q->type, p->type, type_p_33, cost4 , F4_SD_THETA_A[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33], F4_SD_THETA_T0[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TS[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_B[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TC[CRST_F4_THETA4_33][type_q_33][q->type][p->type][type_p_33], f4t4_33);
-
-        //printf("55 %d %d   %d %d %d %d  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), type_q_55, q->type, p->type, type_p_55, cost4 , F4_SD_THETA_A[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55], F4_SD_THETA_T0[CRST_F4_THETA4_55][type_p_55][q->type][p->type][type_p_55],F4_SD_THETA_TS[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_B[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TC[CRST_F4_THETA4_55][type_q_55][q->type][p->type][type_p_55], f4t4_55);
-
-
-
-        //printf("33 %d %d %le  %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), cost7, cost8 , F4_SD_THETA_A[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33], F4_SD_THETA_T0[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TS[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_B[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33],F4_SD_THETA_TC[CRST_F4_THETA8_33][type_q_33][q->type][p->type][type_p_33], f4t8_33);
-
-        //printf("55 %d %d  %le %le   %le %le %le %le %le  %le\n",p->get_index(), q->get_index(), cost7, cost8 , F4_SD_THETA_A[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55], F4_SD_THETA_T0[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TS[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_B[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55],F4_SD_THETA_TC[CRST_F4_THETA8_55][type_q_55][q->type][p->type][type_p_55], f4t8_55);
-
-        */
 
         energy = f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55;
 

@@ -106,7 +106,6 @@ public:
  * This interaction is selected with
  * interaction_type = DNA2_nomesh
  */
-
 class DNA2Interaction_nomesh: public DNA2Interaction {
 protected:
 

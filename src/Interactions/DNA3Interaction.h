@@ -41,7 +41,7 @@ protected:
 	number _fakef4_SD(number t, void * par);
 	number _fakef4D_SD(number t, void * par);
 
-	virtual number _custom_f4_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query(cost); }
+	virtual number _custom_f4_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query(cost); }
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -49,7 +49,7 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D_SD (number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query_derivative(cost); }
+	virtual number _custom_f4D_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query_derivative(cost); }
 
 public:
 	DNA3Interaction();
@@ -101,6 +101,31 @@ public:
     number get_fene_r0_SD(int ty1, int ty2, int ty3, int ty4)  { return _fene_r0_SD(ty1, ty2, ty3, ty4); }
 
     ~DNA3Interaction();
+};
+
+/**
+ * @brief Handles interactions between DNA3 nucleotides without using meshes.
+ *
+ * This interaction is selected with
+ * interaction_type = DNA3_nomesh
+ */
+class DNA3Interaction_nomesh: public DNA3Interaction {
+protected:
+
+	number _custom_f4_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) override {
+		return this->_fakef4_SD(cost, std::array<int, 5>({i, n3_2, n3_1, n5_1, n5_2}).data());
+	}
+
+	number _custom_f4D_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) override {
+		return this->_fakef4D_SD(cost, std::array<int, 5>({i, n3_2, n3_1, n5_1, n5_2}).data());
+	}
+
+public:
+	DNA3Interaction_nomesh() {
+	}
+	
+	virtual ~DNA3Interaction_nomesh() {
+	}
 };
 
 #endif /* DNA3_INTERACTION_H */
