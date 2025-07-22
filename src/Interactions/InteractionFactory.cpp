@@ -16,7 +16,6 @@
 #include "DNA3Interaction.h"
 #include "RNAInteraction.h"
 #include "RNAInteraction2.h"
-#include "DNAInteraction_nomesh.h"
 #include "PatchyInteraction.h"
 #include "PatchyInteractionDan.h"
 #include "KFInteraction.h"
