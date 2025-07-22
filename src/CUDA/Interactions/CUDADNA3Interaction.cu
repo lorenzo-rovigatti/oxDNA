@@ -239,6 +239,6 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 
-	GpuUtils::print_device_array(d_forces, this->_N);
-	GpuUtils::print_device_array(d_torques, this->_N);
+	// GpuUtils::print_device_array(d_forces, this->_N);
+	// GpuUtils::print_device_array(d_torques, this->_N);
 }

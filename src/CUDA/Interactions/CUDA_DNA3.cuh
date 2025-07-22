@@ -84,6 +84,19 @@ __device__ OxDNA3Params MD_F5_SD_PHI_XS[4];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
+__device__ struct neigh_types {
+	uint8_t n3, n5;
+	__device__ neigh_types(uint8_t nn3, uint8_t nn5) : n3(nn3), n5(nn5) {}
+	__device__ neigh_types(uint8_t *particle_types, LR_bonds &bonds) {
+		n3 = (bonds.n3 == P_INVALID) ? NO_TYPE : particle_types[bonds.n3];
+		n5 = (bonds.n5 == P_INVALID) ? NO_TYPE : particle_types[bonds.n5];
+	}
+
+	__device__ bool is_end() {
+		return n3 == NO_TYPE || n5 == NO_TYPE;
+	}
+};
+
 __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
 	c_number rsqr = CUDA_DOT(r, r);
 
@@ -167,7 +180,7 @@ __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 }
 
 __forceinline__ __device__ c_number _f1D_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
-	c_number val = (c_number) 0.f;
+	c_number val = 0.f;
 	if(r < MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
 		float eps = MD_F1_EPS[25 * type + n3_1 * 5 + n5_1];
 		if(r > MD_F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
@@ -186,7 +199,7 @@ __forceinline__ __device__ c_number _f1D_SD(c_number r, int type, int n3_2, int 
 }
 
 __forceinline__ __device__ c_number _f2(c_number r, int type) {
-	c_number val = (c_number) 0.f;
+	c_number val = 0.f;
 	if(r < MD_F2_RCHIGH[type]) {
 		if(r > MD_F2_RHIGH[type]) {
 			val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
@@ -199,6 +212,38 @@ __forceinline__ __device__ c_number _f2(c_number r, int type) {
 		}
 	}
 	return val;
+}
+
+__forceinline__ __device__ c_number _f2_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+	c_number val = 0.f;
+    if(r < MD_F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > MD_F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * MD_F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+        }
+		else if(r > MD_F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = (MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - MD_F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(MD_F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - MD_F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
+        }
+		else if(r > MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * MD_F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+        }
+    }
+    return val;
+}
+
+__forceinline__ __device__ c_number _f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+    c_number val = 0.f;
+    if(r < MD_F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > MD_F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = 2.f * MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * MD_F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+        } 
+		else if(r > MD_F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
+        } 
+		else if(r > MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = 2.f * MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * MD_F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+        }
+    }
+    return val;
 }
 
 __forceinline__ __device__ c_number _f2D(c_number r, int type) {
@@ -525,8 +570,7 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 
 	c_number4 Ttmp = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
-	_DNA3_bonded_excluded_volume<qIsN3>(r, n3pos_base, n3pos_back, n3type, neigh_n3_type, 
-		n5pos_base, n5pos_back, n5type, neigh_n5_type, Ftmp, Ttmp);
+	_DNA3_bonded_excluded_volume<qIsN3>(r, n3pos_base, n3pos_back, n3type, neigh_n3_type, n5pos_base, n5pos_back, n5type, neigh_n5_type, Ftmp, Ttmp);
 
 	if(qIsN3) {
 		F += Ftmp;
@@ -659,7 +703,7 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 }
 
 __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
-		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, bool p_is_end, bool q_is_end) {
+		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, neigh_types &p_neighs, neigh_types &q_neighs){
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
@@ -693,10 +737,11 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 		}
 
 		// check for half-charge strand ends
-		if(MD_dh_half_charged_ends[0] && p_is_end) {
+		if(MD_dh_half_charged_ends[0] && p_neighs.is_end()) {
 			Ftmp *= 0.5f;
 		}
-		if(MD_dh_half_charged_ends[0] && q_is_end) {
+
+		if(MD_dh_half_charged_ends[0] && q_neighs.is_end()) {
 			Ftmp *= 0.5f;
 		}
 
@@ -780,14 +825,19 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 	}
 	// END HYDROGEN BONDING
 
-	/*
 	// CROSS STACKING
+	int type_p_n3 = p_neighs.n3;
+	int type_p_n5 = p_neighs.n5;
+	int type_q_n3 = q_neighs.n3;
+	int type_q_n5 = q_neighs.n5;
 	c_number4 rcstack = rhydro;
 	c_number rcstackmodsqr = rhydromodsqr;
-	if(SQR(CRST_RCLOW) < rcstackmodsqr && rcstackmodsqr < SQR(CRST_RCHIGH)) {
-		c_number rcstackmod = sqrtf(rcstackmodsqr);
-		c_number4 rcstackdir = rcstack / rcstackmod;
-
+	c_number rcstackmod = sqrtf(rcstackmodsqr);
+	c_number4 rcstackdir = rcstack / rcstackmod;
+	c_number cost7 = -CUDA_DOT(rcstackdir, b3);
+	c_number cost8 = CUDA_DOT(rcstackdir, a3);
+	if((cost7 > 0 && cost8 > 0 && MD_F2_SD_RCLOW[CRST_F2_33](type_q_n3, qtype, ptype, type_p_n3) < rcstackmod && rcstackmod < MD_F2_SD_RCHIGH[CRST_F2_33](type_q_n3, qtype, ptype, type_p_n3)) 
+	|| (cost7 < 0 && cost8 < 0 && MD_F2_SD_RCLOW[CRST_F2_55](type_q_n5, qtype, ptype, type_p_n5) < rcstackmod && rcstackmod < MD_F2_SD_RCHIGH[CRST_F2_55](type_q_n5, qtype, ptype, type_p_n5))) {
 		// angles involved in the CSTCK interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
@@ -795,63 +845,76 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 		c_number cost3 = CUDA_DOT(a1, rcstackdir);
 		c_number t3 = CUDA_LRACOS(cost3);
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number cost7 = -CUDA_DOT(rcstackdir, b3);
 		c_number t7 = CUDA_LRACOS(cost7);
-		c_number cost8 = CUDA_DOT(rcstackdir, a3);
 		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
-		c_number f2 = _f2(rcstackmod, CRST_F2);
-		c_number f4t1 = _f4(t1, CRST_THETA1_T0, CRST_THETA1_TS, CRST_THETA1_TC, CRST_THETA1_A, CRST_THETA1_B);
-		c_number f4t2 = _f4(t2, CRST_THETA2_T0, CRST_THETA2_TS, CRST_THETA2_TC, CRST_THETA2_A, CRST_THETA2_B);
-		c_number f4t3 = _f4(t3, CRST_THETA3_T0, CRST_THETA3_TS, CRST_THETA3_TC, CRST_THETA3_A, CRST_THETA3_B);
-		c_number f4t4 = _f4(t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B) + _f4(PI - t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B);
-		c_number f4t7 = _f4(t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B) + _f4(PI - t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B);
-		c_number f4t8 = _f4(t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B) + _f4(PI - t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B);
+		c_number f2_33 = _f2_SD(rcstackmod, CRST_F2_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t1_33 = _f4_SD(t1, CRST_F4_THETA1_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t2_33 = _f4_SD(t2, CRST_F4_THETA2_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t3_33 = _f4_SD(t3, CRST_F4_THETA3_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t4_33 = _f4_SD(t4, CRST_F4_THETA4_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t7_33 = _f4_SD(t7, CRST_F4_THETA7_33, type_q_n3, qtype, ptype, type_p_n3);
+        c_number f4t8_33 = _f4_SD(t8, CRST_F4_THETA8_33, type_q_n3, qtype, ptype, type_p_n3);
 
-		c_number cstk_energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+        // 5'5' diagonal
+        c_number f2_55 = _f2_SD(rcstackmod, CRST_F2_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t1_55 = _f4_SD(t1, CRST_F4_THETA1_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t2_55 = _f4_SD(t2, CRST_F4_THETA2_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t3_55 = _f4_SD(t3, CRST_F4_THETA3_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t4_55 = _f4_SD(t4, CRST_F4_THETA4_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t7_55 = _f4_SD(t7, CRST_F4_THETA7_55, type_q_n5, qtype, ptype, type_p_n5);
+        c_number f4t8_55 = _f4_SD(t8, CRST_F4_THETA8_55, type_q_n5, qtype, ptype, type_p_n5);
+
+		c_number cstk_energy = f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55;
 
 		if(cstk_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
-			c_number f2D = _f2D(rcstackmod, CRST_F2);
-			c_number f4t1D = -_f4D(t1, CRST_THETA1_T0, CRST_THETA1_TS, CRST_THETA1_TC, CRST_THETA1_A, CRST_THETA1_B);
-			c_number f4t2D = -_f4D(t2, CRST_THETA2_T0, CRST_THETA2_TS, CRST_THETA2_TC, CRST_THETA2_A, CRST_THETA2_B);
-			c_number f4t3D = _f4D(t3, CRST_THETA3_T0, CRST_THETA3_TS, CRST_THETA3_TC, CRST_THETA3_A, CRST_THETA3_B);
-			c_number f4t4D = _f4D(t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B) - _f4D(PI - t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B);
-			c_number f4t7D = -_f4D(t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B) + _f4D(PI - t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B);
-			c_number f4t8D = _f4D(t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B) - _f4D(PI - t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B);
+            number f2D_33 = _f2D_SD(rcstackmod, CRST_F2_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t1Dsin_33 = -_f4D_SD(t1, CRST_F4_THETA1_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t2Dsin_33 = -_f4D_SD(t2, CRST_F4_THETA2_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t3Dsin_33 =  _f4D_SD(t3, CRST_F4_THETA3_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t4Dsin_33 =  _f4D_SD(t4, CRST_F4_THETA4_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t7Dsin_33 = -_f4D_SD(t7, CRST_F4_THETA7_33, type_q_n3, qtype, ptype, type_p_n3);
+            number f4t8Dsin_33 =  _f4D_SD(t8, CRST_F4_THETA8_33, type_q_n3, qtype, ptype, type_p_n3);
+
+            number f2D_55 = _f2D_SD(rcstackmod, CRST_F2_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t1Dsin_55 = -_f4D_SD(t1, CRST_F4_THETA1_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t2Dsin_55 = -_f4D_SD(t2, CRST_F4_THETA2_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t3Dsin_55 =  _f4D_SD(t3, CRST_F4_THETA3_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t4Dsin_55 =  _f4D_SD(t4, CRST_F4_THETA4_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t7Dsin_55 = -_f4D_SD(t7, CRST_F4_THETA7_55, type_q_n5, qtype, ptype, type_p_n5);
+            number f4t8Dsin_55 =  _f4D_SD(t8, CRST_F4_THETA8_55, type_q_n5, qtype, ptype, type_p_n5);
 
 			// RADIAL PART
-			Ftmp = rcstackdir * (cstk_energy * f2D / f2);
+			Ftmp = rcstackdir * ((f2D_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33) + (f2D_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55));
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cstk_energy * f4t1D / f4t1);
+			Ttmp -= stably_normalised(_cross(a1, b1)) * (-f2_33 * f4t1Dsin_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33 - f2_55 * f4t1Dsin_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= stably_normalised(b1 + rcstackdir * cost2) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
+			Ftmp -= stably_normalised(b1 + rcstackdir * cost2) * ((f2_33 * f4t1_33 * f4t2Dsin_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2Dsin_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8_55) / rcstackmod);
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -cstk_energy * f4t3D / f4t3;
-			Ftmp -= stably_normalised(a1 - rcstackdir * cost3) * (-part / rcstackmod);
-			Ttmp += stably_normalised(_cross(rcstackdir, a1)) * part;
+			Ftmp -= stably_normalised(a1 - rcstackdir * cost3) * ((f2_33 * f4t1_33 * f4t2_33 * f4t3Dsin_33 * f4t4_33 * f4t7_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3Dsin_55 * f4t4_55 * f4t7_55 * f4t8_55) / rcstackmod);
+			Ttmp += stably_normalised(_cross(rcstackdir, a1)) * (-f2_33 * f4t1_33 * f4t2_33 * f4t3Dsin_33 * f4t4_33 * f4t7_33 * f4t8_33 - f2_55 * f4t1_55 * f4t2_55 * f4t3Dsin_55 * f4t4_55 * f4t7_55 * f4t8_55);
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= stably_normalised(_cross(a3, b3)) * (-cstk_energy * f4t4D / f4t4);
+			Ttmp -= stably_normalised(_cross(a3, b3)) * (-f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4Dsin_33 * f4t7_33 * f4t8_33 - f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4Dsin_55 * f4t7_55 * f4t8_55);
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
-			Ftmp -= stably_normalised(b3 + rcstackdir * cost7) * (cstk_energy * f4t7D / (f4t7 * rcstackmod));
+			Ftmp -= stably_normalised(b3 + rcstackdir * cost7) * ((f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7Dsin_33 * f4t8_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7Dsin_55 * f4t8_55) / rcstackmod);
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -cstk_energy * f4t8D / f4t8;
-			Ftmp -= stably_normalised(a3 - rcstackdir * cost8) * (-part / rcstackmod);
-			Ttmp += stably_normalised(_cross(rcstackdir, a3)) * part;
+			Ftmp -= stably_normalised(a3 - rcstackdir * cost8) * ((f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8Dsin_33 + f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8Dsin_55) / rcstackmod);
+			Ttmp += stably_normalised(_cross(rcstackdir, a3)) * (-f2_33 * f4t1_33 * f4t2_33 * f4t3_33 * f4t4_33 * f4t7_33 * f4t8Dsin_33 - f2_55 * f4t1_55 * f4t2_55 * f4t3_55 * f4t4_55 * f4t7_55 * f4t8Dsin_55);
 
 			Ttmp += _cross(ppos_base, Ftmp);
 
 			Ftmp.w = cstk_energy;
 			F += Ftmp;
 		}
-	}*/
+	}
 
 	// COAXIAL STACKING
 	c_number4 rstack = r + qpos_stack - ppos_stack;
@@ -909,7 +972,6 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 			F += Ftmp;
 		}
 	}
-
 	T += Ttmp;
 
 	// this component stores the energy due to hydrogen bonding
@@ -927,19 +989,18 @@ __global__ void DNA3_forces_edge_nonbonded(const c_number4 __restrict__ *poss, c
 
 	// get info for particle 1
 	c_number4 ppos = poss[b.from];
-	bool p_is_end = is_strand_end[b.from];
 	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[b.from], a1, a2, a3);
 
 	// get info for particle 2
 	c_number4 qpos = poss[b.to];
-	bool q_is_end = is_strand_end[b.to];
 	c_number4 b1, b2, b3;
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
 
 	c_number4 r = box->minimum_image(ppos, qpos);
-	_DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, p_is_end, q_is_end);
+	// TODO: DNA3 TO BE UPDATED
+	// _DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, p_is_end, q_is_end);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
@@ -991,8 +1052,8 @@ __global__ void DNA3_forces_edge_bonded(const c_number4 __restrict__ *poss, cons
 
 		c_number4 r = qpos - ppos;
 		c_number4 dF = make_c_number4(0, 0, 0, 0);
-		uint8_t neigh_n3_type = NO_TYPE; // TO BE UPDATED
-		uint8_t neigh_n5_type = NO_TYPE; // TO BE UPDATED
+		uint8_t neigh_n3_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
+		uint8_t neigh_n5_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
 		_DNA3_bonded_part<true>(r, ppos, a1, a2, a3, neigh_n5_type, qpos, b1, b2, b3, neigh_n3_type, dF, T, use_mbf, mbf_finf);
 		_update_stress_tensor<true>(p_st, r, dF);
 		F += dF;
@@ -1005,8 +1066,8 @@ __global__ void DNA3_forces_edge_bonded(const c_number4 __restrict__ *poss, cons
 
 		c_number4 r = ppos - qpos;
 		c_number4 dF = make_c_number4(0, 0, 0, 0);
-		uint8_t neigh_n3_type = NO_TYPE; // TO BE UPDATED
-		uint8_t neigh_n5_type = NO_TYPE; // TO BE UPDATED
+		uint8_t neigh_n3_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
+		uint8_t neigh_n5_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
 		_DNA3_bonded_part<false>(r, qpos, b1, b2, b3, neigh_n5_type, ppos, a1, a2, a3, neigh_n3_type, dF, T, use_mbf, mbf_finf);
 		_update_stress_tensor<true>(p_st, -r, dF); // -r since r here is defined as r  = ppos - qpos
 		F += dF;
@@ -1032,7 +1093,7 @@ __global__ void DNA3_forces(const c_number4 __restrict__ *poss, const GPU_quat _
 	c_number4 T = make_c_number4(0, 0, 0, 0);
 	c_number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
-	bool p_is_end = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);
+	neigh_types p_neighs(particle_types, pbonds);
 
 	CUDAStressTensor p_st;
 
@@ -1081,10 +1142,10 @@ __global__ void DNA3_forces(const c_number4 __restrict__ *poss, const GPU_quat _
 			c_number4 b1, b2, b3;
 			get_vectors_from_quat(orientations[k_index], b1, b2, b3);
 			LR_bonds qbonds = bonds[k_index];
-			bool q_is_end = (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID);
+			neigh_types q_neighs(particle_types, qbonds);
 
 			c_number4 dF = make_c_number4(0, 0, 0, 0);
-			_DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, p_is_end, q_is_end);
+			_DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, p_neighs, q_neighs);
 			_update_stress_tensor<true>(p_st, r, dF);
 			F += dF;
 		}
