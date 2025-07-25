@@ -383,21 +383,15 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 	number rbackr0;
 	//OXDNA3
 	number fened;
-	int type_n3_2;
-	int type_n5_2;
 
-	DNA3Interaction * inter = dynamic_cast<DNA3Interaction *>(_interaction.get());
-	if( inter != NULL) {
+	DNA3Interaction *inter = dynamic_cast<DNA3Interaction *>(_interaction.get());
+	if(inter != NULL) {
 
-		type_n3_2 = 5;
-		type_n5_2 = 5;
+		int type_n3_2 = NO_TYPE;
+		int type_n5_2 = NO_TYPE;
 
-		if (q->n3 != P_VIRTUAL) { type_n3_2 = q->n3->type; }
-		if (p->n5 != P_VIRTUAL) { type_n5_2 = p->n5->type; }
-
-		//no need for this, since we broke the bonded complementary symetry
-		//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-		//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+		if(q->n3 != P_VIRTUAL) { type_n3_2 = q->n3->type; }
+		if(p->n5 != P_VIRTUAL) { type_n5_2 = p->n5->type; }
 
 		rbackr0 = rback.module() - inter->get_fene_r0_SD(type_n3_2,q->type,p->type,type_n5_2);
 		fened = inter->get_fene_delta_SD(type_n3_2,q->type,p->type,type_n5_2);

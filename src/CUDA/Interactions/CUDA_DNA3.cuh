@@ -3,18 +3,8 @@ __constant__ int MD_N[1];
 __constant__ int MD_n_forces[1];
 
 __constant__ float MD_hb_multi[1];
-__constant__ float MD_F1_A[2];
-__constant__ float MD_F1_RC[2];
-__constant__ float MD_F1_R0[2];
-__constant__ float MD_F1_BLOW[2];
-__constant__ float MD_F1_BHIGH[2];
-__constant__ float MD_F1_RLOW[2];
-__constant__ float MD_F1_RHIGH[2];
-__constant__ float MD_F1_RCLOW[2];
-__constant__ float MD_F1_RCHIGH[2];
 // 50 = 2 * 5 * 5
 __constant__ float MD_F1_EPS[50];
-__constant__ float MD_F1_SHIFT[50];
 
 __constant__ float MD_F2_K[2];
 __constant__ float MD_F2_RC[2];
@@ -25,11 +15,6 @@ __constant__ float MD_F2_RCLOW[2];
 __constant__ float MD_F2_BHIGH[2];
 __constant__ float MD_F2_RCHIGH[2];
 __constant__ float MD_F2_RHIGH[2];
-
-__constant__ float MD_F5_PHI_A[4];
-__constant__ float MD_F5_PHI_B[4];
-__constant__ float MD_F5_PHI_XC[4];
-__constant__ float MD_F5_PHI_XS[4];
 
 __constant__ float MD_dh_RC[1];
 __constant__ float MD_dh_RHIGH[1];
@@ -122,24 +107,6 @@ __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &
 	}
 }
 
-__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
-	c_number val = (c_number) 0.f;
-	if(r < MD_F1_RCHIGH[type]) {
-		int eps_index = 25 * type + n3 * 5 + n5;
-		if(r > MD_F1_RHIGH[type]) {
-			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
-		}
-		else if(r > MD_F1_RLOW[type]) {
-			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
-			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
-		}
-		else if(r > MD_F1_RCLOW[type]) {
-			val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
-		}
-	}
-
-	return val;
-}
 
 __forceinline__ __device__ c_number _f1_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	c_number val = (c_number) 0.f;
@@ -154,25 +121,6 @@ __forceinline__ __device__ c_number _f1_SD(c_number r, int type, int n3_2, int n
 		}
 		else if(r > MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
 			val = MD_F1_EPS[eps_index] * MD_F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
-		}
-	}
-
-	return val;
-}
-
-__forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
-	c_number val = (c_number) 0.f;
-	if(r < MD_F1_RCHIGH[type]) {
-		float eps = MD_F1_EPS[25 * type + n3 * 5 + n5];
-		if(r > MD_F1_RHIGH[type]) {
-			val = 2.f * eps * MD_F1_BHIGH[type] * (r - MD_F1_RCHIGH[type]);
-		}
-		else if(r > MD_F1_RLOW[type]) {
-			c_number tmp = expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
-			val = 2.f * eps * (1.f - tmp) * tmp * MD_F1_A[type];
-		}
-		else if(r > MD_F1_RCLOW[type]) {
-			val = 2.f * eps * MD_F1_BLOW[type] * (r - MD_F1_RCLOW[type]);
 		}
 	}
 
@@ -343,22 +291,6 @@ __forceinline__ __device__ c_number _f4D_pure_harmonic(c_number t, float a, floa
 	return (t < 0) ? 0.f : 2.f * a * t;
 }
 
-__forceinline__ __device__ c_number _f5(c_number f, int type) {
-	c_number val = (c_number) 0.f;
-
-	if(f > MD_F5_PHI_XC[type]) {
-		if(f < MD_F5_PHI_XS[type]) {
-			val = MD_F5_PHI_B[type] * SQR(MD_F5_PHI_XC[type] - f);
-		}
-		else if(f < 0.f) {
-			val = (c_number) 1.f - MD_F5_PHI_A[type] * SQR(f);
-		}
-		else val = 1.f;
-	}
-
-	return val;
-}
-
 __forceinline__ __device__ c_number _f5_SD(c_number f, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
 	c_number val = (c_number) 0.f;
 
@@ -370,21 +302,6 @@ __forceinline__ __device__ c_number _f5_SD(c_number f, int type, int n3_2, int n
 			val = (c_number) 1.f - MD_F5_SD_PHI_A[type](n3_2, n3_1, n5_1, n5_2) * SQR(f);
 		}
 		else val = 1.f;
-	}
-
-	return val;
-}
-
-__forceinline__ __device__ c_number _f5D(c_number f, int type) {
-	c_number val = (c_number) 0.f;
-
-	if(f > MD_F5_PHI_XC[type]) {
-		if(f < MD_F5_PHI_XS[type]) {
-			val = 2.f * MD_F5_PHI_B[type] * (f - MD_F5_PHI_XC[type]);
-		}
-		else if(f < 0.f) {
-			val = (c_number) -2.f * MD_F5_PHI_A[type] * f;
-		}
 	}
 
 	return val;
