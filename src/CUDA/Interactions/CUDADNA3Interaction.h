@@ -34,9 +34,9 @@ struct OxDNA3Params {
         return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
     }
 
-    __host__ __device__
-    const c_number& operator()(int i, int j, int k, int l) const {
-        return data[i * STR0 + j * STR1 + k * STR2 + l * STR3];
+    __device__
+    c_number operator()(int i, int j, int k, int l) const {
+        return __ldg(data + i * STR0 + j * STR1 + k * STR2 + l * STR3);
     }
 };
 
