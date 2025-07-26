@@ -1277,36 +1277,40 @@ number DNAInteraction::_f2D(number r, int type) {
 	return val;
 }
 
-number DNAInteraction::_fakef4(number t, void *par) {
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1.0001))
-		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1))
-		t = (number) copysign(1, t);
-	return _f4(acos(t), *((int*) par));
+number DNAInteraction::_fakef4(number cost, void *par) {
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1))
+		cost = (number) copysign(1, cost);
+	number t = Utils::safe_acos(cost);
+	return _f4(t, *((int*) par));
 }
 
-number DNAInteraction::_fakef4D(number t, void *par) {
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1.0001))
-		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1))
-		t = (number) copysign(1, t);
-	return -_f4Dsin(acos(t), *((int*) par));
+number DNAInteraction::_fakef4D(number cost, void *par) {
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1))
+		cost = (number) copysign(1, cost);
+	number t = Utils::safe_acos(cost);
+	return -_f4Dsin(t, *((int*) par));
 }
 
-number DNAInteraction::_fakef4_cxst_t1(number t, void *par) {
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1.0001))
-		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1))
-		t = (number) copysign(1, t);
-	return _f4(acos(t), *((int*) par)) + _f4(2 * PI - acos(t), *((int*) par));
+number DNAInteraction::_fakef4_cxst_t1(number cost, void *par) {
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+		throw oxDNAException("In function DNAInteraction::_fakef4_cxst_t1() cost was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1))
+		cost = (number) copysign(1, cost);
+	number t = Utils::safe_acos(cost);
+	return _f4(t, *((int*) par)) + _f4(2 * PI - t, *((int*) par));
 }
 
-number DNAInteraction::_fakef4D_cxst_t1(number t, void *par) {
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1.0001))
-		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1))
-		t = (number) copysign(1, t);
-	return -_f4Dsin(acos(t), *((int*) par)) - _f4Dsin(2 * PI - acos(t), *((int*) par));
+number DNAInteraction::_fakef4D_cxst_t1(number cost, void *par) {
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+		throw oxDNAException("In function DNAInteraction::_fakef4D_cxst_t1() cost was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+	if((*(int*) par == CXST_F4_THETA1) && (cost * cost > 1))
+		cost = (number) copysign(1, cost);
+	number t = Utils::safe_acos(cost);
+	return -_f4Dsin(t, *((int*) par)) - _f4Dsin(2 * PI - t, *((int*) par));
 }
 
 number DNAInteraction::_f4(number t, int type) {

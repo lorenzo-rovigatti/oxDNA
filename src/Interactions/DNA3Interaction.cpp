@@ -1742,21 +1742,22 @@ number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1
     return val;
 }
 
-number DNA3Interaction::_fakef4_SD(number t, void *par) {
-    // std::cout << "fakef4_SD args: " << ((int*) par)[0] << " " << ((int*) par)[1] << " " << ((int*) par)[2] << std::endl;
-    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
-        throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
-        t = (number)copysign(1, t);
-    return _f4_SD(acos(t), ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
+number DNA3Interaction::_fakef4_SD(number cost, void *par) {
+    if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+        throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+    if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1))
+        cost = (number)copysign(1, cost);
+    number t = Utils::safe_acos(cost);
+    return _f4_SD(t, ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
 }
 
-number DNA3Interaction::_fakef4D_SD(number t, void *par) {
-    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1.0001))
-        throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
-    if((*(int *)par == CXST_F4_THETA1) && (t * t > 1))
-        t = (number)copysign(1, t);
-    return -_f4Dsin_SD(acos(t), ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
+number DNA3Interaction::_fakef4D_SD(number cost, void *par) {
+    if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1.0001))
+        throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", cost);
+    if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1))
+        cost = (number)copysign(1, cost);
+    number t = Utils::safe_acos(cost);
+    return -_f4Dsin_SD(t, ((int *)par)[0], ((int *)par)[1], ((int *)par)[2], ((int *)par)[3], ((int *)par)[4]);
 }
 
 number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {

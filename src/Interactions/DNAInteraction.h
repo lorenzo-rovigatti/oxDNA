@@ -200,8 +200,8 @@ protected:
 	 * @param i     type of the interaction
 	 */
 	//virtual number _custom_f4 (number cost, int i) { return this->_query_mesh (cost, this->_mesh_f4[i]); }
-	virtual number _custom_f4 (number cost, int i) {
-		if (i != CXST_F4_THETA1) return this->_fakef4(cost, (void *)&i);
+	virtual number _custom_f4(number cost, int i) {
+		if(i != CXST_F4_THETA1) return this->_fakef4(cost, (void *)&i);
 		else return this->_fakef4_cxst_t1(cost, (void *)&i);
 	}
 
@@ -213,7 +213,7 @@ protected:
 	 */
 	//virtual number _custom_f4D (number cost, int i) { return this->_query_meshD (cost, this->_mesh_f4[i]); }
 	virtual number _custom_f4D (number cost, int i) {
-		if (i != CXST_F4_THETA1) return this->_fakef4D(cost, (void *)&i);
+		if(i != CXST_F4_THETA1) return this->_fakef4D(cost, (void *)&i);
 		else return this->_fakef4D_cxst_t1(cost, (void *)&i);
 	}
 
