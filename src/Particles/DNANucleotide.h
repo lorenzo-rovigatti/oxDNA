@@ -16,17 +16,21 @@
 
 class DNANucleotide: public BaseParticle {
 protected:
-	int _grooving ;
+	int _grooving;
 public:
 	const static LR_vector principal_axis;
 	const static LR_vector stack_axis;
 	const static LR_vector third_axis;
 
-	float _POS_BACK ;
-	float _POS_MM_BACK1 ;
-	float _POS_MM_BACK2 ;
-	float _POS_STACK ;
-	float _POS_BASE ;
+	const static std::array<number, 5> all_pos_mm_back1;
+	const static std::array<number, 5> all_pos_mm_back2;
+	const static std::array<number, 5> all_pos_stack;
+	const static std::array<number, 5> all_pos_base;
+
+	number pos_mm_back1 = 0.;
+	number pos_mm_back2 = 0.;
+	number pos_stack = 0.;
+	number pos_base = 0.;
 
 	enum Site {
 		BACK = 0,
