@@ -16,15 +16,14 @@
 #include "../defs.h"
 
 template<size_t D0, size_t D1, size_t D2, size_t D3>
-class MultiDimArray {
-    static constexpr size_t total = D0 * D1 * D2 * D3;
+struct MultiDimArray {
+    static constexpr size_t total_size = D0 * D1 * D2 * D3;
     static constexpr size_t S0 = D1 * D2 * D3;
     static constexpr size_t S1 = D2 * D3;
     static constexpr size_t S2 = D3;
 
-    number data[total];
+    number data[total_size];
 
-  public:
     inline number& operator()(size_t i0, size_t i1, size_t i2, size_t i3) noexcept {
         return data[i0*S0 + i1*S1 + i2*S2 + i3];
     }
@@ -34,7 +33,7 @@ class MultiDimArray {
     }
 
     void fill(const number& v) {
-        std::fill(data, data + total, v);
+        std::fill(data, data + total_size, v);
     }
 
     number get_average_par() const noexcept {

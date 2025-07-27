@@ -35,7 +35,7 @@ std::vector<float> CUDADNA3Interaction::_convert_param_array(const MultiDimArray
 	std::vector<float> data(src[0].total_size * N_arrays);
 	for(int i = 0; i < N_arrays; i++) {
 		int offset = i * src[0].total_size;
-		std::transform(src[i].data.cbegin(), src[i].data.cend(), data.begin() + offset, [](number v) { return static_cast<float>(v); });
+		std::transform(src[i].data, src[i].data + src[i].total_size, data.begin() + offset, [](number v) { return static_cast<float>(v); });
 	}
 	return data;
 }
