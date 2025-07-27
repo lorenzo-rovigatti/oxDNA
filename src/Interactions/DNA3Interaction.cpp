@@ -1903,9 +1903,9 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles)
             if(p->n3 != P_VIRTUAL) {
                 type_n3_2 = p->n3->type;
             }
-	    if(q->n5 != P_VIRTUAL) {
-		type_n5_2 = q->n5->type;
-	    }
+        if(q->n5 != P_VIRTUAL) {
+        type_n5_2 = q->n5->type;
+        }
 
             number mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);
             number maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);
