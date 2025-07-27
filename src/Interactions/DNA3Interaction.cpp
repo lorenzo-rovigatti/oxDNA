@@ -1875,57 +1875,45 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles)
             continue;
 
         // check that the distance between bonded neighbor doesn't exceed a reasonable threshold
-
         int type_n3_2 = NO_TYPE;
         int type_n5_2 = NO_TYPE;
-        number mind;
-        number maxd;
         if(p->n3 != P_VIRTUAL) {
             BaseParticle *q = p->n3;
             if(q->n3 != P_VIRTUAL) {
                 type_n3_2 = q->n3->type;
-                // std::cout << "check ptypes1: " << q->get_index() << "," << p->get_index() << ", " << q->n3->type << " " << q->type << " " << p->type << std::endl;
             }
             if(p->n5 != P_VIRTUAL) {
                 type_n5_2 = p->n5->type;
-                // std::cout << "check ptypes2: " << q->get_index() << "," << p->get_index() << ", " << " " << q->type << " " << p->type << " " << p->n5->type << std::endl;
             }
-            // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-            // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
 
-            mind = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
-            maxd = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
+            number mind = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
+            number maxd = _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
             q->set_positions();
             LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
             number r = sqrt(rv * rv);
             if(r > maxd || r < mind) {
-                throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
+                throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf, %lf < d < %lf)", i, p->n3->index, r, mind, maxd);
             }
         }
 
         type_n3_2 = NO_TYPE;
         type_n5_2 = NO_TYPE;
-
         if(p->n5 != P_VIRTUAL) {
             BaseParticle *q = p->n5;
-            if(q->n3 != P_VIRTUAL) {
-                type_n3_2 = q->n3->type;
-                // std::cout << "check ptypes3: " << q->get_index() << "," << p->get_index() << ", " << q->n3->type << " " << q->type << " " << p->type << std::endl;
+            if(p->n3 != P_VIRTUAL) {
+                type_n3_2 = p->n3->type;
             }
+	    if(q->n5 != P_VIRTUAL) {
+		type_n5_2 = q->n5->type;
+	    }
 
-            type_n5_2 = p->n5->type;
-            // std::cout << "check ptypes4: " << q->get_index() << "," << p->get_index() << ", " << " " << q->type << " " << p->type << " " << p->n5->type << std::endl;
-
-            // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-            // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
-
-            mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
-            maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2);
+            number mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);
+            number maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);
             q->set_positions();
             LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
             number r = sqrt(rv * rv);
             if(r > maxd || r < mind) {
-                throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
+                throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf, %lf < d < %lf)", i, p->n5->index, r, mind, maxd);
             }
         }
     }

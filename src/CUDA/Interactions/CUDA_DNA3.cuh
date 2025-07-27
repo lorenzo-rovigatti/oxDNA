@@ -466,8 +466,6 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 	int n5type = get_particle_type(n5pos);
 	int n3btype = get_particle_btype(n3pos);
 	int n5btype = get_particle_btype(n5pos);
-	int n3_id = get_particle_index(n3pos);
-	int n5_id = get_particle_index(n5pos);
 
 	c_number4 n5pos_back, n5pos_base, n5pos_stack;
 	DNA3_set_interaction_sites(n5type, n5btype, n5x, n5y, n5pos_back, n5pos_stack, n5pos_base);
@@ -629,7 +627,7 @@ __device__ void _DNA3_bonded_part(const c_number4 &r, const c_number4 &n5pos, co
 }
 
 __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
-		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, neigh_types &p_neighs, neigh_types &q_neighs){
+		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, neigh_types &p_neighs, neigh_types &q_neighs) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
