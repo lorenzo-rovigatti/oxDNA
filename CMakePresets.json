@@ -1,0 +1,54 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/"
+    },
+    {
+      "name": "g_only",
+      "inherits": "base",
+      "description": "G=1 (minimal setup)",
+      "cacheVariables": {
+        "G": "1"
+      }
+    },
+    {
+      "name": "g_python",
+      "inherits": "base",
+      "description": "G=1 with Python support",
+      "cacheVariables": {
+        "G": "1",
+        "PYTHON": "ON"
+      }
+    },
+    {
+      "name": "g_cuda",
+      "inherits": "base",
+      "description": "G=1 with CUDA (no common arch)",
+      "cacheVariables": {
+        "G": "1",
+        "CUDA": "ON",
+        "CUDA_COMMON_ARCH": "OFF"
+      }
+    },
+    {
+      "name": "g_cuda_python",
+      "inherits": "base",
+      "description": "G=1 with CUDA and Python (no common arch)",
+      "cacheVariables": {
+        "G": "1",
+        "CUDA": "ON",
+        "CUDA_COMMON_ARCH": "OFF",
+        "PYTHON": "ON"
+      }
+    }
+  ]
+}

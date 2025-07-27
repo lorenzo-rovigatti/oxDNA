@@ -30,11 +30,11 @@ number DNA2Interaction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q
 		return (number) 0;
 	}
 
-	// The methods with "" in front of them are inherited from DNAInteraction. The
-	// other one belongs to DNA2Interaction
-	number energy = _backbone(p, q, false, update_forces);
-	energy += _bonded_excluded_volume(p, q, false, update_forces);
-	energy += _stacking(p, q, false, update_forces);
+	number energy = 0;
+
+	energy += (_enable_backbone) ? _backbone(p, q, false, update_forces) : 0;
+	energy += (_enable_bonded_excluded_volume) ? _bonded_excluded_volume(p, q, false, update_forces) : 0;
+	energy += (_enable_stacking) ? _stacking(p, q, false, update_forces) : 0;
 
 	return energy;
 }
@@ -48,13 +48,13 @@ number DNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 		return (number) 0.f;
 	}
 
-	// The methods with "" in front of them are inherited from DNAInteraction. The
-	// other two methods belong to DNA2Interaction
-	number energy = _nonbonded_excluded_volume(p, q, false, update_forces);
-	energy += _hydrogen_bonding(p, q, false, update_forces);
-	energy += _cross_stacking(p, q, false, update_forces);
-	energy += _coaxial_stacking(p, q, false, update_forces);
-	energy += _debye_huckel(p, q, false, update_forces);
+	number energy = 0;
+	
+	energy += (_enable_nonbonded_excluded_volume) ? _nonbonded_excluded_volume(p, q, false, update_forces) : 0;
+	energy += (_enable_hydrogen_bonding) ? _hydrogen_bonding(p, q, false, update_forces) : 0;
+	energy += (_enable_cross_stacking) ? _cross_stacking(p, q, false, update_forces) : 0;
+	energy += (_enable_coaxial_stacking) ? _coaxial_stacking(p, q, false, update_forces) : 0;
+	energy += (_enable_debye_huckel) ? _debye_huckel(p, q, false, update_forces) : 0;
 
 	return energy;
 }
@@ -90,6 +90,15 @@ void DNA2Interaction::get_settings(input_file &inp) {
 	if(_grooving && (getInputBool(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) {
 		OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 	}
+
+	getInputBool(&inp, "DNA_enable_backbone", &_enable_backbone, 0);
+	getInputBool(&inp, "DNA_enable_bonded_excluded_volume", &_enable_bonded_excluded_volume, 0);
+	getInputBool(&inp, "DNA_enable_stacking", &_enable_stacking, 0);
+	getInputBool(&inp, "DNA_enable_nonbonded_excluded_volume", &_enable_nonbonded_excluded_volume, 0);
+	getInputBool(&inp, "DNA_enable_hydrogen_bonding", &_enable_hydrogen_bonding, 0);
+	getInputBool(&inp, "DNA_enable_cross_stacking", &_enable_cross_stacking, 0);
+	getInputBool(&inp, "DNA_enable_coaxial_stacking", &_enable_coaxial_stacking, 0);
+	getInputBool(&inp, "DNA_enable_debye_huckel", &_enable_debye_huckel, 0);
 }
 
 void DNA2Interaction::init() {
