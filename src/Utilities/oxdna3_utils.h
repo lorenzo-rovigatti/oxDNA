@@ -15,97 +15,40 @@
 
 #include "../defs.h"
 
-// Helper to compute total size at compile time
-template<size_t... Dims>
-struct SizeHelper;
-
-template<size_t First, size_t... Rest>
-struct SizeHelper<First, Rest...> {
-    static constexpr size_t value = First * SizeHelper<Rest...>::value;
-};
-
-template<>
-struct SizeHelper<> {
-    static constexpr size_t value = 1;
-};
-
-template<size_t... Dims>
+template<size_t D0, size_t D1, size_t D2, size_t D3>
 class MultiDimArray {
-public:
-    static constexpr size_t N = sizeof...(Dims);
-    static constexpr size_t total_size = SizeHelper<Dims...>::value;
+    static constexpr size_t total = D0 * D1 * D2 * D3;
+    static constexpr size_t S0 = D1 * D2 * D3;
+    static constexpr size_t S1 = D2 * D3;
+    static constexpr size_t S2 = D3;
 
-    std::array<number, total_size> data;
-    
-private:
-    std::array<size_t, N> _strides;
-    std::array<size_t, N> _sizes = {{Dims...}};
+    number data[total];
 
-    void compute_strides() {
-        _strides[N - 1] = 1;
-        for (int i = static_cast<int>(N) - 2; i >= 0; --i) {
-            _strides[i] = _strides[i + 1] * _sizes[i + 1];
-        }
+  public:
+    inline number& operator()(size_t i0, size_t i1, size_t i2, size_t i3) noexcept {
+        return data[i0*S0 + i1*S1 + i2*S2 + i3];
     }
 
-    size_t compute_index(const std::array<size_t, N>& idx) const {
-        size_t offset = 0;
-        for (size_t i = 0; i < N; ++i) {
-            assert(idx[i] < _sizes[i]);
-            offset += idx[i] * _strides[i];
-        }
-        return offset;
+    inline const number& operator()(size_t i0, size_t i1, size_t i2, size_t i3) const noexcept {
+        return const_cast<MultiDimArray*>(this)->operator()(i0, i1, i2, i3);
     }
 
-public:
-    MultiDimArray() {
-        compute_strides();
+    void fill(const number& v) {
+        std::fill(data, data + total, v);
     }
 
-    template<typename... Indices>
-    number &operator()(Indices... indices) {
-        static_assert(sizeof...(Indices) == N, "Wrong number of indices");
-        std::array<size_t, N> idx = {{static_cast<size_t>(indices)...}};
-        return data[compute_index(idx)];
-    }
-
-    template<typename... Indices>
-    const number &operator()(Indices... indices) const {
-        static_assert(sizeof...(Indices) == N, "Wrong number of indices");
-        std::array<size_t, N> idx = {{static_cast<size_t>(indices)...}};
-        return data[compute_index(idx)];
-    }
-
-    number &operator()(const std::array<size_t, N>& idx) {
-        return data[compute_index(idx)];
-    }
-
-    const number &operator()(const std::array<size_t, N>& idx) const {
-        return data[compute_index(idx)];
-    }
-
-    number *raw_data() { return data.data(); }
-    const number *raw_data() const { return data.data(); }
-
-    const std::array<size_t, N>& shape() const { return _sizes; }
-
-    void fill(number value) {
-        data.fill(value);
-    }
-
-    number get_average_par() const {
-        static_assert(N == 4, "Cannot take the average of an array with a number of indices != 4");
+    number get_average_par() const noexcept {
         number average = 0.;
         for(int i = 0; i < 4; i++) {
             for(int j = 0; j < 4; j++) {
                 for(int k = 0; k < 4; k++) {
                     for(int l = 0; l < 4; l++) {
-                        average += this->operator()(i, j, k, l) / 256.;
+                        average += this->operator()(i, j, k, l);
                     }
                 }
             }
         }
-        return average;
+        return average / 256.;
     }
 };
 
