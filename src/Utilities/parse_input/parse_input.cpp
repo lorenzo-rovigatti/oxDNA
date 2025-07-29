@@ -10,6 +10,8 @@
 #endif
 
 #include <exprtk/exprtk.hpp>
+
+#include <regex>
 #include <algorithm>
 
 using std::string;
@@ -35,10 +37,10 @@ void input_value::expand_value(std::map<std::string, std::string> expanded_depen
 	}
 
 	// here we match patterns that are like this: ${some_text}, and we use parentheses to make sure that the second element of the std::smatch is "some_text"
-	std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
+	static const std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
 	std::smatch m;
 	std::string to_search = expanded_value;
-	exprtk::parser<double> parser;
+	static exprtk::parser<double> parser;
 	while(std::regex_search(to_search, m, pattern)) {
 		exprtk::expression<double> expression;
 
@@ -55,7 +57,6 @@ void input_value::expand_value(std::map<std::string, std::string> expanded_depen
 }
 
 input_file::input_file(bool is_main) :
-				expand_pattern("\\$\\(([\\w\\[\\]]+)\\)"),
 				is_main_input(is_main) {
 	if(is_main) {
 		if(input_file::main_input != nullptr) {
@@ -254,8 +255,12 @@ void input_file::set_value(std::string key, std::string value) {
 	keys[key] = input_value(key, value);
 
 	// now we update the dependencies
+
+	// here we match patterns that are like this: $(some_text), and we use parentheses to make sure that the second element of the std::smatch is "some_text"
+	static const std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped or the compiler complains
+
 	std::smatch m;
-	while(std::regex_search(value, m, expand_pattern)) {
+	while(std::regex_search(value, m, pattern)) {
 		keys[key].depends_on.push_back(m[1].str());
 		value = m.suffix().str();
 	}
