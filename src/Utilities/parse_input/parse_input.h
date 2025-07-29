@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <regex>
 
 #ifdef JSON_ENABLED
 #include <nlohmann/json_fwd.hpp>
@@ -53,6 +54,10 @@ struct input_file {
 	std::vector<std::string> unread_keys;
 	int state;
 	bool show_overwrite_warnings = true;
+
+	// in order to be able to expand variables, we match patterns that are like this: $(some_text)
+	// we use parentheses to make sure that the second element of the std::smatch is "some_text"
+	std::regex expand_pattern;
 
 	bool is_main_input = false;
 
