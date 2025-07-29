@@ -186,25 +186,24 @@ void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
     }
 
     if(_use_edge) {
-        throw oxDNAException("use_edge will be supported soon-ish!");
         if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
             DNA3_forces_edge_nonbonded
                 <<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-                (d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end, 
-                _update_st, _d_st, d_box);
+                (d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, d_bonds,
+                _d_particle_types, _update_st, _d_st, d_box);
         }
         else { // sum required, somewhat slower
             DNA3_forces_edge_nonbonded
                 <<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-                (d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end, 
-                _update_st, _d_st, d_box);
+                (d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, 
+                d_bonds, _d_particle_types, _update_st, _d_st, d_box);
 
             _sum_edge_forces_torques(d_forces, d_torques);
         }
 
         DNA3_forces_edge_bonded
             <<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-            (d_poss, d_orientations, d_forces, d_torques, d_bonds, _use_mbf, _mbf_finf, _update_st, _d_st);
+            (d_poss, d_orientations, d_forces, d_torques, d_bonds, _use_mbf, _mbf_finf, _d_particle_types, _update_st, _d_st);
     }
     else {
         DNA3_forces

@@ -101,7 +101,7 @@ __device__ OxDNA3Params MD_F5_SD_PHI_XS[4];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-__device__ struct neigh_types {
+struct neigh_types {
     uint8_t n3, n5;
     __device__ neigh_types(uint8_t nn3, uint8_t nn5) : n3(nn3), n5(nn5) {}
     __device__ neigh_types(uint8_t *particle_types, LR_bonds &bonds) {
@@ -253,7 +253,6 @@ __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc
     return val;
 }
 
-// TODO: this can be optimised as the one in oxDNA2
 __forceinline__ __device__ c_number _f4_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     c_number val = 0.f;
     t -= MD_F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
@@ -294,7 +293,6 @@ __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float t
     return val;
 }
 
-// TODO: this can be optimised as the one in oxDNA2
 __forceinline__ __device__ c_number _f4D_SD(c_number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     c_number val = 0.f;
     c_number m = 1.f;
@@ -903,7 +901,8 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 }
 
 __global__ void DNA3_forces_edge_nonbonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
-        c_number4 __restrict__ *torques, const edge_bond __restrict__ *edge_list, int n_edges, const int *is_strand_end, bool update_st, CUDAStressTensor *st, const CUDABox *box) {
+        c_number4 __restrict__ *torques, const edge_bond __restrict__ *edge_list, int n_edges, const LR_bonds __restrict__ *bonds, uint8_t *particle_types, 
+		bool update_st, CUDAStressTensor *st, const CUDABox *box) {
     if(IND >= n_edges) return;
 
     c_number4 dF = make_c_number4(0, 0, 0, 0);
@@ -916,15 +915,18 @@ __global__ void DNA3_forces_edge_nonbonded(const c_number4 __restrict__ *poss, c
     // particle axes according to Allen's paper
     c_number4 a1, a2, a3;
     get_vectors_from_quat(orientations[b.from], a1, a2, a3);
+	LR_bonds pbonds = bonds[b.from];
+    neigh_types p_neighs(particle_types, pbonds);
 
     // get info for particle 2
     c_number4 qpos = poss[b.to];
     c_number4 b1, b2, b3;
     get_vectors_from_quat(orientations[b.to], b1, b2, b3);
+	LR_bonds qbonds = bonds[b.to];
+	neigh_types q_neighs(particle_types, qbonds);
 
     c_number4 r = box->minimum_image(ppos, qpos);
-    // TODO: DNA3 TO BE UPDATED
-    // _DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, p_is_end, q_is_end);
+	_DNA3_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, p_neighs, q_neighs);
 
     int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
     int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
@@ -953,14 +955,16 @@ __global__ void DNA3_forces_edge_nonbonded(const c_number4 __restrict__ *poss, c
 
 // bonded interactions for edge-based approach
 __global__ void DNA3_forces_edge_bonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
-        c_number4 __restrict__ *torques, const LR_bonds __restrict__ *bonds, bool use_mbf, c_number mbf_finf, bool update_st, CUDAStressTensor *st) {
+        c_number4 __restrict__ *torques, const LR_bonds __restrict__ *bonds, bool use_mbf, c_number mbf_finf, uint8_t *particle_types, bool update_st, 
+		CUDAStressTensor *st) {
     if(IND >= MD_N[0]) return;
 
     c_number4 F = forces[IND];
     c_number4 T = torques[IND];
 
     c_number4 ppos = poss[IND];
-    LR_bonds bs = bonds[IND];
+    LR_bonds pbonds = bonds[IND];
+	neigh_types p_neighs(particle_types, pbonds);
 
     CUDAStressTensor p_st;
 
@@ -968,30 +972,30 @@ __global__ void DNA3_forces_edge_bonded(const c_number4 __restrict__ *poss, cons
     c_number4 a1, a2, a3;
     get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
-    if(bs.n3 != P_INVALID) {
-        c_number4 qpos = poss[bs.n3];
+    if(pbonds.n3 != P_INVALID) {
+        c_number4 qpos = poss[pbonds.n3];
 
         c_number4 b1, b2, b3;
-        get_vectors_from_quat(orientations[bs.n3], b1, b2, b3);
+        get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
 
         c_number4 r = qpos - ppos;
         c_number4 dF = make_c_number4(0, 0, 0, 0);
-        uint8_t neigh_n3_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
-        uint8_t neigh_n5_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
+        uint8_t neigh_n5_type = p_neighs.n5;
+        uint8_t neigh_n3_type = (bonds[pbonds.n3].n3 == P_INVALID) ? NO_TYPE : particle_types[bonds[pbonds.n3].n3];
         _DNA3_bonded_part<true>(r, ppos, a1, a2, a3, neigh_n5_type, qpos, b1, b2, b3, neigh_n3_type, dF, T, use_mbf, mbf_finf);
         _update_stress_tensor<true>(p_st, r, dF);
         F += dF;
     }
-    if(bs.n5 != P_INVALID) {
-        c_number4 qpos = poss[bs.n5];
+    if(pbonds.n5 != P_INVALID) {
+        c_number4 qpos = poss[pbonds.n5];
 
         c_number4 b1, b2, b3;
-        get_vectors_from_quat(orientations[bs.n5], b1, b2, b3);
+        get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
 
         c_number4 r = ppos - qpos;
         c_number4 dF = make_c_number4(0, 0, 0, 0);
-        uint8_t neigh_n3_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
-        uint8_t neigh_n5_type = NO_TYPE; // TODO: DNA3 TO BE UPDATED
+        uint8_t neigh_n5_type = (bonds[pbonds.n5].n5 == P_INVALID) ? NO_TYPE : particle_types[bonds[pbonds.n5].n5];
+        uint8_t neigh_n3_type = p_neighs.n3;
         _DNA3_bonded_part<false>(r, qpos, b1, b2, b3, neigh_n5_type, ppos, a1, a2, a3, neigh_n3_type, dF, T, use_mbf, mbf_finf);
         _update_stress_tensor<true>(p_st, -r, dF); // -r since r here is defined as r  = ppos - qpos
         F += dF;
