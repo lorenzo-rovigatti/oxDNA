@@ -28,7 +28,9 @@ CUDADNA3Interaction::~CUDADNA3Interaction() {
 }
 
 void CUDADNA3Interaction::get_settings(input_file &inp) {
+	Logger::instance()->disable_log("CUDADNA3Interaction");
     DNA3Interaction::get_settings(inp);
+	Logger::instance()->enable_log("CUDADNA3Interaction");
 }
 
 std::vector<float> CUDADNA3Interaction::_convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays) {
@@ -42,7 +44,9 @@ std::vector<float> CUDADNA3Interaction::_convert_param_array(const MultiDimArray
 
 void CUDADNA3Interaction::cuda_init(int N) {
     CUDABaseInteraction::cuda_init(N);
+	Logger::instance()->disable_log("CUDADNA3Interaction");
     DNA3Interaction::init();
+	Logger::instance()->enable_log("CUDADNA3Interaction");
 
     float f_copy = this->_hb_multiplier;
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));

@@ -63,7 +63,6 @@ void DNA2Interaction::get_settings(input_file &inp) {
 	DNAInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
-	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt concentration =  %g", _salt_concentration);
 
 	getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
 	//OX_LOG(Logger::LOG_INFO,"dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
@@ -124,7 +123,7 @@ void DNA2Interaction::init() {
 	}
 
 	// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide _T by 0.1
-	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
+	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
 	_minus_kappa = -1.0 / lambda;
 
 	// these are just for convenience for the smoothing parameter computation
@@ -138,21 +137,21 @@ void DNA2Interaction::init() {
 
 	number debyecut;
 	if(_grooving) {
-		debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
+		debyecut = 2.0 * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
 	}
 	else {
-		debyecut = 2.0f * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
+		debyecut = 2.0 * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
 	}
 	// the cutoff radius for the potential should be the larger of rcut and debyecut
 	if(debyecut > _rcut) {
 		_rcut = debyecut;
-		_sqr_rcut = debyecut * debyecut;
+		_sqr_rcut = SQR(_rcut);
 	}
 
 	// NB lambda goes into the exponent for the D-H potential and is given by lambda = lambda_k * sqrt((T/300K)/(I/1M))
 	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, _rcut);
 	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
-	OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature and salt concentration is %f", lambda);
+	OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature (%lf) and salt concentration (%lf) is %f", _T, _salt_concentration, lambda);
 }
 
 number DNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

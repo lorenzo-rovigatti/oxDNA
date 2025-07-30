@@ -295,6 +295,7 @@ void DNAInteraction::get_settings(input_file &inp) {
 }
 
 void DNAInteraction::init() {
+	_initialised = true;
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
 	number rcutback;
@@ -375,11 +376,13 @@ void DNAInteraction::init() {
 }
 
 void DNAInteraction::_on_T_update() {
-	_T = CONFIG_INFO->temperature();
-	number T_in_C = _T * 3000 - 273.15;
-	number T_in_K = _T * 3000;
-	OX_LOG(Logger::LOG_INFO, "Temperature change detected (new temperature: %.2lf C, %.2lf K), re-initialising the DNA interaction", T_in_C, T_in_K);
-	init();
+	// we only care about temperature changes if the interaction has been already initialised
+	if(_initialised) {
+		_T = CONFIG_INFO->temperature();
+		number T_in_C = _T * 3000 - 273.15;
+		number T_in_K = _T * 3000;
+		OX_LOG(Logger::LOG_INFO, "Temperature change detected (new temperature: %.2lf C, %.2lf K), re-initialising the DNA interaction", T_in_C, T_in_K);
+	}
 }
 
 bool DNAInteraction::_check_bonded_neighbour(BaseParticle **p, BaseParticle **q, bool compute_r) {

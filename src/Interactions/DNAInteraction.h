@@ -13,6 +13,8 @@
  */
 
 class DNAInteraction : virtual public BaseInteraction {
+private:
+	bool _initialised = false;
 protected:
 	bool _average;
 	std::string _seq_filename;

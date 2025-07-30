@@ -304,7 +304,9 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
 }
 
 void DNA3Interaction::init() {
+    Logger::instance()->disable_log("DNA3Interaction");
     DNA2Interaction::init();
+	Logger::instance()->enable_log("DNA3Interaction");
 
     // if we want to use the sequence dependence then we overwrite all the
     // parameters regarding interactions between true bases (i.e. the
@@ -935,7 +937,7 @@ void DNA3Interaction::init() {
         _rcut = fmax(rcutback_max, rcutbase_max);
         _sqr_rcut = SQR(_rcut);
 
-        number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
+        number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
         _minus_kappa = -1.0 / lambda;
 
         // these are just for convenience for the smoothing parameter computation
@@ -948,12 +950,16 @@ void DNA3Interaction::init() {
         _debye_huckel_RC = exs * (q * exs + 3. * q * la) / (q * (exs + la));
 
         // note: in oxdna3 POS_MM_BACK1 and POS_MM_BACK2 are the same for all nucleotides
-        number debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
+        number debyecut = 2.0 * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
         // the cutoff radius for the potential should be the larger of rcut and debyecut
         if(debyecut > _rcut) {
             _rcut = debyecut;
-            _sqr_rcut = debyecut * debyecut;
+            _sqr_rcut = SQR(_rcut);
         }
+
+        OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, _rcut);
+        OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
+        OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature (%lf) and salt concentration (%lf) is %f", _T, _salt_concentration, lambda);
 
         // build mesh for the f4s
         for(int int_type = 0; int_type < 21; int_type++) {
