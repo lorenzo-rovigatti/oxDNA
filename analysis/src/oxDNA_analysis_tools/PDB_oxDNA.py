@@ -37,7 +37,7 @@ class Residue():
     atom_lookup : Dict[str, Atom]
 
     def __init__(self, resn, resi):
-        self.resn = resn.strip('D35*')
+        self.resn = resn.strip('DR35*')
         self.resi = resi
         self.atoms = []
         self.sugar_atoms = []

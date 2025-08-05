@@ -11,7 +11,7 @@ def parse_dot_bracket(input:str) -> np.ndarray:
     """
     Converts a dot-bracket string to a list of paired nucleotides.
 
-    Accepts (), [], {}, and . characters, otherwise throws an error
+    Accepts (), [], {}, <>, and letters A-Z with the closing being the corresponding a-z.
 
     Parameters:
         input (str): A dot-bracket string

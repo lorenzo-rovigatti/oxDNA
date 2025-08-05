@@ -65,7 +65,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None
     """
 
     # Handle case where function was called from another script with incomplete arguments
-    if indexes == None:
+    if not indexes:
         indexes = list(range(top_info.nbases))
     if ref_conf == None:
         ref_conf_id = int(randrange(0, traj_info.nconfs))
