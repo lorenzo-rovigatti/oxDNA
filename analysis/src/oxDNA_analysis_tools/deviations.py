@@ -47,7 +47,7 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             | Root mean squared deviation for each configuration in the trajectory
             | Average fluctuation for each particle in the structure
     """
-    if indexes == None:
+    if not indexes:
         indexes = list(range(top_info.nbases))
 
     mean_conf = inbox(mean_conf)

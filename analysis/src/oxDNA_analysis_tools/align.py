@@ -90,7 +90,7 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None
         #read the first configuration and use it as the reference configuration for the rest
         ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
 
-    if indexes == None:
+    if not indexes:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf) # Don't need to center now because we're going to after indexing anyway.

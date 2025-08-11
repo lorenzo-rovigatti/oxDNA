@@ -54,7 +54,7 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
             | The configuration with the lowest RMSD to the reference
             | The RMSD from the centroid to the reference
     '''
-    if indexes == None:
+    if not indexes:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf)
