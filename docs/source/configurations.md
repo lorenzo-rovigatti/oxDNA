@@ -135,17 +135,19 @@ C = 2
 T = U = 3
 ```
 
-According to these values, two nucleotides interact through the Watson-Crick mechanism (*i.e.* can be hydrogen bonded) if the sum of their base types is 3. 
+According to these values, two nucleotides interact through the Watson-Crick mechanism (*i.e.* can be hydrogen bonded) if the sum of their base types (also known as **types**) is 3. 
 
-This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide of custom type X which is larger than 9 or smaller than 0 behaves as a nucleotide of type $X \bmod 4$ if $X$ is positive or $3 - ((3 - X) \bmod 4)$ if $X$ is negative, but can be hydrogen-bonded **only** with a nucleotide of type $X'$ for which $X + X' = 3$.
+This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide can be assigned a custom type X (called a **btype**) which is larger than 9 or smaller than 0. Such a nucleotide behaves as if it was of a type $X \bmod 4$ if $X$ is positive or $3 - ((3 - X) \bmod 4)$ if $X$ is negative, but can be hydrogen-bonded **only** with a nucleotide of btype $X'$ for which $X + X' = 3$.
 
 ```{note}
-In the classic topology format, custom nucleotide types are set by using numbers instead of letters. For instance, the following topology line specifies that the corresponding nucleotide (which is part of strand 1 and bonded to nucleotides 2 and 4) has a custom type `-10`: `1 -10 2 4`.
+In the classic topology format, custom nucleotide types are set by using numbers instead of letters. For instance, the following topology line specifies that the corresponding nucleotide (which is part of strand 1 and bonded to nucleotides 2 and 4) has a btype `-10`: `1 -10 2 4`.
 
-In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, with the third one having a custom type `-10`: `AA(-10)GCT type=DNA`.
+In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, with the third one having a btype `-10`: `AA(-10)GCT type=DNA`.
 ```
 
-For instance, $B = 13$, for which $B \bmod 4 = 1$, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with base type $B' = -10$.
+For instance, $X = 13$, for which $X \bmod 4 = 1$, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with btype $X' = -10$.
+
+For RNA, if sequence dependence is enabled and therefore wobble pairs are possible, it is also possible to specify custom btypes for GU pairs. In this case, the two nucleotides should have compatible types (*i.e.* one should be a G and the other one should be a U), but have btypes that sum up to 4.
 
 ```{warning}
 The CUDA backend supports base types whose absolute values do not exceed $2^{9} - 1 = 511$. In other words, base types larger than $511$ or smaller than $-511$ are not allowed.
