@@ -36,12 +36,7 @@ public:
     virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 };
 
-extern "C" BaseObservable * make_PLClusterTopology_float() { return new PLClusterTopology(); }
-extern "C" BaseObservable * make_PLClusterTopology_double() { return new PLClusterTopology(); }
-
-
-#endif /* PAIRENERGY_H_ */
-
+extern "C" BaseObservable * make_PLClusterTopology() { return new PLClusterTopology(); }
 
 
 #endif //OXDNA_PLCLUSTERTOPOLOGY_H

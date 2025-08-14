@@ -25,6 +25,32 @@ struct Edge {
     int src, dest;
 };
 
+
+// A class to represent a graph object
+class Graph
+{
+public:
+    // a vector of vectors to represent an adjacency list
+    vector<vector<int>> adjList;
+
+    // Graph Constructor
+    Graph(vector<Edge> const &edges, int n)
+    {
+        // resize the vector to hold `n` elements of type `vector<int>`
+        adjList.resize(n);
+
+        // add edges to the directed graph
+        for (auto &edge: edges)
+        {
+            // insert at the end
+            adjList[edge.src].push_back(edge.dest);
+
+            // uncomment the following code for undirected graph
+            // adjList[edge.dest].push_back(edge.src);
+        }
+    }
+};
+
 // Function to print adjacency list representation of a graph
 void printGraph(Graph const &graph, int n)
 {
@@ -62,11 +88,11 @@ void PLClusterTopology::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string PLClusterTopology::get_output_string(llint curr_step) {
 
-    PatchyShapeInteraction *interaction = dynamic_cast<PatchyShapeInteraction * >(this->_config_info.interaction);
+    PatchyShapeInteraction *interaction = dynamic_cast<PatchyShapeInteraction * >(CONFIG_INFO->interaction);
     interaction->check_patchy_locks();
 
     BaseParticle *p;
-    int N = *this->_config_info.N;
+    int N = CONFIG_INFO->N();
     int *cluster_membership = new int[N];
     for (int i = 0; i < N; i++)
         cluster_membership[i] = -1;
@@ -80,16 +106,16 @@ std::string PLClusterTopology::get_output_string(llint curr_step) {
 
     std::vector<std::vector<int>> adjList;
 
-    for (int i = 0; i < *this->_config_info.N; i++) {
-        p = this->_config_info.particles[i];
+    for (int i = 0; i < CONFIG_INFO->N(); i++) {
+        p = CONFIG_INFO->particles()[i];
         std::vector<BaseParticle *> neighs =
-                this->_config_info.lists->get_all_neighbours(p);
+                CONFIG_INFO->lists->get_all_neighbours(p);
 
         vector<int> i_neighbors;
 
         //printf("Particle %d has %d neighbors \n",i,neighs.size());
         for (unsigned int j = 0; j < neighs.size(); j++) {
-            pair_energy = this->_config_info.interaction->pair_interaction_term(
+            pair_energy = CONFIG_INFO->interaction->pair_interaction_term(
                     PatchyShapeInteraction::PATCHY, p, neighs[j]
             );
             if (pair_energy < 0 && i < neighs[j]->index) {
@@ -166,7 +192,7 @@ std::string PLClusterTopology::get_output_string(llint curr_step) {
                     }
                     else
                     {
-                        cluster_members.push_back( this->_config_info.particles[k]->type );
+                        cluster_members.push_back(CONFIG_INFO->particles()[k]->type );
                     }
                     isempty = false;
                 }
