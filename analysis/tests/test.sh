@@ -54,8 +54,20 @@ test "../src/oxDNA_analysis_tools/duplex_finder.py input_rna minitraj.dat"
 echo -n "Testing duplex_angle_plotter..."
 test "../src/oxDNA_analysis_tools/duplex_angle_plotter.py -o angle.png -i angles.txt 7 37"
 
-echo -n "Testing generate_force..."
-test "../src/oxDNA_analysis_tools/generate_force.py -f gen_pairs.txt input_rna minitraj.dat"
+echo -n "Testing generate_forces..."
+test "../src/oxDNA_analysis_tools/generate_forces.py -f gen_pairs.txt input_rna minitraj.dat"
+
+echo -n "Testing forces2pairs..."
+test "../src/oxDNA_analysis_tools/forces2pairs.py forces.txt -o test_pairs.txt"
+
+echo -n "Testing forces2db.py..."
+test "../src/oxDNA_analysis_tools/forces2db.py rna_tile.top forces.txt -o db.txt"
+
+echo -n "Testing pairs2db.py..."
+test "../src/oxDNA_analysis_tools/pairs2db.py rna_tile.top test_pairs.txt -o db2.txt"
+
+echo -n "Testing db2forces.py..."
+test "../src/oxDNA_analysis_tools/db2forces.py -o db_forces.txt db.txt"
 
 echo -n "Testing minify..."
 test "../src/oxDNA_analysis_tools/minify.py -a -d2 minitraj.dat min.dat"

@@ -3,7 +3,7 @@ from multiprocessing import Pool
 from typing import Callable, NamedTuple
 
 def get_chunk_size():
-    from oxDNA_analysis_tools.UTILS.chunksize import CHUNKSIZE
+    from oxDNA_analysis_tools.UTILS.constants import CHUNKSIZE
     return CHUNKSIZE
 
 # set_chunk_size is in config.py

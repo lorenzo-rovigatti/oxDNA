@@ -98,13 +98,13 @@
     :prog: oat distance
 ```
 
-## Dot-bracket to force
+## Dot-bracket to forces
 
 ```{eval-rst}
 .. argparse::
-    :filename: ../analysis/src/oxDNA_analysis_tools/db_to_force.py
+    :filename: ../analysis/src/oxDNA_analysis_tools/db2forces.py
     :func: cli_parser
-    :prog: oat db_to_force
+    :prog: oat db_to_forces
 ```
 
 ## Duplex angle plotter
@@ -154,9 +154,9 @@
 
 ```{eval-rst}
 .. argparse::
-    :filename: ../analysis/src/oxDNA_analysis_tools/generate_force.py
+    :filename: ../analysis/src/oxDNA_analysis_tools/generate_forces.py
     :func: cli_parser
-    :prog: oat generate_force
+    :prog: oat generate_forces
 ```
 
 ## Mean

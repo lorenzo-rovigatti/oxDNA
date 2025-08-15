@@ -364,10 +364,6 @@ IS THIS SOMETHING THAT SHOULD BE ADDED? HOW DOES THE LOGIC BEHAVE DIFFERENTLY?
 
 // this function is just a wrapper that inverts p and q
 
-inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n5_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en) {
-	throw oxDNAException("ERROR: called a function that should not be called; file %s, line %d", __FILE__, __LINE__);
-}
-
 inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en) {
 	BaseParticle * tmp1, *tmp2, *tmp3, *tmp4;
 	tmp1 = p->n3;
@@ -387,21 +383,15 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 	number rbackr0;
 	//OXDNA3
 	number fened;
-	int type_n3_2;
-	int type_n5_2;
 
-	DNA3Interaction * inter = dynamic_cast<DNA3Interaction *>(_interaction.get());
-	if( inter != NULL) {
+	DNA3Interaction *inter = dynamic_cast<DNA3Interaction *>(_interaction.get());
+	if(inter != NULL) {
 
-		type_n3_2 = 5;
-		type_n5_2 = 5;
+		int type_n3_2 = NO_TYPE;
+		int type_n5_2 = NO_TYPE;
 
-		if (q->n3 != P_VIRTUAL) { type_n3_2 = q->n3->type; }
-		if (p->n5 != P_VIRTUAL) { type_n5_2 = p->n5->type; }
-
-		//no need for this, since we broke the bonded complementary symetry
-		//if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-		//if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
+		if(q->n3 != P_VIRTUAL) { type_n3_2 = q->n3->type; }
+		if(p->n5 != P_VIRTUAL) { type_n5_2 = p->n5->type; }
 
 		rbackr0 = rback.module() - inter->get_fene_r0_SD(type_n3_2,q->type,p->type,type_n5_2);
 		fened = inter->get_fene_delta_SD(type_n3_2,q->type,p->type,type_n5_2);
@@ -631,7 +621,6 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr *moveptr, int maxsize
 			if(!qq->inclust) {
 
 				E_old = pp->en5;
-				//E_pp_moved = _particle_particle_bonded_interaction_n5_VMMC (pp, qq, &stack_temp);
 				E_pp_moved = _particle_particle_bonded_interaction_n3_VMMC(qq, pp, &stack_temp);
 
 				test1 = VMMC_link(E_pp_moved, E_old);
@@ -640,7 +629,6 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr *moveptr, int maxsize
 					store_particle(qq);
 					_move_particle(moveptr, qq, pp);
 
-					//E_qq_moved = _particle_particle_bonded_interaction_n5_VMMC (_particles_old[pp->index], qq);
 					E_qq_moved = _particle_particle_bonded_interaction_n3_VMMC(qq, _particles_old[pp->index]);
 
 					test2 = VMMC_link(E_qq_moved, E_old);
@@ -778,7 +766,6 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr *moveptr, int maxsize
 		if(pp->n5 != P_VIRTUAL) {
 			qq = pp->n5;
 			if(qq->inclust == false) {
-				//epq_new = _particle_particle_bonded_interaction_n5_VMMC (pp, qq, &tmpf_new);
 				epq_new = new_en5s[pp->index];
 				tmpf_new = new_stn5s[pp->index];
 
@@ -986,7 +973,6 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr *moveptr, int maxsize
 			if(!qq->inclust) {
 
 				E_old = pp->en5;
-				//E_pp_moved = _particle_particle_bonded_interaction_n5_VMMC (pp, qq, &stack_temp);
 				E_pp_moved = _particle_particle_bonded_interaction_n3_VMMC(qq, pp, &stack_temp);
 
 				test1 = VMMC_link(E_pp_moved, E_old);
@@ -998,10 +984,6 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr *moveptr, int maxsize
 					// in case we have recruited because of an overlap
 					_overlap = false;
 
-					//_r_move_particle(moveptr, pp);
-					//E_qq_moved = _particle_particle_bonded_interaction_n5_VMMC (pp, qq);
-					//_move_particle(moveptr, pp);
-					//E_qq_moved = _particle_particle_bonded_interaction_n5_VMMC (_particles_old[pp->index], qq);
 					E_qq_moved = _particle_particle_bonded_interaction_n3_VMMC(qq, _particles_old[pp->index]);
 
 					test2 = VMMC_link(E_qq_moved, E_old);
@@ -1398,7 +1380,6 @@ void VMMC_CPUBackend::sim_step() {
 
 		// seed particle;
 		int pi = (int) (drand48() * N());
-		BaseParticle *p = _particles[pi];
 
 		// select the move
 		movestr move;
@@ -1443,7 +1424,7 @@ void VMMC_CPUBackend::sim_step() {
 		// forces. Otherwise, there is no point.
 		if(_overlap == false && pprime > 0.) {
 			for(int l = 0; l < nclust; l++) {
-				p = _particles[clust[l]];
+				BaseParticle *p = _particles[clust[l]];
 				delta_E_ext += -p->ext_potential;
 				p->set_ext_potential(current_step(), _box.get());
 				delta_E_ext += +p->ext_potential;

@@ -108,10 +108,7 @@ protected:
 	inline number _excluded_volume(const LR_vector &r, number sigma, number rstar, number b, number rc);
 	inline number _excluded_volume_faster(const LR_vector &r, const number sigma, const number rstar, const number b, const number rc);
 
-	number _compute_energy_n2();
 	void _compute_energy();
-
-	number _particle_particle_bonded_interaction_n5_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en = 0);
 
 	/**
 	 * @brief Computes the bonded interactions given a pair of particles.

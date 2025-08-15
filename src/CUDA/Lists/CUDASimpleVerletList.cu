@@ -13,6 +13,7 @@
 #include "../../Particles/BaseParticle.h"
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
+#include <thrust/host_vector.h>
 #include <thrust/scan.h>
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>
@@ -137,7 +138,7 @@ void CUDASimpleVerletList::_init_cells(c_number4 *poss) {
 
 		_max_N_per_cell = std::round(_max_density_multiplier * _largest_N_in_cells(poss, std::sqrt(_sqr_rverlet)));
 		if(_max_N_per_cell > _N) {
-			_max_N_per_cell = _N;
+			_max_N_per_cell = _N + 1;
 		}
 		if(_max_N_per_cell < 5) {
 			_max_N_per_cell = 5;

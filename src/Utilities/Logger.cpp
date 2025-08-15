@@ -82,6 +82,19 @@ void Logger::init() {
 	_logger = std::shared_ptr<Logger>(new Logger());
 }
 
+void Logger::disable_log(std::string disabler) {
+	if(_allow_log) {
+		_disabler = disabler;
+		_allow_log = false; 
+	}
+}
+
+void Logger::enable_log(std::string disabler) { 
+	if(_disabler == disabler) {
+		_allow_log = true; 
+	}
+}
+
 std::shared_ptr<Logger> Logger::instance() {
 	if(_logger == nullptr) {
 		throw oxDNAException("Trying to access an uninitialised logger");

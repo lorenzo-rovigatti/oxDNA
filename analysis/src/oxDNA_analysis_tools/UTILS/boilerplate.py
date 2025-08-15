@@ -1,5 +1,4 @@
 import oxpy
-from oxpy import InputFile
 from os.path import join, abspath, dirname, exists, basename
 from os import mkdir, getpid,chdir, getcwd
 from multiprocessing import Process
@@ -16,6 +15,8 @@ from IPython.display import display, IFrame
 import numpy as np
 from functools import wraps
 import subprocess
+from typing import List, Union, Dict
+import contextlib 
 
 default_input_file = {
     "T" :"20C",
@@ -45,6 +46,31 @@ default_input_file = {
     #"max_density_multiplier":""
 }
 
+
+
+
+class PathContext(contextlib.ContextDecorator):
+    """Class handling the temporary change of path required for the simulations"""
+    def __init__(self, out_dir):
+        self.out_dir = out_dir
+        self.old_path = None
+
+    def __enter__(self):
+        self.old_path = getcwd()
+        chdir(self.out_dir)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        chdir(self.old_path)
+
+def path_decorator(func):
+    """Helper to wrap the PathContext around the Simulation Class Methods"""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        with PathContext(self.out_dir):
+            return func(self, *args, **kwargs)
+    return wrapper
+
+
 def get_default_input():
     """
         returns a deepcopy of the default input file
@@ -58,16 +84,16 @@ def dump_json(obj:dict[str,str], path:str):
     with open(path, "w+") as file:
         file.write(dumps(obj))
         
-def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[str,str], force_dict={}, kill_out_dir=False):
+def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:Dict[str,str], force_dict:Union[Dict[str,str],None]=None, kill_out_dir=False):
     """
         sets up a simulation in the given output directory
         
-        top_path: path to the topology file
-        dat_path: path to the initial configuration
-        out_dir: path to the output directory
-        parameters: dictionary of parameters to set
-        force_dict: dictionary of forces to set (if empty no forces are set)
-        kill_out_dir: if true, the output directory will be deleted if present
+        top_path (str): path to the topology file
+        dat_path (str): path to the initial configuration
+        out_dir (str): path to the output directory
+        parameters (dict[str,str]): dictionary of parameters to set
+        force_dict (dict): dictionary of forces to set (if empty no forces are set)
+        kill_out_dir (bool): if true, the output directory will be deleted if present
     """
     if(exists(out_dir) and not kill_out_dir):
         raise Exception("the output dir is already present, use kill_out_dir to override")
@@ -79,7 +105,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
             rmtree(out_dir)
     mkdir(out_dir)
     #set up input file
-    input_file = InputFile()
+    input_file = oxpy.InputFile()
     
     # copy the topology over if not present
     out_top = join(out_dir,basename(top_path))
@@ -105,7 +131,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
     # if we have defined forces we need to 
     # 1) build the file
     # 2) add it to the input_file
-    if(len(force_dict) > 0):
+    if force_dict:
         force_path = join(out_dir, "forces.json")
         dump_json(force_dict, force_path)
         input_file["external_forces_as_JSON"] = "true"
@@ -129,37 +155,23 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
 # our typical run function for a provided dictionary input file 
 def _prun(input_file_path:str):
     with oxpy.Context():
+        path = dirname(abspath(input_file_path))
         # change to the directory of the input file path
-        chdir(dirname(abspath(input_file_path)))
-        input_file = InputFile()
-        input_file.init_from_filename(basename(input_file_path))
-        manager = oxpy.OxpyManager(input_file)
-        manager.run_complete() #run complete run's it till the number steps specified are reached 
+        with PathContext(path):
+            input_file = oxpy.InputFile()
+            input_file.init_from_filename(basename(input_file_path))
+            manager = oxpy.OxpyManager(input_file)
+            manager.run_complete() #run complete run's it till the number steps specified are reached 
             
-
-def path_decorator(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        # Save the current path
-        old_path = getcwd()
-        # Change the path to self.__out_dir
-        chdir(self.out_dir)
-        # Call the original method
-        result = func(self, *args, **kwargs)
-        # Restore the original path
-        chdir(old_path)
-        return result
-    return wrapper
-
 
 class Simulation:
     def __init__(self, input_file_path:str):
         """
             creates a simulation object from the given input file path
 
-            input_file_path: path to the input file
+            input_file_path (str): path to the input file
         """
-        self.input_file = InputFile()
+        self.input_file = oxpy.InputFile()
         self.input_file.init_from_filename(input_file_path)
         self.p = None # the process refference
         self.out_dir = dirname(abspath(input_file_path))
@@ -184,19 +196,25 @@ class Simulation:
         return (ti,di), get_confs(ti, di, 0,1)[0]
         
     
-    def view_init(self):
+    def view_init(self, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the initial configuration in an embeded oxDNA viewer window
+
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_init_conf()        
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
                           
-    def view_last(self):
+    def view_last(self, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the last configuration in an embeded oxDNA viewer window
+
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_last_conf()
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
     
     @path_decorator
     def get_conf_count(self):
@@ -221,20 +239,25 @@ class Simulation:
         else:
             raise Exception("You requested a conf out of bounds.")
 
-    def view_conf(self, id:int):
+    def view_conf(self, id:int, inbox_settings:List[str] =  ["Monomer", "Origin"], height:int = 500):
         """ 
             opens the configuration at the given index in the trajectory as an embeded oxDNA viewer window
+
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         (ti,di), conf = self.get_conf(id)
-        oxdna_conf(ti, conf)
+        oxdna_conf(ti, conf, inbox_settings=inbox_settings, height=height)
     
 
-    def view_traj(self,  init = 0, op=None):
+    def view_traj(self,  init:int = 0, op=None, inbox_settings:List[str] = ["Monomer", "Origin"], height:int = 500):
         """
             opens the trajectory in an embeded oxDNA viewer window
 
-            init: the initial configuration to start the trajectory from
+            init (int): the initial configuration to start the trajectory from
             op: an optional observable to plot along side the trajectory
+            inbox_settings (List[str]): a list of strings, the inbox settings to use
+            height (int): height of the view
         """
         # get the initial conf and the reference to the trajectory 
         (ti,di), cur_conf = self.get_conf(init)
@@ -263,7 +286,7 @@ class Simulation:
                     print(init)
                     plt.plot([slider.value,slider.value],[min_v, max_v], color="r")
                     plt.show()
-                oxdna_conf(ti,conf)
+                oxdna_conf(ti,conf, inbox_settings=inbox_settings, height=height)
                 
         slider.observe(handle)
         display(slider,output)
@@ -293,42 +316,42 @@ class Simulation:
         
         self.p.start()
         return self
-    
-    # @path_decorator
-    # TODO: possibly add this to the api
-    # def align(self, p=2):
-    #     """
-    #         aligns the trajectory to the last configuration
-    #     """
-    #     with oxpy.Context():
-    #         input_file = InputFile()
-    #         input_file.init_from_filename(basename(self.__input_file_path))
-    #         print(input_file["trajectory_file"])
-
-    #         # run shell command oat align 
-    #         subprocess.run(["oat", "align", "-p", str(p), input_file["trajectory_file"], "aligned.dat"])
-    #         with open(basename(self.__input_file_path),"w+") as file:
-    #             file.write("aligned = aligned.dat")
-    
+       
     @path_decorator
-    def plot_energy(self):
+    def plot_energy(self, ylim = [-2,0]):
         """
             plots the energy graph of the running simulation
         """
-        df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','P','K'])
-        dt = float(self.input_file["dt"])
-        steps = float(self.input_file["steps"])
+        if self.input_file["sim_type"] == "MD":
+            df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','P','K'])
+            dt = float(self.input_file["dt"])
+            steps = float(self.input_file["steps"])
 
-        # make sure our figure is bigger
-        plt.figure(figsize=(15,3)) 
-        # plot the energy
-        plt.plot(df.time/dt,df.U)
+            # make sure our figure is bigger
+            plt.figure(figsize=(15,3)) 
+            # plot the energy
+            plt.plot(df.time/dt,df.U)
 
-        plt.ylabel("Energy")
-        plt.xlabel("Steps")
-        # and the line indicating the complete run
-        plt.ylim([-2,0])
-        plt.plot([steps,steps],[0,-2], color="r")
+            plt.ylabel("Energy")
+            plt.xlabel("Steps")
+            # and the line indicating the complete run
+            plt.ylim(ylim)
+            plt.plot([steps,steps],ylim, color="r")
+        else:
+            # assume we have MC
+            df = pd.read_csv(self.input_file["energy_file"], delimiter="\s+",names=['time', 'U','accept_translaitons','accept_rotations', 'smth'])
+            steps = float(self.input_file["steps"])
+
+            # make sure our figure is bigger
+            plt.figure(figsize=(15,3)) 
+            # plot the energy
+            plt.plot(df.time,df.U)
+
+            plt.ylabel("Energy")
+            plt.xlabel("Steps")
+            # and the line indicating the complete run
+            plt.ylim(ylim)
+            plt.plot([steps,steps],ylim, color="r")
 
     def terminate(self):
         """
