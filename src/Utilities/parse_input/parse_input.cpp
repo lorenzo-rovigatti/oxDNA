@@ -37,10 +37,10 @@ void input_value::expand_value(std::map<std::string, std::string> expanded_depen
 	}
 
 	// here we match patterns that are like this: ${some_text}, and we use parentheses to make sure that the second element of the std::smatch is "some_text"
-	std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
+	static const std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
 	std::smatch m;
 	std::string to_search = expanded_value;
-	exprtk::parser<double> parser;
+	static exprtk::parser<double> parser;
 	while(std::regex_search(to_search, m, pattern)) {
 		exprtk::expression<double> expression;
 
@@ -257,7 +257,7 @@ void input_file::set_value(std::string key, std::string value) {
 	// now we update the dependencies
 
 	// here we match patterns that are like this: $(some_text), and we use parentheses to make sure that the second element of the std::smatch is "some_text"
-	std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped or the compiler complains
+	static const std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped or the compiler complains
 
 	std::smatch m;
 	while(std::regex_search(value, m, pattern)) {
