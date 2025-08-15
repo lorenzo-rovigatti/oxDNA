@@ -1924,7 +1924,6 @@ void PatchyShapeInteraction::_init_patchy_locks(std::shared_ptr<ConfigInfo> Info
 
 void PatchyShapeInteraction::check_patchy_locks(std::shared_ptr<ConfigInfo> Info)
 {
-	printf ("here i am...\n");
 	if (Info == NULL) {
 		Info = ConfigInfo::instance();
 	}
