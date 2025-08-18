@@ -10,6 +10,9 @@ import os
 path_opticode=os.path.dirname(os.path.realpath(__file__))
 
 
+opti_cov = True
+
+
 bases = ['A','C','G','T']
 
 Nseq = 0 #number of sequences
@@ -66,5 +69,5 @@ modelh = path_opticode+"/model.h"
 
 stck_fact_eps = 0.18 #for reweighting temperature
 
-twist_correction = 0.043633  #Add 0.5deg to the target twist. This is to adjust the pitch length
+twist_correction = -0.043633  #Remove 0.5deg to the target twist. This is to adjust (increase) the pitch length
 

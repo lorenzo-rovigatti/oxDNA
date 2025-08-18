@@ -39,10 +39,10 @@ if sys.argv[4] == 0:
     
 """
 
-N = 40
-bps = 15
+N = 100
+bps = 5
 Ct = 0.000672
-Cs = 0.15
+Cs = 0.5
 uni_T = True
 
 class Sequence :
@@ -60,33 +60,66 @@ class Sequence :
         self.mT = MT
         
 
-def loop_seqs(seq,n,SEQS) :
+
+SEQS = []
+def loop_seqs(seq,n) :
+    global SEQS
     if n>0 :
         for i in range(4) :
            seq[n-1] = i
-           loop_seqs(seq,n-1,SEQS)
+           loop_seqs(seq,n-1)
     else:        
         SEQS.append(Sequence(seq))
-        
-        
-def search_complementary(s,seqs) :
-    
-    s_rev= ""                                                   
+
+
+def loop_seqs_cutoff(seq,n) :
+    global SEQS
+    if n>0 :
+        for i in range(4) :
+           seq[n-1] = i
+           loop_seqs_cutoff(seq,n-1)
+    else:
+        tmp = Sequence(seq)
+        if tmp.mT > 12:
+            #print(tmp.mT)
+            SEQS.append(tmp)
+
+
+def search_reverse(s,seqs) :
+
+    s_rev= ""
     s_rev = "".join(reversed(s.seq))
 
     for i in sampled :
         if i.seq == s_rev :
             return True
-        
+
     return False
 
-SEQS = []
+comple = {
+ 'A':'T',
+ 'C':'G',
+ 'G':'C',
+ 'T':'A'
+}
+
+def search_complementary(s) :
+    s_rev= ""
+    for i in range(len(s.seq)-1,-1,-1):
+        s_rev+=comple[s.seq[i]]
+
+    for i in sampled :
+        if i.seq == s_rev :
+            return True
+
+    return False
 
 seq = np.zeros(bps,dtype=int)
 
 #generate all sequences
-loop_seqs(seq,bps,SEQS)
+loop_seqs_cutoff(seq,bps)
 
+print("using cutoff 12 C.")
 
 #sort sequences in ascending melting temperature
 SEQS.sort(key=lambda x: x.mT)
@@ -121,33 +154,42 @@ delta = int(len(SEQS)/N)
 
 sampled = []
 
+coarse = 50
+
 if uni_T :  
     
     #uniform mT sampling  
     
-    delta = (SEQS[len(SEQS)-1].mT - SEQS[0].mT)/N
+    delta = coarse*(SEQS[len(SEQS)-1].mT - SEQS[0].mT)/N
     
     k0 = 0
     
-    for n in range(N) :
+    for n in range(int(N/coarse)) :
         
-        #print(n)
+        print(n)
         
         tmT = SEQS[0].mT+(n+1)*delta
         
         #print(tmT)
         
         for k in range(k0,len(SEQS)-1) :
-                
+            print(k0,k)
             if SEQS[k].mT <= tmT and (SEQS[k+1].mT >= tmT or k == len(SEQS)-2):
                 
-                r = random.randint(k0, k)
-                
+                sampled_ids = []
+                while len(sampled_ids) < coarse:
+                    r = random.randint(k0, k)
+                    if r in sampled_ids or search_complementary(SEQS[r]):
+                        continue
+                    else:
+                        sampled_ids.append(r)
+                        sampled.append(SEQS[r])
                 #print(r)
                 
-                sampled.append(SEQS[r])
+                #sampled.append(SEQS[r])
                 
-                k0 = k+1
+                k0 = k
+                break
 
 else:
     
@@ -164,6 +206,7 @@ else:
                 sampled.append(SEQS[r])
                 break
             
+sampled.sort(key=lambda x: x.mT)
             
 ofile = open("gen_seqs_n"+str(bps)+".txt", 'w')
 
@@ -172,4 +215,27 @@ for seq in sampled :
 
 ofile.close()
 
-        
+ofile = open("for_melting_script.txt", 'w')
+line1 = "seqs=( "
+line2 = "OP_files=( "
+line3 = "W_files=( "
+line4 = "nbps=( "
+line5 = "mTs=( "
+for seq in sampled:
+    line1+=seq.seq+" "
+    line2+="op_n5.txt "
+    line3+="wfile_n5.txt "
+    line4+="5 "
+    line5+=str(round(seq.mT))+" "
+line1+=")"
+line2+=")"
+line3+=")"
+line4+=")"
+line5+=")"
+print(line1,file=ofile)
+print(line2,file=ofile)
+print(line3,file=ofile)
+print(line4,file=ofile)
+print(line5,file=ofile)
+
+ofile.close()

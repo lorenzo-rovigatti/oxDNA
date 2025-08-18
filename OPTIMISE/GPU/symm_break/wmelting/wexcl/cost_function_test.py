@@ -259,7 +259,7 @@ def init_tensors(dev, fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_
 
     #UPDATE_MASK = torch.zeros(len(PARS_LIST),256,device=device) # 1 if parameter is optimised, 0 otherwise
 
-    INTERNAL_COORDS = torch.tensor(internal_coords,device=device)
+    INTERNAL_COORDS = torch.tensor(internal_coords,dtype=float,device=device)
 
     TARGET_MU = torch.tensor(target_mu,dtype=float,device=device)
     TARGET_COV = torch.tensor(target_cov,dtype=float,device=device)
@@ -1084,6 +1084,7 @@ def reduce_targets() :
     global MU_RED_TARGET_COV
     global MU_RED_TARGET_COV_m1
 
+
     if cg.opti_cov:
         TMP = TARGET_COV[:,:,COV_RED_IDS]
         COV_RED_TARGET_COV = TMP[:,COV_RED_IDS]
@@ -1146,15 +1147,13 @@ def reduce_targets() :
         sx,sy,sz = COV_RED_TARGET_COV.size()
         COV_RED_TARGET_COV_m1 = torch.zeros(sx,sy,sz,dtype=float,device=device)
 
-        sx,sy,sz = MU_RED_TARGET_COV.size()
-        MU_RED_TARGET_COV_m1 = torch.zeros(sx,sy,sz,dtype=float,device=device)
-
         for l in range(cg.Nseq) :
             for i in range(len(COV_RED_TARGET_COV[l])):
                 COV_RED_TARGET_COV_m1[l][i][i] = 1/COV_RED_TARGET_COV[l][i][i]
 
-            #COV_RED_TARGET_COV_m1[l] = torch.linalg.inv( COV_RED_TARGET_COV[l] )
-            #MU_RED_TARGET_COV_m1[l] = torch.linalg.inv( MU_RED_TARGET_COV[l] )
+
+    sx,sy,sz = MU_RED_TARGET_COV.size()
+    MU_RED_TARGET_COV_m1 = torch.zeros(sx,sy,sz,dtype=float,device=device)
 
     for l in range(cg.Nseq) :
         for i in range(len(MU_RED_TARGET_COV[l])):
@@ -1192,8 +1191,8 @@ def compute_initial_energy() :
     SHIFT_STCK, SHIFT_HYDR = FIX_ENSLAVED(PARS_IN, False) #fix enslaved parameters
 
     #FENE
-    EN_FENE_IN = -PARS_IN[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS_IN[par_index[1]][TYPES_BN] )/PARS_IN[par_index[3]][TYPES_BN])
-    #EN_FENE_IN = torch.where(torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001,TMP,5)
+    TMP = -PARS_IN[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS_IN[par_index[1]][TYPES_BN] )/PARS_IN[par_index[3]][TYPES_BN])
+    EN_FENE_IN = torch.where(torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001,TMP,5)
 
     MASK = torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001 #exclude configurations with bad energy
     HB_CONF_MASK_FENE = torch.all(MASK, dim=-1)
@@ -1564,7 +1563,6 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
         aveTH6A = torch.mean(CURR_PARS[65])
         CURR_PARS[65] = aveTH6A
 
-
     #delta2 ###
     #delta2 = delta^2
     CURR_PARS[3] = torch.square( CURR_PARS[2] )
@@ -1663,7 +1661,7 @@ def COST(PARS) :
 
     #impose symmetries
     VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,SYMM_LIST )
-    CURR_PARS.put_(SYMM_LIST_SYMM,VALS)
+    #CURR_PARS.put_(SYMM_LIST_SYMM,VALS)
 
     SH_ST, SH_HY = FIX_ENSLAVED(CURR_PARS,True)
 
@@ -1684,20 +1682,33 @@ def COST(PARS) :
     #D3 = torch.where(CRST_33_MOD_IN > 0, EN_CRST_33_IN*(1-CRST_33_MOD_REW/(CRST_33_MOD_IN+1e-12)), ZEROS_UNBN)
     #D4 = torch.where(CRST_55_MOD_IN > 0, EN_CRST_55_IN*(1-CRST_55_MOD_REW/(CRST_55_MOD_IN+1e-12)), ZEROS_UNBN)
 
-
     ARG = 10*torch.sum( D1,dim=2 ) + 10*torch.sum( D2+D3+D4,dim=2 )
+
+    print("D1")
+    print(D1.sum(dim=2))
+    print("D2")
+    print(D2.sum(dim=2))
+    print("D3")
+    print(D3.sum(dim=2))
+    print("D4")
+    print(D4.sum(dim=2))
     #the product with HB_CONF_MASK sets the weight of unwanted confs to 0
-    WEIGHTS = torch.exp( torch.where(ARG < 40, ARG, 40) )*HB_CONF_MASK #cutoff on max energy difference
+    WEIGHTS = torch.exp( ARG )    #*HB_CONF_MASK #cutoff on max energy difference
     #WEIGHTS = torch.exp( 10*torch.sum( D1,dim=2 ) + 10*torch.sum( D2+D3+D4,dim=2 ) )
 
     #normailise weights
     NORM = 1/WEIGHTS.sum(dim=1)
     WEIGHTS = NORM.unsqueeze(1)*WEIGHTS
 
+    #print(WEIGHTS.sum(dim=1))
+
     #compute reweighted average
-    REW_MU = torch.sum(WEIGHTS.unsqueeze(2)*INTERNAL_COORDS,dim=1)  #sum because weights are normalised
+    #REW_MU = torch.sum(WEIGHTS.unsqueeze(2)*INTERNAL_COORDS,dim=1)  #sum because weights are normalised
+
+    REW_MU = torch.einsum('ijk,ij->ik', INTERNAL_COORDS, WEIGHTS)
 
     #compute reweighted covariance
+    """
     DIFF = INTERNAL_COORDS - REW_MU.unsqueeze(1)
 
     sx,sy,sz = INTERNAL_COORDS.size()
@@ -1705,9 +1716,12 @@ def COST(PARS) :
 
     PROD = WEIGHTS.unsqueeze(2).unsqueeze(2)*torch.bmm(DIFF.unsqueeze(2), DIFF.unsqueeze(1)).reshape(sx,sy,sz,sz) #just magic
     REW_COV = PROD.sum(dim=1)
+    """
 
+    REW_MU2 = torch.sum(WEIGHTS.unsqueeze(2)*torch.square(INTERNAL_COORDS),dim=1)  #sum because weights are normalised
+    REW_STD = REW_MU2 - torch.square(REW_MU)
 
-    CURR_REW_COV = torch.clone(REW_COV)
+    #CURR_REW_COV = torch.clone(REW_COV)
 
     #global MU_RED_TARGET_MU
     #print(REW_MU)
@@ -1735,14 +1749,19 @@ def COST(PARS) :
     #reduce reweighted covariances
     #TMP = REW_COV[:,:,COV_RED_IDS]
     #COV_RED_REW_COV = TMP[:,COV_RED_IDS]
-    TMP = REW_COV[:,:,MU_RED_IDS]
-    MU_RED_REW_COV = TMP[:,MU_RED_IDS]
+
+    #TMP = REW_COV[:,:,MU_RED_IDS]
+    #MU_RED_REW_COV = TMP[:,MU_RED_IDS]
+    MU_RED_REW_STD = REW_STD[:,MU_RED_IDS]
+
     MU_RED_REW_MU = REW_MU[:,MU_RED_IDS]
 
     DELTA = MU_RED_REW_MU - MU_RED_TARGET_MU
 
+    #print(DELTA)
+    #print(MU_RED_TARGET_COV_m1)
     #GROUND STATE
-    S = 0.5*torch.einsum('ij,ij->i',DELTA, torch.einsum('ijk,ij->ik',MU_RED_TARGET_COV_m1, DELTA))
+    S = 0.5*torch.einsum('ij,ij->i',DELTA, torch.einsum('ijk,ij->ik',MU_RED_TARGET_COV_m1, DELTA)).sum(dim=0)
 
     #If we optimise the covariance, we add this bit to the cost of the GS
 
@@ -1750,9 +1769,11 @@ def COST(PARS) :
     DIA_MRRC_m1 = 1/DIA_MRRC
     #MRRC_m1 = torch.linalg.inv(MU_RED_REW_COV)
 
-    S += 0.5*torch.einsum('ij,ij->i',DELTA, DIA_MRRC_m1*DELTA)
+    #S += 0.5*torch.einsum('ij,ij->i',DELTA, DIA_MRRC_m1*DELTA)
+    #THIS!
+    #S += 0.5*torch.einsum('ij,ij->i',DELTA, DELTA/(MU_RED_REW_STD+1e-12)).sum(dim=0)
 
-    S = S.sum(dim=0)
+    #S = S.sum(dim=0)
 
     #COVARIANCE
 
@@ -1760,12 +1781,15 @@ def COST(PARS) :
     #This is why we use the diagonal only
 
     if cg.opti_cov :
-        TMP = REW_COV[:,:,COV_RED_IDS]
-        COV_RED_REW_COV = TMP[:,COV_RED_IDS]
+        #TMP = REW_COV[:,:,COV_RED_IDS]
+        #COV_RED_REW_COV = TMP[:,COV_RED_IDS]
+
+        COR_RED_REW_STD = REW_STD[:,COV_RED_IDS]
 
         DIA_CRTC = torch.diagonal(COV_RED_TARGET_COV, 0, 1, 2)
         DIA_CRTC_m1 = torch.diagonal(COV_RED_TARGET_COV_m1, 0, 1, 2)
-        DIA_CRRC = torch.diagonal(COV_RED_REW_COV, 0, 1, 2)
+        DIA_CRRC = COR_RED_REW_STD
+        #DIA_CRRC = torch.diagonal(COV_RED_REW_COV, 0, 1, 2)
         #DIA_CRRC_m1 = torch.diagonal(torch.linalg.inv(COV_RED_REW_COV), 0, 1, 2)
 
         #offset covariance so that Target and reweighted have the same average. In this way we are optimising the shape and not the average (i.e. persistence length)

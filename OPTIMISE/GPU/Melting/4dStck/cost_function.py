@@ -1780,11 +1780,14 @@ def add_opti_par(name) :
     if len(vals_cn) == 0:
         return
     if vals_cn[0] == "STCK" and len(vals_cn) == 3:
-            ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5
-            OPT_PAR_LIST.append( [PARS_LIST.index("STCK_EPS"),ty])
+        ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5
+        OPT_PAR_LIST.append( [PARS_LIST.index("STCK_EPS"),ty])
+    elif vals_cn[0] == "STCK" and len(vals_cn) == 5: #4d stck
+        ty=fun.base_to_id(vals_cn[len(vals_cn)-4])+fun.base_to_id(vals_cn[len(vals_cn)-3])*5+fun.base_to_id(vals_cn[len(vals_cn)-2])*5*5+fun.base_to_id(vals_cn[len(vals_cn)-1])*5*5*5    #from base 4 to base 10
+        OPT_PAR_LIST.append( [PARS_LIST.index("STCK_EPS"),ty])
     elif vals_cn[0] == "HYDR" and len(vals_cn) == 3:
-                ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5   #from base 4 to base 10
-                OPT_PAR_LIST.append( [PARS_LIST.index("HYDR_EPS"),ty] )
+        ty=fun.base_to_id(vals_cn[1])*5+fun.base_to_id(vals_cn[2])*5*5   #from base 4 to base 10
+        OPT_PAR_LIST.append( [PARS_LIST.index("HYDR_EPS"),ty] )
     elif vals_cn[0] == "HYDR" or (vals_cn[0] == "CRST" and vals_cn[1] == "K") :
         par_name = vals_cn[0]
         for i in range(1,len(vals_cn)-2):
@@ -2109,7 +2112,8 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
     #skip strengths, and average everything else
     mask = torch.zeros((CURR_PARS.shape[0],CURR_PARS.shape[1]), dtype=torch.bool,device=device)
     mask[:,ENDS]=True
-    mask[[4,44,77,116],:]=False
+    #mask[[4,44,77,116],:]=False
+    mask[[4,77,116],:]=False  #allow 4d stck strength
 
     ENDS_VALS = torch.mean(CURR_PARS[:,NOENDS],dim=1)
     s1 = ENDS_VALS.shape[0]
@@ -2687,6 +2691,8 @@ def compute_rew_energy_n5(PARS) :
     #print(PARS_IN[par_index[44]])
 
     #STACKING
+
+    SH_ST, SH_HY = FIX_ENSLAVED(PARS, False) #need to compute stck strength at junction ends
 
     EN_STCK_REW_n5 = EN_STCK_IN_n5*PARS[par_index[44]][TYPES_BN_n5]/PARS_IN[par_index[44]][TYPES_BN_n5]
 

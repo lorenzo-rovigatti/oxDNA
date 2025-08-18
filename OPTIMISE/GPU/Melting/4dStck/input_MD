@@ -3,10 +3,9 @@ backend = CPU
 debug = 1
 sim_type = MD
 seed = 1
-equilibration_steps = 5e5
 
 ####    SIM PARAMETERS    ####
-steps = 1e6
+steps = 1e7
 newtonian_steps = 103
 diff_coeff = 2.50
 #pt = 0.99
@@ -14,7 +13,7 @@ thermostat = john
 
 T = 300K	#cgna+ - 20C
 dt = 0.005
-verlet_skin = 0.1
+verlet_skin = 0.05
 salt_concentration = 0.15	#same as in cgdna+
 interaction_type = DNA3
 
@@ -26,23 +25,22 @@ small_system = 1
 
 ####    INPUT / OUTPUT    ####
 topology = generated.top
-conf_file = last_conf.dat
+conf_file = generated.dat
 trajectory_file = trajectory.dat
 refresh_vel = 1
 log_file = log.dat
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.dat
-#Autocorrelation time for 24bp ox3 ave is ~130 timesteps
-print_conf_interval = 1000
-print_energy_every = 1000
+print_conf_interval = 2e4
+print_energy_every = 1e4
 time_scale = linear
 external_forces = 0
 #max_backbone_force = 1
 
 data_output_1 = {
 name = split_energy.dat
-print_every = 1000
+print_every = 2e4
 col_1 = {
 type = step
 }

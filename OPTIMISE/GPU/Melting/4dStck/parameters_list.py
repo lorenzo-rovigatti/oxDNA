@@ -308,7 +308,7 @@ for i in range(117,155) :
     perm_symm_ids_4d.append(i)
 
 #nosymm_ids_2d = [44]
-nosymm_ids_2d = [44]
+nosymm_ids_2d = []
 compl_symm_ids_no_TT_AA = []
 
 is_th2 = [19,20,21,22,23,91,92,93,94,95,130,131,132,133,134]

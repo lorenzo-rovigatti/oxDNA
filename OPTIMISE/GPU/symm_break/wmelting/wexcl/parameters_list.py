@@ -288,7 +288,7 @@ par_index.append(PARS_LIST.index("EXCL_RC7"))
 
 compl_symm_ids_2d = [0]
 compl_symm_ids_2d_no_TT_AA = [44]
-compl_symm_ids = [2] #leave it empty, and we break the comp symmetry
+compl_symm_ids = [] #leave it empty, and we break the comp symmetry
 """
 #THESE ARE FENE AND STACKING
 compl_symm_ids = [1,2]

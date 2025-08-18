@@ -1002,9 +1002,6 @@ if cg.Nseq_n5 > 0:
     print("Target mTs n5:")
     print(cfun.target_Tms_n5)
 
-    print("Delta n5:")
-    print(cfun.current_mT_n5-cfun.TARGET_mTs_n5)
-
 if cg.Nseq_n8 > 0:
     print("Initial mTs n8:")
     print(cfun.current_mT_n8)
@@ -1012,18 +1009,12 @@ if cg.Nseq_n8 > 0:
     print("Target mTs n8:")
     print(cfun.target_Tms_n8)
 
-    print("Delta n8:")
-    print(cfun.current_mT_n8-cfun.TARGET_mTs_n8)
-
 if cg.Nseq_n15 > 0:
     print("Initial mTs n15:")
     print(cfun.current_mT_n15)
 
     print("Target mTs n15:")
     print(cfun.target_Tms_n15)
-
-    print("Delta n15:")
-    print(cfun.current_mT_n15-cfun.TARGET_mTs_n15)
 
 torch.set_printoptions(profile="default")
 
@@ -1053,9 +1044,6 @@ def Callback(sol):
         print("Target mTs n5:")
         print(cfun.target_Tms_n5)
 
-        print("Delta n5:")
-        print(cfun.current_mT_n5-cfun.TARGET_mTs_n5)
-
     if cg.Nseq_n8 > 0:
         print("mTs n8 at iteration "+str(cg.Niter)+":")
         print(cg.good_n8)
@@ -1064,9 +1052,6 @@ def Callback(sol):
         print("Target mTs n8:")
         print(cfun.target_Tms_n8)
 
-        print("Delta n8:")
-        print(cfun.current_mT_n8-cfun.TARGET_mTs_n8)
-
     if cg.Nseq_n15 > 0:
         print("mTs n15 at iteration "+str(cg.Niter)+":")
         print(cg.good_n15)
@@ -1074,9 +1059,6 @@ def Callback(sol):
 
         print("Target mTs n15:")
         print(cfun.target_Tms_n15)
-
-        print("Delta n15:")
-        print(cfun.current_mT_n15-cfun.TARGET_mTs_n15)
 
     torch.set_printoptions(profile="default")
 

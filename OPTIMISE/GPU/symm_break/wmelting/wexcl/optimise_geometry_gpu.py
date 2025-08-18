@@ -109,6 +109,7 @@ th3 = []
 th4_unbn = []
 th7 = []
 th8 = []
+hb_mask = []
 types_unbn_33 = []
 types_unbn_55 = []
 excl_bb_bb_r_unbn = []
@@ -134,7 +135,7 @@ for l in range(cg.Nseq):
 
 
         #oxdna distances, types and angles
-        fr, sr, t4bn, t5, t6, cp1, cp2, bababn, babbbn, bbbabn, tbn, hr, t1, t2, t3, t4un, t7, t8, bbbbunbn, babbunbn, bbbaunbn, tun_33, tun_55 = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file)
+        fr, sr, t4bn, t5, t6, cp1, cp2, bababn, babbbn, bbbabn, tbn, hr, t1, t2, t3, t4un, t7, t8, bbbbunbn, babbunbn, bbbaunbn, tun_33, tun_55, hb_m = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, tr_file, topo_file)
 
         if m == 0:
             fene_r.append(fr)
@@ -158,6 +159,7 @@ for l in range(cg.Nseq):
             excl_bb_bb_r_unbn.append(bbbbunbn)
             excl_ba_bb_r_unbn.append(babbunbn)
             excl_bb_ba_r_unbn.append(bbbaunbn)
+            hb_mask.append(hb_m)
             types_unbn_33.append(tun_33)
             types_unbn_55.append(tun_55)
         else:
@@ -182,6 +184,7 @@ for l in range(cg.Nseq):
             for z in range(len(bnbnunbn)): excl_bb_bb_r_unbn[l].append(bbbbunbn[z])
             for z in range(len(babbunbn)): excl_ba_bb_r_unbn[l].append(babbunbn[z])
             for z in range(len(bbbaunbn)): excl_bb_ba_r_unbn[l].append(bbbaunbn[z])
+            for z in range(len(hb_m)): hb_mask[l].append(hb_m[z])
             for z in range(len(tun_33)): types_unbn_33[l].append(tun_33[z])
             for z in range(len(tun_55)): types_unbn_55[l].append(tun_55[z])
 
@@ -203,6 +206,16 @@ for l in range(cg.Nseq):
 
         tr_file.close()
         topo_file.close()
+
+ofile = open("Intenal_coords_seq6.txt", 'w')
+for i in range(len(cfun.internal_coords[6])):
+    line = str(i)
+    for j in range(len(cfun.internal_coords[6][i])):
+        if j%5==2: line+=" "+str(cfun.internal_coords[6][i][j])[0:5]
+    print(line,file=ofile)
+ofile.close()
+
+
 """
 print("Flattening propeller")
 print(cfun.internal_coords[0][0])
@@ -214,7 +227,6 @@ print(cfun.internal_coords[0][0])
 print(cfun.internal_coords[0][10])
 print(cfun.target_mu[0])
 print(cfun.target_mu[1])
-"""
 
 #Plot sampled coordinates
 mus, covs = fun.ave_and_cov_sampled()
@@ -226,7 +238,9 @@ cfun.save_mu = fun.Sequence_ave_GS(mus)
 print("Average GS")
 print(cfun.save_mu)
 
-costb,cosot = fun.plengths_angles()
+"""
+
+#costb,cosot = fun.plengths_angles()
 
 #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 max_ints = 0
@@ -238,6 +252,7 @@ print("max unbn pairs: "+str(max_ints))
 for l in range(cg.Nseq) :
     for j in range(len(types_unbn_33[l])):
         for z in range(len(types_unbn_33[l][j]), max_ints):
+            hb_mask[l][j].append(0)
             types_unbn_33[l][j].append(0)
             types_unbn_55[l][j].append(0)
             hydr_r[l][j].append(10.)
@@ -301,7 +316,7 @@ def type_to_base4(TY) :
 #    print(type_to_base4(l))
 
 cfun.init_tensors(device,fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, excl_ba_ba_r_bn, excl_ba_bb_r_bn, excl_bb_ba_r_bn, types_bn, hydr_r, th1, th2, th3,\
-                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, costb, cosot, shifts, OXPS_zero)
+                  th4_unbn, th7, th8, excl_bb_bb_r_unbn, excl_ba_bb_r_unbn, excl_bb_ba_r_unbn, types_unbn_33, types_unbn_55, hb_mask, shifts, OXPS_zero)
 
 
 #build tensors imposing continuity
@@ -333,7 +348,34 @@ cfun.compute_initial_energy()
 
 cfun.print_initial_energy()
 
+
 print("Computed initial energy")
+
+#Plot GS and STD sampled coordinates without confs with broken HBs
+mus, covs = fun.ave_and_cov_sampled()
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l)
+    fun.plot_std_sampled(covs[l],l)
+
+#need to do it here because we need to first compute the initial energy to compute mu (we want to exclude confs with broken hbs)
+cfun.save_mu = fun.Sequence_ave_GS(mus)
+
+if cg.opti_lp:
+    costb,cosot = fun.plengths_angles()
+    cfun.init_lp_angles(costb,cosot)
+
+cfun.init_mu_tensor()
+
+#plot GS and STD including confs with broken HBs
+mus, covs = fun.ave_and_cov_sampled_allconfs()
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l,True,False)
+    fun.plot_std_sampled(covs[l],l,True,False)
+
+
+print("Average GS")
+print(cfun.save_mu)
+
 
 ###################################################################################################
 ############## OPTIMISE ###########################################################################
@@ -377,47 +419,61 @@ for n in range(len(low_bond)) :
     if cfun.OPT_PAR_LIST[n][0] == 1:
         lb = low_bond[n]*0.97
         ub = up_bond[n]*1.03
-        if lb > 0.65: low_bond[n] = lb
-        else: low_bond[n] = 0.65
-        if ub < 0.9 and lb > 0.65: up_bond[n] = ub
+        if lb > 0.67 and lb < 0.85: low_bond[n] = lb
+        else: low_bond[n] = 0.67
+        if ub < 0.9 and ub > low_bond[n] : up_bond[n] = ub
         else: up_bond[n] = 0.9
     elif cfun.OPT_PAR_LIST[n][0] == 78 or cfun.OPT_PAR_LIST[n][0] == 117:
-        low_bond[n] = low_bond[n]*0.97
-        up_bond[n] = up_bond[n]*1.03
+        lb = low_bond[n]*0.9
+        ub = up_bond[n]*1.1
+        if lb > 0.5 and lb < 0.6 : low_bond[n] = lb
+        else: low_bond[n] = 0.5
+        if ub < 0.65 and ub > low_bond[n] : up_bond[n] = 0.65
+        else: up_bond[n] = 0.65
+
     elif cfun.OPT_PAR_LIST[n][0] == 2:
         low_bond[n] = low_bond[n]*0.97
         up_bond[n] = up_bond[n]*1.03
+        if lb > 0.17 and lb < 0.22: low_bond[n] = lb
+        else: low_bond[n] = 0.17
+        if ub < 0.25 and ub > low_bond[n]: up_bond[n] = ub
+        else: up_bond[n] = 0.25
+
+    elif cfun.OPT_PAR_LIST[n][0] == 29:
+        low_bond[n] = 2.87979
+        up_bond[n] = 3.4033
+
     elif cfun.OPT_PAR_LIST[n][0] == 45:
         lb = low_bond[n]*0.97
         ub = up_bond[n]*1.03
-        if lb > 0.25: low_bond[n] = lb
-        else: low_bond[n] = 0.25
-        if ub < 0.5: up_bond[n] = ub
-        else: up_bond[n] = 0.5
+        if lb > 0.3 and lb < 0.46: low_bond[n] = lb
+        else: low_bond[n] = 0.3
+        if ub < 0.48 and ub > low_bond[n]: up_bond[n] = ub
+        else: up_bond[n] = 0.48
     elif cfun.OPT_PAR_LIST[n][0] == 101 or cfun.OPT_PAR_LIST[n][0] == 140:
-        low_bond[n] = 2.87979
-        up_bond[n] = 3.4033
+        low_bond[n] = 2.61799
+        up_bond[n] = 3.14159
     elif cfun.OPT_PAR_LIST[n][0] == 55:
 
-        lb = low_bond[n]*0.5
-        ub = up_bond[n]*2
-        if lb > 0.5 : low_bond[n] = lb
-        else : low_bond[n] = 0.5
-        if ub < 3.0 : up_bond[n] = ub
+        lb = low_bond[n]*0.9
+        ub = up_bond[n]*1.1
+        if lb > 0.6 and lb < 2.8 : low_bond[n] = lb
+        else : low_bond[n] = 0.6
+        if ub < 3.0 and ub > low_bond[n] : up_bond[n] = ub
         else : up_bond[n] = 3.0
 
     elif  cfun.OPT_PAR_LIST[n][0] == 60:
 
-        lb = low_bond[n]*0.5
-        ub = up_bond[n]*2
-        if lb > 0.5 : low_bond[n] = lb
-        else : low_bond[n] = 0.5
-        if ub < 3.0 : up_bond[n] = ub
-        else : up_bond[n] = 3.0
+        lb = low_bond[n]*0.9
+        ub = up_bond[n]*1.1
+        if lb > 1.0 and lb < 2.3: low_bond[n] = lb
+        else : low_bond[n] = 1.0
+        if ub < 2.5 and ub > low_bond[n] : up_bond[n] = ub
+        else : up_bond[n] = 2.5
 
     else:
-        low_bond[n] = low_bond[n]*0.5
-        up_bond[n] = up_bond[n]*2.
+        low_bond[n] = low_bond[n]*0.9
+        up_bond[n] = up_bond[n]*1.1
 
 np.set_printoptions(threshold=np.inf)
 print(up_bond-low_bond)
@@ -507,10 +563,20 @@ def Callback(sol):
 time_opti_start = time.time()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':8,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':6,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))
+
+"""
+#plot final reweighted GS and STD
+mus = cfun.CURR_REW_MU.tolist()
+covs = cfun.CURR_REW_COV.tolist()
+mus, covs = fun.ave_and_cov_sampled_allconfs()
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l,False,True)
+    fun.plot_std_sampled(covs[l],l,False,True)
+"""
 
 #printing runtime
 timefile = open("runtime.txt",'w')
@@ -525,4 +591,3 @@ fun.print_final_pfile(sol.x,in_SD_par_file)
 in_SD_par_file.close()
 
 print("DONE")
-

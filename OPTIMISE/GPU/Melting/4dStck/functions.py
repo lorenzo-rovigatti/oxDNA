@@ -1102,7 +1102,12 @@ def read_pars_from_SD_file(SDfile) :
             stck_fact_eps_read = True
             continue
         vals_cn = vals[0].split("_")
-        if vals_cn[0] == "STCK" and len(vals_cn) == 3:
+        if vals_cn[0] == "STCK" and len(vals_cn) == 5: #4d stck_eps
+            ty=base_to_id(vals_cn[len(vals_cn)-4])+base_to_id(vals_cn[len(vals_cn)-3])*5+base_to_id(vals_cn[len(vals_cn)-2])*5*5+base_to_id(vals_cn[len(vals_cn)-1])*5*5*5
+            oi = [PARS_LIST.index("STCK_EPS"),ty]
+            over_indices.append(oi)
+            over_vals.append(float(vals[2]))
+        elif vals_cn[0] == "STCK" and len(vals_cn) == 3:
             for i in range(5):
                 for j in range(5):
                     ty=i+base_to_id(vals_cn[1])*5+base_to_id(vals_cn[2])*5*5+j*5*5*5    #from base 4 to base 10
@@ -1841,7 +1846,7 @@ def print_final_pfile(FOPARS,infile) :
         vals_cn = vals[0].split("_")
 
         #4D parameters
-        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 5) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
             par_name = vals_cn[0]
             for i in range(1,len(vals_cn)-4):
                 par_name+="_"+vals_cn[i]
@@ -1868,13 +1873,27 @@ def print_final_pfile(FOPARS,infile) :
                 par_name += "_EPS"
 
             index = PARS_LIST.index(par_name)
-            if index in ids_to_update:
-                ty2 = base_to_id(vals_cn[len(vals_cn)-1])
-                ty1 = base_to_id(vals_cn[len(vals_cn)-2])
 
-                ty = ty1*5+ty2*25
+            ty = 0
+
+            if index in ids_to_update:
+                if par_name == "HYDR_EPS":
+                    ty2 = base_to_id(vals_cn[len(vals_cn)-1])
+                    ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+
+                    ty = ty1*5+ty2*25
+
+                elif par_name == "STCK_EPS": #4d stck
+
+                    ty3 = base_to_id(vals_cn[len(vals_cn)-1])
+                    ty2 = base_to_id(vals_cn[len(vals_cn)-2])
+                    ty1 = base_to_id(vals_cn[len(vals_cn)-3])
+                    ty0 = base_to_id(vals_cn[len(vals_cn)-4])
+
+                    ty = ty0+ty1*5+ty2*25+ty3*125
 
                 print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+
             else:
                 print(line.strip(),file=ofile)
 
@@ -1916,7 +1935,7 @@ def print_final_pfile_AllFromOpt(FOPARS,infile) :
         vals_cn = vals[0].split("_")
 
         #4D parameters
-        if (vals_cn[0] == "STCK" and len(vals_cn) > 3) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+        if (vals_cn[0] == "STCK" and len(vals_cn) > 5) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
             par_name = vals_cn[0]
             for i in range(1,len(vals_cn)-4):
                 par_name+="_"+vals_cn[i]
@@ -1942,10 +1961,22 @@ def print_final_pfile_AllFromOpt(FOPARS,infile) :
 
             index = PARS_LIST.index(par_name)
 
-            ty2 = base_to_id(vals_cn[len(vals_cn)-1])
-            ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+            ty = 0
 
-            ty = ty1*5+ty2*25
+            if par_name == "HYDR_EPS":
+                ty2 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+
+                ty = ty1*5+ty2*25
+
+            elif par_name == "STCK_EPS": #4d stck
+
+                ty3 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty2 = base_to_id(vals_cn[len(vals_cn)-2])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-3])
+                ty0 = base_to_id(vals_cn[len(vals_cn)-4])
+
+                ty = ty0+ty1*5+ty2*25+ty3*125
 
             print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
 

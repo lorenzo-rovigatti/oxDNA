@@ -846,6 +846,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
     th8 = []
     types_unbn_33 = []
     types_unbn_55 = []
+    hb_mask = []
+    stck_mask = []
 
     bb_bb_r_unbn = []
     ba_bb_r_unbn = []
@@ -899,6 +901,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     ba_ba_r_bn_1conf = []
                     ba_bb_r_bn_1conf = []
                     bb_ba_r_bn_1conf = []
+
+                    stck_mask_1conf = []
 
                     #bonded basepairs
                     #find pairs and tetramer type
@@ -983,6 +987,8 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                     th4_unbn_1conf = []
                     th7_1conf = []
                     th8_1conf = []
+
+                    hb_mask_1conf = []
                     types_unbn_1conf_33 = []
                     types_unbn_1conf_55 = []
                     bb_bb_r_unbn_1conf = []
@@ -1002,9 +1008,9 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                         ty1 = base_to_id(topology[i].base_type)
                         for z in range(len(topology)) :
                            if topology[z].id == topology[i].down_id:
-                              ty0_55 = base_to_id(topology[z].base_type)
-                           if topology[z].id == topology[i].up_id:
                               ty0_33 = base_to_id(topology[z].base_type)
+                           if topology[z].id == topology[i].up_id:
+                              ty0_55 = base_to_id(topology[z].base_type)
 
                         for j in range(len(topology)) :
                             n2 = config[j]
@@ -1025,12 +1031,12 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             if topology[j].down_id != -1:
                                 for z in range(len(topology)) :
                                    if topology[z].id == topology[j].down_id:
-                                      ty3_55 = base_to_id(topology[z].base_type)
+                                      ty3_33 = base_to_id(topology[z].base_type)
                                       break
                             if topology[j].up_id != -1:
                                 for z in range(len(topology)) :
                                    if topology[z].id == topology[j].up_id:
-                                      ty3_33 = base_to_id(topology[z].base_type)
+                                      ty3_55 = base_to_id(topology[z].base_type)
                                       break
 
                             """
@@ -1043,6 +1049,12 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             ty_33 = ty0_33+ty1*5+ty2*5*5+ty3_33*5*5*5 #tetramer type in base 10
                             ty_55 = ty0_55+ty1*5+ty2*5*5+ty3_55*5*5*5 #tetramer type in base 10
 
+                            #hb_mask = true if i,j should be an hydrogen bond (note: ends are discarded)
+                            #if (i+j == len(topology)-1): print(i,j,cg.inj,len(topology)/2-cg.jfe)
+                            if (i+j  != len(topology)-1) or (i<cg.inj or (i > len(topology)/2-cg.jfe and i < len(topology)/2+cg.jfe) or i>len(topology)-cg.jfe) or (j<cg.inj or (j > len(topology)/2-cg.jfe and j < len(topology)/2+cg.jfe) or j>len(topology)-cg.jfe) : hb_mask_1conf.append(0)
+                            else:
+                                hb_mask_1conf.append(1)
+                                #print("HB!")
                             types_unbn_1conf_33.append(ty_33)
                             types_unbn_1conf_55.append(ty_55)
 
@@ -1075,6 +1087,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
                             bb_ba_r_unbn_1conf.append(np.linalg.norm(n1.bb-n2.hydr))
 
 
+                    hb_mask.append(hb_mask_1conf)
                     types_unbn_33.append(types_unbn_1conf_33)
                     types_unbn_55.append(types_unbn_1conf_55)
 
@@ -1094,7 +1107,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, tr_file, topo_dat
 
 
     return fene_r, stck_r, th4_bn, th5, th6, cosphi1, cosphi2, ba_ba_r_bn, ba_bb_r_bn, bb_ba_r_bn, types_bn, \
-           hydr_r, th1, th2, th3, th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55
+           hydr_r, th1, th2, th3, th4_unbn, th7, th8, bb_bb_r_unbn, ba_bb_r_unbn, bb_ba_r_unbn, types_unbn_33, types_unbn_55, hb_mask
 
 
 ###################################################################################################
@@ -1161,6 +1174,50 @@ def ave_and_cov_sampled() :
     mu_sampled = []
     cov_sampled = []
 
+    conf_mask = cfun.HB_CONF_MASK.clone().to('cpu').tolist()
+
+    for l in range(cg.Nseq) :
+
+        Nsnaps = len(cfun.internal_coords[l])
+        Nsnaps_tot = len(cfun.internal_coords[l])
+        Ncoords = len(cfun.internal_coords[l][0])
+
+        mu_sampled_one = np.zeros(Ncoords,dtype=float)
+        cov_sampled_one = np.zeros((Ncoords,Ncoords),dtype=float)
+
+        mu_sampled.append(mu_sampled_one)
+        cov_sampled.append(cov_sampled_one)
+
+        for i in range(Ncoords) :
+            mu_sampled[l][i] = 0.
+            for j in range(Ncoords) :
+                cov_sampled[l][i][j] = 0.
+
+        for i in range(Nsnaps_tot):
+            if conf_mask[l][i] == False: Nsnaps -= 1
+        print("Nsnaps: ", Nsnaps)
+
+        print("Seq"+str(l)+"- BROKEN HBs CONFS:"+str(100.*(1.-1.*Nsnaps/len(conf_mask[l])))+"%")
+
+        for i in range(Nsnaps_tot) :
+            if conf_mask[l][i] == False: continue
+            for j in range(Ncoords) :
+                mu_sampled[l][j] += cfun.internal_coords[l][i][j]/Nsnaps
+
+        for j in range(Ncoords) :
+            for z in range(Ncoords) :
+                for i in range(Nsnaps_tot) :
+                    if conf_mask[l][i] == False: continue
+                    cov_sampled[l][j][z] += (cfun.internal_coords[l][i][j] - mu_sampled[l][j])*(cfun.internal_coords[l][i][z] - mu_sampled[l][z])/Nsnaps
+
+
+    return mu_sampled, cov_sampled
+
+def ave_and_cov_sampled_allconfs() :
+
+    mu_sampled = []
+    cov_sampled = []
+
     for l in range(cg.Nseq) :
 
         Nsnaps = len(cfun.internal_coords[l])
@@ -1188,6 +1245,9 @@ def ave_and_cov_sampled() :
 
 
     return mu_sampled, cov_sampled
+
+
+
 
 #compute sequence averaged ground state
 def Sequence_ave_GS(mu_sampled) :
@@ -1309,10 +1369,14 @@ def unscrumble_gs(gs) :
     return unsc_gs_all
 
 
-def plot_gs_sampled(mu_sampled,seqid) :
+def plot_gs_sampled(mu_sampled,seqid,all_confs=False,rew=False) :
 
     unscr_gs_sampled = unscrumble_gs(mu_sampled)
     unscr_gs_target = unscrumble_gs(cfun.target_mu[seqid])
+
+    seq_stripped = ""
+    for i in range(cg.in_j[seqid]+1,len(cg.seq[seqid])) : seq_stripped += cg.seq[seqid][i]
+
 
     for j in range(len(unscr_gs_sampled)) : #Nids
 
@@ -1350,21 +1414,44 @@ def plot_gs_sampled(mu_sampled,seqid) :
         ys = unscr_gs_sampled[j]
         yt = unscr_gs_target[j]
 
+        if (cg.ids[j] == 0) or (cg.ids[j] == 1) or(cg.ids[j] == 2) or(cg.ids[j] == 6) or (cg.ids[j] == 7) or(cg.ids[j] == 8):
+            for i in range(len(unscr_gs_sampled[j])):
+                unscr_gs_sampled[j][i]*=0.2*180/math.pi
+                unscr_gs_target[j][i]*=0.2*180/math.pi
+
 
         fig = plt.figure(figsize=(6, 4))
         ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
         # plt.title(r"All: $R=7$ $\phi=0.364$")
         ax.title.set_fontsize(20)
-        ax.set_xlabel(r"Sequence",fontsize=20)
-        ax.set_ylabel(coord_name,fontsize=20)
+        ticks = []
+        ticks_labels = []
+        for i in range(len(unscr_gs_sampled[j])) :
+            ticks.append(i)
+            if cg.ids[j] < 6: ticks_labels.append(seq_stripped[i])
+            else: ticks_labels.append(seq_stripped[i]+"/"+seq_stripped[i+1])
+
+        plt.xticks(ticks,ticks_labels)
+        if cg.ids[j] < 6: ax.set_xlabel(r"Sequence [base]",fontsize=20)
+        else: ax.set_xlabel(r"Sequence [base step]",fontsize=20)
+        if (cg.ids[j] == 0) or (cg.ids[j] == 1) or(cg.ids[j] == 2) or(cg.ids[j] == 6) or (cg.ids[j] == 7) or(cg.ids[j] == 8): ax.set_ylabel(coord_name + " [deg]",fontsize=20)
+        else: ax.set_ylabel(coord_name + " [nm]",fontsize=20)
         #ax.set_ylim(0,160)
         #ax.set_xlim(-1.2,1.2)
-        ax.tick_params(axis='both', which='major', labelsize=12)
+        if cg.ids[j] < 6: ax.tick_params(axis='both', which='major', labelsize=20)
+        else:
+            plt.xticks(rotation=60)
+            ax.tick_params(axis='both', which='major', labelsize=20)
+
         ax.tick_params(axis='both', which='minor', labelsize=8)
         ax.plot(x, yt, 'b', label="cgna+")
         ax.plot(x, ys, 'r', label="oxdna")
         ax.legend(fontsize = 20)
-        plt.savefig("Seq"+str(seqid)+"_"+coord_name+".pdf",bbox_inches='tight',pad_inches=0.05)
+        filename="Seq"+str(seqid)+"_"+coord_name
+        if all_confs: filename += "_wbrokenHB"
+        if rew: filename += "_rew"
+        filename+=".pdf"
+        plt.savefig(filename,bbox_inches='tight',pad_inches=0.05)
 
         plt.close()
 
@@ -1388,10 +1475,14 @@ def unscrumble_cov_diag(cov) :
     return unsc_cov_all
 
 
-def plot_std_sampled(cov_sampled, seqid) :
+def plot_std_sampled(cov_sampled, seqid, all_confs=False, rew=False) :
 
     unscr_cov_sampled = unscrumble_cov_diag(cov_sampled)
     unscr_cov_target = unscrumble_cov_diag(cfun.target_cov[seqid])
+
+    seq_stripped = ""
+    for i in range(cg.in_j[seqid]+1,len(cg.seq[seqid])) : seq_stripped += cg.seq[seqid][i]
+
 
     for j in range(len(unscr_cov_sampled)) : #Nids
 
@@ -1429,20 +1520,44 @@ def plot_std_sampled(cov_sampled, seqid) :
         ys = unscr_cov_sampled[j]
         yt = unscr_cov_target[j]
 
+        if (cg.ids[j] == 0) or (cg.ids[j] == 1) or(cg.ids[j] == 2) or(cg.ids[j] == 6) or (cg.ids[j] == 7) or(cg.ids[j] == 8):
+            for i in range(len(unscr_cov_sampled[j])):
+                unscr_cov_sampled[j][i]=math.sqrt(unscr_cov_sampled[j][i])*0.2*180/math.pi
+                unscr_cov_target[j][i]=math.sqrt(unscr_cov_target[j][i])*0.2*180/math.pi
+
         fig = plt.figure(figsize=(6, 4))
         ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
         # plt.title(r"All: $R=7$ $\phi=0.364$")
         ax.title.set_fontsize(20)
-        ax.set_xlabel(r"Sequence",fontsize=20)
-        ax.set_ylabel("Cov, diag "+ coord_name,fontsize=20)
+        ticks = []
+        ticks_labels = []
+        for i in range(len(unscr_cov_sampled[j])) :
+            ticks.append(i)
+            if cg.ids[j] < 6: ticks_labels.append(seq_stripped[i])
+            else: ticks_labels.append(seq_stripped[i]+"/"+seq_stripped[i+1])
+
+        plt.xticks(ticks,ticks_labels)
+        if cg.ids[j] < 6: ax.set_xlabel(r"Sequence [base]",fontsize=20)
+        else: ax.set_xlabel(r"Sequence [base step]",fontsize=20)
+        if (cg.ids[j] == 0) or (cg.ids[j] == 1) or(cg.ids[j] == 2) or(cg.ids[j] == 6) or (cg.ids[j] == 7) or(cg.ids[j] == 8): ax.set_ylabel("Std "+ coord_name + " [deg]",fontsize=20)
+        else: ax.set_ylabel("Std "+ coord_name + " [nm]",fontsize=20)
         #ax.set_ylim(0,160)
         #ax.set_xlim(-1.2,1.2)
-        ax.tick_params(axis='both', which='major', labelsize=12)
+        if cg.ids[j] < 6: ax.tick_params(axis='both', which='major', labelsize=20)
+        else:
+            plt.xticks(rotation=60)
+            ax.tick_params(axis='both', which='major', labelsize=20)
+
         ax.tick_params(axis='both', which='minor', labelsize=8)
         ax.plot(x, yt, 'b', label="cgna+")
         ax.plot(x, ys, 'r', label="oxdna")
         ax.legend(fontsize = 20)
-        plt.savefig("Seq"+str(seqid)+"_STD_"+coord_name+".pdf",bbox_inches='tight',pad_inches=0.05)
+
+        filename="Seq"+str(seqid)+"_STD_"+coord_name
+        if all_confs: filename += "_wbrokenHB"
+        if rew: filename += "_rew"
+        filename+=".pdf"
+        plt.savefig(filename,bbox_inches='tight',pad_inches=0.05)
 
         plt.close()
 

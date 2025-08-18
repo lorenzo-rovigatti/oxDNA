@@ -136,7 +136,7 @@ print_memory_usage()
 
 
 #################
-### nbps = 5 ####
+### nbps = 8 ####
 #################
 
 
@@ -150,7 +150,7 @@ def type_to_base4(TY) :
 
     return str(ty0)+str(ty1)+str(ty2)+str(ty3)
 
-def read_n5_seq(id) :
+def read_n8_seq(id) :
 
     l = int(id)
 
@@ -182,24 +182,24 @@ def read_n5_seq(id) :
     print("DH cuts n8: ", rcut_dh_n8)
     print("DH cuts n15: ", rcut_dh_n15)
 
-    print("Reading seq " + str(l) + " n5")
+    print("Reading seq " + str(l) + " n8")
 
     N_pts = 1
-    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n5
+    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n8
 
     for rp in range(N_pts) :
         for m in range(cg.Nreps) :
 
-            tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
-            topo_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+            tr_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
+            topo_file = open("n8/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
 
             if cg.parallel_tempering :
-                tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
+                tr_file_name = "n8/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
 
             tr_file = open(tr_file_name, 'r')
 
             #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n5[l], tr_file, topo_file, cg.boxes_n5[l])
+            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n8[l], tr_file, topo_file, cg.boxes_n8[l])
 
             if m == 0 and rp == 0:
                 fene_r = fr
@@ -251,31 +251,6 @@ def read_n5_seq(id) :
     return fene_r, stck_r, th4_bn, th5, th6 , cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55, debye_huckel_r, debye_huckel_types, debye_huckel_charge_cut
 
 
-"""
-#gather all seqs to rank 0
-fene_r_all = comm.gather(fene_r, root=0)
-stck_r_all = comm.gather(stck_r, root=0)
-th4_bn_all = comm.gather(th4_bn, root=0)
-th5_all = comm.gather(th5, root=0)
-th6_all = comm.gather(th6, root=0)
-cosphi1_all = comm.gather(cosphi1, root=0)
-cosphi2_all = comm.gather(cosphi2, root=0)
-types_bn_all = comm.gather(types_bn, root=0)
-hydr_r_all = comm.gather(hydr_r, root=0)
-th1_all = comm.gather(th1, root=0)
-th2_all = comm.gather(th2, root=0)
-th3_all = comm.gather(th3, root=0)
-th4_unbn_all = comm.gather(th4_unbn, root=0)
-th7_all = comm.gather(th7, root=0)
-th8_all = comm.gather(th8, root=0)
-types_unbn_33_all = comm.gather(types_unbn_33, root=0)
-types_unbn_55_all = comm.gather(types_unbn_55, root=0)
-debye_huckel_r_all = comm.gather(debye_huckel_r, root=0)
-debye_huckel_types_all = comm.gather(debye_huckel_types, root=0)
-debye_huckel_charge_cut_all = comm.gather(debye_huckel_charge_cut, root=0)
-"""
-
-
 fene_r_all = []
 stck_r_all = []
 th4_bn_all = []
@@ -298,24 +273,13 @@ debye_huckel_types_all = []
 debye_huckel_charge_cut_all = []
 
 
-#maxN = 20
-
-#Nbatches = int(cg.Nseq_n5/maxN)
-
-#nbh = 0
-
-print("Number of batches: ", Nbatches)
-
 if __name__ == '__main__':
 
+    seq_ids = torch.arange(cg.Nseq_n8)
 
-    #for nbh in range(Nbatches) :
+    with mp.Pool(cg.Nseq_n8) as pool:
 
-    seq_ids = torch.arange(cg.Nseq_n5)
-
-    with mp.Pool(cg.Nseq_n5) as pool:
-
-        results = pool.map(read_n5_seq, seq_ids)
+        results = pool.map(read_n8_seq, seq_ids)
 
         #print(len(results))
 
@@ -345,12 +309,12 @@ if __name__ == '__main__':
 #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 max_ints = 0
 print("Len unbn")
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n8) :
     for j in range(len(types_unbn_33_all[l])):
         if len(types_unbn_33_all[l][j]) > max_ints:
             max_ints = len(types_unbn_33_all[l][j])
 print("max unbn pairs: "+str(max_ints))
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n8) :
     for j in range(len(types_unbn_33_all[l])):
         for z in range(len(types_unbn_33_all[l][j]), max_ints):
             types_unbn_33_all[l][j].append(0)
@@ -368,12 +332,12 @@ for l in range(cg.Nseq_n5) :
 max_ints = 0
 
 print("Len debye huckle")
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n8) :
     for j in range(len(debye_huckel_types_all[l])):
         if len(debye_huckel_types_all[l][j]) > max_ints:
            max_ints = len(debye_huckel_types_all[l][j])
 print("max debye huckle pairs: "+str(max_ints))
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n8) :
     for j in range(len(debye_huckel_types_all[l])):
         for z in range(len(debye_huckel_types_all[l][j]), max_ints):
             debye_huckel_types_all[l][j].append(0)
@@ -390,7 +354,7 @@ if len(hydr_r_all) > 0 : print("hydr_r: "+str(len(hydr_r_all))+", "+str(len(hydr
 if len(debye_huckel_r_all) > 0 : print("debye_huckel_r: "+str(len(debye_huckel_r_all))+", "+str(len(debye_huckel_r_all[0]))+", "+ str(len(debye_huckel_r_all[0][0])))
 
 
-print("Memory usage after reading n5 data:")
+print("Memory usage after reading n8 data:")
 print_memory_usage()
 
 
@@ -399,16 +363,13 @@ print(fene_r_all,file=ofile)
 ofile.close()
 
 
-cfun.init_tensors_n5(device,fene_r_all, stck_r_all, th4_bn_all, th5_all, th6_all, cosphi1_all, cosphi2_all, types_bn_all, hydr_r_all, th1_all, th2_all, th3_all,\
-                  th4_unbn_all, th7_all, th8_all, types_unbn_33_all, types_unbn_55_all, debye_huckel_r_all, debye_huckel_types_all, debye_huckel_charge_cut_all, shifts, OXPS_zero)
+cfun.init_tensors_n8(device,fene_r_all, stck_r_all, th4_bn_all, th5_all, th6_all, cosphi1_all, cosphi2_all, types_bn_all, hydr_r_all, th1_all, th2_all, th3_all,\
+                  th4_unbn_all, th7_all, th8_all, types_unbn_33_all, types_unbn_55_all, debye_huckel_r_all, debye_huckel_types_all, debye_huckel_charge_cut_all)
 
-print("Memory usage after initialising n5 tensors:")
+print("Memory usage after initialising n8 tensors:")
 print_memory_usage()
 
-
-ofile = open("dists_and_angles_n5.txt", 'w')
-cfun.print_dists_and_angles_n5(ofile)
-ofile.close()
+cfun.print_dists_and_angles_n8()
 
 #for l in types_bn[0][0] :
 #    print(type_to_base4(l))
@@ -431,7 +392,7 @@ del th8_all
 del types_unbn_33_all
 del types_unbn_55_all
 
-print("Memory usage after deleting n5 lists:")
+print("Memory usage after deleting n8 lists:")
 print_memory_usage()
 
 

@@ -393,7 +393,7 @@ for n in range(len(low_bond)) :
 
 bnd = optimize.Bounds(low_bond,up_bond)
 
-#Compute average delta. Average value of FENE_DELTA is ket fixed, so that lt is kept at ~220 nm
+#Compute average delta. Average value of FENE_DELTA is kept fixed, so that lt is kept at ~220 nm
 cfun.AVE_DELTA = torch.mean(cfun.PAR0[2])
 print("Ave delta:", cfun.AVE_DELTA)
 
