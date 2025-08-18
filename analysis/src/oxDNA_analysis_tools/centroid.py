@@ -1,6 +1,6 @@
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 import argparse
 import os
@@ -38,7 +38,7 @@ def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.n
 
     return (centroid_candidate, min_RMSD, t)
 
-def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:List[int]=[], ncpus=1) -> Tuple[Configuration, float]:
+def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:Union[List[int],None]=None, ncpus=1) -> Tuple[Configuration, float]:
     '''
         Find the configuration in a trajectory closest to a provided reference configuration
 
@@ -54,7 +54,7 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
             | The configuration with the lowest RMSD to the reference
             | The RMSD from the centroid to the reference
     '''
-    if indexes == []:
+    if indexes == None:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf)

@@ -57,6 +57,7 @@ SET(observables_SOURCES
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
 	Observables/ExternalForce.cpp
+	Observables/ParticleForceAndTorque.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
@@ -111,8 +112,7 @@ SET(interactions_SOURCES
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
 	Interactions/DNA2SDInteraction.cpp
-        Interactions/DNA3Interaction.cpp
-	Interactions/DNAInteraction_nomesh.cpp
+	Interactions/DNA3Interaction.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
@@ -287,6 +287,7 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDADNA3Interaction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu

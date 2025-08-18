@@ -6,6 +6,7 @@ from sys import exit
 from os import path
 import argparse
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 
 def rad2degree(angle:float) -> float:
     """
@@ -201,7 +202,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.ylabel("Normalized frequency")
         log("Saving histogram to {}".format(out))
         plt.tight_layout()
-        plt.savefig(out)
+        plt.savefig(out, dpi=FIG_DPI)
 
     #make a trajectory plot
     if line == True:
@@ -221,7 +222,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.ylabel("Angle (degrees)")
         log("Saving line plot to {}".format(out))
         plt.tight_layout()
-        plt.savefig(out)
+        plt.savefig(out, dpi=FIG_DPI)
     
     return
 

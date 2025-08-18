@@ -11,5 +11,5 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 myst_parser==2.0.0
 docutils==0.20.1
-Jinja2==3.1.4
+Jinja2==3.1.6
 ipython>=7.26.0

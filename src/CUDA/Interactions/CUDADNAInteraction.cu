@@ -60,7 +60,9 @@ void CUDADNAInteraction::get_settings(input_file &inp) {
 
 void CUDADNAInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	DNAInteraction::init();
+	Logger::instance()->disable_log("CUDADNAInteraction");
+    DNAInteraction::init();
+	Logger::instance()->enable_log("CUDADNAInteraction");
 
 	float f_copy = this->_hb_multiplier;
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));

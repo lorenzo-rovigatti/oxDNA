@@ -43,6 +43,16 @@ protected:
 	number _f4Dsin_pure_harmonic(number t, int type);
 	number _f4D_pure_harmonic(number t, int type);
 
+	// we use those for debugging purposes, QUESTION: REMOVE AFTER OXDNA3 IMPLEMENTATION?
+	bool _enable_backbone = true;
+	bool _enable_bonded_excluded_volume = true;
+	bool _enable_stacking = true;
+	bool _enable_nonbonded_excluded_volume = true;
+	bool _enable_hydrogen_bonding = true;
+	bool _enable_cross_stacking = true;
+	bool _enable_coaxial_stacking = true;
+	bool _enable_debye_huckel = true;
+
 	/**
 	 * @brief Custom function that returns f4. Meshes are never used for the coaxial stacking f4(theta1) term for the DNA2 interaction
 	 *
@@ -96,7 +106,6 @@ public:
  * This interaction is selected with
  * interaction_type = DNA2_nomesh
  */
-
 class DNA2Interaction_nomesh: public DNA2Interaction {
 protected:
 
@@ -125,11 +134,9 @@ protected:
 public:
 	DNA2Interaction_nomesh() {
 	}
-	;
+	
 	virtual ~DNA2Interaction_nomesh() {
 	}
-	;
-
 };
 
 #endif /* DNA2_INTERACTION_H */

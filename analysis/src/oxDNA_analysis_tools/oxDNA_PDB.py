@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import argparse
 from collections import defaultdict
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
@@ -225,7 +225,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
     return(atom_counter)
 
-def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:List[str]=[], reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
+def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
     """
         Convert an oxDNA file to a PDB file.  Directly writes the file.
 
@@ -233,12 +233,12 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             conf (Configuration) : The Configuration to convert
             system (System) : The system topology for the configuration to convert
             out_basename (str) : Filename(-.pdb) to write out to
-            protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. Default: []
-            reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). Default: False
-            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). Default: True
-            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). Default: False
-            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). Default: False
-            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. Default: ''
+            protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. (Default: [])
+            reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). (Default: False)
+            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). (Default: True)
+            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). (Default: False)
+            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). (Default: False)
+            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. (Default: '')
 
     """
     # Open PDB File of nice lookin duplexes to get base structures from
@@ -283,7 +283,7 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
         atom_counter = 1
 
         # Iterate over strands in the oxDNA file
-        for strand in system.strands:
+        for i, strand in enumerate(system.strands):
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
             sequence = [n.btype for n in nucleotides_in_strand]
@@ -381,11 +381,13 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             # Either open a new file or increment chain ID
             # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
             if one_file_per_strand:
+                print("END", file=out) # Add the END identifier
                 out.close()
                 log("Wrote strand {}'s data to {}".format (strand.id, out_name))
                 chain_id = 'A'
-                if strand != system.strands[-1]:
-                    out_name = out_basename + "_{}.pdb".format(strand.id, )
+                if i < len(system) - 1:
+                    next_strand = system.strands[i + 1]
+                    out_name = out_basename + "_{}.pdb".format(next_strand.id, )
                     out = open(out_name, "w")
             else:
                 chain_id = chr(ord(chain_id)+1)
@@ -396,6 +398,10 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                 elif chain_id == chr(ord('0')+1):
                     log("More than 62 chains identified, looping chain identifier...", level='warning')
                     chain_id = 'A'
+        
+        # Add the END identifier at the end of the file
+        if not one_file_per_strand:
+            print("END", file=out)
         print()
 
     log("Wrote data to '{}'".format(out_name))
