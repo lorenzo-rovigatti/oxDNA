@@ -199,7 +199,12 @@ class Estimator():
         # parse the user-provided input file and generate the input file that will be used to run metad simulations
         with oxpy.Context(print_coda=False):
             input_file = oxpy.InputFile()
-            input_file.init_from_filename(os.path.join(self.base_dir, "input"))
+            try:
+                input_filename = os.path.join(self.base_dir, "input")
+                input_file.init_from_filename(input_filename)
+            except oxpy.core.OxDNAError as e:
+                print(f"CRITICAL: no input file found, check that '{input_filename}' exists and is readable")
+                exit(1)
             
             initial_conf = os.path.join(self.base_dir, input_file["conf_file"])
             top_file = os.path.join(self.base_dir, input_file["topology"])
