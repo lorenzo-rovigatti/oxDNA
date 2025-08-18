@@ -106,11 +106,13 @@ class Estimator():
         if not self.continue_run:
             if self.dim == 1:
                 self.potential_grid = np.zeros(self.N_grid)
-
             if self.dim == 2:
                 self.potential_grid = np.zeros((self.N_grid, self.N_grid))
         else:  # load the most recent file
             center_fnames = glob.glob(f"./{Estimator.BIAS_DIR}/bias_*")
+            if len(center_fnames) == 0:
+                print(f"CRITICAL: Can't restart sampling, no bias files found in {Estimator.BIAS_DIR}", file=sys.stderr)
+                exit(1)
             self.max_index = max([int(i.split('_')[-1]) for i in center_fnames])
             max_fname = f"./{Estimator.BIAS_DIR}/bias_{self.max_index}" 
             print(f"restarting from bias file : {max_fname}")
