@@ -1243,6 +1243,7 @@ void PatchyShapeInteraction::get_settings(input_file &inp) {
 
     std::string use_torsion;
     if (getInputString(&inp, "use_torsion", use_torsion, 0) == KEY_FOUND) {
+        std::transform(use_torsion.begin(), use_torsion.end(), use_torsion.begin(), ::tolower);
         if (use_torsion == "0" || use_torsion == "none" || use_torsion == "false"){
             _use_torsion = NO_TORSION;
         } else if (use_torsion == "1" || use_torsion == "true") {
