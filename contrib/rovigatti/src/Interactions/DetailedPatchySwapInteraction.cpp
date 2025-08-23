@@ -118,9 +118,17 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 	number energy = (number) 0.f;
 
 	// centre-centre
+    // if the radius is less than the repulsive cutoff
+    // we've hardcoded particle radius to 0.5 so we can use the lj without any further math since the function is
+    // naturally has a zero-point at 1
 	if(sqr_r < _sqr_rep_rcut) {
+        // inverse r-squared = 1 / r-squared
 		number ir2 = 1. / sqr_r;
+        // lennard-jones partial: for efficiency we can compute (1/r^6) and then use that
 		number lj_part = ir2 * ir2 * ir2;
+        // lennard-jones energy
+        // Vlj is typically written as 4 * epsilon * ( sigma/r)^12 - (sigma/r)^6 )
+        //
 		energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
 		if(update_forces) {
 			LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
