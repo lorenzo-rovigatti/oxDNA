@@ -77,11 +77,11 @@ PLClusterTopology::~PLClusterTopology() {
 }
 
 void PLClusterTopology::get_settings(input_file &my_inp, input_file &sim_inp) {
-    int show_types = 0;
+    bool show_types = false;
 
-    if( getInputBoolAsInt(&my_inp,"show_types",&show_types,1) == KEY_FOUND)
+    if( getInputBool(&my_inp,"show_types",&show_types,1) == KEY_FOUND)
     {
-        this->_show_types = (bool)show_types;
+        this->_show_types = show_types;
     }
 
 }
