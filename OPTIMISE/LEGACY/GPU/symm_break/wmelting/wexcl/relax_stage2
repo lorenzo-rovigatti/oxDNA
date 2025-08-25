@@ -1,0 +1,56 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+debug = 1
+sim_type = MD
+seed = 1
+
+####    SIM PARAMETERS    ####
+steps = 1e5
+
+T = 300K	#cgna+ - 20C
+dt = 0.002
+verlet_skin = 0.05
+thermostat = bussi
+bussi_tau = 1000
+newtonian_steps = 53
+salt_concentration = 0.15	#same as in cgdna+
+interaction_type = DNA3
+
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = oxDNA_sequence_dependent_parameters_in.txt 
+small_system = 1
+
+
+####    INPUT / OUTPUT    ####
+topology = generated.top
+conf_file = last_conf.dat
+trajectory_file = trajectory.dat
+refresh_vel = 1
+log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e5
+print_energy_every = 1e4
+time_scale = linear
+external_forces = false
+
+max_backbone_force = 5
+max_backbone_force_far = 10
+
+data_output_1 = {
+name = split_energy_relax2.dat
+print_every = 2e4
+col_1 = {
+type = step
+}
+col_2 = {
+type = potential_energy
+split = true
+}
+col_3 = {
+type = total_energy
+}
+}
+
