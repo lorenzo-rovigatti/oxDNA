@@ -78,6 +78,10 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     _excl_rc[5].fill(EXCL_RC6);
     _excl_rc[6].fill(EXCL_RC7);
 
+
+    F1_SD_EPS[0].fill(HYDR_EPS_OXDNA);
+    F1_SD_EPS[1].fill(STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * _T);
+
     F1_SD_A[0].fill(HYDR_A);
     F1_SD_A[1].fill(STCK_A);
 
@@ -320,6 +324,9 @@ void DNA3Interaction::init() {
     char key[256];
     float tmp_value;
 
+    float stck_fact_eps;
+    getInputFloat(&seq_file, "STCK_FACT_EPS", &stck_fact_eps, 1);
+
     sprintf(key, "FENE_EPS");
     if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_eps = tmp_value;
 
@@ -410,6 +417,12 @@ void DNA3Interaction::init() {
                                 */
 
                         // F1
+
+                        // this is pair type dependent
+                        sprintf(key, "HYDR_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_EPS[HYDR_F1](k, i, j, l) = tmp_value;
+
+                        //tetramer type dependent
                         sprintf(key, "HYDR_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1](k, i, j, l) = tmp_value;
                         sprintf(key, "HYDR_RC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
@@ -435,6 +448,10 @@ void DNA3Interaction::init() {
                         // F1_SD_SHIFT[HYDR_F1](i, j, k, l) = F1_EPS[HYDR_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1](i, j, k, l) - F1_SD_R0[HYDR_F1](i, j, k, l)) * F1_SD_A[HYDR_F1](i, j, k, l)));
 
                         // STACKING
+
+                        sprintf(key, "STCK_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_EPS[STCK_F1](i, j, k, l) = tmp_value * (1.0 - stck_fact_eps + (_T * 9.0 * stck_fact_eps));
+
 
                         sprintf(key, "STCK_A_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1](i, j, k, l) = tmp_value;
@@ -751,48 +768,50 @@ void DNA3Interaction::init() {
                     F2_SD_K[CRST_F2_55](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
 
                     // fene
-                    _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par();
+                    _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
                     // if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
-                    _fene_delta_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par();
-                    _fene_r0_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_r0_SD.get_average_par();
+                    _fene_delta_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    _fene_r0_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_r0_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
                     // if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
-                    _fene_r0_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par();
+                    _fene_r0_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
 
                     // f1
                     for(int m = 0; m < 2; m++) {
-                        F1_SD_A[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_A[m].get_average_par();
-                        F1_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_R0[m].get_average_par();
-                        F1_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RC[m].get_average_par();
-                        F1_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RLOW[m].get_average_par();
-                        F1_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RHIGH[m].get_average_par();
+                        F1_SD_EPS[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_EPS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F1_SD_A[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F1_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F1_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F1_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F1_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F1_SD_A[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par();
-                        F1_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par();
-                        F1_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par();
-                        F1_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par();
-                        F1_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par();
+                        F1_SD_EPS[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_EPS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F1_SD_A[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F1_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F1_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F1_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F1_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
                     }
 
                     // f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_R0[m].get_average_par();
-                        F2_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RC[m].get_average_par();
-                        F2_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RLOW[m].get_average_par();
-                        F2_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RHIGH[m].get_average_par();
+                        F2_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F2_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F2_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F2_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F2_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par();
-                        F2_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par();
-                        F2_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par();
-                        F2_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par();
+                        F2_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F2_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F2_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F2_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
                     }
 
                     // f3
                     for(int m = 0; m < 7; m++) {
-                        _excl_s[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_s[m].get_average_par();
-                        _excl_r[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_r[m].get_average_par();
+                        _excl_s[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_s[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        _excl_r[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_r[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        _excl_s[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_s[m].get_average_par();
-                        _excl_r[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_r[m].get_average_par();
+                        _excl_s[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_s[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        _excl_r[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_r[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
                     }
 
                     // f4
@@ -801,22 +820,22 @@ void DNA3Interaction::init() {
                         // if(m == 2 || m == 3 || m == 4 || m == 5) continue;
                         // if(m == 10 || m == 11 || m == 12) continue;
                         // if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
-                        F4_SD_THETA_A[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_A[m].get_average_par();
-                        F4_SD_THETA_T0[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_T0[m].get_average_par();
-                        F4_SD_THETA_TS[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_TS[m].get_average_par();
+                        F4_SD_THETA_A[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F4_SD_THETA_T0[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_T0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F4_SD_THETA_TS[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_TS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F4_SD_THETA_A[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par();
-                        F4_SD_THETA_T0[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par();
-                        F4_SD_THETA_TS[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par();
+                        F4_SD_THETA_A[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F4_SD_THETA_T0[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F4_SD_THETA_TS[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
                     }
 
                     // f5
                     for(int m = 0; m < 4; m++) {
-                        F5_SD_PHI_A[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_A[m].get_average_par();
-                        F5_SD_PHI_XS[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_XS[m].get_average_par();
+                        F5_SD_PHI_A[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        F5_SD_PHI_XS[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_XS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F5_SD_PHI_A[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par();
-                        F5_SD_PHI_XS[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par();
+                        F5_SD_PHI_A[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F5_SD_PHI_XS[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
                     }
                 }
             }
@@ -844,7 +863,7 @@ void DNA3Interaction::init() {
                             F1_SD_RCLOW[m](i, j, k, l) = F1_SD_RLOW[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BLOW[m](i, j, k, l) * (term1 * (1 - term1));
                             F1_SD_RCHIGH[m](i, j, k, l) = F1_SD_RHIGH[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BHIGH[m](i, j, k, l) * (term3 * (1 - term3));
 
-                            F1_SD_SHIFT[m](i, j, k, l) = F1_EPS[m][j][k] * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
+                            F1_SD_SHIFT[m](i, j, k, l) = F1_SD_EPS[m](i, j, k, l) * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
                         }
                         // f2
                         for(int m = 0; m < 4; m++) {
@@ -1191,7 +1210,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
         energy = (_mbf_fmax - _mbf_finf) * mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
         if(update_forces)
             force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * mbf_xmax / fabs(rbackr0) + _mbf_finf) / rbackmod);
-    } 
+    }
     else {
         // we check whether we ended up OUTSIDE of the FENE range
         if(fabs(rbackr0) > _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) - DBL_EPSILON) {
@@ -1692,12 +1711,12 @@ number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1,
     number val = (number)0;
     if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
         if(r > F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F1_EPS[type][n3_1][n5_1] * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+            val = F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2) * F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
         } else if(r > F1_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             number tmp = 1 - exp(-(r - F1_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) * F1_SD_A[type](n3_2, n3_1, n5_1, n5_2));
-            val = F1_EPS[type][n3_1][n5_1] * SQR(tmp) - F1_SD_SHIFT[type](n3_2, n3_1, n5_1, n5_2);
+            val = F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2) * SQR(tmp) - F1_SD_SHIFT[type](n3_2, n3_1, n5_1, n5_2);
         } else if(r > F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F1_EPS[type][n3_1][n5_1] * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+            val = F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2) * F1_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F1_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
 
@@ -1717,7 +1736,7 @@ number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1
         }
     }
 
-    return F1_EPS[type][n3_1][n5_1] * val;
+    return F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2) * val;
 }
 
 number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {

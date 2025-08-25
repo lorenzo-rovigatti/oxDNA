@@ -326,7 +326,7 @@ void DNAInteraction::init() {
 	// epsilon regarding interactions between true bases (i.e. the
 	// interactions between dummy bases or regular bases and dummy bases
 	// keeps the default value)
-	if(!_average) {
+	if(!_average && _grooving != 2) {   //for oxdna3 we use tetramer dependent stacking strength
 		char key[256];
 		float tmp_value, stck_fact_eps;
 
