@@ -36,18 +36,26 @@ struct MultiDimArray {
         std::fill(data, data + total_size, v);
     }
 
-    number get_average_par() const noexcept {
+    number get_average_par(int i, int j, int k, int l) const noexcept {
         number average = 0.;
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < 4; j++) {
-                for(int k = 0; k < 4; k++) {
-                    for(int l = 0; l < 4; l++) {
-                        average += this->operator()(i, j, k, l);
-                    }
-                }
+        number den = 4.;
+        if(i == 5 && l == 5) den = 16.;
+        if(i == 5 && l != 5) {
+            for(int m = 0; m < 4; m++) {
+                average += this->operator()(m, j, k, l);
             }
         }
-        return average / 256.;
+        else if(l == 5 && i != 5){
+            for(int m = 0; m < 4; m++) {
+                average += this->operator()(i, j, k, m);
+            }
+        }
+        else if(l == 5 && i == 5){
+            for(int m = 0; m < 4; m++) {
+                for(int n = 0; n < 4; n++) average += this->operator()(m, j, k, n);
+            }
+        }
+        return average / den;
     }
 };
 
