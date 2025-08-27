@@ -53,14 +53,6 @@ void CUDADNA3Interaction::cuda_init(int N) {
 
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 
-    c_number tmp[50];
-    for(int i = 0; i < 2; i++)
-        for(int j = 0; j < 5; j++)
-            for(int k = 0; k < 5; k++)
-                tmp[i * 25 + j * 5 + k] = this->F1_EPS[i][j][k];
-
-    COPY_ARRAY_TO_CONSTANT(MD_F1_EPS, tmp, 50);
-
     COPY_ARRAY_TO_CONSTANT(MD_F2_K, this->F2_K, 2);
     COPY_ARRAY_TO_CONSTANT(MD_F2_RC, this->F2_RC, 2);
     COPY_ARRAY_TO_CONSTANT(MD_F2_R0, this->F2_R0, 2);
@@ -92,6 +84,8 @@ void CUDADNA3Interaction::cuda_init(int N) {
     params = _convert_param_array(this->_excl_rc, 7);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_rc, params.data(), params.size() * sizeof(float)));
 
+    params = _convert_param_array(F1_SD_EPS, 2);
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_EPS, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F1_SD_A, 2);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_A, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F1_SD_RC, 2);

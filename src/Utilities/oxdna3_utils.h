@@ -36,10 +36,11 @@ struct MultiDimArray {
         std::fill(data, data + total_size, v);
     }
 
-    number get_average_par(int i, int j, int k, int l) const noexcept {
+    number get_average_par(int i, int j, int k, int l) const {
         number average = 0.;
         number den = 4.;
         if(i == 5 && l == 5) den = 16.;
+
         if(i == 5 && l != 5) {
             for(int m = 0; m < 4; m++) {
                 average += this->operator()(m, j, k, l);
@@ -54,6 +55,9 @@ struct MultiDimArray {
             for(int m = 0; m < 4; m++) {
                 for(int n = 0; n < 4; n++) average += this->operator()(m, j, k, n);
             }
+        }
+        else {
+            throw oxDNAException("MultiDimArray::get_average_par() called with wrong parameters (%d, %d, %d, %d)", i, j, k, l);
         }
         return average / den;
     }

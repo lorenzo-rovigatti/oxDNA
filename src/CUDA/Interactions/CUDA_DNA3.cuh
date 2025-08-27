@@ -3,8 +3,6 @@ __constant__ int MD_N[1];
 __constant__ int MD_n_forces[1];
 
 __constant__ float MD_hb_multi[1];
-// 50 = 2 * 5 * 5
-__constant__ float MD_F1_EPS[50];
 
 __constant__ float MD_F2_K[2];
 __constant__ float MD_F2_RC[2];
@@ -67,6 +65,7 @@ __device__ OxDNA3Params MD_excl_r[7];
 __device__ OxDNA3Params MD_excl_b[7];
 __device__ OxDNA3Params MD_excl_rc[7];
 
+__device__ OxDNA3Params MD_F1_SD_EPS[2];
 __device__ OxDNA3Params MD_F1_SD_A[2];
 __device__ OxDNA3Params MD_F1_SD_RC[2];
 __device__ OxDNA3Params MD_F1_SD_R0[2];
@@ -143,7 +142,7 @@ __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &
 __forceinline__ __device__ c_number _f1_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     c_number val = (c_number) 0.f;
     if(r < MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        float eps = MD_F1_EPS[25 * type + n3_1 * 5 + n5_1];
+        float eps = MD_F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2);
         if(r > MD_F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = eps * MD_F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
         }
@@ -162,7 +161,7 @@ __forceinline__ __device__ c_number _f1_SD(c_number r, int type, int n3_2, int n
 __forceinline__ __device__ c_number _f1D_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     c_number val = 0.f;
     if(r < MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        float eps = MD_F1_EPS[25 * type + n3_1 * 5 + n5_1];
+        float eps = MD_F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2);
         if(r > MD_F1_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2.f * eps * MD_F1_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
         }
