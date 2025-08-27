@@ -1,0 +1,5 @@
+seqs AATCAAAC AAGGATCA CATGCAAT ATGGGAAA TCAGGAAC TAGCTGTC ATCGAACG GGGGTAAG CTCACTCG CCAACCAG GTGCGATC ACGGGTTT AACCGGTC CAGCCGTC GACAGGCG CCCCTCCC ATTAAATT GAATTTAA TAACCTAT AGTCTCTT CGATGCTA TGGTCGTT GTGGCAGC CGCAGCGT GCGCGCGA GCGCGCGC
+mTs 30 36 36 37 41 42 44 44 45 45 46 48 50 52 52 54 25 30 37 43 48 53 58 64 71 75
+OP_files op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt op_n8.txt
+W_files wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt wfile_n8.txt
+nbps 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
