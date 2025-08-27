@@ -354,9 +354,9 @@ print("Computed initial energy")
 
 #Plot GS and STD sampled coordinates without confs with broken HBs
 mus, covs = fun.ave_and_cov_sampled()
-#for l in range(cg.Nseq):
-#    fun.plot_gs_sampled(mus[l],l)
-#    fun.plot_std_sampled(covs[l],l)
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l)
+    fun.plot_std_sampled(covs[l],l)
 
 #need to do it here because we need to first compute the initial energy to compute mu (we want to exclude confs with broken hbs)
 cfun.save_mu = fun.Sequence_ave_GS(mus)
@@ -369,14 +369,13 @@ cfun.init_mu_tensor()
 
 #plot GS and STD including confs with broken HBs
 mus, covs = fun.ave_and_cov_sampled_allconfs()
-#for l in range(cg.Nseq):
-#    fun.plot_gs_sampled(mus[l],l,True,False)
-#    fun.plot_std_sampled(covs[l],l,True,False)
+for l in range(cg.Nseq):
+    fun.plot_gs_sampled(mus[l],l,True,False)
+    fun.plot_std_sampled(covs[l],l,True,False)
 
 
 print("Average GS")
 print(cfun.save_mu)
-
 
 ###################################################################################################
 ############## OPTIMISE ###########################################################################
@@ -483,7 +482,7 @@ bnd = optimize.Bounds(low_bond,up_bond)
 
 #Compute average delta. Average value of FENE_DELTA is ket fixed, so that lt is kept at ~220 nm
 #cfun.AVE_DELTA = torch.mean(cfun.CURR_PARS_m[2][cfun.NOENDS])
-cfun.AVE_DELTA = 0.2 #good ave twist persistence length
+cfun.AVE_DELTA = 0.195 #good ave twist persistence length
 print("Ave delta:", cfun.AVE_DELTA)
 
 print("Initial parameters:")
@@ -509,6 +508,13 @@ print("lb0: ")
 print(cfun.LB)
 print("lt0: ")
 print(cfun.LT)
+
+
+#print("S1: "+str(cfun.COST(X0)))
+#print("S2: "+str(cfun.COST(X0)))
+#print("S3: "+str(cfun.COST(X0)))
+
+#exit(1)
 
 """
 print("Test1:")
@@ -564,7 +570,7 @@ def Callback(sol):
 time_opti_start = time.time()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':2,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':6,'iprint': 1})
 
 S = cfun.COST(sol.x)
 print("Final value of the cost function: "+str(S))

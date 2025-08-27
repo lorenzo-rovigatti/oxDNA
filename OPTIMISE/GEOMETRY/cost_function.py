@@ -1410,10 +1410,14 @@ def compute_rew_factor(PARS,SH_ST) :
     TMP = -PARS[par_index[0]][TYPES_BN]/2.*torch.log( 1.-torch.square( FENE_R-PARS[par_index[1]][TYPES_BN] )/PARS[par_index[2]][TYPES_BN]/PARS[par_index[2]][TYPES_BN])
     EN_FENE_REW = torch.where(torch.square(FENE_R-PARS_IN[par_index[1]][TYPES_BN])<PARS_IN[par_index[3]][TYPES_BN]-0.001,TMP,5)
 
+    #print(EN_FENE_REW)
+
     #EXCL_BN
     EN_EXCL_BN_REW = F3(EXCL_BA_BA_R_BN,PARS[par_index[171]][TYPES_BN],PARS[par_index[172]][TYPES_BN],PARS[par_index[173]][TYPES_BN],PARS[par_index[174]][TYPES_BN]) +\
                      F3(EXCL_BA_BB_R_BN,PARS[par_index[175]][TYPES_BN],PARS[par_index[176]][TYPES_BN],PARS[par_index[177]][TYPES_BN],PARS[par_index[178]][TYPES_BN]) +\
                      F3(EXCL_BB_BA_R_BN,PARS[par_index[179]][TYPES_BN],PARS[par_index[180]][TYPES_BN],PARS[par_index[181]][TYPES_BN],PARS[par_index[182]][TYPES_BN])
+
+    #print(EN_EXCL_BN_REW)
 
     """
     #FENE_ENERGY+CONTINUITY-TO AVOID DIVERGENT ENERGY
@@ -1453,11 +1457,15 @@ def compute_rew_factor(PARS,SH_ST) :
 
     STCK_MOD_REW = f1*f4_th4*f4_th5*f4_th6
 
+    #print(STCK_MOD_REW)
+
     #HYDROGEN
     f4_th4 = F4(TH4_UNBN,PARS[par_index[29]][TYPES_UNBN_33],PARS[par_index[30]][TYPES_UNBN_33],PARS[par_index[31]][TYPES_UNBN_33],\
                 PARS[par_index[32]][TYPES_UNBN_33],PARS[par_index[33]][TYPES_UNBN_33],ZEROS_UNBN)
 
     HYDR_MOD_REW = f4_th4
+
+    #print(HYDR_MOD_REW)
 
     #CROSS STACKING
     #33
@@ -1478,6 +1486,8 @@ def compute_rew_factor(PARS,SH_ST) :
                 PARS[par_index[143]][TYPES_UNBN_55],PARS[par_index[144]][TYPES_UNBN_55],ZEROS_UNBN)
 
     CRST_55_MOD_REW = f2_55*f4_th4_55
+
+    #print(CRST_33_MOD_REW,CRST_55_MOD_REW)
 
     return EN_FENE_REW, EN_EXCL_BN_REW,  STCK_MOD_REW, HYDR_MOD_REW, CRST_33_MOD_REW, CRST_55_MOD_REW
 
@@ -1563,6 +1573,26 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
 
     #print(CURR_PARS[44])
 
+    if opti:
+        #Fix delta average ###
+
+        #print(AVE_DELTA)
+        global CURR_AVE_DELTA
+        aveD = torch.mean(CURR_PARS.reshape(-1,5, 5, 5, 5)[2,:4,:4,:4,:4])
+        #print(CURR_PARS[2])
+        #print("aveDelta", float(aveD))
+        CURR_PARS[2] = CURR_PARS[2] - aveD + AVE_DELTA
+        CURR_AVE_DELTA = aveD = torch.mean(CURR_PARS.reshape(-1, 5, 5, 5, 5)[2,:4,:4,:4,:4])
+
+        #Make STCK_THETA5A and STCK_THETA6A average ###
+
+        #aveTH5A = torch.mean(CURR_PARS[60])
+        #CURR_PARS[60] = aveTH5A
+        #aveTH6A = torch.mean(CURR_PARS[65])
+        #CURR_PARS[65] = aveTH6A
+
+
+
     exclude = torch.tensor([4,77,116],device=device)
     all_ids = torch.arange(CURR_PARS.size(0),device=device)
     mask = all_ids[~torch.isin(all_ids, exclude)]
@@ -1585,23 +1615,6 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
     #torch.set_printoptions(profile="default")
 
     #exit(1)
-
-
-    if opti:
-        #Fix delta average ###
-
-        global CURR_AVE_DELTA
-        aveD = torch.mean(CURR_PARS[2])
-        CURR_PARS[2] = CURR_PARS[2] - aveD + AVE_DELTA
-        CURR_AVE_DELTA = torch.mean(CURR_PARS[2])
-
-        #Make STCK_THETA5A and STCK_THETA6A average ###
-
-        aveTH5A = torch.mean(CURR_PARS[60])
-        CURR_PARS[60] = aveTH5A
-        aveTH6A = torch.mean(CURR_PARS[65])
-        CURR_PARS[65] = aveTH6A
-
 
     #delta2 ###
     #delta2 = delta^2
