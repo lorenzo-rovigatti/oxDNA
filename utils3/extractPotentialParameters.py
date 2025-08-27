@@ -1,6 +1,6 @@
 import sys
 # Specify the file path and the string to match
-file_path = 'oxDNA3_sequence_dependent_parameters.txt'
+file_path = '../oxDNA3_sequence_dependent_parameters.txt'
 
 lines_fene_delta = []
 start_string = 'FENE_DELTA'
