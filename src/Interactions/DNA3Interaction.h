@@ -50,6 +50,9 @@ public:
     virtual void init();
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
+
+    MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_EPS[2];
+
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_A[2];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RC[2];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_R0[2];
@@ -115,7 +118,7 @@ protected:
 public:
     DNA3Interaction_nomesh() : DNA3Interaction() {
     }
-    
+
     virtual ~DNA3Interaction_nomesh() {
     }
 };
