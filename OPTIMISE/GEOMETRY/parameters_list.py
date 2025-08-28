@@ -286,7 +286,7 @@ par_index.append(PARS_LIST.index("EXCL_B7"))
 par_index.append(PARS_LIST.index("EXCL_RC7"))
 
 
-compl_symm_ids_2d = []
+compl_symm_ids_2d = [0]
 compl_symm_ids_2d_no_TT_AA = []
 compl_symm_ids = [] #leave it empty, and we break the comp symmetry
 """
