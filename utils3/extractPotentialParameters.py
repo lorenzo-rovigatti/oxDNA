@@ -63,6 +63,7 @@ file.close()
 
 # Stacking strengths
 lines_stk_eta = []
+#lines_stk_eta_seq = []
 nucl_type = ['A', 'C', 'G', 'T']
 
 for n1 in nucl_type:
@@ -79,6 +80,7 @@ for n1 in nucl_type:
                         if re.match(exclude_string,line):
                             part = stripped_line.split(' ')
                             lines_stk_eta.append(part[2])
+                            #lines_stk_eta_seq.append(start_string)
                 file.close()
 
 
@@ -388,8 +390,7 @@ print("")
 # Write stk
 print("* * stk     1.3523 2.6717", end=" ")
 for i in range(len(lines_stk_eta)):
-#    print(float(lines_stk_eta[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1))
-    print("%21.15le" % float(lines_stk_eta[i]), end=" ")
+    print("%21.15le" % (float(lines_stk_eta[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1)), end=" ")
 print(end=" ")
 print("6.0", end=" ")
 print(end=" ")
