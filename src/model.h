@@ -433,7 +433,7 @@
 #define HYDR_T1_MESH_POINTS 6   // perfect
 #define HYDR_T2_MESH_POINTS 6   // perfect
 #define HYDR_T3_MESH_POINTS HYDR_T2_MESH_POINTS
-#define HYDR_T4_MESH_POINTS 50  // almost perfect
+#define HYDR_T4_MESH_POINTS 250  // almost perfect
 #define HYDR_T7_MESH_POINTS 12  // almost perfect
 #define HYDR_T8_MESH_POINTS HYDR_T7_MESH_POINTS
 
@@ -442,14 +442,14 @@
 #define STCK_T6_MESH_POINTS STCK_T5_MESH_POINTS
 
 #define CRST_T1_MESH_POINTS 250 // good enough
-#define CRST_T2_MESH_POINTS 80  // almost perfect
+#define CRST_T2_MESH_POINTS 250  // almost perfect
 #define CRST_T3_MESH_POINTS CRST_T2_MESH_POINTS
 #define CRST_T4_MESH_POINTS 6   // perfect
 #define CRST_T7_MESH_POINTS 250 // good enough
 #define CRST_T8_MESH_POINTS CRST_T7_MESH_POINTS
 
-#define CRST_T4_33_MESH_POINTS 100   // Andrea: good enough? //ox2 CRST_T4_MESH_POINTS is not good enough for ox3
-#define CRST_T4_55_MESH_POINTS 100   // Andrea: good enough?
+#define CRST_T4_33_MESH_POINTS 250   // Andrea: good enough? //ox2 CRST_T4_MESH_POINTS is not good enough for ox3
+#define CRST_T4_55_MESH_POINTS 250   // Andrea: good enough?
 
 #define CXST_T1_MESH_POINTS 250 // perfetto
 #define CXST_T4_MESH_POINTS 6   // perfetto
