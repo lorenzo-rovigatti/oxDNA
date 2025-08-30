@@ -1971,7 +1971,7 @@ void PatchyShapeInteraction::check_patchy_locks(std::shared_ptr<ConfigInfo> Info
 					{
 						if(p->patches[ppatch].locked_to(qid,qqpatch) || qq->patches[qqpatch].locked_to(pid,ppatch))
 						{
-							throw oxDNAException("Found a wrong lock, they should be not locked: %d (%d) - %d (%d), %f",pid,ppatch,qid,qqpatch,new_ene);
+							OX_LOG(Logger::LOG_ERROR, "Found a wrong lock, they should be not locked: %d (%d) - %d (%d), %f",pid,ppatch,qid,qqpatch,new_ene);
 						}
 
 					}
