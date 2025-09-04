@@ -19,62 +19,60 @@
 
 
 using namespace std;
-
-// Data structure to store a graph edge
-struct Edge {
-    int src, dest;
-};
-
-
-// A class to represent a graph object
-class Graph
-{
-public:
-    // a vector of vectors to represent an adjacency list
-    vector<vector<int>> adjList;
-
-    // Graph Constructor
-    Graph(vector<Edge> const &edges, int n)
-    {
-        // resize the vector to hold `n` elements of type `vector<int>`
-        adjList.resize(n);
-
-        // add edges to the directed graph
-        for (auto &edge: edges)
-        {
-            // insert at the end
-            adjList[edge.src].push_back(edge.dest);
-
-            // uncomment the following code for undirected graph
-            // adjList[edge.dest].push_back(edge.src);
-        }
-    }
-};
-
-// Function to print adjacency list representation of a graph
-void printGraph(Graph const &graph, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        // print the current vertex number
-        cout << i << " ——> ";
-
-        // print all neighboring vertices of a vertex `i`
-        for (int v: graph.adjList[i]) {
-            cout << v << " ";
-        }
-        cout << endl;
-    }
-}
+//
+//// Data structure to store a graph edge
+//struct Edge {
+//    int src, dest;
+//};
+//
+//
+//// A class to represent a graph object
+//class Graph
+//{
+//public:
+//    // a vector of vectors to represent an adjacency list
+//    vector<vector<int>> adjList;
+//
+//    // Graph Constructor
+//    Graph(vector<Edge> const &edges, int n)
+//    {
+//        // resize the vector to hold `n` elements of type `vector<int>`
+//        adjList.resize(n);
+//
+//        // add edges to the directed graph
+//        for (auto &edge: edges)
+//        {
+//            // insert at the end
+//            adjList[edge.src].push_back(edge.dest);
+//
+//            // uncomment the following code for undirected graph
+//            // adjList[edge.dest].push_back(edge.src);
+//        }
+//    }
+//};
+//
+//// Function to print adjacency list representation of a graph
+//void printGraph(Graph const &graph, int n)
+//{
+//    for (int i = 0; i < n; i++)
+//    {
+//        // print the current vertex number
+//        cout << i << " ——> ";
+//
+//        // print all neighboring vertices of a vertex `i`
+//        for (int v: graph.adjList[i]) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//    }
+//}
 
 
 PLClusterTopology::PLClusterTopology() {
     _show_types = true;
 }
 
-PLClusterTopology::~PLClusterTopology() {
-
-}
+PLClusterTopology::~PLClusterTopology() = default;
 
 void PLClusterTopology::get_settings(input_file &my_inp, input_file &sim_inp) {
     bool show_types = false;

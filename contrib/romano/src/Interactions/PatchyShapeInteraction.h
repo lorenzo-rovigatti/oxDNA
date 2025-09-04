@@ -163,7 +163,7 @@ public:
 	number _repulsive_lj_n(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc,int n,bool update_forces);
 
 	number _exc_LJ_vol_interaction_sphere(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
-	number _exc_vol_hard_icosahedron(BaseParticle *p, BaseParticle *q, LR_vector *r,bool update_forces);
+//	number _exc_vol_hard_icosahedron(BaseParticle *p, BaseParticle *q, LR_vector *r,bool update_forces);
 	number _exc_vol_hs (BaseParticle *ap, BaseParticle *aq, bool compute_r, bool update_forces);
 	//inline number _exc_quadratic_vol_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
@@ -181,7 +181,7 @@ public:
 	//virtual int check_valence(ConfigInfo &conf_info) {return 0;} //scans all interacting particles if one patch is bond to more particles, it breaks all bonds but 1;
 	virtual number just_two_patch_interaction(PatchyShapeParticle *p, PatchyShapeParticle *q, int pi,int  qi,LR_vector *r);
 
-	number get_patch_cutoff_energy() {return this->_lock_cutoff;}
+	number get_patch_cutoff_energy() const {return this->_lock_cutoff;}
 
 	Patch _process_patch_type(std::string input_string); //this function processes patch type from the input file
 	PatchyShapeParticle _process_particle_type(std::string input_string);
@@ -219,10 +219,10 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	number get_alpha() { return _patch_alpha; }
+	number get_alpha() const { return _patch_alpha; }
 
 
-	void check_loaded_particles(); //needed for debugging
+//	void check_loaded_particles(); //needed for debugging
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
