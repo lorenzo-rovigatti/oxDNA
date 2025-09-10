@@ -92,21 +92,22 @@ struct Patch {
         PatchyShapeParticle(int N_patches=1 , int type = 0,int N_vertexes=0);
         PatchyShapeParticle(const PatchyShapeParticle &b)
         {
-            patches = 0;
+            patches = nullptr;
             this->_vertexes =  0;
-            this->copy_from(b);}
+            this->copy_from(b);
+        }
 
-        virtual ~PatchyShapeParticle();
+        ~PatchyShapeParticle() override;
 
-        void set_positions();
+        void set_positions() override;
 
-        virtual void copy_from(const BaseParticle &);
+        void copy_from(const BaseParticle &) override;
 
         PatchyShapeParticle& operator=(const PatchyShapeParticle& b) {this->copy_from(b);  return *this;}
         void add_patch(Patch &patch,int position);
 
-        int get_patch_color(int patchid)  {return this->patches[patchid].get_color();}
-        virtual bool is_rigid_body() {
+        int get_patch_color(int patchid) const  {return this->patches[patchid].get_color();}
+        bool is_rigid_body() override {
             return true;
         }
 

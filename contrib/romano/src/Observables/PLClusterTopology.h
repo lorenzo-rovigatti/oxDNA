@@ -29,11 +29,11 @@ protected:
     bool _show_types ;
 public:
     PLClusterTopology();
-    virtual ~PLClusterTopology();
+    ~PLClusterTopology() override;
 
-    std::string get_output_string(llint curr_step);
+    std::string get_output_string(llint curr_step) override;
 
-    virtual void get_settings(input_file &my_inp, input_file &sim_inp);
+    void get_settings(input_file &my_inp, input_file &sim_inp) override;
 };
 
 extern "C" BaseObservable * make_PLClusterTopology() { return new PLClusterTopology(); }
