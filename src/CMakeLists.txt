@@ -162,6 +162,7 @@ SET(forces_SOURCES
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
 	Forces/YukawaSphere.cpp
+	Forces/Metadynamics/LTCoordination.cpp
 	Forces/Metadynamics/LTCOMTrap.cpp
 	Forces/Metadynamics/LTCOMAngleTrap.cpp
 	Forces/Metadynamics/LT2DCOMTrap.cpp

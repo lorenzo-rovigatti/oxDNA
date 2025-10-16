@@ -6,23 +6,6 @@
 #include <string>
 #include <iostream>
 
-inline number interpolatePotential(const number my_x, const number dX, const number xmin, const std::vector<number> &potential_grid) {
-	number x_left = dX * std::floor(my_x / dX);
-	number x_right = x_left + dX;
-	number ix_left = std::floor((my_x - xmin) / dX);
-	number ix_right = ix_left + 1;
-	number f11 = potential_grid[ix_left];
-	number f21 = potential_grid[ix_right];
-	number fx = (x_right - my_x) / dX * f11 + (my_x - x_left) / dX * f21;
-	return fx;
-}
-
-inline number get_x_force(const number x, const number dX, const number xmin, const std::vector<number> &potential_grid) {
-	number ix_left = std::floor((x - xmin) / dX);
-	number ix_right = ix_left + 1;
-	return -(potential_grid[ix_right] - potential_grid[ix_left]) / dX;
-}
-
 LTCOMTrap::LTCOMTrap() :
 				BaseForce() {
 	xmin = 0;
@@ -89,7 +72,7 @@ LR_vector LTCOMTrap::value(llint step, LR_vector &pos) {
 	}
 
 	else {
-		meta_Fx = get_x_force(my_x, dX, xmin, potential_grid);
+		meta_Fx = meta::get_x_force(my_x, dX, xmin, potential_grid);
 	}
 
 	const LR_vector accumulated_force = dra * (meta_Fx / dra.module());
@@ -119,7 +102,7 @@ number LTCOMTrap::potential(llint step, LR_vector &pos) {
 	}
 
 	else {
-		my_potential = interpolatePotential(x, dX, xmin, potential_grid);
+		my_potential = meta::interpolate_potential(x, dX, xmin, potential_grid);
 	}
 
 	if(_mode == 1) {
@@ -128,8 +111,4 @@ number LTCOMTrap::potential(llint step, LR_vector &pos) {
 	else {
 		return my_potential / ((number) _p2a_ptr.size());
 	}
-
-	number total_factor = _p1a_ptr.size() + _p2a_ptr.size();
-
-	return my_potential / total_factor;
 }
