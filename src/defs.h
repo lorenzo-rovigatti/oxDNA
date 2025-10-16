@@ -34,6 +34,10 @@
 #define N_T 3
 #define N_DUMMY 4
 
+// TODO: this is the cutoff for considering a hydrogen bond "formed", but it should be
+// possible to set it from input file and not hard coded
+#define HB_CUTOFF (-0.1f)
+
 #include "model.h"
 #include "Utilities/LR_vector.h"
 #include "Utilities/LR_matrix.h"

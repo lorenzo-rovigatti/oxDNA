@@ -6,8 +6,6 @@
  */
 
 #include "PlectonemePosition.h"
-#include "../Interactions/DNAInteraction.h"
-#include "../Utilities/OrderParameters.h"
 
 PlectonemePosition::PlectonemePosition() {
 	_critical_bp_distance = 40;

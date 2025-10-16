@@ -11,17 +11,15 @@
 #include "Lists/Cells.h"
 
 #include "Observables/BaseObservable.h"
-#include "Interactions/DNAInteraction.h"
-#include "Utilities/OrderParameters.h"
 
 class VPCells: public Cells {
-	vector<int> _clusters;
-	vector<int> _sizes;
-	map<int, LR_vector> _color_map;
+	std::vector<int> _clusters;
+	std::vector<int> _sizes;
+	std::map<int, LR_vector> _color_map;
 
 	void _flip_neighs(BaseParticle *);
 public:
-	vector<int> csd;
+	std::vector<int> csd;
 
 	VPCells(std::vector<BaseParticle *> &ps, BaseBox *box);
 	VPCells() = delete;

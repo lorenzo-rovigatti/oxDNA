@@ -23,7 +23,6 @@
 
 #include "BaseObservable.h"
 #include "../Utilities/OrderParameters.h"
-#include "../Interactions/DNAInteraction.h"
 
 class HBList: public BaseObservable {
 	char _order_parameters_file[512];
