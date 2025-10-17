@@ -66,7 +66,6 @@ LR_vector LTCOMTrap::value(llint step, LR_vector &pos) {
 	int ix_right = ix_left + 1;
 
 	number meta_Fx = 0;
-
 	if((ix_left < 0) || (ix_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
 	}
