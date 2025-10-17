@@ -163,7 +163,15 @@ class Estimator():
         PBC = false
     }}
 }}'''
-
+        elif self.coordination:
+            observable_string = f'''{{
+    name = pos.dat
+    print_every = {self.op_interval}
+    col_1 = {{
+        type = distance
+        op_file = op_coordination.dat
+    }}
+}}'''
         else:
             if self.dim == 1:
                 observable_string = f'''{{
@@ -317,43 +325,46 @@ class Estimator():
                     grid_string += f"{j},"
                 grid_string += '|'
         
-        # use our p-dictionary! 
-        common = "\n".join(f"{com_name}={particles}" for com_name, particles in self.p_dict.items())
-        common += f'''
+        if self.coordination:
+            our_string = f'''
+{{
+    type = meta_coordination
+    group_name = metadynamics
+    potential_grid = {grid_string}
+}}
+'''
+        else:
+            # use our p-dictionary! 
+            common = "\n".join(f"{com_name}={particles}" for com_name, particles in self.p_dict.items())
+            common += f'''
 group_name = metadynamics
 xmin = {self.xmin}
 xmax = {self.xmax}
 N_grid = {self.N_grid}
 potential_grid = {grid_string}
 PBC = false'''
-        
-        force_file_name = os.path.join(dir_name, Estimator.EXT_FORCES_FILE)
-        
-        with open(force_file_name, "w+") as f:
-            f.write(self.other_forces)
-            
             if self.ratio:
-                if self.dim == 1:
-                    for mode in range(1, 5):
-                        our_string = f"{{\ntype = meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
-                        f.write(our_string)
+                for mode in range(1, 5):
+                    our_string = f"{{\ntype = meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
 
             elif self.angle:
-                if self.dim == 1:
-                    for mode in range(1, 4):
-                        our_string = f"{{\ntype = meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
-                        f.write(our_string)
+                for mode in range(1, 4):
+                    our_string = f"{{\ntype = meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
 
             else:
                 if self.dim == 1:
                     for mode in range(1, 3):
                         our_string = f"{{\ntype = meta_com_trap\n{common}\nmode = {mode}\n}}\n"
-                        f.write(our_string)
 
                 elif self.dim == 2:
                     for mode in range(1, 5):
                         our_string = f"{{\ntype = meta_2D_com_trap\n{common}\nymin = {self.xmin}\nymax = {self.xmax}\nmode = {mode}\n}}\n"
-                        f.write(our_string)
+        
+        force_file_name = os.path.join(dir_name, Estimator.EXT_FORCES_FILE)
+        
+        with open(force_file_name, "w+") as f:
+            f.write(self.other_forces)
+            f.write(our_string)
 
     def save_potential_grid(self, index):
         with open(f"{Estimator.BIAS_DIR}/bias_{index}", 'wb+') as f:
@@ -513,6 +524,7 @@ if __name__ == '__main__':
     parser.add_argument("--p_fname", type=str, default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
     parser.add_argument("--ratio", action="store_true", help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
     parser.add_argument("--angle", action="store_true", help="Use the angle defined from three centres of mass as the order parameter")
+    parser.add_argument("--coordination", action="store_true", help="Use a continuous coordination number of given pairs of particles as the order parameter")
     parser.add_argument("--Niter", type=int, default=10000, help="Number of metadynamics iterations")
     parser.add_argument("--xmin", type=float, default=0, help="The lower boundary of the potential grid")
     parser.add_argument("--xmax", type=float, default=30, help="The upper boundary of the potential grid")
@@ -526,16 +538,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # here we check that the options make sense
-    if args.ratio and args.angle:
-        print("CRITICAL: --angle and --ratio are mutually exclusive options, exiting", file=sys.stderr)
+    if sum([args.ratio, args.angle, args.coordination]) > 1:
+        print("CRITICAL: --angle, --ratio, and --coordination are mutually exclusive options, exiting", file=sys.stderr)
         exit(0)
 
     if args.dim > 2:
         print("CRITICAL: Only 1D and 2D order parameters are supported", file=sys.stderr)
         exit(0)
         
-    if args.dim == 2 and (args.ratio or args.angle):
-        print("CRITICAL: --angle and --ratio can only be used as one-dimensional order parameters", file=sys.stderr)
+    if args.dim == 2 and (args.ratio or args.angle or args.coodination):
+        print("CRITICAL: --angle, --ratio, and --coordination can only be used as one-dimensional order parameters", file=sys.stderr)
         exit(0)
 
     if args.op_interval > args.tau:
