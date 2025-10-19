@@ -69,10 +69,10 @@ class Estimator():
     BIAS_DIR = "bias"
     RUN_BASEDIR = "run-meta_"
 
-    def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5),
-                    N_walkers=1, use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, 
-                    xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, 
-                    T=None, op_interval=1000):
+    def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5), N_walkers=1, 
+                use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, coordination=False,
+                xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, T=None, 
+                op_interval=1000):
 
         self.base_dir = base_dir
         self.dX = dX
@@ -85,6 +85,7 @@ class Estimator():
         self.dim = dim
         self.ratio = ratio
         self.angle = angle
+        self.coordination = coordination
         self.conf_interval = conf_interval
         self.save_hills = save_hills
         self.continue_run = continue_run
@@ -281,6 +282,26 @@ class Estimator():
                             input_file["CUDA_device"] = str(w.index)
                         f.write(str(input_file))
 
+                    # prepare the op file if we are using coordination number as the order parameter
+                    if self.coordination:
+                        with open(os.path.join(w.working_dir, "op_coordination.dat"), 'w+') as f:
+                            p_a = [int(x) for x in self.p_dict["p1a"].split(',')]
+                            p_b = [int(x) for x in self.p_dict["p1b"].split(',')]
+                            if len(p_a) != len(p_b):
+                                print(f"CRITICAL: When using coordination number as the order parameter, the number of particles in p1a and p1b must be the same", file=sys.stderr)
+                                exit(1)
+
+                            pairs = ""
+                            for i, pair in enumerate(zip(p_a, p_b)):
+                                pairs += f"pair_{i + 1} = {pa}, {pb}\n"
+
+                            op = f'''{{
+    order_parameter = bond
+    name = metad_bonds
+    {pairs}
+}}'''
+                            f.write(op)
+
         # write the initial force files                
         for w in self.walkers:
             self.write_external_forces_file(w.working_dir)
@@ -300,7 +321,7 @@ class Estimator():
                 A = data[:, 0]
                 B = data[:, 1]
                 C = data[:, 2]
-                val = (A ** 2 + B ** 2 - C ** 2) / (2 * A * B)
+                val = (A**2 + B**2 - C**2) / (2 * A * B)
                 val[np.where(val >= 1)] = 1  # just in case numerical precision takes us outside the domain 
                 data_new = np.arccos(val)
                 data = data_new
@@ -330,6 +351,7 @@ class Estimator():
 {{
     type = meta_coordination
     group_name = metadynamics
+    op_file = op_coordination.dat
     potential_grid = {grid_string}
 }}
 '''
@@ -419,7 +441,7 @@ PBC = false'''
         self.queue = mp.JoinableQueue()
         self.walkers = []
         for walker_index in range(self.N_walkers):
-            self.walkers.append(oxDNARunner(walker_index, "input-meta", self.queue))
+            self.walkers.append(oxDNARunner(walker_index, Estimator.INPUT_FILE, self.queue))
             
     def stop_runners(self):
         runner_args = [False, None, 0]
