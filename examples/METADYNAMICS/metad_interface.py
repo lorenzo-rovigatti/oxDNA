@@ -9,6 +9,256 @@ import oxpy
 import toml
 
 
+class IForceHandler:
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        self.parse_pfile(pfile)
+
+        self.dim = 1
+        self.xmin = xmin
+        self.xmax = xmax
+        self.N_grid = int((self.xmax - self.xmin) / dx) + 1
+        self.dx = (self.xmax - self.xmin) / (self.N_grid - 1)
+
+    def parse_pfile(self, pfile: str):
+        with open(pfile) as f:
+            self.p_dict = {}
+            for line in f.readlines():
+                com_name, particles = [l.strip() for l in line.split(':')]
+                self.p_dict[com_name] = particles
+
+    def prepare_folder(self, working_dir: str):
+        pass
+
+    def observable_string(self, op_interval: int) -> str:
+        return ""
+
+    def force_string(self, grid_string: str) -> str:
+        return ""
+    
+    def data_from_observable(self, data: np.ndarray) -> np.ndarray:
+        return data
+
+
+class CoordinationHandler(IForceHandler):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        super().__init__(pfile, xmin, xmax, dx)
+
+    def parse_pfile(self, pfile: str):
+        self.pairs = []
+        with open(pfile) as f:
+            self.p_dict = {}
+            for line in f.readlines():
+                pair = [int(x) for x in line.split(",")]
+                if len(pair) != 2:
+                    print(f"CRITICAL: When using coordination number as the order parameter, each line of the particle file must contain exactly two particle indices separated by a comma", file=sys.stderr)
+                    exit(1)
+                self.pairs.append(pair)
+
+    def prepare_folder(self, working_dir: str):
+        with open(os.path.join(working_dir, "op_coordination.dat"), 'w+') as f:
+            p_a = [int(x) for x in self.p_dict["p1a"].split(',')]
+            p_b = [int(x) for x in self.p_dict["p1b"].split(',')]
+            if len(p_a) != len(p_b):
+                print(f"CRITICAL: When using coordination number as the order parameter, the number of particles in p1a and p1b must be the same", file=sys.stderr)
+                exit(1)
+
+            pairs = ""
+            for i, pair in enumerate(self.pairs):
+                pairs += f"pair_{i + 1} = {pair[0]}, {pair[1]}\n"
+
+            op = f'''{{
+    order_parameter = bond
+    name = metad_bonds
+    {pairs}
+}}'''
+            f.write(op)
+
+    def observable_string(self, op_interval: int) -> str:
+        return f'''{{
+    name = pos.dat
+    print_every = {op_interval}
+    col_1 = {{
+        type = distance
+        op_file = op_coordination.dat
+    }}
+}}'''
+    
+    def force_string(self, grid_string: str) -> str:
+        return f'''
+{{
+    type = meta_coordination
+    group_name = metadynamics
+    op_file = op_coordination.dat
+    potential_grid = {grid_string}
+}}
+'''
+
+
+class COMTrapHandler(IForceHandler):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        super().__init__(pfile, xmin, xmax, dx)
+
+    def observable_string(self, op_interval: int) -> str:
+        return f'''{{
+    name = pos.dat
+    print_every = {op_interval}
+    col_1 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1a']}
+        particle_2 = {self.p_dict['p2a']}
+        PBC = false
+    }}
+}}'''
+    
+    def force_string(self, grid_string: str) -> str:
+        common = f'''
+{{
+    type = meta_com_trap
+    p1a = {self.p_dict['p1a']}
+    p2a = {self.p_dict['p2a']}
+    group_name = metadynamics
+    xmin = {self.xmin}
+    xmax = {self.xmax}
+    N_grid = {self.N_grid}
+    potential_grid = {grid_string}
+    PBC = false
+    mode = %d
+}}'''
+        
+        return "\n".join([common % mode for mode in range(1, 3)])
+
+class COM2DTrapHandler(IForceHandler):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        super().__init__(pfile, xmin, xmax, dx)
+        self.dim = 2
+
+    def observable_string(self, op_interval: int) -> str:
+        return f'''{{
+    name = pos.dat
+    print_every = {op_interval}
+    col_1 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1a']}
+        particle_2 = {self.p_dict['p2a']}
+        PBC = false
+    }}
+    col_2 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1b']}
+        particle_2 = {self.p_dict['p2b']}
+        PBC = false
+    }}
+}}'''
+
+    def force_string(self, grid_string: str) -> str:
+        common = f'''
+{{
+    type = meta_2D_com_trap
+    p1a = {self.p_dict['p1a']}
+    p2a = {self.p_dict['p2a']}
+    p1b = {self.p_dict['p1b']}
+    p2b = {self.p_dict['p2b']}
+    group_name = metadynamics
+    xmin = {self.xmin}
+    xmax = {self.xmax}
+    ymin = {self.xmin}
+    ymax = {self.xmax}
+    N_grid = {self.N_grid}
+    potential_grid = {grid_string}
+    PBC = false
+    mode = %d
+}}'''
+        
+        return "\n".join([common % mode for mode in range(1, 5)])
+
+
+class AtanCOMTrapHandler(IForceHandler):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        super().__init__(pfile, xmin, xmax, dx)
+
+    def observable_string(self, op_interval: int) -> str:
+        return f'''{{
+    name = pos.dat
+    print_every = {op_interval}
+    col_1 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1a']}
+        particle_2 = {self.p_dict['p2a']}
+        PBC = false
+    }}
+    col_2 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1b']}
+        particle_2 = {self.p_dict['p2b']}
+        PBC = false
+    }}
+}}'''
+    
+    def force_string(self, grid_string: str) -> str:
+        common =  f'''
+{{
+    type = meta_atan_com_trap
+    p1a = {self.p_dict['p1a']}
+    p2a = {self.p_dict['p2a']}
+    p1b = {self.p_dict['p1b']}
+    p2b = {self.p_dict['p2b']}
+    group_name = metadynamics
+    xmin = {self.xmin}
+    xmax = {self.xmax}
+    N_grid = {self.N_grid}
+    potential_grid = {grid_string}
+    PBC = false
+    mode = %d
+}}'''
+        return "\n".join([common % mode for mode in range(1, 5)])
+
+
+class AngleCOMTrapHandler(IForceHandler):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+        super().__init__(pfile, xmin, xmax, dx)
+
+    def observable_string(self, op_interval: int):
+        return f'''{{
+    name = pos.dat
+    print_every = {op_interval}
+    col_1 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1a']}
+        particle_2 = {self.p_dict['p2a']}
+        PBC = false
+    }}
+    col_2 = {{
+        type = distance
+        particle_1 = {self.p_dict['p3a']}
+        particle_2 = {self.p_dict['p2a']}
+        PBC = false
+    }}
+    col_3 = {{
+        type = distance
+        particle_1 = {self.p_dict['p1a']}
+        particle_2 = {self.p_dict['p3a']}
+        PBC = false
+    }}
+}}'''
+
+    def force_string(self, grid_string: str) -> str:
+        common = f'''
+{{
+    type = meta_com_angle_trap
+    p1a = {self.p_dict['p1a']}
+    p2a = {self.p_dict['p2a']}
+    p3a = {self.p_dict['p3a']}
+    group_name = metadynamics
+    xmin = {self.xmin}
+    xmax = {self.xmax}
+    N_grid = {self.N_grid}
+    potential_grid = {grid_string}
+    PBC = false
+    mode = %d
+}}'''
+        return "\n".join([common % mode for mode in range(1, 4)])
+
+
 class oxDNARunner(mp.Process):
 
     def __init__(self, index, input_file, queue):
@@ -72,17 +322,27 @@ class Estimator():
     def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5), N_walkers=1, 
                 use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, coordination=False,
                 xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, T=None, 
-                op_interval=1000):
+                op_interval: int=1000):
+
+        if ratio:
+            self.handler = AtanCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
+        elif angle:
+            self.handler = AngleCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
+        elif coordination:
+            self.handler = CoordinationHandler(args.p_fname, args.xmin, args.xmax, args.dX)
+        else:
+            if dim == 1:
+                self.handler = COMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
+            else: # args.dim == 2
+                self.handler = COM2DTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
 
         self.base_dir = base_dir
-        self.dX = dX
         self.sigma = sigma
         self.A = A
         self.dT = dT
         self.Niter = Niter
         self.tau = tau
         self.N_walkers = N_walkers
-        self.dim = dim
         self.ratio = ratio
         self.angle = angle
         self.coordination = coordination
@@ -90,12 +350,6 @@ class Estimator():
         self.save_hills = save_hills
         self.continue_run = continue_run
         self.op_interval = op_interval
-
-        self.xmin = xmin 
-        self.xmax = xmax 
-
-        self.N_grid = int ((self.xmax - self.xmin) / self.dX) + 1
-        self.dX = (self.xmax - self.xmin) / (self.N_grid - 1)
 
         with open(p_fname) as f:
             self.p_dict = {}
@@ -105,10 +359,10 @@ class Estimator():
 
         # we update the spacing for integer division 
         if not self.continue_run:
-            if self.dim == 1:
-                self.potential_grid = np.zeros(self.N_grid)
-            if self.dim == 2:
-                self.potential_grid = np.zeros((self.N_grid, self.N_grid))
+            if self.handler.dim == 1:
+                self.potential_grid = np.zeros(self.handler.N_grid)
+            if self.handler.dim == 2:
+                self.potential_grid = np.zeros((self.handler.N_grid, self.handler.N_grid))
         else:  # load the most recent file
             center_fnames = glob.glob(f"./{Estimator.BIAS_DIR}/bias_*")
             if len(center_fnames) == 0:
@@ -119,97 +373,15 @@ class Estimator():
             print(f"restarting from bias file : {max_fname}")
             self.potential_grid = pkl.load(open(max_fname, 'rb'))
 
-        self.r_cut_int = 6 * self.sigma / self.dX
+        self.r_cut_int = 6 * self.sigma / self.handler.dx
 
-        if self.ratio:
-            if self.dim == 1:
-                observable_string = f'''{{
-    name = pos.dat
-    print_every = {self.op_interval}
-    col_1 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1a']}
-        particle_2 = {self.p_dict['p2a']}
-        PBC = false
-    }}
-    col_2 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1b']}
-        particle_2 = {self.p_dict['p2b']}
-        PBC = false
-    }}
-}}'''
-    
-        elif self.angle:
-            if self.dim == 1:
-                observable_string = f'''{{
-    name = pos.dat
-    print_every = {self.op_interval}
-    col_1 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1a']}
-        particle_2 = {self.p_dict['p2a']}
-        PBC = false
-    }}
-    col_2 = {{
-        type = distance
-        particle_1 = {self.p_dict['p3a']}
-        particle_2 = {self.p_dict['p2a']}
-        PBC = false
-    }}
-    col_3 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1a']}
-        particle_2 = {self.p_dict['p3a']}
-        PBC = false
-    }}
-}}'''
-        elif self.coordination:
-            observable_string = f'''{{
-    name = pos.dat
-    print_every = {self.op_interval}
-    col_1 = {{
-        type = distance
-        op_file = op_coordination.dat
-    }}
-}}'''
-        else:
-            if self.dim == 1:
-                observable_string = f'''{{
-    name = pos.dat
-    print_every = {self.op_interval}
-    col_1 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1a']}
-        particle_2 = {self.p_dict['p2a']}
-        PBC = false
-    }}
-}}'''
-            elif self.dim == 2:
-                observable_string = f'''{{
-    name = pos.dat
-    print_every = {self.op_interval}
-    col_1 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1a']}
-        particle_2 = {self.p_dict['p2a']}
-        PBC = false
-    }}
-    col_2 = {{
-        type = distance
-        particle_1 = {self.p_dict['p1b']}
-        particle_2 = {self.p_dict['p2b']}
-        PBC = false
-    }}
-}}'''
-                
         self._init_walkers()
 
         # parse the user-provided input file and generate the input file that will be used to run metad simulations
         with oxpy.Context(print_coda=False):
             input_file = oxpy.InputFile()
+            input_filename = os.path.join(self.base_dir, "input")
             try:
-                input_filename = os.path.join(self.base_dir, "input")
                 input_file.init_from_filename(input_filename)
             except oxpy.core.OxDNAError as e:
                 print(f"CRITICAL: no input file found, check that '{input_filename}' exists and is readable")
@@ -245,7 +417,7 @@ class Estimator():
                     i += 1
                 else:
                     keep_searching = False
-            input_file[f"data_output_{i}"] = observable_string
+            input_file[f"data_output_{i}"] = self.handler.observable_string(op_interval)
             
             self.other_forces = ""
             # if the external forces file is non empty we save its contents
@@ -282,25 +454,7 @@ class Estimator():
                             input_file["CUDA_device"] = str(w.index)
                         f.write(str(input_file))
 
-                    # prepare the op file if we are using coordination number as the order parameter
-                    if self.coordination:
-                        with open(os.path.join(w.working_dir, "op_coordination.dat"), 'w+') as f:
-                            p_a = [int(x) for x in self.p_dict["p1a"].split(',')]
-                            p_b = [int(x) for x in self.p_dict["p1b"].split(',')]
-                            if len(p_a) != len(p_b):
-                                print(f"CRITICAL: When using coordination number as the order parameter, the number of particles in p1a and p1b must be the same", file=sys.stderr)
-                                exit(1)
-
-                            pairs = ""
-                            for i, pair in enumerate(zip(p_a, p_b)):
-                                pairs += f"pair_{i + 1} = {pa}, {pb}\n"
-
-                            op = f'''{{
-    order_parameter = bond
-    name = metad_bonds
-    {pairs}
-}}'''
-                            f.write(op)
+                    self.handler.prepare_folder(w.working_dir)
 
         # write the initial force files                
         for w in self.walkers:
@@ -312,12 +466,12 @@ class Estimator():
         data = np.loadtxt(f'./{dir_name}/pos_min.dat')
 
         if self.ratio:
-            if self.dim == 1:
+            if self.handler.dim == 1:
                 data[:, 0] = data[:, 1] / data[:, 0] 
                 data = np.arctan(data[:, 0])
 
         elif self.angle:
-            if self.dim == 1:
+            if self.handler.dim == 1:
                 A = data[:, 0]
                 B = data[:, 1]
                 C = data[:, 2]
@@ -326,9 +480,9 @@ class Estimator():
                 data_new = np.arccos(val)
                 data = data_new
         else:
-            if self.dim == 1:
+            if self.handler.dim == 1:
                 data = data.flatten()
-            else:
+            else: # data is fine as it is
                 pass
 
         return data
@@ -337,56 +491,20 @@ class Estimator():
         # build the initial lookup table
         grid_string = ''
         oxDNA_potential_grid = self.potential_grid * self.T
-        if self.dim == 1:
+        if self.handler.dim == 1:
             for i in oxDNA_potential_grid:
                 grid_string += f"{i},"
-        elif self.dim == 2: 
+        elif self.handler.dim == 2: 
             for i in oxDNA_potential_grid:
                 for j in i:
                     grid_string += f"{j},"
                 grid_string += '|'
         
-        if self.coordination:
-            our_string = f'''
-{{
-    type = meta_coordination
-    group_name = metadynamics
-    op_file = op_coordination.dat
-    potential_grid = {grid_string}
-}}
-'''
-        else:
-            # use our p-dictionary! 
-            common = "\n".join(f"{com_name}={particles}" for com_name, particles in self.p_dict.items())
-            common += f'''
-group_name = metadynamics
-xmin = {self.xmin}
-xmax = {self.xmax}
-N_grid = {self.N_grid}
-potential_grid = {grid_string}
-PBC = false'''
-            if self.ratio:
-                for mode in range(1, 5):
-                    our_string = f"{{\ntype = meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
-
-            elif self.angle:
-                for mode in range(1, 4):
-                    our_string = f"{{\ntype = meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
-
-            else:
-                if self.dim == 1:
-                    for mode in range(1, 3):
-                        our_string = f"{{\ntype = meta_com_trap\n{common}\nmode = {mode}\n}}\n"
-
-                elif self.dim == 2:
-                    for mode in range(1, 5):
-                        our_string = f"{{\ntype = meta_2D_com_trap\n{common}\nymin = {self.xmin}\nymax = {self.xmax}\nmode = {mode}\n}}\n"
-        
         force_file_name = os.path.join(dir_name, Estimator.EXT_FORCES_FILE)
         
         with open(force_file_name, "w+") as f:
             f.write(self.other_forces)
-            f.write(our_string)
+            f.write(self.handler.force_string(grid_string))
 
     def save_potential_grid(self, index):
         with open(f"{Estimator.BIAS_DIR}/bias_{index}", 'wb+') as f:
@@ -397,18 +515,18 @@ PBC = false'''
             pkl.dump(new_data, f)
 
     def interpolatePotential1D(self, x, potential_grid):
-        x_left = self.dX * np.floor(x / self.dX)
-        x_right = x_left + self.dX
-        ix_left = np.floor((x - self.xmin) / self.dX)
+        x_left = self.handler.dx * np.floor(x / self.handler.dx)
+        x_right = x_left + self.handler.dx
+        ix_left = np.floor((x - self.handler.xmin) / self.handler.dx)
         ix_right = ix_left + 1
         f1 = potential_grid[int(ix_left)]
         f2 = potential_grid[int(ix_right)]
-        fx = (x_right - x) / self.dX * f1 + (x - x_left) / self.dX * f2
+        fx = (x_right - x) / self.handler.dx * f1 + (x - x_left) / self.handler.dx * f2
         return fx
 
     def interpolatePotential2D(self, x, y, potential_grid):
-        dX = self.dX
-        xmin = self.xmin
+        dX = self.handler.dx
+        xmin = self.handler.xmin
         x_left = dX * np.floor(x / dX)
         y_left = dX * np.floor(y / dX)
         x_right = x_left + dX
@@ -484,36 +602,36 @@ PBC = false'''
         # update forces
         for data_selection in new_collective_data:
             x = data_selection[-1]
-            if self.dim == 1:
+            if self.handler.dim == 1:
                 local_potential = self.interpolatePotential1D(x, self.potential_grid)
 
-            elif self.dim == 2:
+            elif self.handler.dim == 2:
                 local_potential = self.interpolatePotential2D(x[0], x[1], self.potential_grid)
 
             prefactor = np.exp(-local_potential / self.dT)
 
-            if self.dim == 1:
-                ix_left = int((x - self.xmin) / self.dX);
+            if self.handler.dim == 1:
+                ix_left = int((x - self.handler.xmin) / self.handler.dx);
                 ix_start = max(ix_left - self.r_cut_int, 0)
-                ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
+                ix_end = min(ix_left + self.r_cut_int + 1, self.handler.N_grid)
                 for ix in range(int(ix_start), int(ix_end)):
-                    x_val = self.xmin + self.dX * ix
+                    x_val = self.handler.xmin + self.handler.dx * ix
                     new_potential = self.get_metad_potential(x, x_val)
                     self.potential_grid[ix] += prefactor * new_potential
 
-            elif self.dim == 2:
-                ix_left = int((x[0] - self.xmin) / self.dX);
+            elif self.handler.dim == 2:
+                ix_left = int((x[0] - self.handler.xmin) / self.handler.dx);
                 ix_start = max(ix_left - self.r_cut_int, 0)
-                ix_end = min(ix_left + self.r_cut_int + 1, self.N_grid)
+                ix_end = min(ix_left + self.r_cut_int + 1, self.handler.N_grid)
 
-                iy_left = int((x[1] - self.xmin) / self.dX);
+                iy_left = int((x[1] - self.handler.xmin) / self.handler.dx);
                 iy_start = max(iy_left - self.r_cut_int, 0)
-                iy_end = min(iy_left + self.r_cut_int + 1, self.N_grid)
+                iy_end = min(iy_left + self.r_cut_int + 1, self.handler.N_grid)
 
                 for ix in range(int(ix_start), int(ix_end)):
                     for iy in range(int(iy_start), int(iy_end)):
-                        x_val = self.xmin + self.dX * ix
-                        y_val = self.xmin + self.dX * iy
+                        x_val = self.handler.xmin + self.handler.dx * ix
+                        y_val = self.handler.xmin + self.handler.dx * iy
                         new_potential = self.get_metad_potential2D(x[0], x_val, x[1], y_val)
                         self.potential_grid[ix, iy] += prefactor * new_potential
 
