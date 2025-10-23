@@ -31,7 +31,10 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 		else {
 			LR_vector abs_pos = _config_info->box->get_abs_pos(p);
 			for(auto ext_force : p->ext_forces) {
-				if(ext_force->get_group_name() == _group_name) U += ext_force->potential(curr_step, abs_pos);
+				if(ext_force->get_group_name() == _group_name) {
+					ext_force->set_current_particle(p);
+					U += ext_force->potential(curr_step, abs_pos);
+				}
 			}
 		}
 	}

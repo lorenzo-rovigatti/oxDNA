@@ -9,6 +9,7 @@
 
 #include "meta_utils.h"
 #include "../../Utilities/OrderParameters.h"
+#include "../../Utilities/Utils.h"
 
 LTCoordination::LTCoordination() {
 
@@ -26,8 +27,17 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
 
     OrderParameters op;
     op.init_from_file(op_file.c_str(), CONFIG_INFO->particles(), CONFIG_INFO->N());
+
     if(op.get_distance_parameters_count() > 0) {
         throw oxDNAException("LTCoordination: distance-based order parameters are not supported");
+    }
+
+    if(op.get_hb_parameters_count() == 0) {
+        throw oxDNAException("LTCoordination: no hydrogen-bond-based order parameters found in the specified op_file");
+    }
+
+    if(op.get_hb_parameters_count() > 1) {
+        throw oxDNAException("LTCoordination: only one hydrogen-bond-based order parameter is supported");
     }
 
     auto all_index_pairs = op.get_hb_particle_list();
@@ -39,8 +49,8 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
 
         BaseParticle *p1 = CONFIG_INFO->particles()[pair.first];
         BaseParticle *p2 = CONFIG_INFO->particles()[pair.second];
-        pos_to_pair_index[&p1->pos] = all_pairs.size();
-        pos_to_pair_index[&p2->pos] = all_pairs.size();
+        particle_to_pair_index[p1] = all_pairs.size();
+        particle_to_pair_index[p2] = all_pairs.size();
 
         all_pairs.push_back(std::make_pair(p1, p2));
     }
@@ -55,14 +65,12 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
         throw oxDNAException("LTCoordination: duplicate particle index found in the op_file: %d", *it);
     }
 
-    if(getInputNumber(&inp, "d0", &d0, 0) == KEY_NOT_FOUND) {
-        d0 = 1.2;
-    }
-	if(getInputNumber(&inp, "r0", &r0, 0) == KEY_NOT_FOUND) {
-        r0 = 1.2;
-    }
-    if(getInputInt(&inp, "n", &n, 0) == KEY_NOT_FOUND) {
-        n = 6;
+    getInputNumber(&inp, "d0", &d0, 0);
+	getInputNumber(&inp, "r0", &r0, 0);
+    getInputInt(&inp, "n", &n, 0);
+
+    if(n % 2 != 0) {
+        throw oxDNAException("LTCoordination: exponent n must be an even integer");
     }
 
     // build the grid
@@ -74,28 +82,30 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
     }
 
 	getInputInt(&inp, "N_grid", &N_grid, 1);
-	potential_grid.reserve(N_grid);
+    d_coord = (coord_max - coord_min) / (N_grid - 1.0);
 
 	std::string potential_string;
 	getInputString(&inp, "potential_grid", potential_string, 1);
 	potential_grid = meta::split_to_numbers(potential_string, ",");
 
-	d_coord = (coord_max - coord_min) / (N_grid - 1.0);
+    if(potential_grid.size() != (size_t) N_grid) {
+        throw oxDNAException("LTCoordination: potential_grid size (%u) != N_grid (%d)", potential_grid.size(), N_grid);
+    }
 
     return std::make_tuple(p_indices, "LTCoordination force");
 }
 
 LR_vector LTCoordination::value(llint step, LR_vector &pos) {
-    auto pair = all_pairs[pos_to_pair_index[&pos]];
-    int sign = (&pair.first->pos == &pos) ? -1 : 1;
+    auto pair = all_pairs[particle_to_pair_index[_current_particle]];
+    int sign = (pair.first == _current_particle) ? -1 : 1;
 
     LR_vector r_vec = CONFIG_INFO->box->min_image(pair.first->pos, pair.second->pos);
     number r = r_vec.norm();
     double x = (r - d0) / r0;
     double xn = std::pow(x, n);
-    double dcoord_dr = - (n / r0) * std::pow(x, n - 1) / ((1.0 + xn) * (1.0 + xn));
+    double dcoord_dr = -(n / r0) * std::pow(x, n - 1) / (SQR(1.0 + xn));
 
-    number coord = _coordination();
+    number coord = Utils::clamp(_coordination(), coord_min, coord_max); // ensure we are within the grid limits
     int ic_left = std::floor((coord - coord_min) / d_coord);
 	int ic_right = ic_left + 1;
 
@@ -113,7 +123,7 @@ LR_vector LTCoordination::value(llint step, LR_vector &pos) {
 }
 
 number LTCoordination::potential(llint step, LR_vector &pos) {
-    number coord = _coordination();
+    number coord = Utils::clamp(_coordination(), coord_min, coord_max); // ensure we are within the grid limits
     int ic_left = std::floor((coord - coord_min) / d_coord);
 	int ic_right = ic_left + 1;
 
@@ -125,8 +135,7 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 		my_potential = meta::interpolate_potential(coord, d_coord, coord_min, potential_grid);
 	}
 
-    number total_factor = 2 * all_pairs.size();
-    return my_potential / total_factor;
+    return 10 * my_potential / all_pairs.size();
 }
 
 double LTCoordination::_coordination() {

@@ -27,15 +27,15 @@ public:
 
     // unfortunately forces in oxDNA are passed vectors rather than particles,
     // so we need to keep a map from positions to pair of particles
-    std::unordered_map<LR_vector *, int> pos_to_pair_index;
+    std::unordered_map<BaseParticle *, int> particle_to_pair_index;
 
     number coord_min; // minimum coordination number, defaults to 0.0
 	number coord_max; // maximum coordination number, defaults to the number of pairs defined in the OP file
 	int N_grid;
 	number d_coord; // grid spacing
-    number d0; // optimal distance for coordination, defaults to 1.2 in internal units
-    number r0; // width of the switching function, defaults to 1.2 in internal units
-    int n; // exponent of the switching function, defaults to 6
+    number d0 = 1.2; // optimal distance for coordination, defaults to 1.2 in internal units
+    number r0 = 0.5; // width of the switching function, defaults to 0.5 in internal units
+    int n = 6; // exponent of the switching function, defaults to 6
     std::vector<number> potential_grid;
 
 private:

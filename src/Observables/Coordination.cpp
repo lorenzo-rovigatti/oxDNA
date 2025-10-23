@@ -34,10 +34,22 @@ void Coordination::get_settings(input_file &my_inp, input_file &sim_inp) {
 void Coordination::init() {
 	BaseObservable::init();
 
+    if(_n % 2 != 0) {
+        throw oxDNAException("Coordination: exponent n must be an even integer");
+    }
+
     OrderParameters op;
     op.init_from_file(_op_file.c_str(), CONFIG_INFO->particles(), CONFIG_INFO->N());
     if(op.get_distance_parameters_count() > 0) {
-        throw oxDNAException("LTCoordination: distance-based order parameters are not supported");
+        throw oxDNAException("Coordination: distance-based order parameters are not supported");
+    }
+
+    if(op.get_hb_parameters_count() == 0) {
+        throw oxDNAException("Coordination: no hydrogen-bond-based order parameters found in the specified op_file");
+    }
+
+    if(op.get_hb_parameters_count() > 1) {
+        throw oxDNAException("Coordination: only one hydrogen-bond-based order parameter is supported");
     }
 
     auto all_index_pairs = op.get_hb_particle_list();

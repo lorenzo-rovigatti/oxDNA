@@ -56,21 +56,15 @@ class CoordinationHandler(IForceHandler):
 
     def prepare_folder(self, working_dir: str):
         with open(os.path.join(working_dir, "op_coordination.dat"), 'w+') as f:
-            p_a = [int(x) for x in self.p_dict["p1a"].split(',')]
-            p_b = [int(x) for x in self.p_dict["p1b"].split(',')]
-            if len(p_a) != len(p_b):
-                print(f"CRITICAL: When using coordination number as the order parameter, the number of particles in p1a and p1b must be the same", file=sys.stderr)
-                exit(1)
-
             pairs = ""
             for i, pair in enumerate(self.pairs):
-                pairs += f"pair_{i + 1} = {pair[0]}, {pair[1]}\n"
+                pairs += f"\tpair_{i + 1} = {pair[0]}, {pair[1]}\n"
 
             op = f'''{{
     order_parameter = bond
     name = metad_bonds
     {pairs}
-}}'''
+}}\n'''
             f.write(op)
 
     def observable_string(self, op_interval: int) -> str:
@@ -78,7 +72,7 @@ class CoordinationHandler(IForceHandler):
     name = pos.dat
     print_every = {op_interval}
     col_1 = {{
-        type = distance
+        type = coordination
         op_file = op_coordination.dat
     }}
 }}'''
@@ -88,8 +82,11 @@ class CoordinationHandler(IForceHandler):
 {{
     type = meta_coordination
     group_name = metadynamics
-    op_file = op_coordination.dat
+    xmin = {self.xmin}
+    xmax = {self.xmax}
+    N_grid = {self.N_grid}
     potential_grid = {grid_string}
+    op_file = op_coordination.dat
 }}
 '''
 
@@ -351,12 +348,6 @@ class Estimator():
         self.continue_run = continue_run
         self.op_interval = op_interval
 
-        with open(p_fname) as f:
-            self.p_dict = {}
-            for line in f.readlines():
-                com_name, particles = [l.strip() for l in line.split(':')]
-                self.p_dict[com_name] = particles
-
         # we update the spacing for integer division 
         if not self.continue_run:
             if self.handler.dim == 1:
@@ -442,7 +433,6 @@ class Estimator():
                     shutil.rmtree(w.working_dir, ignore_errors=True)
                     
                     os.mkdir(w.working_dir)
-                    os.mkdir(f"{w.working_dir}/positions")
                     os.mkdir(f"{w.working_dir}/output")
                     
                     shutil.copy(initial_conf, os.path.join(w.working_dir, Estimator.LAST_CONF))
@@ -510,9 +500,13 @@ class Estimator():
         with open(f"{Estimator.BIAS_DIR}/bias_{index}", 'wb+') as f:
             pkl.dump(self.potential_grid, f)
 
-    def save_positions(self, new_data, index, walker_index):
-        with open(f"{Estimator.RUN_BASEDIR}{walker_index}/positions/all-pos", 'w+') as f:
-            pkl.dump(new_data, f)
+        # save the last bias and the free-energy profile in text format as well for easier visualization
+        x = self.handler.xmin + self.handler.dx * np.arange(self.handler.N_grid)
+        last_bias = self.potential_grid * self.T
+        free_energy = -self.potential_grid * self.T * self.dT / (self.T + self.dT)
+        free_energy -= free_energy.min()
+        np.savetxt(f"{Estimator.BIAS_DIR}/last_bias.dat", np.vstack((x, last_bias)).T)
+        np.savetxt(f"last_fe.dat", np.vstack((x, free_energy)).T)
 
     def interpolatePotential1D(self, x, potential_grid):
         x_left = self.handler.dx * np.floor(x / self.handler.dx)
