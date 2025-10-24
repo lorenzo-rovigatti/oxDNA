@@ -2,6 +2,7 @@
 
 import os
 import re
+import inspect
 import numpy as np
 import copy
 import argparse
@@ -16,7 +17,8 @@ from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration, Sy
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxDNA_analysis_tools.UTILS.utils as utils
 
-PDB_PATH = Path(os.path.dirname(__file__)+"/UTILS/pdb_templates/")
+# This is terrible code, but it *does* get the path of this file whether its run as a script or imported as a module or whatever Sphinx does to build docs.
+PDB_PATH = Path(os.path.dirname(os.path.realpath(inspect.getfile(inspect.currentframe())))+"/UTILS/pdb_templates/")
 
 number_to_DNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'T'}
 number_to_RNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'U'}
@@ -91,7 +93,7 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
     """
         Find nucleotides that most look like an oxDNA nucleotide (orthogonal a1 and a3 vectors).
 
-        This function is never used in any production code, but it is used in development code to build the reference library.
+        This function is never used in any production code, but it is used for building the reference library by `development code <https://github.com/ErikPoppleton/oxDNA_backmapping>`_. 
 
         Parameters:
             nucleotides (List[PDB_Nucleotide]) : List of nucleotides to compare.
@@ -233,7 +235,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
 def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
     """
-        Convert an oxDNA file to a PDB file.  Directly writes the file.
+        Convert an oxDNA file to a PDB file using fragment assembly.  Directly writes the file.
 
         Parameters:
             conf (Configuration) : The Configuration to convert
