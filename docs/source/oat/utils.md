@@ -11,14 +11,14 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.UTILS.data_structures.Chunk
-    oxDNA_analysis_tools.UTILS.data_structures.ConfInfo
-    oxDNA_analysis_tools.UTILS.data_structures.TrajInfo
-    oxDNA_analysis_tools.UTILS.data_structures.Configuration
-    oxDNA_analysis_tools.UTILS.data_structures.TopInfo
-    oxDNA_analysis_tools.UTILS.data_structures.System
-    oxDNA_analysis_tools.UTILS.data_structures.Strand
-    oxDNA_analysis_tools.UTILS.data_structures.Monomer
+    UTILS.data_structures.Chunk
+    UTILS.data_structures.ConfInfo
+    UTILS.data_structures.TrajInfo
+    UTILS.data_structures.Configuration
+    UTILS.data_structures.TopInfo
+    UTILS.data_structures.System
+    UTILS.data_structures.Strand 
+    UTILS.data_structures.Monomer
     
 .. autoclass:: oxDNA_analysis_tools.UTILS.data_structures.Chunk
 .. autoclass:: oxDNA_analysis_tools.UTILS.data_structures.ConfInfo
@@ -42,9 +42,9 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.UTILS.geom.fit_plane
-    oxDNA_analysis_tools.UTILS.geom.get_RNA_axis
-    oxDNA_analysis_tools.UTILS.geom.get_DNA_axis
+    UTILS.geom.fit_plane
+    UTILS.geom.get_RNA_axis
+    UTILS.geom.get_DNA_axis
 
 .. autofunction:: oxDNA_analysis_tools.UTILS.geom.fit_plane
 .. autofunction:: oxDNA_analysis_tools.UTILS.geom.get_RNA_axis
@@ -62,11 +62,11 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.UTILS.oxview.display_files
-    oxDNA_analysis_tools.UTILS.oxview.from_path
-    oxDNA_analysis_tools.UTILS.oxview.oxdna_conf
-    oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf
-    oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf
+    UTILS.oxview.display_files
+    UTILS.oxview.from_path
+    UTILS.oxview.oxdna_conf
+    UTILS.oxview.loro_patchy_conf
+    UTILS.oxview.flro_patchy_conf
 
 .. autofunction:: oxDNA_analysis_tools.UTILS.oxview.display_files
 .. autofunction:: oxDNA_analysis_tools.UTILS.oxview.from_path
@@ -86,7 +86,7 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser
+    UTILS.oat_multiprocesser.oat_multiprocesser
 
 .. autofunction:: oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser
 ```
@@ -102,19 +102,19 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.UTILS.RyeReader.Chunker
-    oxDNA_analysis_tools.UTILS.RyeReader.linear_read
-    oxDNA_analysis_tools.UTILS.RyeReader.get_confs
-    oxDNA_analysis_tools.UTILS.RyeReader.get_top_info
-    oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj
-    oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info
-    oxDNA_analysis_tools.UTILS.RyeReader.describe
-    oxDNA_analysis_tools.UTILS.RyeReader.strand_describe
-    oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter
-    oxDNA_analysis_tools.UTILS.RyeReader.inbox
-    oxDNA_analysis_tools.UTILS.RyeReader.write_conf
-    oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str
-    oxDNA_analysis_tools.UTILS.RyeReader.get_top_string
+    UTILS.RyeReader.Chunker
+    UTILS.RyeReader.linear_read
+    UTILS.RyeReader.get_confs
+    UTILS.RyeReader.get_top_info
+    UTILS.RyeReader.get_top_info_from_traj
+    UTILS.RyeReader.get_traj_info
+    UTILS.RyeReader.describe
+    UTILS.RyeReader.strand_describe
+    UTILS.RyeReader.get_input_parameter
+    UTILS.RyeReader.inbox
+    UTILS.RyeReader.write_conf
+    UTILS.RyeReader.conf_to_str
+    UTILS.RyeReader.get_top_string
 
 .. autofunction:: oxDNA_analysis_tools.UTILS.RyeReader.Chunker
 .. autofunction:: oxDNA_analysis_tools.UTILS.RyeReader.linear_read
