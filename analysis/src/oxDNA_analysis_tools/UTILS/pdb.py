@@ -1,7 +1,8 @@
 import numpy as np
 import itertools
 import copy
-from typing import List, Dict
+from typing import List, Dict, Union
+from oxDNA_analysis_tools.UTILS.logger import log
 
 BASE_SHIFT = 3.4
 COM_SHIFT = 0.5
@@ -14,11 +15,23 @@ NAME_TO_BASE = {
         "GUA" : "G",
         "THY" : "T",
         "URA" : "U",
+        "PSU" : "PSU", # oxDNA/RNA don't have a way to work with modified nucleotides
+        "5HC" : "5HC", # But they're in the nucleotide library pulled from the PDB
+        "S6G" : "S6G"  # So might as well handle them in the file reader...
     }
 NAME_TO_AA = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K','ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
                 'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
 aa_to_number = {'A':-1, 'R':-2, 'N':-3, 'D':-4, 'C':-5, 'E':-6, 'Q':-7, 'G':-8, 'H':-9, 'I':-10, 'L':-11, 'K':-12, 'M':-13, 'F':-14, 'P':-15, 'S':-16, 'T':-17, 'W':-18, 'Y':-19, 'V':-20, 'Z':-21, 'X':0}
-BASES = ["A", "T", "G", "C", "U"]
+BASES = ['DA', 'DT', 'DG', 'DC', 'DI', 
+         'A', 'U', 'G', 'C', 'I',
+         'DA5', 'DT5', 'DG5', 'DC5', 'DI5',
+         'DA3', 'DT3', 'DG3', 'DC3', 'DI3',
+         'A5', 'U5', 'G5', 'C5', 'I5',
+         'A3', 'U3', 'G3', 'C3', 'I3',
+         'RA5', 'RU5', 'RG5', 'RC5', 'RI5',
+         'RA3', 'RU3', 'RG3', 'RC3', 'RI3',
+         'PSU', '5HC', 'S6G'
+        ]
 AAS = ["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
 class Atom(object):
@@ -44,10 +57,10 @@ class Atom(object):
     def shift(self, diff:np.ndarray):
         self.pos += diff
 
-    def to_pdb(self, residue_suffix:str, bfactor:float) -> Dict:
+    def to_pdb(self, bfactor:float) -> Dict:
         return {
             "name" : self.name,
-            "residue_name" : self.residue + residue_suffix,
+            "residue_name" : self.residue,
             "pos" : self.pos,
             "bfactor" : bfactor
         }
@@ -60,7 +73,7 @@ class Atom(object):
         return "%s %s %s @ %f C[%s]" % (self.pos[0], self.pos[1], self.pos[2], r, color)
 
 class PDB_Nucleotide(object):
-    
+
     def __init__(self, name, idx):
         self.name = name.strip()
         if self.name in NAME_TO_BASE.keys():
@@ -68,7 +81,8 @@ class PDB_Nucleotide(object):
         elif self.name in BASES:
             self.base = self.name
         else:
-            self.base = name.strip('D53')
+            log(f"Unknown nucleotide type: {name}", level='warning')
+            self.base = name
         self.idx = idx
         self.base_atoms = []
         self.phosphate_atoms = []
@@ -92,9 +106,9 @@ class PDB_Nucleotide(object):
         if self.chain_id == None: 
             self.chain_id = a.chain_id
 
-    def get_com(self, atoms:List[Atom]=None):
+    def get_com(self, atoms:Union[List[Atom],None]=None):
         if atoms == None: 
-            atoms = self.atoms
+            atoms = self.get_atoms()
         com = np.array([0., 0., 0.])
         for a in atoms:
             com += a.pos
@@ -147,76 +161,44 @@ class PDB_Nucleotide(object):
         self.check = abs(np.dot(self.a1, self.a3))
         
     def correct_for_large_boxes(self, box):
-        map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
+        map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.get_atoms())
 
-    def to_pdb(self, print_H:bool, residue_type:str, bfactor:float) -> List[Dict]:
+    def to_pdb(self, print_H:bool, bfactor:float) -> List[Dict]:
         res:List[Dict] = []
-        for a in self.atoms:
+        for a in self.get_atoms():
             if not print_H and 'H' in a.name:
                 continue
-            if residue_type == "5": 
-                if 'P' in a.name:
-                    if a.name == 'P':
-                        phosphorus = a
-                    continue
-                elif a.name == "O5'":
-                    O5prime = a
-            elif residue_type == "3":
-                if a.name == "O3'":
-                    O3prime = a
-            res.append(a.to_pdb(residue_type, bfactor))
-            
-        # if the residue is a 3' or 5' end, it requires one more hydrogen linked to the O3' or O5', respectively
-        if residue_type == "5":
-            new_hydrogen = copy.deepcopy(phosphorus)
-            new_hydrogen.name = "HO5'"
-            
-            # we put the new hydrogen at a distance 1 Angstrom from the O5' oxygen along the direction that, in a regular nucleotide, connects O5' and P
-            dist_P_O = phosphorus.pos - O5prime.pos
-            dist_P_O /= np.linalg.norm(dist_P_O)
-            new_hydrogen.pos = O5prime.pos + dist_P_O
-            res.append(new_hydrogen.to_pdb(residue_type, bfactor))
-        elif residue_type == "3":
-            new_hydrogen = copy.deepcopy(O3prime)
-            new_hydrogen.name = "HO3'"
-            
-            # we put the new hydrogen at a distance 1 Angstrom from the O3' oxygen along a direction which is a linear combination of the three 
-            # orientations that approximately reproduce the crystallographic position
-            new_distance = 0.2 * self.a2 - 0.2 * self.a1 - self.a3
-            new_distance /= np.linalg.norm(new_distance)
-            new_hydrogen.pos = O3prime.pos + new_distance
-            res.append(new_hydrogen.to_pdb(residue_type, bfactor))
+            res.append(a.to_pdb(bfactor))
 
         return res
 
     def to_mgl(self):
         res = []
-        for a in self.atoms:
+        for a in self.get_atoms():
             res.append(a.to_mgl())
 
         return "\n".join(res)
 
     def rotate(self, R):
         com = self.get_com()
-        for a in self.atoms:
+        for a in self.get_atoms():
             a.pos = np.dot(R, a.pos - com) + com
 
         self.compute_as()
 
     def set_com(self, new_com):
         com = self.get_com()
-        for a in self.atoms:
+        for a in self.get_atoms():
             a.pos += new_com - com - COM_SHIFT * self.a1
 
     def set_base(self, new_base_com):
         atoms = [v for k, v in self.named_atoms.items() if k in self.ring_names]
         ring_com = self.get_com(atoms)
-        for a in self.atoms:
+        for a in self.get_atoms():
             a.pos += new_base_com - ring_com - BASE_SHIFT * self.a1
 
         self.compute_as()
 
-    atoms = property(get_atoms)
 
 class PDB_AminoAcid(object):
     
@@ -267,7 +249,7 @@ class PDB_AminoAcid(object):
         return com / len(atoms)
         
     def correct_for_large_boxes(self, box):
-        map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
+        map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.get_atoms())
 
     def to_pdb(self, print_H:bool, bfactor:float) -> List[Dict]:
         res = []

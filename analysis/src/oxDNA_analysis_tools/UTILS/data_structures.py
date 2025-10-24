@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import List, Dict
 import inspect
 import numpy as np
-#import numpy.typing as npt
 from typing import Union
 
 
@@ -238,7 +237,7 @@ class Strand:
         """
         Returns the sequence of the Strand as a string.
         """
-        return ''.join([m.btype for m in self])
+        return ''.join([str(m.btype) for m in self])
     
     def set_sequence(self, new_seq:str) -> None:
         """
@@ -270,7 +269,7 @@ class Monomer:
         A Dataclass containing information about oxDNA monomers.
     """
     id : int
-    btype : str
+    btype : Union[str,int]
     strand : Union[Strand, None] = None
     n3 : Union[int, None] = None
     n5 : Union[int, None] = None
