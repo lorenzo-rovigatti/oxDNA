@@ -7,6 +7,8 @@
 
 #include "HBList.h"
 
+#include "../Interactions/DNAInteraction.h"
+
 #include <sstream>
 
 HBList::HBList() {

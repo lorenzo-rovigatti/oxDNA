@@ -106,11 +106,13 @@ class Estimator():
         if not self.continue_run:
             if self.dim == 1:
                 self.potential_grid = np.zeros(self.N_grid)
-
             if self.dim == 2:
                 self.potential_grid = np.zeros((self.N_grid, self.N_grid))
         else:  # load the most recent file
             center_fnames = glob.glob(f"./{Estimator.BIAS_DIR}/bias_*")
+            if len(center_fnames) == 0:
+                print(f"CRITICAL: Can't restart sampling, no bias files found in {Estimator.BIAS_DIR}", file=sys.stderr)
+                exit(1)
             self.max_index = max([int(i.split('_')[-1]) for i in center_fnames])
             max_fname = f"./{Estimator.BIAS_DIR}/bias_{self.max_index}" 
             print(f"restarting from bias file : {max_fname}")
@@ -197,7 +199,12 @@ class Estimator():
         # parse the user-provided input file and generate the input file that will be used to run metad simulations
         with oxpy.Context(print_coda=False):
             input_file = oxpy.InputFile()
-            input_file.init_from_filename(os.path.join(self.base_dir, "input"))
+            try:
+                input_filename = os.path.join(self.base_dir, "input")
+                input_file.init_from_filename(input_filename)
+            except oxpy.core.OxDNAError as e:
+                print(f"CRITICAL: no input file found, check that '{input_filename}' exists and is readable")
+                exit(1)
             
             initial_conf = os.path.join(self.base_dir, input_file["conf_file"])
             top_file = os.path.join(self.base_dir, input_file["topology"])

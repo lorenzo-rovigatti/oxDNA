@@ -9,8 +9,6 @@
 #define CONSTRUCTWISEBONDS_H_
 
 #include "Observables/BaseObservable.h"
-#include "Interactions/DNAInteraction.h"
-#include "Utilities/OrderParameters.h"
 
 /**
  * @brief Prints four columns: construct_id_1, construct_id_2, base_pairs_between, minimum_image_distance

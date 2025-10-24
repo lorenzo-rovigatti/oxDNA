@@ -11,8 +11,6 @@
 #include "Lists/Cells.h"
 
 #include "Observables/BaseObservable.h"
-#include "Interactions/DNAInteraction.h"
-#include "Utilities/OrderParameters.h"
 
 class Remoteness: public BaseObservable {
 protected:
@@ -25,7 +23,7 @@ protected:
 	int _n_confs;
 	number _bin_size;
 	number _max_distance;
-	vector<number> _total_histo, _partial_histo;
+	std::vector<number> _total_histo, _partial_histo;
 
 public:
 	Remoteness();

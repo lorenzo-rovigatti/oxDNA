@@ -7,6 +7,8 @@
 
 #include "StrandwiseBonds.h"
 
+#include "../Interactions/DNAInteraction.h"
+
 #include <sstream>
 
 StrandwiseBonds::StrandwiseBonds() {

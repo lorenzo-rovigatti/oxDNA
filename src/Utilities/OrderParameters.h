@@ -9,10 +9,6 @@
 #ifndef ORDERPARAMETERS_H_
 #define ORDERPARAMETERS_H_
 
-#ifndef HB_CUTOFF
-#define HB_CUTOFF (-0.1f)
-#endif
-
 #include <set>
 #include <utility>
 #include <vector>

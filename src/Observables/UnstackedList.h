@@ -25,11 +25,7 @@
 #define UNSTACKEDLIST_H_
 
 #include "BaseObservable.h"
-#include "../Utilities/OrderParameters.h"
 #include "../Interactions/DNAInteraction.h"
-#include "../Interactions/DNA2Interaction.h"
-#include "../Interactions/RNAInteraction.h"
-#include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/rna_model.h"
 
 class UnstackedList: public BaseObservable {

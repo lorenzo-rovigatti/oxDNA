@@ -12,7 +12,6 @@
 #include "../Interactions/InteractionFactory.h"
 
 #include "../Utilities/OrderParameters.h"
-#include "../Utilities/Histogram.h"
 #include "../Utilities/Weights.h"
 
 /**

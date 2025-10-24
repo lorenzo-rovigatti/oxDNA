@@ -7,9 +7,6 @@
 
 #include "TEPPlectonemePosition.h"
 
-#include "../Interactions/DNAInteraction.h"
-#include "../Utilities/OrderParameters.h"
-
 #include <sstream>
 
 TEPPlectonemePosition::TEPPlectonemePosition() {
@@ -87,7 +84,7 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ss;
+	std::stringstream ss;
 	number plecto_pos = -1;
 	number left_plecto_pos = -1;
 	number right_plecto_pos = -1;

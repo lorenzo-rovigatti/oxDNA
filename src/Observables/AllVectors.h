@@ -9,7 +9,6 @@
 #define ALL_VECTORS_H_
 
 #include "BaseObservable.h"
-#include "../Utilities/OrderParameters.h"
 
 /**
  * @brief Outputs a contact map for the system

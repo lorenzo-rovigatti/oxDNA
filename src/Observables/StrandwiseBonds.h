@@ -13,8 +13,6 @@
 #define STRANDWISEBONDS_H_
 
 #include "BaseObservable.h"
-#include "../Interactions/DNAInteraction.h"
-#include "../Utilities/OrderParameters.h"
 
 class StrandwiseBonds: public BaseObservable {
 

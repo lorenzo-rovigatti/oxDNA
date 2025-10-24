@@ -11,8 +11,6 @@
 #include "Lists/Cells.h"
 
 #include "Observables/BaseObservable.h"
-#include "Interactions/DNAInteraction.h"
-#include "Utilities/OrderParameters.h"
 
 class EmptyVolume: public BaseObservable {
 protected:

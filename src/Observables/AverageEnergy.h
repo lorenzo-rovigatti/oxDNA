@@ -12,8 +12,6 @@
 #define AverageEnergy_H_
 
 #include "BaseObservable.h"
-#include "../Utilities/OrderParameters.h"
-#include "../Interactions/DNAInteraction.h"
 
 class AverageEnergy: public BaseObservable {
 protected:

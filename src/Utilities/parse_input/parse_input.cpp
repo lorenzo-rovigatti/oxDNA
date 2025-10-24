@@ -86,9 +86,8 @@ void input_file::init_from_file(FILE *inp_file) {
 void input_file::init_from_filename(std::string filename) {
 	FILE *inp_file = fopen(filename.c_str(), "r");
 	if(inp_file == NULL) {
-		fprintf(stderr, "Input file '%s' not found\n", filename.c_str());
 		state = ERROR;
-		return;
+		throw oxDNAException("Input file '%s' not found\n", filename.c_str());
 	}
 	init_from_file(inp_file);
 	fclose(inp_file);
