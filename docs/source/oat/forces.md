@@ -12,13 +12,13 @@ Python data structures for all forces defined by oxDNA
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.external_force_utils.forces.mutual_trap
-    oxDNA_analysis_tools.external_force_utils.forces.string
-    oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap
-    oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap
-    oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane
-    oxDNA_analysis_tools.external_force_utils.forces.attraction_plane
-    oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere
+    external_force_utils.forces.mutual_trap
+    external_force_utils.forces.string
+    external_force_utils.forces.harmonic_trap
+    external_force_utils.forces.rotating_harmonic_trap
+    external_force_utils.forces.repulsion_plane
+    external_force_utils.forces.attraction_plane
+    external_force_utils.forces.repulsion_sphere
 
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.mutual_trap
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.forces.string
@@ -41,8 +41,8 @@ Read and write oxDNA external force files
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file
-    oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file
+    external_force_utils.force_reader.read_force_file
+    external_force_utils.force_reader.write_force_file
 
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file
 .. autofunction:: oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file
