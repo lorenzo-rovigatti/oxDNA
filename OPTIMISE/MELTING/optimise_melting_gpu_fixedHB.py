@@ -976,6 +976,21 @@ print("OPTIMISING")
 
 cfun.PAR0 = torch.clone(cfun.CURR_PARS)
 
+
+for i in range(5):
+   for j in range(5):
+       #AT
+       ty = i+j*125+0*5+3*25
+       cfun.PAR0[4][ty] =
+       ty = i+j*125+3*5+0*25
+       cfun.PAR0[4][ty] =
+
+       #CG
+       ty = i+j*125+1*5+2*25
+       cfun.PAR0[4][ty] =
+       ty = i+j*125+2*5+1*25
+       cfun.PAR0[4][ty] =
+
 TMP = torch.tensor(OPTI_PAR,device='cpu')
 
 X0 = TMP.numpy()

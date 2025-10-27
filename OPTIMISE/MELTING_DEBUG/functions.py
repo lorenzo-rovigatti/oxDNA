@@ -1457,6 +1457,7 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, rcut_dh, tr_file,
 
                         ty = ty0+ty1*5+ty2*5*5+ty3*5*5*5 #tetramer type in base 10
 
+
                         types_1conf.append(ty)
 
                         #compute bnd pair coordinates
@@ -1465,6 +1466,9 @@ def read_oxdna_trajectory_dist_and_angles(rcut_low, rcut_high, rcut_dh, tr_file,
                         stck_r_1conf.append( np.linalg.norm(n1.stck-n2.stck) )
                         th4_bn_1conf.append( np.arccos(np.dot(n1.n,n2.n)) )
 
+                        #debugg!
+                        #if _print:
+                        print("conf ",counts,": ",topology[i].id, topology[i].up_id, ty0, ty1, ty2, ty3, np.dot(n1.n,n2.n))
 
             	        #note rbb is the distance between backbone sites  in oxdna1 (see standalone)!
                         bp1 = n1.c - 0.4*n1.bv
@@ -1912,6 +1916,197 @@ def print_final_pfile(FOPARS,infile) :
                 print(line.strip(),file=ofile)
 
     ofile.close()
+
+
+
+#takes a list with the optimised parameters and the initial SD file, and produces the final SD dep file.
+def print_final_pfile_debug(FOPARS,infile,fname) :
+
+    ofile = open(fname,'w')
+
+    ids = np.array(cfun.OPT_PAR_LIST)[:,0]
+    if (45 in ids) or (1 in ids) :
+        ids = np.append(ids,78)
+        ids = np.append(ids,117)
+
+
+    #Collect all par ids to update ( optimised + dependencies (e.g. continuity) )
+    #NOTE: only f1 and f4 continuity are implemented!!
+
+    #f1
+    f1_used = [[False,False],[False,False]]
+
+    f1_r0_id = [5,45]
+    f1_a_id = [6,46]
+    f1_rc_id = [7,47]
+    f1_bl_id = [8,48]
+    f1_bh_id = [9,49]
+    f1_rl_id = [10,50]
+    f1_rh_id = [11,51]
+    f1_rcl_id = [12,52]
+    f1_rch_id = [13,53]
+
+    #f2
+    f2_r0_id = [78,117]
+    f2_rc_id = [79,118]
+    f2_bl_id = [80,119]
+    f2_bh_id = [81,120]
+    f2_rl_id = [82,121]
+    f2_rh_id = [83,122]
+    f2_rcl_id = [84,123]
+    f2_rch_id = [85,124]
+
+    #f4
+    f4_a_id = [15,20,25,30,35,40,55,60,65,87,92,97,102,107,112,126,131,136,141,146,151]
+    f4_b_id = [16,21,26,31,36,41,56,61,66,88,93,98,103,108,113,127,132,137,142,147,152]
+    f4_ts_id = [17,22,27,32,37,42,57,62,67,89,94,99,104,109,114,128,133,138,143,148,153]
+    f4_tc_id = [18,23,28,33,38,43,58,63,68,90,95,100,105,110,115,129,134,139,144,149,154]
+
+    ids_to_update = []
+
+    for ID in ids:
+
+        f1 = False
+        f2 = False
+        f4 = False
+
+        if ID in ids_to_update:
+            continue
+        else:
+            ids_to_update.append(ID)
+            #continuity
+
+            #delta
+            if ID == 2:
+                ids_to_update.append(3)
+
+            #f1
+            idx = None
+            if ID in f1_r0_id:
+               idx = f1_r0_id.index(ID)
+               if f1_used[idx][1]:
+                   continue
+               else:
+                   f1 = True
+                   f1_used[idx][0] = True
+
+            if ID in f1_a_id:
+               idx = f1_a_id.index(ID)
+               if f1_used[idx][0]:
+                   continue
+               else:
+                   f1 = True
+                   f1_used[idx][1] = True
+            #f2
+            if ID in f2_r0_id:
+               f2 = True
+               idx = f2_r0_id.index(ID)
+            #f4
+            if ID in f4_a_id:
+               f4 = True
+               idx = f4_a_id.index(ID)
+
+            if f1:
+                ids_to_update.append(f1_rc_id[idx])
+                ids_to_update.append(f1_bl_id[idx])
+                ids_to_update.append(f1_bh_id[idx])
+                ids_to_update.append(f1_rl_id[idx])
+                ids_to_update.append(f1_rh_id[idx])
+                ids_to_update.append(f1_rcl_id[idx])
+                ids_to_update.append(f1_rch_id[idx])
+
+            if f2:
+                ids_to_update.append(f2_rc_id[idx])
+                ids_to_update.append(f2_bl_id[idx])
+                ids_to_update.append(f2_bh_id[idx])
+                ids_to_update.append(f2_rl_id[idx])
+                ids_to_update.append(f2_rh_id[idx])
+                ids_to_update.append(f2_rcl_id[idx])
+                ids_to_update.append(f2_rch_id[idx])
+
+            if f4:
+                ids_to_update.append(f4_b_id[idx])
+                ids_to_update.append(f4_ts_id[idx])
+                ids_to_update.append(f4_tc_id[idx])
+
+    #CREATE TENSOR WITH FINAL VALUES OF ALL PARAMETERS
+    #we do that on the cpu and copy it to the cpu
+
+    CURR_PARS = torch.tensor(cfun.PAR0,device=cfun.device)
+    PARS_OPTI = torch.tensor(FOPARS,device=cfun.device)
+
+    CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
+    CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
+    FIN_PARS = torch.tensor(CURR_PARS,device='cpu')
+
+    #PARSE SD IN FILE, COPY WHAT HASN'T CHANGED, UPDATE WHAT HAS CHANGED
+
+    for line in infile.readlines() :
+        vals = line.strip().split()
+        if len(vals) == 0:
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0][0] == '#':
+            print(line.strip(),file=ofile)
+            continue
+        if vals[0] == "STCK_FACT_EPS":
+            print(line.strip(),file=ofile)
+            continue
+
+        vals_cn = vals[0].split("_")
+
+        #4D parameters
+        if (vals_cn[0] == "STCK" and len(vals_cn) >= 5) or vals_cn[0] == "FENE" or vals_cn[0] == "EXCL" or (vals_cn[0] == "CRST" and len(vals_cn) > 6):
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-4):
+                par_name+="_"+vals_cn[i]
+
+            if par_name == "STCK":
+                par_name += "_EPS"
+
+            index = PARS_LIST.index(par_name)
+
+            if index in ids_to_update:
+                ty3 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty2 = base_to_id(vals_cn[len(vals_cn)-2])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-3])
+                ty0 = base_to_id(vals_cn[len(vals_cn)-4])
+
+                ty = ty0+ty1*5+ty2*25+ty3*125
+
+                print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+            else:
+                print(line.strip(),file=ofile)
+        #2D parameters
+        else:
+            par_name = vals_cn[0]
+            for i in range(1,len(vals_cn)-2):
+                par_name+="_"+vals_cn[i]
+
+            if par_name == "STCK" or par_name == "HYDR":
+                par_name += "_EPS"
+
+            index = PARS_LIST.index(par_name)
+
+            ty = 0
+
+            if index in ids_to_update:
+                ty2 = base_to_id(vals_cn[len(vals_cn)-1])
+                ty1 = base_to_id(vals_cn[len(vals_cn)-2])
+
+                ty = ty1*5+ty2*25
+
+                print(vals[0] + " = " + str(float(FIN_PARS[index,ty])),file=ofile)
+
+            else:
+                print(line.strip(),file=ofile)
+
+    ofile.close()
+
+
 
 #takes a list with the optimised parameters and the initial SD file, and produces the final SD dep file.
 def print_final_pfile_AllFromOpt(FOPARS,infile) :

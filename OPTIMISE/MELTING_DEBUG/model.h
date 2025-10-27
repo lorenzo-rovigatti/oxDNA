@@ -3,7 +3,7 @@
  * @date    Jun 2, 2011
  * @author  fromano
  *
- *
+ * 
  */
 
 #ifndef MODEL_H_
@@ -19,48 +19,8 @@
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
 
-/*
-// oxDNA3 - oxDNA2 bases
-#define POS_MM_BACK1_A -0.3400f
-#define POS_MM_BACK2_A 0.3408f
-#define POS_STACK_A 0.34f
-#define POS_BASE_A  0.4f
 
-#define POS_MM_BACK1_G -0.3400f
-#define POS_MM_BACK2_G 0.3408f
-#define POS_STACK_G 0.34f
-#define POS_BASE_G  0.4f
 
-#define POS_MM_BACK1_C -0.3400f
-#define POS_MM_BACK2_C 0.3408f
-#define POS_STACK_C 0.34f
-#define POS_BASE_C  0.4f
-
-#define POS_MM_BACK1_T -0.3400f
-#define POS_MM_BACK2_T 0.3408f
-#define POS_STACK_T 0.34f
-#define POS_BASE_T  0.4f
-*/
-
-#define POS_MM_BACK1_A -0.3400f
-#define POS_MM_BACK2_A 0.3408f
-#define POS_STACK_A 0.37f
-#define POS_BASE_A  0.43f
-
-#define POS_MM_BACK1_G -0.3400f
-#define POS_MM_BACK2_G 0.3408f
-#define POS_STACK_G 0.37f
-#define POS_BASE_G  0.43f
-
-#define POS_MM_BACK1_C -0.3400f
-#define POS_MM_BACK2_C 0.3408f
-#define POS_STACK_C 0.37f
-#define POS_BASE_C  0.37f
-
-#define POS_MM_BACK1_T -0.3400f
-#define POS_MM_BACK2_T 0.3408f
-#define POS_STACK_T 0.37f
-#define POS_BASE_T  0.37f
 
 /// POS_STACK - POS_BACK
 #define GAMMA 0.74f
@@ -77,21 +37,21 @@
 /**
  * EXCLUDED VOLUME
  */
-#define EXCL_EPS 2.0f  //eps
-#define EXCL_S1 0.70f  //s_back
-#define EXCL_S2 0.33f  //s_base      non-bonded
-#define EXCL_S3 0.515f //s_base_back non-bonded
-#define EXCL_S4 0.515f //s_back_base non-bonded
-#define EXCL_S5 0.33f  //s_base      bonded        <<< TETRAMER 
-#define EXCL_S6 0.515f //s_base_back bonded
-#define EXCL_S7 0.515f //s_back_base bonded
-#define EXCL_R1 0.675f //r^*_back
-#define EXCL_R2 0.32f  //r^*_base      non-bonded
-#define EXCL_R3 0.50f  //r^*_base_back non-bonded
-#define EXCL_R4 0.50f  //r^*_back_base non-bonded
-#define EXCL_R5 0.32f  //r^*_base      bonded      <<< TETRAMER
-#define EXCL_R6 0.50f  //r^*_base_back bonded
-#define EXCL_R7 0.50f  //r^*_back_base bonded
+#define EXCL_EPS 2.0f
+#define EXCL_S1 0.70f
+#define EXCL_S2 0.33f
+#define EXCL_S3 0.515f
+#define EXCL_S4 0.515f
+#define EXCL_S5 0.33f
+#define EXCL_S6 0.515f
+#define EXCL_S7 0.515f
+#define EXCL_R1 0.675f
+#define EXCL_R2 0.32f
+#define EXCL_R3 0.50f
+#define EXCL_R4 0.50f
+#define EXCL_R5 0.32f
+#define EXCL_R6 0.50f
+#define EXCL_R7 0.50f
 #define EXCL_B1 892.016223343f
 #define EXCL_B2 4119.70450017f
 #define EXCL_B3 1707.30627298f
@@ -106,7 +66,6 @@
 #define EXCL_RC5 0.335388426126f
 #define EXCL_RC6 0.52329943261f
 #define EXCL_RC7 0.52329943261f
-
 /**
  * HYDROGEN BONDING
  */
@@ -178,29 +137,29 @@
 #define STCK_FACT_EPS_OXDNA 2.6568f
 #define STCK_FACT_EPS_OXDNA2 2.6717f
 #define STCK_A 6.f
-#define STCK_RC 0.9f         // <<< TETRAMER
-#define STCK_R0 0.4f         // <<< TETRAMER
-#define STCK_BLOW -68.1857f  // round-off difference
-#define STCK_BHIGH -3.12992f // round-off difference
-#define STCK_RLOW 0.32f      // <<< TETRAMER
-#define STCK_RHIGH 0.75f     // <<< TETRAMER
-#define STCK_RCLOW 0.23239f  // <<< enslaved TETRAMER
-#define STCK_RCHIGH 0.956f   // <<< enslaved TETRAMER
+#define STCK_RC 0.9f
+#define STCK_R0 0.4f
+#define STCK_BLOW -68.1857f
+#define STCK_BHIGH -3.12992f
+#define STCK_RLOW 0.32f
+#define STCK_RHIGH 0.75f
+#define STCK_RCLOW 0.23239f
+#define STCK_RCHIGH 0.956f
 
 /// angular part, theta
 #define STCK_F4_THETA4 0
 #define STCK_F4_THETA5 1
 #define STCK_F4_THETA6 1
-#define STCK_THETA4_A 1.3f    // <<< TETRAMER
-#define STCK_THETA4_B 6.4381f // <<< enslaved TETRAMER
+#define STCK_THETA4_A 1.3f
+#define STCK_THETA4_B 6.4381f
 #define STCK_THETA4_T0 0.f
-#define STCK_THETA4_TS 0.8f      // <<< TETRAMER
-#define STCK_THETA4_TC 0.961538f // <<< enslaved TETRAMER
-#define STCK_THETA5_A 0.9f       // different value     
-#define STCK_THETA5_B 3.89361f   // different value
+#define STCK_THETA4_TS 0.8f
+#define STCK_THETA4_TC 0.961538f
+#define STCK_THETA5_A 0.9f
+#define STCK_THETA5_B 3.89361f
 #define STCK_THETA5_T0 0.f
-#define STCK_THETA5_TS 0.95f     // different value
-#define STCK_THETA5_TC 1.16959f  // different value
+#define STCK_THETA5_TS 0.95f
+#define STCK_THETA5_TC 1.16959f
 #define STCK_THETA6_A 0.9f
 #define STCK_THETA6_B 3.89361f
 #define STCK_THETA6_T0 0.f
@@ -302,8 +261,8 @@
 #define CRST_F4_THETA2_33 14
 #define CRST_F4_THETA3_33 14
 #define CRST_F4_THETA4_33 15
-#define CRST_F4_THETA7_33 16
-#define CRST_F4_THETA8_33 16
+#define CRST_F4_THETA7_33 16 
+#define CRST_F4_THETA8_33 16 
 #define CRST_F4_THETA1_55 17
 #define CRST_F4_THETA2_55 18
 #define CRST_F4_THETA3_55 18
@@ -393,8 +352,8 @@
 /// angular part;
 #define CXST_F4_THETA1 10
 #define CXST_F4_THETA4 11
-#define CXST_F4_THETA5 12
-#define CXST_F4_THETA6 12
+#define CXST_F4_THETA5 12 
+#define CXST_F4_THETA6 12 
 #define CXST_THETA1_A   2.f
 #define CXST_THETA1_B   10.9032f
 #define CXST_THETA1_T0_OXDNA (PI - 0.60f)
@@ -409,12 +368,12 @@
 #define CXST_THETA4_TS  0.8f
 #define CXST_THETA4_TC  0.961538f
 #define CXST_THETA5_A   0.9f
-#define CXST_THETA5_B 	3.89361f
+#define CXST_THETA5_B 	3.89361f  
 #define CXST_THETA5_T0  0.f
 #define CXST_THETA5_TS  0.95f
 #define CXST_THETA5_TC  1.16959f
 #define CXST_THETA6_A   0.9f
-#define CXST_THETA6_B 	3.89361f
+#define CXST_THETA6_B 	3.89361f  
 #define CXST_THETA6_T0  0.f
 #define CXST_THETA6_TS  0.95f
 #define CXST_THETA6_TC  1.16959f
@@ -433,12 +392,12 @@
 #define HYDR_T1_MESH_POINTS 6   // perfect
 #define HYDR_T2_MESH_POINTS 6   // perfect
 #define HYDR_T3_MESH_POINTS HYDR_T2_MESH_POINTS
-#define HYDR_T4_MESH_POINTS 250  // almost perfect
+#define HYDR_T4_MESH_POINTS 50  // almost perfect 
 #define HYDR_T7_MESH_POINTS 12  // almost perfect
 #define HYDR_T8_MESH_POINTS HYDR_T7_MESH_POINTS
 
-#define STCK_T4_MESH_POINTS 250   // perfect
-#define STCK_T5_MESH_POINTS 250   // perfect
+#define STCK_T4_MESH_POINTS 6   // perfect
+#define STCK_T5_MESH_POINTS 6   // perfect 
 #define STCK_T6_MESH_POINTS STCK_T5_MESH_POINTS
 
 #define CRST_T1_MESH_POINTS 250 // good enough
@@ -448,12 +407,10 @@
 #define CRST_T7_MESH_POINTS 250 // good enough
 #define CRST_T8_MESH_POINTS CRST_T7_MESH_POINTS
 
-#define CRST_T4_33_MESH_POINTS 250   // Andrea: good enough? //ox2 CRST_T4_MESH_POINTS is not good enough for ox3
-#define CRST_T4_55_MESH_POINTS 250   // Andrea: good enough?
-
 #define CXST_T1_MESH_POINTS 250 // perfetto
 #define CXST_T4_MESH_POINTS 6   // perfetto
 #define CXST_T5_MESH_POINTS 6   // perfetto
 #define CXST_T6_MESH_POINTS CXST_T5_MESH_POINTS
+
 
 #endif /* MODEL_H_ */
