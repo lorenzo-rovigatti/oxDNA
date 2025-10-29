@@ -20,15 +20,9 @@ void Coordination::get_settings(input_file &my_inp, input_file &sim_inp) {
 
     getInputString(&my_inp, "op_file", _op_file, 1);
 
-    if(getInputNumber(&my_inp, "d0", &_d0, 0) == KEY_NOT_FOUND) {
-        _d0 = 1.2;
-    }
-	if(getInputNumber(&my_inp, "r0", &_r0, 0) == KEY_NOT_FOUND) {
-        _r0 = 1.2;
-    }
-    if(getInputInt(&my_inp, "n", &_n, 0) == KEY_NOT_FOUND) {
-        _n = 6;
-    }
+    getInputNumber(&my_inp, "d0", &_d0, 0);
+	getInputNumber(&my_inp, "r0", &_r0, 0);
+    getInputInt(&my_inp, "n", &_n, 0);
 }
 
 void Coordination::init() {

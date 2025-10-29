@@ -24,9 +24,9 @@ public:
 
 private:
     std::string _op_file;
-    number _d0; // optimal distance for coordination, defaults to 1.2 in internal units
-    number _r0; // width of the switching function, defaults to 1.2 in internal units
-    int _n; // exponent of the switching function, defaults to 6
+    number _d0 = 1.2; // optimal distance for coordination, defaults to 1.2 in internal units
+    number _r0 = 0.5; // width of the switching function, defaults to 0.5 in internal units
+    int _n = 6; // exponent of the switching function, defaults to 6
     std::vector<std::pair<BaseParticle *, BaseParticle *>> _all_pairs;
 };
 

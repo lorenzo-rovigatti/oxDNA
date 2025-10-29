@@ -58,7 +58,7 @@ class CoordinationHandler(IForceHandler):
         with open(os.path.join(working_dir, "op_coordination.dat"), 'w+') as f:
             pairs = ""
             for i, pair in enumerate(self.pairs):
-                pairs += f"\tpair_{i + 1} = {pair[0]}, {pair[1]}\n"
+                pairs += f"    pair_{i + 1} = {pair[0]}, {pair[1]}\n"
 
             op = f'''{{
     order_parameter = bond
@@ -74,6 +74,9 @@ class CoordinationHandler(IForceHandler):
     col_1 = {{
         type = coordination
         op_file = op_coordination.dat
+        d0 = 1.2
+        r0 = 0.5
+        n = 6
     }}
 }}'''
     
@@ -87,6 +90,9 @@ class CoordinationHandler(IForceHandler):
     N_grid = {self.N_grid}
     potential_grid = {grid_string}
     op_file = op_coordination.dat
+    d0 = 1.2
+    r0 = 0.5
+    n = 6
 }}
 '''
 
@@ -281,10 +287,10 @@ class oxDNARunner(mp.Process):
             while True:
                 try:
                     print_conf, steps, new_potential_grid = self.queue.get()
+                    if print_conf:
+                        self.manager.print_configuration()
                     # if steps is None we have to break the loop and stop the walker
                     if steps is not None:
-                        if print_conf:
-                            self.manager.print_configuration()
                         # update the lookup tables of all the metadynamics-related forces
                         for force in self.manager.config_info().forces:
                             if force.group_name == "metadynamics":
@@ -399,7 +405,6 @@ class Estimator():
                 self.T = oxpy.get_temperature(T)
                 input_file["T"] = T
                 
-            
             # look for the first available output stream index
             keep_searching = True
             i = 1
@@ -555,8 +560,8 @@ class Estimator():
         for walker_index in range(self.N_walkers):
             self.walkers.append(oxDNARunner(walker_index, Estimator.INPUT_FILE, self.queue))
             
-    def stop_runners(self):
-        runner_args = [False, None, 0]
+    def stop_runners(self, print_last_conf=False):
+        runner_args = [print_last_conf, None, 0]
         for w in self.walkers:
             self.queue.put(runner_args)
         self.queue.join()
@@ -578,10 +583,11 @@ class Estimator():
         for w in self.walkers:
             if w.exception is not None:
                 error, traceback = w.exception
-                print(f"The following error was raised during the execution of one of the child processes, aborting run:")
+                print(f"The following error was raised during the execution of one of the child processes (index: {w.index}, working dir: {w.working_dir}), aborting run:")
                 print(error)
                 print(traceback)
-                self.stop_runners()
+                print("Each child process will write the current configuration to its 'output' folder")
+                self.stop_runners(True)
                 exit(1)
 
         if index % self.save_hills == 0:
@@ -599,7 +605,7 @@ class Estimator():
             if self.handler.dim == 1:
                 local_potential = self.interpolatePotential1D(x, self.potential_grid)
 
-            elif self.handler.dim == 2:
+            else: # self.handler.dim == 2
                 local_potential = self.interpolatePotential2D(x[0], x[1], self.potential_grid)
 
             prefactor = np.exp(-local_potential / self.dT)

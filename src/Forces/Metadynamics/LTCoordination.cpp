@@ -135,7 +135,7 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 		my_potential = meta::interpolate_potential(coord, d_coord, coord_min, potential_grid);
 	}
 
-    return 10 * my_potential / all_pairs.size();
+    return my_potential / all_pairs.size();
 }
 
 double LTCoordination::_coordination() {
