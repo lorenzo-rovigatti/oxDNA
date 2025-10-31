@@ -3,7 +3,7 @@ requires = ["scikit-build-core", "numpy", "setuptools_scm"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "oxDNA"
+name = "oxpy"
 dynamic = ["version", "dependencies"]
 description = "A code primarily aimed at DNA and RNA coarse-grained simulations"
 readme = "README.md"
