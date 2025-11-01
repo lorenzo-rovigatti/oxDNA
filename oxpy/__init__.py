@@ -12,13 +12,9 @@ __url__ = 'https://github.com/lorenzo-rovigatti/oxDNA'
 __author__ = 'Lorenzo Rovigatti, Flavio Romano, Petr Sulc and others'
 __author_email__ = 'lorenzo.rovigatti@uniroma1.it'
 __license__ = 'GNU GPL 3.0'
-__copyright__ = 'Copyright 2020 Lorenzo Rovigatti, Flavio Romano, Petr Sulc and others'
-
-# automatically retrieve the version
-from pkg_resources import get_distribution, DistributionNotFound
+__copyright__ = 'Copyright 2025 Lorenzo Rovigatti, Flavio Romano, Petr Sulc and others'
 
 try:
-    __version__ = get_distribution("oxpy").version
-except DistributionNotFound:
-     # package is not installed
-    pass
+    from ._version import version as __version__
+except ImportError:
+    __version__ = "unknown"
