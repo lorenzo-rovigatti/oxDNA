@@ -22,14 +22,43 @@ IF(Python)
 	set_target_properties(core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	target_include_directories(core PRIVATE ${Python_INCLUDE_DIRS})
 	target_link_libraries(core PUBLIC oxdna_common pybind11::headers ${Python_LIBRARIES})
-	
-	set(PYTHON_SITE_PACKAGES ${Python_SITEARCH})
-	install(TARGETS core
-			LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}/oxpy
-			ARCHIVE DESTINATION ${PYTHON_SITE_PACKAGES}/oxpy)
-	install(DIRECTORY ${CMAKE_SOURCE_DIR}/oxpy/
-			DESTINATION ${PYTHON_SITE_PACKAGES}/oxpy
-			FILES_MATCHING PATTERN "*.py")
+
+	# Create a staging directory for the Python package
+	set(OXPY_BASE_DIR "${CMAKE_BINARY_DIR}/python")
+	set(OXPY_PACKAGE_DIR "${OXPY_BASE_DIR}/oxpy")
+
+	# Make sure the directory exists
+	file(MAKE_DIRECTORY "${OXPY_PACKAGE_DIR}")
+
+	# Place the compiled extension (.so) in that folder
+	set_target_properties(core
+		PROPERTIES
+			LIBRARY_OUTPUT_DIRECTORY "${OXPY_PACKAGE_DIR}"
+			SUFFIX ".so"
+	)
+
+	# Copy the Python files into the staging directory
+	configure_file(${CMAKE_SOURCE_DIR}/src/oxpy/__init__.py ${OXPY_PACKAGE_DIR}/__init__.py COPYONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/src/oxpy/utils.py   ${OXPY_PACKAGE_DIR}/utils.py COPYONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/README.md ${OXPY_PACKAGE_DIR}/README.md COPYONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/src/oxpy/pyproject_cmake.toml ${OXPY_BASE_DIR}/pyproject.toml)
+	configure_file(${CMAKE_SOURCE_DIR}/src/oxpy/setup_cmake.py ${OXPY_BASE_DIR}/setup.py)
+
+	if(SKBUILD)
+		# install the oxpy package to a location where scikit-build can find it
+		install(DIRECTORY ${OXPY_PACKAGE_DIR}/
+			DESTINATION oxpy
+		)
+	else()
+		# Install the package using pip
+		if(OxpySystemInstall)
+			install(CODE "message(STATUS \"Installing oxpy system-wide via pip...\")
+						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_BASE_DIR})")
+		else()
+			install(CODE "message(STATUS \"Installing oxpy for current user via pip...\")
+						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --user ${OXPY_BASE_DIR})")
+		endif()
+	endif()
 	
 	# add a target to test oxpy
 	add_custom_target(test_oxpy
