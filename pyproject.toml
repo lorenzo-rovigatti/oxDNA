@@ -37,3 +37,4 @@ args = [
 [tool.setuptools_scm]
 write_to = "src/oxpy/_version.py"
 fallback_version = "unknown"
+local_scheme = "node-and-date"
