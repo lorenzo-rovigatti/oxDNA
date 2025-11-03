@@ -1,11 +1,10 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "oxpy"
-version = "${tag}.dev+g${revision}"
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 description = "A code primarily aimed at DNA and RNA coarse-grained simulations"
 readme = "README.md"
 authors = [
@@ -28,3 +27,8 @@ homepage = "https://github.com/lorenzo-rovigatti/oxDNA"
 
 [tool.setuptools.package-data]
 oxpy = ["*.so"]
+
+[tool.setuptools_scm]
+version_file = "oxpy/_version.py"
+fallback_version = "unknown"
+root = "${CMAKE_SOURCE_DIR}"
