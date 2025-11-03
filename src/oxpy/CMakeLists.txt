@@ -21,7 +21,14 @@ IF(Python)
 	Python_add_library(core MODULE bindings.cpp ${oxpy_SOURCES} WITH_SOABI)
 	set_target_properties(core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	target_include_directories(core PRIVATE ${Python_INCLUDE_DIRS})
-	target_link_libraries(core PUBLIC oxdna_common pybind11::headers ${Python_LIBRARIES})
+	# On MacOS, Python extensions should NOT link against libpython
+	# The symbols are resolved at runtime from the interpreter
+	if(APPLE)
+		target_link_libraries(core PUBLIC oxdna_common pybind11::headers)
+		set_target_properties(core PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+	else()
+		target_link_libraries(core PUBLIC oxdna_common pybind11::headers ${Python_LIBRARIES})
+	endif()
 
 	# Create a staging directory for the Python package
 	set(OXPY_BASE_DIR "${CMAKE_BINARY_DIR}/python")
