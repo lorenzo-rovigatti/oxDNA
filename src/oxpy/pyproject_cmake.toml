@@ -31,4 +31,5 @@ oxpy = ["*.so"]
 [tool.setuptools_scm]
 version_file = "oxpy/_version.py"
 fallback_version = "unknown"
+local_scheme = "no-local-version"
 root = "${CMAKE_SOURCE_DIR}"
