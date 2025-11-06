@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oxpy"
+dynamic = ["dependencies", "version"]
+description = "A code primarily aimed at DNA and RNA coarse-grained simulations"
+readme = "README.md"
+authors = [
+    {name = "Lorenzo Rovigatti", email = "lorenzo.rovigatti@uniroma1.it"},
+    {name = "Flavio Romano", email = "flavio.romano@unive.it"},
+    {name = "Petr Šulc", email = "psulc@asu.edu"}
+]
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering :: Physics"
+]
+
+[project.urls]
+homepage = "https://github.com/lorenzo-rovigatti/oxDNA"
+
+[tool.setuptools.package-data]
+oxpy = ["*.so"]
+
+[tool.setuptools_scm]
+version_file = "oxpy/_version.py"
+fallback_version = "unknown"
+local_scheme = "no-local-version"
+root = "${CMAKE_SOURCE_DIR}"
