@@ -442,7 +442,7 @@
 #define STCK_T6_MESH_POINTS STCK_T5_MESH_POINTS
 
 #define CRST_T1_MESH_POINTS 250 // good enough
-#define CRST_T2_MESH_POINTS 80  // almost perfect
+#define CRST_T2_MESH_POINTS 250  // almost perfect
 #define CRST_T3_MESH_POINTS CRST_T2_MESH_POINTS
 #define CRST_T4_MESH_POINTS 6   // perfect
 #define CRST_T7_MESH_POINTS 250 // good enough
