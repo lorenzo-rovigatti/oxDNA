@@ -2354,6 +2354,16 @@ def compute_energy_n5() :
 
     f4_th4 = F4(TH4_BN_n5,CURR_PARS[par_index[54]][TYPES_BN_n5],CURR_PARS[par_index[55]][TYPES_BN_n5],CURR_PARS[par_index[56]][TYPES_BN_n5],\
                 CURR_PARS[par_index[57]][TYPES_BN_n5],CURR_PARS[par_index[58]][TYPES_BN_n5])
+
+    ofile = open(out_debug.txt,'w')
+
+    print("cos th4_bn",file=ofile)
+    print(torch.cos(TH4_BN_n5[0][0]), file=ofile)
+
+print("cos th4_bn",file=ofile)
+    print(torch.cos(TH4_BN_n5[0][0]), file=ofile)
+    ofile.close()
+
     f4_th5 = F4(TH5_n5,CURR_PARS[par_index[59]][TYPES_BN_n5],CURR_PARS[par_index[60]][TYPES_BN_n5],CURR_PARS[par_index[61]][TYPES_BN_n5],\
                 CURR_PARS[par_index[62]][TYPES_BN_n5],CURR_PARS[par_index[63]][TYPES_BN_n5])
 
@@ -2844,7 +2854,7 @@ def compute_rew_energy_n5(PARS) :
     torch.set_printoptions(profile="default")
 
     """
-    EN_STCK_REW_n5 = EN_STCK_IN_n5*PARS[par_index[44]][TYPES_BN_n5]/PARS_IN[par_index[44]][TYPES_BN_n5]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)) #unfortunately, PARS_IN[44] have the T stack dependence, which we have to remove
+    EN_STCK_REW_n5 = EN_STCK_IN_n5*PARS[par_index[44]][TYPES_BN_n5]/PARS_IN[par_index[44]][TYPES_BN_n5]
 
     #print(EN_STCK_IN_n5-EN_STCK_REW_n5)
     #print(EN_STCK_IN_n5)
@@ -2882,7 +2892,7 @@ def compute_rew_energy_n8(PARS) :
 
     #STACKING
 
-    EN_STCK_REW_n8 = EN_STCK_IN_n8*PARS[par_index[44]][TYPES_BN_n8]/PARS_IN[par_index[44]][TYPES_BN_n8]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps))
+    EN_STCK_REW_n8 = EN_STCK_IN_n8*PARS[par_index[44]][TYPES_BN_n8]/PARS_IN[par_index[44]][TYPES_BN_n8]
 
     #HYDROGEN
 
@@ -2900,7 +2910,7 @@ def compute_rew_energy_n15(PARS) :
 
     #STACKING
 
-    EN_STCK_REW_n15 = EN_STCK_IN_n15*PARS[par_index[44]][TYPES_BN_n15]/PARS_IN[par_index[44]][TYPES_BN_n15]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps))
+    EN_STCK_REW_n15 = EN_STCK_IN_n15*PARS[par_index[44]][TYPES_BN_n15]/PARS_IN[par_index[44]][TYPES_BN_n15]
 
     #HYDROGEN
 
@@ -3211,7 +3221,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n5 - TARGET_mTs_n5)
 
         for i in range(cg.Nseq_n5) :
-            if cg.good_n5[i] : S += diff[i]/cg.Nseq_n5
+            if cg.good_n5[i] : S += diff[i]
 
         #S += torch.square( mTs_n5 - TARGET_mTs_n5).sum(dim=0)
 
@@ -3306,7 +3316,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n8 - TARGET_mTs_n8)
 
         for i in range(cg.Nseq_n8) :
-            if cg.good_n8[i] : S += diff[i]/cg.Nseq_n8
+            if cg.good_n8[i] : S += diff[i]
 
         #S += torch.square( mTs_n8 - TARGET_mTs_n8).sum(dim=0)
 
@@ -3394,7 +3404,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n15 - TARGET_mTs_n15)
 
         for i in range(cg.Nseq_n15) :
-            if cg.good_n15[i] : S += diff[i]/cg.Nseq_n15
+            if cg.good_n15[i] : S += diff[i]
 
 
         #S += torch.square( mTs_n15 - TARGET_mTs_n15).sum(dim=0)

@@ -657,6 +657,19 @@ def print_energy_n5(ofile, ofile_ave) :
                 print(str(j) + " " +str(float(EN[i][j])),file=ofile_ave)
         print("\n",file=ofile_ave)
 
+
+    print("OFFSET",file=ofile_ave)
+
+    EN = EN_OFFSET_n5/10
+
+    for i in range(cg.Nseq_n5) :
+        print("SEQ: "+str(i))
+        for j in range(len(EN[i])):
+            if (j+1)%10 == 0:
+                print(str(j) + " " +str(float(EN[i][j])),file=ofile_ave)
+        print("\n",file=ofile_ave)
+
+
     if cg.debye_huckel:
         EN = (EN_DEBYE_HUCKEL_IN_n5).sum(dim=2)/10
 
@@ -2283,15 +2296,22 @@ def FIX_ENSLAVED(CURR_PARS, opti) :
 #####compute initial energy
 #################################
 
-def decimal_to_base5_tensor(tensor):
-    # tensor contains integers up to 625
-    base = 5
+
+def type_to_bases(n):
+
+    # Handle zero explicitly
+
+    print(n)
+
     digits = []
-    for _ in range(4):  # because 5^4 = 625
-        digits.append(tensor % base)
-        tensor = tensor // base
-    # digits list has least significant digit first, reverse it
-    return torch.stack(digits[::-1], dim=-1)
+    for i in range(4):
+        digits.append(n % 5)
+        n //= 5
+    #digits.reverse()
+
+    # Map digits to string using the dictionary
+    result_str = ''.join(cg.bases[d] for d in digits)
+    return result_str
 
 
 def compute_energy_n5() :
@@ -2321,9 +2341,16 @@ def compute_energy_n5() :
 
     #for melting, we have to deal with the ends only once (here), since in the optimisation we use only the strengths which are junction dependent (no tetramer)
 
+
+    print("checking bef ensl")
+    print(PARS_IN[par_index[44]][TYPES_BN_n8][0][0])
+
     SH_ST, SH_HY = FIX_ENSLAVED(CURR_PARS, False)
 
     PARS_IN = torch.clone(CURR_PARS)
+
+    print("checking in pars")
+    print(PARS_IN[par_index[44]][TYPES_BN_n8][0][0])
 
     SHIFT_STCK = torch.clone(SH_ST)
     SHIFT_HYDR = torch.clone(SH_HY)
@@ -2356,7 +2383,6 @@ def compute_energy_n5() :
                 CURR_PARS[par_index[57]][TYPES_BN_n5],CURR_PARS[par_index[58]][TYPES_BN_n5])
     f4_th5 = F4(TH5_n5,CURR_PARS[par_index[59]][TYPES_BN_n5],CURR_PARS[par_index[60]][TYPES_BN_n5],CURR_PARS[par_index[61]][TYPES_BN_n5],\
                 CURR_PARS[par_index[62]][TYPES_BN_n5],CURR_PARS[par_index[63]][TYPES_BN_n5])
-
     f4_th6 = F4(TH6_n5,CURR_PARS[par_index[64]][TYPES_BN_n5],CURR_PARS[par_index[65]][TYPES_BN_n5],CURR_PARS[par_index[66]][TYPES_BN_n5],\
                 CURR_PARS[par_index[67]][TYPES_BN_n5],CURR_PARS[par_index[68]][TYPES_BN_n5])
 
@@ -2367,6 +2393,67 @@ def compute_energy_n5() :
     f5_phi2 = F5(COSPHI2_n5,CURR_PARS[par_index[73]][TYPES_BN_n5],CURR_PARS[par_index[74]][TYPES_BN_n5],CURR_PARS[par_index[75]][TYPES_BN_n5],CURR_PARS[par_index[76]][TYPES_BN_n5])
 
     EN_STCK_IN_n5 = f1*f4_th4*f4_th5*f4_th6*f5_phi1*f5_phi2
+
+
+    ofile = open("out_debug.txt", 'w')
+    print("th4_bn_n5", file=ofile)
+    print(torch.cos(TH4_BN_n5[0][0]), file=ofile)
+    print(torch.cos(TH4_BN_n5[0][9]), file=ofile)
+    print("f1_n5", file=ofile)
+    print(f1[0][0], file=ofile)
+    print(f1[0][9], file=ofile)
+    print("f4_th4_n5", file=ofile)
+    print(f4_th4[0][0], file=ofile)
+    print(f4_th4[0][9], file=ofile)
+    print("f4_th5_n5", file=ofile)
+    print(f4_th5[0][0], file=ofile)
+    print(f4_th5[0][9], file=ofile)
+    print("f4_th6_n5", file=ofile)
+    print(f4_th6[0][0], file=ofile)
+    print(f4_th6[0][9], file=ofile)
+
+    print("f5_phi1_n5", file=ofile)
+    print(f5_phi1[0][0], file=ofile)
+    print(f5_phi1[0][9], file=ofile)
+
+    print("f5_phi2_n5", file=ofile)
+    print(f5_phi2[0][0], file=ofile)
+    print(f5_phi2[0][9], file=ofile)
+
+    print("stck_en_n5", file=ofile)
+    print(EN_STCK_IN_n5[0][0], file=ofile)
+    print(EN_STCK_IN_n5[0][9], file=ofile)
+
+    print("parameters stck f4_th4", file=ofile)
+    print(CURR_PARS[par_index[54]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[55]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[56]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[57]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[58]][TYPES_BN_n5][0][0], file=ofile)
+
+    print("parameters stck f1", file=ofile)
+    print(STCK_EPS[0][0], file=ofile)
+    print(CURR_PARS[par_index[45]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[46]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[47]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[48]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[49]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[50]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[51]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[52]][TYPES_BN_n5][0][0], file=ofile)
+    print(CURR_PARS[par_index[53]][TYPES_BN_n5][0][0], file=ofile)
+
+    print("types", file=ofile)
+    string = ""
+    for i in range(len(TYPES_BN_n5[0][0])):
+        string += type_to_bases(TYPES_BN_n5[0][0][i].item()) + " "
+
+    print(string, file=ofile)
+
+    ofile.close()
+
+
+
 
     #HYDROGEN
     #TYPES_UNBN_33_n5 and TYPES_UNBN_55_n5 are the same here: hydr is a 2d interaction, flanking types are irrelevant
@@ -2844,7 +2931,11 @@ def compute_rew_energy_n5(PARS) :
     torch.set_printoptions(profile="default")
 
     """
-    EN_STCK_REW_n5 = EN_STCK_IN_n5*PARS[par_index[44]][TYPES_BN_n5]/PARS_IN[par_index[44]][TYPES_BN_n5]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)) #unfortunately, PARS_IN[44] have the T stack dependence, which we have to remove
+
+    #print(PARS_IN[par_index[44]])
+
+
+    EN_STCK_REW_n5 = EN_STCK_IN_n5*PARS[par_index[44]][TYPES_BN_n5]/PARS_IN[par_index[44]][TYPES_BN_n5]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps))
 
     #print(EN_STCK_IN_n5-EN_STCK_REW_n5)
     #print(EN_STCK_IN_n5)
@@ -2872,8 +2963,8 @@ def compute_rew_energy_n5(PARS) :
     #print(PARS[par_index[116]])
     #print(PARS_IN[par_index[116]])
 
-    EN_CRST_33_REW_n5 = EN_CRST_33_IN_n5*PARS[par_index[77]][TYPES_UNBN_33_n5]/PARS_IN[par_index[77]][TYPES_UNBN_33_n5]
-    EN_CRST_55_REW_n5 = EN_CRST_55_IN_n5*PARS[par_index[116]][TYPES_UNBN_55_n5]/PARS_IN[par_index[116]][TYPES_UNBN_55_n5]
+    EN_CRST_33_REW_n5 = EN_CRST_33_IN_n5 #*PARS[par_index[77]][TYPES_UNBN_33_n5]/PARS_IN[par_index[77]][TYPES_UNBN_33_n5]
+    EN_CRST_55_REW_n5 = EN_CRST_55_IN_n5 #*PARS[par_index[116]][TYPES_UNBN_55_n5]/PARS_IN[par_index[116]][TYPES_UNBN_55_n5]
 
     return EN_STCK_REW_n5, EN_HYDR_REW_n5, EN_CRST_33_REW_n5, EN_CRST_55_REW_n5
 
@@ -2894,6 +2985,39 @@ def compute_rew_energy_n8(PARS) :
     EN_CRST_55_REW_n8 = EN_CRST_55_IN_n8*PARS[par_index[116]][TYPES_UNBN_55_n8]/PARS_IN[par_index[116]][TYPES_UNBN_55_n8]
 
     return EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8
+
+
+
+def compute_rew_energy_n8_wprint(PARS) :
+
+    print("checking things")
+
+    #STACKING
+
+
+    print(PARS_IN[par_index[44]][TYPES_BN_n8][0][0])
+    print(PARS[par_index[44]][TYPES_BN_n8][0][0])
+
+    EN_STCK_REW_n8 = EN_STCK_IN_n8*PARS[par_index[44]][TYPES_BN_n8]/PARS_IN[par_index[44]][TYPES_BN_n8]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps))
+
+    print(PARS[par_index[44]][TYPES_BN_n8][0][0]/PARS_IN[par_index[44]][TYPES_BN_n8][0][0]*(1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps)))
+
+    print(EN_STCK_IN_n8[0][0])
+    print(EN_STCK_REW_n8[0][0])
+
+
+    #HYDROGEN
+
+    EN_HYDR_REW_n8 = EN_HYDR_IN_n8*PARS[par_index[4]][TYPES_UNBN_33_n8]/(PARS_IN[par_index[4]][TYPES_UNBN_33_n8]+1e-12)
+
+    #CROSS STACKING
+
+    EN_CRST_33_REW_n8 = EN_CRST_33_IN_n8*PARS[par_index[77]][TYPES_UNBN_33_n8]/PARS_IN[par_index[77]][TYPES_UNBN_33_n8]
+    EN_CRST_55_REW_n8 = EN_CRST_55_IN_n8*PARS[par_index[116]][TYPES_UNBN_55_n8]/PARS_IN[par_index[116]][TYPES_UNBN_55_n8]
+
+    return EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8
+
+
 
 
 def compute_rew_energy_n15(PARS) :
@@ -3055,14 +3179,28 @@ def COST(PARS) :
     PARS_OPTI = torch.tensor(PARS,device=device)
     #PARS_OPTI = torch.clone(PARS)
 
+    #print(PARS_OPTI)
+
+
+    #torch.set_printoptions(profile="full")
+
     CURR_PARS = torch.clone(PAR0)
+
+    #print(CURR_PARS[par_index[44]])
 
     #UPDATE PARAMETERS
     CURR_PARS.put_(UPDATE_MAP, PARS_OPTI)
 
+
+    #print(CURR_PARS[par_index[44]])
+
     #impose symmetries
     VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,SYMM_LIST )
     CURR_PARS.put_(SYMM_LIST_SYMM,VALS)
+
+    #print(CURR_PARS[par_index[44]])
+
+    #torch.set_printoptions(profile="default")
 
     #REWEIGHTING
 
@@ -3211,7 +3349,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n5 - TARGET_mTs_n5)
 
         for i in range(cg.Nseq_n5) :
-            if cg.good_n5[i] : S += diff[i]/cg.Nseq_n5
+            if cg.good_n5[i] : S += diff[i]
 
         #S += torch.square( mTs_n5 - TARGET_mTs_n5).sum(dim=0)
 
@@ -3306,7 +3444,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n8 - TARGET_mTs_n8)
 
         for i in range(cg.Nseq_n8) :
-            if cg.good_n8[i] : S += diff[i]/cg.Nseq_n8
+            if cg.good_n8[i] : S += diff[i]
 
         #S += torch.square( mTs_n8 - TARGET_mTs_n8).sum(dim=0)
 
@@ -3394,7 +3532,7 @@ def COST(PARS) :
         diff = torch.square( mTs_n15 - TARGET_mTs_n15)
 
         for i in range(cg.Nseq_n15) :
-            if cg.good_n15[i] : S += diff[i]/cg.Nseq_n15
+            if cg.good_n15[i] : S += diff[i]
 
 
         #S += torch.square( mTs_n15 - TARGET_mTs_n15).sum(dim=0)

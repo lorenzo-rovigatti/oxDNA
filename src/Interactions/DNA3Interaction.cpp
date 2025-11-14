@@ -851,8 +851,17 @@ void DNA3Interaction::init() {
                         _fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
 
                         // f1
+                        F1_SD_RLOW[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)-0.06;
+                        F1_SD_RHIGH[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.3;
+                        F1_SD_RC[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.35;
+
+                        F1_SD_RLOW[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)-0.08;
+                        F1_SD_RHIGH[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.35;
+                        F1_SD_RC[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.5;
+
                         number term1, term2, term3;
                         for(int m = 0; m < 2; m++) {
+
                             term1 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RLOW[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
                             term2 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
                             term3 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RHIGH[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
@@ -867,6 +876,11 @@ void DNA3Interaction::init() {
                         }
                         // f2
                         for(int m = 0; m < 4; m++) {
+
+                            F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.08;
+                            F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.08;
+                            F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.1;
+
                             term1 = F2_SD_RLOW[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term2 = F2_SD_RHIGH[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term3 = F2_SD_RC[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
@@ -891,6 +905,7 @@ void DNA3Interaction::init() {
 
                         // f4
                         for(int m = 0; m < 21; m++) {
+                            F4_SD_THETA_TS[m](i, j, k, l) = sqrt(0.81225/F4_SD_THETA_A[m](i, j, k, l));
                             F4_SD_THETA_TC[m](i, j, k, l) = 1. / F4_SD_THETA_A[m](i, j, k, l) / F4_SD_THETA_TS[m](i, j, k, l);
                             F4_SD_THETA_B[m](i, j, k, l) = F4_SD_THETA_A[m](i, j, k, l) * F4_SD_THETA_TS[m](i, j, k, l) / (F4_SD_THETA_TC[m](i, j, k, l) - F4_SD_THETA_TS[m](i, j, k, l));
                         }

@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jul 31 12:04:54 2024
@@ -980,6 +979,7 @@ TMP = torch.tensor(OPTI_PAR,device='cpu')
 
 X0 = TMP.numpy()
 
+
 low_bond = torch.tensor(TMP, device='cpu').numpy()
 up_bond = torch.tensor(TMP, device='cpu').numpy()
 
@@ -995,7 +995,7 @@ for n in range(len(low_bond)) :
         lb = low_bond[n]*0.25
         ub = up_bond[n]*2.0
         low_bond[n] = lb
-        up_bond[n] = ub
+        up_bond[n] =ub
         if lb > 1.2: low_bond[n] = lb
         else: low_bond[n] = 1.3
         if ub < 1.95: up_bond[n] = ub
@@ -1013,7 +1013,63 @@ bnd = optimize.Bounds(low_bond,up_bond)
 print("Memory usage before optim-2:")
 print_memory_usage()
 
+
+for i in range(10):
+
+    PARS_OPTI = torch.tensor(X0,device=device)
+    #PARS_OPTI = torch.clone(PARS)
+
+    CURR_PARS = torch.clone(cfun.PAR0)
+
+    #UPDATE PARAMETERS
+    CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
+
+
+    torch.set_printoptions(profile="full")
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
+    CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
+
+
+    EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8 = cfun.compute_rew_energy_n8_wprint(CURR_PARS)
+    print("n8")
+    print("STCK")
+    print(EN_STCK_REW_n8[0][0])
+    print(EN_STCK_REW_n8[0][1])
+
+
 print("S0: "+str(cfun.COST(X0)))
+
+#exit(1)
+
+print("Reweighting")
+
+"""
+#X = X0*1.05
+
+EN_STCK_REW_n5, EN_HYDR_REW_n5, EN_CRST_33_REW_n5, EN_CRST_55_REW_n5 = cfun.compute_rew_energy_n5(X)
+print(EN_STCK_REW_n5[0][0])
+print(EN_HYDR_REW_n5[0][0])
+print(EN_CRST_33_REW_n5[0][0])
+print(EN_CRST_55_REW_n5[0][0])
+
+EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8 = cfun.compute_rew_energy_n8(X)
+print(EN_STCK_REW_n8[0][0])
+print(EN_HYDR_REW_n8[0][0])
+print(EN_CRST_33_REW_n8[0][0])
+print(EN_CRST_55_REW_n8[0][0])
+
+EN_STCK_REW_n15, EN_HYDR_REW_n15, EN_CRST_33_REW_n15, EN_CRST_55_REW_n15 = cfun.compute_rew_energy_n15(X)
+print(EN_STCK_REW_n15[0][0])
+print(EN_HYDR_REW_n15[0][0])
+print(EN_CRST_33_REW_n15[0][0])
+print(EN_CRST_55_REW_n15[0][0])
+
+#print("Exit-debug")
+#exit(1)
+
+"""
 
 torch.set_printoptions(profile="full")
 
@@ -1050,26 +1106,133 @@ if cg.Nseq_n15 > 0:
 
 torch.set_printoptions(profile="default")
 
-
 def Callback(sol):
 
     cg.Niter += 1
     cg.Diter_Trange += 1
 
+    dfile = open(str(cg.Niter)+"_debug_energy.txt", 'w')
+
     cg.update_rews = True
 
-    print("x_norm: ")
+    print("x: ")
     tmp = []
     for i in range(len(sol)):
         tmp.append(sol[i]/X0[i])
     print(tmp)
 
-    print("x: ")
+
     tmp = []
     for i in range(len(sol)):
         tmp.append(sol[i])
-    print(tmp)
+    print(tmp,file=dfile)
+    print("S: "+str(cfun.COST(sol)), file=dfile)
 
+
+    PARS_OPTI = torch.tensor(sol,device=device)
+    #PARS_OPTI = torch.clone(PARS)
+
+    CURR_PARS = torch.clone(cfun.PAR0)
+
+    #UPDATE PARAMETERS
+    CURR_PARS.put_(cfun.UPDATE_MAP, PARS_OPTI)
+
+
+    torch.set_printoptions(profile="full")
+
+    #impose symmetries
+    VALS = torch.gather( torch.reshape(PARS_OPTI,(-1,)),0,cfun.SYMM_LIST )
+    CURR_PARS.put_(cfun.SYMM_LIST_SYMM,VALS)
+
+    EN_STCK_REW_n5, EN_HYDR_REW_n5, EN_CRST_33_REW_n5, EN_CRST_55_REW_n5 = cfun.compute_rew_energy_n5(CURR_PARS)
+    print("n5",file=dfile)
+    print("STCK", file=dfile)
+    print(EN_STCK_REW_n5[0][0],file=dfile)
+    print(EN_STCK_REW_n5[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_STCK_REW_n5[0][0].sum(dim=0)/10,file=dfile)
+    print(EN_STCK_REW_n5[0][1].sum(dim=0)/10,file=dfile)
+    print("HYDR", file=dfile)
+    print(EN_HYDR_REW_n5[0][0],file=dfile)
+    print(EN_HYDR_REW_n5[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_HYDR_REW_n5[0][0].sum(dim=0)/10,file=dfile)
+    print(EN_HYDR_REW_n5[0][1].sum(dim=0)/10,file=dfile)
+    print("CRST_33", file=dfile)
+    print(EN_CRST_33_REW_n5[0][0],file=dfile)
+    print(EN_CRST_33_REW_n5[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_33_REW_n5[0][0].sum(dim=0)/10,file=dfile)
+    print(EN_CRST_33_REW_n5[0][1].sum(dim=0)/10,file=dfile)
+    print("CRST_55", file=dfile)
+    print(EN_CRST_55_REW_n5[0][0],file=dfile)
+    print(EN_CRST_55_REW_n5[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_55_REW_n5[0][0].sum(dim=0)/10,file=dfile)
+    print(EN_CRST_55_REW_n5[0][1].sum(dim=0)/10,file=dfile)
+
+    EN_STCK_REW_n8, EN_HYDR_REW_n8, EN_CRST_33_REW_n8, EN_CRST_55_REW_n8 = cfun.compute_rew_energy_n8_wprint(CURR_PARS)
+    print("n8",file=dfile)
+    print("STCK", file=dfile)
+    print(EN_STCK_REW_n8[0][0],file=dfile)
+    print(EN_STCK_REW_n8[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_STCK_REW_n8[0][0].sum(dim=0)/16,file=dfile)
+    print(EN_STCK_REW_n8[0][1].sum(dim=0)/16,file=dfile)
+    print("HYDR", file=dfile)
+    print(EN_HYDR_REW_n8[0][0],file=dfile)
+    print(EN_HYDR_REW_n8[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_HYDR_REW_n8[0][0].sum(dim=0)/16,file=dfile)
+    print(EN_HYDR_REW_n8[0][1].sum(dim=0)/16,file=dfile)
+    print("CRST_33", file=dfile)
+    print(EN_CRST_33_REW_n8[0][0],file=dfile)
+    print(EN_CRST_33_REW_n8[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_33_REW_n8[0][0].sum(dim=0)/16,file=dfile)
+    print(EN_CRST_33_REW_n8[0][1].sum(dim=0)/16,file=dfile)
+    print("CRST_55", file=dfile)
+    print(EN_CRST_55_REW_n8[0][0],file=dfile)
+    print(EN_CRST_55_REW_n8[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_55_REW_n8[0][0].sum(dim=0)/16,file=dfile)
+    print(EN_CRST_55_REW_n8[0][1].sum(dim=0)/16,file=dfile)
+
+
+    EN_STCK_REW_n15, EN_HYDR_REW_n15, EN_CRST_33_REW_n15, EN_CRST_55_REW_n15 = cfun.compute_rew_energy_n15(CURR_PARS)
+    print("n15",file=dfile)
+    print("STCK", file=dfile)
+    print(EN_STCK_REW_n15[0][0],file=dfile)
+    print(EN_STCK_REW_n15[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_STCK_REW_n15[0][0].sum(dim=0)/30,file=dfile)
+    print(EN_STCK_REW_n15[0][1].sum(dim=0)/30,file=dfile)
+    print("HYDR", file=dfile)
+    print(EN_HYDR_REW_n15[0][0],file=dfile)
+    print(EN_HYDR_REW_n15[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_HYDR_REW_n15[0][0].sum(dim=0)/30,file=dfile)
+    print(EN_HYDR_REW_n15[0][1].sum(dim=0)/30,file=dfile)
+    print("CRST_33", file=dfile)
+    print(EN_CRST_33_REW_n15[0][0],file=dfile)
+    print(EN_CRST_33_REW_n15[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_33_REW_n15[0][0].sum(dim=0)/30,file=dfile)
+    print(EN_CRST_33_REW_n15[0][1].sum(dim=0)/30,file=dfile)
+    print("CRST_55", file=dfile)
+    print(EN_CRST_55_REW_n15[0][0],file=dfile)
+    print(EN_CRST_55_REW_n15[0][1],file=dfile)
+    print("Ave:",file=dfile)
+    print(EN_CRST_55_REW_n15[0][0].sum(dim=0)/30,file=dfile)
+    print(EN_CRST_55_REW_n15[0][1].sum(dim=0)/30,file=dfile)
+
+    dfile.close()
+
+    torch.set_printoptions(profile="default")
+
+    in_SD_par_file = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
+    fun.print_final_pfile_debug(sol,in_SD_par_file, str(cg.Niter)+"_oxDNA_sequence_dependent_parameters_db.txt")
+    in_SD_par_file.close()
 
     print("S: "+str(cfun.COST(sol)))
 
@@ -1120,14 +1283,14 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':50,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':5,'iprint': 1})
 
 
 #change slightly parameters at boundaries to avoid problems with next iteration
 par_fin = sol.x
 
 for n in range(len(par_fin)) :
-    if (par_fin[n]-low_bond[n])/(low_bond[n]+0.00000001) <= 0.0001: par_fin[n]= par_fin[n]*1.0001
+    if (par_fin[n]-low_bond[n])/(low_bond[n]+0.00000001) <= 0.001: par_fin[n]= par_fin[n]*1.0001
     if (up_bond[n]-par_fin[n])/up_bond[n] <= 0.0001: par_fin[n] = par_fin[n]*0.9999
 
 

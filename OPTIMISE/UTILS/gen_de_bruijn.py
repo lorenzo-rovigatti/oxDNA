@@ -13,7 +13,7 @@ N_n8 = 16
 N_n15 = 16
 
 Ct = 0.000672
-Cs = 0.15
+Cs = 0.5
 
 class Sequence :
     
@@ -84,7 +84,7 @@ SEQS_n5 = []
 
 start = 0
 delta = 5-3;
-cutoff_T=10
+cutoff_T=-30
 
 while (start+5)<len(seq_n5):
     seq=""
@@ -132,7 +132,7 @@ SEQS_n8 = []
 SEQS_n15 = []
 
 start = 0
-cutoff_T=10
+cutoff_T=-30
 
 start = 0
 
@@ -154,19 +154,22 @@ for n in range(len(padding_ls)):
 SEQS_n8.sort(key=lambda x: x.mT)
 SEQS_n15.sort(key=lambda x: x.mT)
 
+
+ofile = open("seqs_de_brjin.txt",'w')
+
 print("Number of n5 sequences: ",len(SEQS_n5))
 for i in range(len(SEQS_n5)):
-    print(SEQS_n5[i].seq, SEQS_n5[i].mT)
+    print(SEQS_n5[i].seq, SEQS_n5[i].mT,file=ofile)
 
 print("Number of n8 sequences: ",len(SEQS_n8))
 for i in range(len(SEQS_n8)):
-    print(SEQS_n8[i].seq, SEQS_n8[i].mT)
-    
+    print(SEQS_n8[i].seq, SEQS_n8[i].mT,file=ofile)
+
 print("Number of n15 sequences: ",len(SEQS_n15))
 for i in range(len(SEQS_n15)):
-    print(SEQS_n15[i].seq, SEQS_n15[i].mT)
+    print(SEQS_n15[i].seq, SEQS_n15[i].mT,file=ofile)
 
-
+ofile.close()
 
 
 
