@@ -36,5 +36,5 @@ args = [
 
 [tool.setuptools_scm]
 version_file = "src/oxpy/_version.py"
-fallback_version = "unknown"
+fallback_version = "3.7"
 local_scheme = "no-local-version"
