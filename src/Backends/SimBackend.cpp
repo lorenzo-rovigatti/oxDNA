@@ -188,10 +188,12 @@ void SimBackend::get_settings(input_file &inp) {
 	// we build the default stream of observables for trajectory and last configuration
 	bool traj_print_momenta = true;
 	getInputBool(&inp, "trajectory_print_momenta", &traj_print_momenta, 0);
+	bool traj_compression = false;
+	getInputBool(&inp, "trajectory_compression", &traj_compression, 0);
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
-	std::string output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
+	std::string output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\ncompress = %d\n}\n", traj_file.c_str(), traj_compression);
 	_obs_output_trajectory = std::make_shared<ObservableOutput>(output_inp_text);
 
 	std::string obs_text = Utils::sformat("type = configuration\nprint_momenta = %d", traj_print_momenta);
