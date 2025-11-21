@@ -13,88 +13,6 @@
 
 #include "BaseObservable.h"
 
-#include <zstd.h>
-class ZstdOStream : public std::ostream {
-public:
-    ZstdOStream(std::ostream& dest, int level = 1)
-        : std::ostream(&buffer_), buffer_(dest, level) {}
-
-    ~ZstdOStream() {
-        flush();
-        buffer_.finish();
-    }
-
-private:
-    class ZstdStreamBuf : public std::streambuf {
-    public:
-        ZstdStreamBuf(std::ostream& dest, int level)
-            : dest_(dest) {
-            cstream_ = ZSTD_createCStream();
-            ZSTD_initCStream(cstream_, level);
-
-            outBuffer_.resize(131072); // 128 KB
-        }
-
-        ~ZstdStreamBuf() {
-            ZSTD_freeCStream(cstream_);
-        }
-
-        int overflow(int ch) override {
-            if (ch != EOF) {
-                inBuffer_.push_back((char)ch);
-                if (inBuffer_.size() >= 65536) { // 64 KB chunk
-                    compressChunk(false);
-                }
-            }
-            return ch;
-        }
-
-        int sync() override {
-            compressChunk(false);
-            dest_.flush();
-            return 0;
-        }
-
-        void finish() {
-            compressChunk(true);
-            dest_.flush();
-        }
-
-    private:
-        void compressChunk(bool end) {
-            ZSTD_inBuffer in{ inBuffer_.data(), inBuffer_.size(), 0 };
-
-            while (in.pos < in.size || end) {
-                ZSTD_outBuffer out{ outBuffer_.data(), outBuffer_.size(), 0 };
-
-                size_t ret = end
-                    ? ZSTD_endStream(cstream_, &out)
-                    : ZSTD_compressStream(cstream_, &out, &in);
-
-                dest_.write((char*)out.dst, out.pos);
-
-                if (!end && in.pos == in.size)
-                    break;
-
-                if (ZSTD_isError(ret))
-                    throw std::runtime_error(ZSTD_getErrorName(ret));
-
-                if (end && ret == 0)
-                    break;
-            }
-            inBuffer_.clear();
-        }
-
-        std::ostream& dest_;
-        ZSTD_CStream* cstream_;
-        std::vector<char> inBuffer_;
-        std::vector<char> outBuffer_;
-    };
-
-    ZstdStreamBuf buffer_;
-};
-
-
 /**
  * @brief Manages a single output stream.
  *
@@ -146,8 +64,6 @@ protected:
 	int _log_n_cycle;
 	bool _update_name_with_time;
 
-	// Zstd compressed stream, so that we can manage its lifetime
-	std::unique_ptr<std::ostream> _compressed_stream;
 	bool _use_zstd = false;
 	int  _zstd_level = 3;
 

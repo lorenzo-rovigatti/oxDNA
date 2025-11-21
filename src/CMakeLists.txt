@@ -355,6 +355,7 @@ ELSE()
 	target_link_libraries(${lib_name} PRIVATE ${CMAKE_DL_LIBS})
 ENDIF()
 
+target_link_libraries(${lib_name} PRIVATE ${ZSTD_TARGET})
 target_link_libraries(${exe_name} PRIVATE ${lib_name})
 target_link_libraries(DNAnalysis PRIVATE ${lib_name})
 target_link_libraries(confGenerator PRIVATE ${lib_name})

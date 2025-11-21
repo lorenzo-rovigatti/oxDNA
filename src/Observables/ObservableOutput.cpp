@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <ztdpp/zstdpp.hpp>
 
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
@@ -57,6 +58,9 @@ ObservableOutput::ObservableOutput(std::string &stream_string) :
 
 	getInputBool(obs_input, "compress", &_use_zstd, 0);
 	getInputInt(obs_input, "zstd_level", &_zstd_level, 0);
+	if(_use_zstd) {
+		_is_binary = true;
+	}
 
 	_linear = true;
 	getInputBool(obs_input, "linear", &_linear, 0);
@@ -93,9 +97,6 @@ ObservableOutput::~ObservableOutput() {
 	if(_output_stream.is_open()) {
 		_output_stream.close();
 	}
-	if(_use_zstd) {
-		delete _output;
-	}
 	clear();
 }
 
@@ -128,13 +129,10 @@ void ObservableOutput::_open_output() {
 			}
 		}
 
-		if(!_use_zstd) {
-			_output = &_output_stream;
-		}
-		else {
-			_output = new ZstdOStream(_output_stream, _zstd_level);
+		_output = &_output_stream;
 
-			// --- 1. Write 8-byte magic header ---
+		if(_use_zstd) {
+			// 8-byte magic header
 			uint8_t header[8];
 			header[0] = 'O';
 			header[1] = 'X';
@@ -236,7 +234,13 @@ void ObservableOutput::print_output(llint step) {
 	std::string towrite = ss.str();
 	_bytes_written += (llint) towrite.length();
 
-	*_output << towrite;
+	if(_use_zstd) {
+		auto compressed_str = zstdpp::compress(towrite, _zstd_level);
+		_output->write(reinterpret_cast<const char*>(compressed_str.data()), compressed_str.size());
+	}
+	else {
+		*_output << towrite;
+	}
 	_output->flush();
 
 	if(_only_last) {
