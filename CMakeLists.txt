@@ -115,6 +115,70 @@ IF(MPI)
 	ADD_DEFINITIONS(-DHAVE_MPI)
 ENDIF(MPI)
 
+if(CUDA)
+	if(CMAKE_VERSION VERSION_LESS 3.18)
+		FIND_PACKAGE("CUDA" REQUIRED)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
+
+		INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
+		LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
+
+		INCLUDE(../select_compute_arch.cmake)
+		
+		IF(CUDA_COMMON_ARCH)
+			CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Common)
+		ELSE(CUDA_COMMON_ARCH)
+			CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
+		ENDIF(CUDA_COMMON_ARCH)
+		
+		MESSAGE(STATUS "Generating code for the following CUDA architectures: ${ARCH_FLAGS_readable}")
+
+		LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
+		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_COMMON_FLAGS}")
+	else()
+		include(CheckLanguage)
+		check_language(CUDA)
+		if(NOT CMAKE_CUDA_COMPILER)
+			message(FATAL_ERROR 
+				"CUDA requested but no CUDA compiler found.\n"
+				"Please install CUDA or pass -DCMAKE_CUDA_COMPILER=/path/to/nvcc"
+			)
+		endif()
+
+		enable_language(CUDA)
+		find_package(CUDAToolkit REQUIRED)
+
+		if(CUDA_COMMON_ARCH)
+			message(STATUS "Selecting COMMON architectures")
+			set(CMAKE_CUDA_ARCHITECTURES "all-major")
+		else()
+			if(CMAKE_VERSION VERSION_LESS 3.24)
+				# Auto GPU detection
+				execute_process(
+					COMMAND nvidia-smi --query-gpu=compute_cap --format=csv,noheader
+					OUTPUT_VARIABLE GPU_ARCH
+					OUTPUT_STRIP_TRAILING_WHITESPACE
+					ERROR_QUIET
+				)
+				if(GPU_ARCH STREQUAL "")
+					message(WARNING "Could not detect GPU arch, defaulting to 7.0")
+					set(GPU_ARCH 70)
+				else()
+					# If nvidia-smi works, remove the dot: e.g. "6.1" → "61"
+					MESSAGE(STATUS "Compiling for the following detected CUDA architecture: ${GPU_ARCH}")
+					if(GPU_ARCH MATCHES "([0-9]+)\\.([0-9]+)")
+						set(GPU_ARCH "${CMAKE_MATCH_1}${CMAKE_MATCH_2}")
+					endif()
+				endif()
+				set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
+			else()
+				message(STATUS "Selecting AUTO (native) architectures")
+				set(CMAKE_CUDA_ARCHITECTURES "native")
+			endif()
+		endif()
+	endif()
+endif(CUDA)
+
 if(JSON_ENABLED)
 	add_definitions(-DJSON_ENABLED)
 else()
@@ -147,7 +211,6 @@ ELSE()
 		SET(tag "unknown")
 	endif()
 ENDIF(IS_GIT_REPO)
-
 
 # return the current date as day/month/year
 MACRO(CURRENT_DATE result)
@@ -199,5 +262,5 @@ add_dependencies(test test_quick test_run)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(contrib)
+#ADD_SUBDIRECTORY(contrib)
 ADD_SUBDIRECTORY(src/oxpy)
