@@ -219,7 +219,7 @@ std::vector<int> CUDASimpleVerletList::is_large(c_number4 *data) {
 	thrust::copy(t_data, t_data + _N, h_data.begin());
 
 	std::vector<int> large_ids;
-	for(int idx = 0; idx < h_is_large.size(); idx++) {
+	for(unsigned int idx = 0; idx < h_is_large.size(); idx++) {
 		if(h_is_large[idx]) {
 			large_ids.push_back(get_particle_index_host(h_data[idx]));
 		}

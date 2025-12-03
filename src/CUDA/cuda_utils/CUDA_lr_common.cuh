@@ -147,15 +147,13 @@ __forceinline__ __device__ int get_particle_type(const c_number4 &r_i) {
 }
 
 __forceinline__ __device__ int get_particle_index(const c_number4 &r_i) {
-	int msk = -1 << 22;
-	return __float_as_int(r_i.w) & (~msk);
+	const unsigned int mask22 = 0x003FFFFF;   // keep bottom 22 bits
+	return __float_as_int(r_i.w) & mask22;
 }
 
 __forceinline__ __host__ int get_particle_index_host(const c_number4 &r_i) {
-	union {float a; int b;} u;
-	u.a = r_i.w;
-	int msk = -1 << 22;
-	return u.b & (~msk);
+	const unsigned int mask22 = 0x003FFFFF;   // keep bottom 22 bits
+	return GpuUtils::float_as_int(r_i.w) & mask22;
 }
 
 __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {

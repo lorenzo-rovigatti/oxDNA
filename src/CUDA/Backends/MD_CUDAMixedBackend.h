@@ -10,8 +10,20 @@
 
 #include "MD_CUDABackend.h"
 
+#define STR2(x) #x
+#define STR(x) STR2(x)
+
+#if defined(__GNUC__) && !defined(__CUDACC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 // this compilation unit is compiled only when the CUDA backend is compiled with CUDA_DOUBLE set to OFF
+#if defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 13
+using GPU_quat_double = double4_32a;
+#else
 using GPU_quat_double = double4;
+#endif
 
 /**
  * @brief CUDA backend with mixed precision for MD simulations.
