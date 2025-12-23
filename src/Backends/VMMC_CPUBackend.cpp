@@ -271,8 +271,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 				OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Extrapolating to temperatures .... %s", tstring);
 				char * aux, deg;
 				int c = 0, check;
-				double * tmpt;
-				tmpt = new double[100];
+				std::vector<double> tmpt(100);
 				aux = strtok(tstring, ",");
 				while (aux != NULL) {
 					//printf ("parsing %s\n", aux);
@@ -315,12 +314,10 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 					free (tmps);
 				}
 				_netemps = c;
-				if (_netemps > 0) {
+				if(_netemps > 0) {
 					_etemps = new double[_netemps];
-					memcpy(_etemps, tmpt, _netemps * sizeof(double));
+					memcpy(_etemps, tmpt.data(), _netemps * sizeof(double));
 				}
-				delete[] tmpt;
-				//abort ();
 			}
 		}
 		else {
@@ -1292,14 +1289,17 @@ inline void VMMC_CPUBackend::_fix_list(int p_index, int oldcell, int newcell) {
 }
 
 void VMMC_CPUBackend::sim_step() {
+	static std::vector<int> clust(N());
+	if(N() != (int) clust.size()) {
+		clust.resize(N());
+	}
 
 	_mytimer->resume();
 	_timer_move->resume();
 
 	LR_vector tmp;
 
-	int *clust, nclust;
-	clust = new int[N()];
+	int nclust;
 
 	double oldweight, weight;
 	int windex, oldwindex;
@@ -1351,10 +1351,10 @@ void VMMC_CPUBackend::sim_step() {
 		//printf("building cluster starting from %i...\n", move.seed);
 		number pprime;
 		if(_small_system) {
-			pprime = build_cluster_small(&move, _maxclust, clust, &nclust);
+			pprime = build_cluster_small(&move, _maxclust, clust.data(), &nclust);
 		}
 		else {
-			pprime = build_cluster_cells(&move, _maxclust, clust, &nclust);
+			pprime = build_cluster_cells(&move, _maxclust, clust.data(), &nclust);
 		}
 
 		assert(nclust >= 1);
@@ -1496,8 +1496,6 @@ void VMMC_CPUBackend::sim_step() {
 	}
 
 	//check_ops();
-
-	delete[] clust;
 
 	// check energy for percolation
 	if(current_step() % (llint) _check_energy_every == 1) {
