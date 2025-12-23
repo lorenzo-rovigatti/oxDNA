@@ -64,6 +64,9 @@ protected:
 	int _log_n_cycle;
 	bool _update_name_with_time;
 
+	bool _use_zstd = false;
+	int  _zstd_level = 3;
+
 	llint _bytes_written;
 
 	void _open_output();

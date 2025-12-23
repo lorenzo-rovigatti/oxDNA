@@ -121,6 +121,36 @@ else()
 	message(STATUS "Disabling JSON support")
 endif(JSON_ENABLED)
 
+# find or fetch zstd
+find_package(Zstd QUIET)
+if(NOT Zstd_FOUND)
+    message(STATUS "Zstd not found: fetching zstd via FetchContent")
+    include(FetchContent)
+
+    FetchContent_Declare(
+        zstd
+        GIT_REPOSITORY https://github.com/facebook/zstd.git
+        GIT_TAG v1.5.6
+    )
+
+    FetchContent_GetProperties(zstd)
+    if (NOT zstd_POPULATED)
+        FetchContent_Populate(zstd)
+
+        # zstd build options
+        set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+        set(ZSTD_BUILD_STATIC ON  CACHE BOOL "" FORCE)
+        set(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+
+        # IMPORTANT: add zstd CMake subdirectory with actual libs
+        add_subdirectory(${zstd_SOURCE_DIR}/build/cmake ${zstd_BINARY_DIR})
+    endif()
+
+    set(ZSTD_TARGET libzstd_static)
+else()
+    set(ZSTD_TARGET Zstd::Zstd)
+endif()
+
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)
 IF(Git_FOUND)
@@ -147,7 +177,6 @@ ELSE()
 		SET(tag "unknown")
 	endif()
 ENDIF(IS_GIT_REPO)
-
 
 # return the current date as day/month/year
 MACRO(CURRENT_DATE result)

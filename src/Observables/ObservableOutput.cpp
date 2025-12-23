@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <ztdpp/zstdpp.hpp>
 
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
@@ -55,6 +56,12 @@ ObservableOutput::ObservableOutput(std::string &stream_string) :
 	_is_binary = false;
 	getInputBool(obs_input, "binary", &_is_binary, 0);
 
+	getInputBool(obs_input, "compress", &_use_zstd, 0);
+	getInputInt(obs_input, "zstd_level", &_zstd_level, 0);
+	if(_use_zstd) {
+		_is_binary = true;
+	}
+
 	_linear = true;
 	getInputBool(obs_input, "linear", &_linear, 0);
 	if(!_linear) {
@@ -98,19 +105,47 @@ void ObservableOutput::_open_output() {
 		_output_stream.close();
 	}
 
-	if(!strncmp(_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
-	else if(!strncmp(_output_name.c_str(), "stdout", 512)) _output = &std::cout;
+	if(!strncmp(_output_name.c_str(), "stderr", 512)) {
+		_output = &std::cerr;
+	}
+	else if(!strncmp(_output_name.c_str(), "stdout", 512)) {
+		_output = &std::cout;
+	}
 	else {
 		if(_append && !_update_name_with_time && !_only_last) {
-			if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
-			else _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+			if(_is_binary) {
+				_output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+			}
+			else {
+				_output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+			}
 		}
 		else {
-			if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
-			else _output_stream.open(_output_name.c_str());
+			if(_is_binary) {
+				_output_stream.open(_output_name.c_str(), ios::binary);
+			}
+			else {
+				_output_stream.open(_output_name.c_str());
+			}
 		}
 
 		_output = &_output_stream;
+
+		if(_use_zstd) {
+			// 8-byte magic header
+			uint8_t header[8];
+			header[0] = 'O';
+			header[1] = 'X';
+			header[2] = 'D';
+			header[3] = 0x01;        // "oxDNA" magic with compatibility byte
+			header[4] = 0x01;        // header version
+			header[5] = _zstd_level; // compression level
+			header[6] = 0x00;        // reserved
+			header[7] = 0x00;        // reserved
+
+			_output->write(reinterpret_cast<char*>(header), 8);
+			_output->flush();
+		}
 	}
 
 	if(_output->bad() || !_output->good()) {
@@ -128,6 +163,7 @@ void ObservableOutput::init() {
 	}
 }
 
+// TODO: remove?
 void ObservableOutput::clear() {
 	_obss.clear();
 }
@@ -197,7 +233,14 @@ void ObservableOutput::print_output(llint step) {
 	ss << endl;
 	std::string towrite = ss.str();
 	_bytes_written += (llint) towrite.length();
-	*_output << towrite;
+
+	if(_use_zstd) {
+		auto compressed_str = zstdpp::compress(towrite, _zstd_level);
+		_output->write(reinterpret_cast<const char*>(compressed_str.data()), compressed_str.size());
+	}
+	else {
+		*_output << towrite;
+	}
 	_output->flush();
 
 	if(_only_last) {
