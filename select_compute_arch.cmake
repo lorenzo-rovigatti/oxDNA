@@ -24,6 +24,15 @@ if(CMAKE_CUDA_COMPILER_LOADED) # CUDA as a language
   endif()
 endif()
 
+if(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
+  message(FATAL_ERROR
+            "CUDA ${CUDA_VERSION} requires CMake >= 3.18 because "
+            "legacy CUDA_SELECT_NVCC_ARCH_FLAGS does not support "
+            "CUDA 13+.\n"
+            "Please upgrade your CMake."
+        )
+endif()
+
 # See: https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-feature-list
 # Additions, deprecations, and removals can be found in the release notes:
 # https://developer.nvidia.com/cuda-toolkit-archive
