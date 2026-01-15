@@ -140,14 +140,14 @@ StressTensor CUDABaseInteraction::CPU_stress_tensor(c_number4 *vels) {
 	return st_sum.as_StressTensor();
 }
 
-void CUDABaseInteraction::_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDABaseInteraction::_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	throw oxDNAException("On CUDA, FFS is only implemented for the DNA and RNA interactions");
 }
 
-void CUDABaseInteraction::_near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDABaseInteraction::_near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	throw oxDNAException("On CUDA, FFS is only implemented for the DNA and RNA interactions");
 }
 
-void CUDABaseInteraction::_dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDABaseInteraction::_dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
 	throw oxDNAException("On CUDA, FFS is only implemented for the DNA and RNA interactions");
 }
