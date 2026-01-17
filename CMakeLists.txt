@@ -297,5 +297,5 @@ add_dependencies(test test_quick test_run)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(src)
-#ADD_SUBDIRECTORY(contrib)
+ADD_SUBDIRECTORY(contrib)
 ADD_SUBDIRECTORY(src/oxpy)
