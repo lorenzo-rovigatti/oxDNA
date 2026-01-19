@@ -102,7 +102,7 @@ LR_vector LTCoordination::value(llint step, LR_vector &pos) {
     int sign = (pair.first == _current_particle) ? -1 : 1;
 
     LR_vector r_vec = CONFIG_INFO->box->min_image(pair.first->pos, pair.second->pos);
-    number r = r_vec.norm();
+    number r = r_vec.module();
     double x = (r - d0) / r0;
     double xn = std::pow(x, n);
     double dcoord_dr = -(n / r0) * std::pow(x, n - 1) / (SQR(1.0 + xn));
@@ -112,6 +112,7 @@ LR_vector LTCoordination::value(llint step, LR_vector &pos) {
 	int ic_right = ic_left + 1;
 
     number df_dcoord = 0;
+    // above we ensured coord is within limits, so this should never happen
 	if((ic_left < 0) || (ic_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
 	}
