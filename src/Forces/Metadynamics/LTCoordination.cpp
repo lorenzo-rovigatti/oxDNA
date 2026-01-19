@@ -92,7 +92,9 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
         throw oxDNAException("LTCoordination: potential_grid size (%u) != N_grid (%d)", potential_grid.size(), N_grid);
     }
 
-    return std::make_tuple(p_indices, "LTCoordination force");
+    std::string msg = Utils::sformat("LTCoordination force (d0 = %lf, r0 = %lf, n = %d, coord_min = %lf, coord_max = %lf, N_grid = %d)", 
+        d0, r0, n, coord_min, coord_max, N_grid);
+    return std::make_tuple(p_indices, msg);
 }
 
 LR_vector LTCoordination::value(llint step, LR_vector &pos) {
@@ -135,7 +137,7 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 		my_potential = meta::interpolate_potential(coord, d_coord, coord_min, potential_grid);
 	}
 
-    return my_potential / all_pairs.size();
+    return my_potential / (2.0 * all_pairs.size()); // divide by 2 to avoid double counting
 }
 
 double LTCoordination::_coordination() {
