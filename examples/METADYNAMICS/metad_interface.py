@@ -85,8 +85,8 @@ class CoordinationHandler(IForceHandler):
 {{
     type = meta_coordination
     group_name = metadynamics
-    xmin = {self.xmin}
-    xmax = {self.xmax}
+    coord_min = {self.xmin}
+    coord_max = {self.xmax}
     N_grid = {self.N_grid}
     potential_grid = {grid_string}
     op_file = op_coordination.dat
