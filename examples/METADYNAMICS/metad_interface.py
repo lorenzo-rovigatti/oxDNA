@@ -404,7 +404,7 @@ class Estimator():
             else:
                 self.T = oxpy.get_temperature(T)
                 input_file["T"] = T
-                
+
             # look for the first available output stream index
             keep_searching = True
             i = 1
@@ -508,10 +508,11 @@ class Estimator():
         # save the last bias and the free-energy profile in text format as well for easier visualization
         x = self.handler.xmin + self.handler.dx * np.arange(self.handler.N_grid)
         last_bias = self.potential_grid * self.T
-        free_energy = -self.potential_grid * self.T * self.dT / (self.T + self.dT)
-        free_energy -= free_energy.min()
+        beta_free_energy = -self.potential_grid * (self.T + self.dT) / self.dT
+        beta_free_energy -= beta_free_energy.min()
         np.savetxt(f"{Estimator.BIAS_DIR}/last_bias.dat", np.vstack((x, last_bias)).T)
-        np.savetxt(f"last_fe.dat", np.vstack((x, free_energy)).T)
+        np.savetxt(f"last_beta_fe.dat", np.vstack((x, beta_free_energy)).T)
+        np.savetxt(f"last_fe.dat", np.vstack((x, beta_free_energy * self.T)).T)
 
     def interpolatePotential1D(self, x, potential_grid):
         x_left = self.handler.dx * np.floor(x / self.handler.dx)
