@@ -441,7 +441,7 @@ bool DetailedPolymerSwapInteraction::_sticky_interaction(int p_btype, int q_btyp
 }
 
 number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q) || _phantom) {
+	if(p->is_bonded(q)) {
 		return (number) 0.f;
 	}
 
@@ -456,7 +456,7 @@ number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *
 }
 
 number DetailedPolymerSwapInteraction::pair_nonbonded_repulsive(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) {
+	if(p->is_bonded(q) || _phantom) {
 		return (number) 0.f;
 	}
 

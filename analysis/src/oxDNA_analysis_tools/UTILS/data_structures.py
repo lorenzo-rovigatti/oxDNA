@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import List, Dict
 import inspect
 import numpy as np
-#import numpy.typing as npt
 from typing import Union
 
 
@@ -87,16 +86,18 @@ class TopInfo:
 
 class System:
     """
-        Object hierarchy representation of an oxDNA configuration
+    Object hierarchy representation of an oxDNA configuration
 
-        Can be accessed and modified using Python list syntax (implements __getitem__, __setitem__, and __iter__) for accessing Strand objects.
+    Can be accessed and modified using Python list syntax (implements __getitem__, __setitem__, and __iter__) for accessing Strand objects.
 
-        Parameters:
-            top_file (str) : The path to the topology file creating the system
-            strands (List[Strand]) : A list of Strand objects
+    Parameters:
+        top_file (str) : The path to the topology file creating the system
+        strands (List[Strand]) : A list of Strand objects
     """
 
+    #: The path to the topology file creating the system
     top_file: str
+    #: List of constituent Strand objects
     strands: List[Strand]
 
     def __init__(self, top_file:str='', strands:Union[List[Strand],None]=None):
@@ -116,38 +117,36 @@ class System:
 
     def append(self, strand:Strand):
         """
-            Append a strand to the system.
+        Append a strand to the system.
 
-            Modifies this system in-place.
+        Modifies this system in-place.
 
-            Parameters:
-                strand (Strand) : The strand to append
+        Parameters:
+            strand (Strand) : The strand to append
         """
         self.strands.append(strand)
 
 class Strand:
     """
-        Object hierarchy representation of an oxDNA strand.
+    Object hierarchy representation of an oxDNA strand.
 
-        Can be accessed and modified using Python list syntax (implements __getitem__, __setitem__, and __iter__) for accessing Monomer objects.
+    Can be accessed and modified using Python list syntax (implements __getitem__, __setitem__, and __iter__) for accessing Monomer objects.
 
-        Parameters:
-            id (int) : The id of the strand
-            *initial_data (list[dict]) : Set additional attributes of the strand object (currently unused)
-            **kwargs (dict) : Set addtional attributes of the strand object from key:value pairs.
-
-        Attributes:
-            _from_old (bool) : Was this created from an old-style topology file? (default : False)
-            id (int) : ID of this strand in the topology file
-            monomers (list[Monomer]) : List of consitutent monomer objects (default : [])
-            type (str) : Type of molecule this represents (default : DNA)
-            circular (bool) : Is this a circular strand? (default : False)
+    Parameters:
+        id (int) : The id of the strand
+        *initial_data (list[dict]) : Set additional attributes of the strand object (currently unused)
+        **kwargs (dict) : Set additional attributes of the strand object from key:value pairs.
     """
-
+    
+    #: Was this created from an old-style topology file? (default: False)
     _from_old: bool
+    #: ID of this strand in the topology file
     id: int
+    #: List of constituent monomer objects (default [])
     monomers: List[Monomer]
+    #: Type of molecule this represents (default DNA)
     type: str
+    #: Is this a circular strand? (default False)
     circular: bool
 
     def __init__(self, id, *initial_data, **kwargs):
@@ -238,7 +237,7 @@ class Strand:
         """
         Returns the sequence of the Strand as a string.
         """
-        return ''.join([m.btype for m in self])
+        return ''.join([str(m.btype) for m in self])
     
     def set_sequence(self, new_seq:str) -> None:
         """
@@ -270,7 +269,7 @@ class Monomer:
         A Dataclass containing information about oxDNA monomers.
     """
     id : int
-    btype : str
+    btype : Union[str,int]
     strand : Union[Strand, None] = None
     n3 : Union[int, None] = None
     n5 : Union[int, None] = None

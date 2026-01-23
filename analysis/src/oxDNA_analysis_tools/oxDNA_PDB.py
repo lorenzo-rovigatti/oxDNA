@@ -2,12 +2,14 @@
 
 import os
 import re
+import inspect
 import numpy as np
 import copy
 import argparse
 from collections import defaultdict
 from typing import List, Dict, Tuple, Union
 from io import TextIOWrapper
+from pathlib import Path
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
@@ -15,8 +17,8 @@ from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration, Sy
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxDNA_analysis_tools.UTILS.utils as utils
 
-DD12_PDB_PATH = "./UTILS/dd12_na.pdb"
-RNA_PDB_PATH = "./UTILS/2jxq.pdb"
+# This is terrible code, but it *does* get the path of this file whether its run as a script or imported as a module or whatever Sphinx does to build docs.
+PDB_PATH = Path(os.path.dirname(os.path.realpath(inspect.getfile(inspect.currentframe())))+"/UTILS/pdb_templates/")
 
 number_to_DNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'T'}
 number_to_RNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'U'}
@@ -43,7 +45,10 @@ na_pdb_names = ['DA', 'DT', 'DG', 'DC', 'DI',
                 'DA5', 'DT5', 'DG5', 'DC5', 'DI5',
                 'DA3', 'DT3', 'DG3', 'DC3', 'DI3',
                 'A5', 'U5', 'G5', 'C5', 'I5',
-                'A3', 'U3', 'G3', 'C3', 'I3'
+                'A3', 'U3', 'G3', 'C3', 'I3',
+                'RA5', 'RU5', 'RG5', 'RC5', 'RI5',
+                'RA3', 'RU3', 'RG3', 'RC3', 'RI3',
+                'PSU', '5HC', 'S6G'
                 ]
 
 def align(full_base, ox_base):
@@ -73,7 +78,7 @@ def get_nucs_from_PDB(file:str) -> List[PDB_Nucleotide]:
         nucleotides = []
         old_residue = ""
         for line in f.readlines():
-            if len(line) > 77 and line[17:20].strip() in na_pdb_names:
+            if 'ATOM' in line[0:7] or 'HETATM' in line[0:7] and line[17:20].strip() in na_pdb_names:
                 na = Atom(line)
                 if na.residue_idx != old_residue:
                     nn = PDB_Nucleotide(na.residue, na.residue_idx)
@@ -83,9 +88,12 @@ def get_nucs_from_PDB(file:str) -> List[PDB_Nucleotide]:
 
     return nucleotides
 
+# Don't delete this function!
 def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, PDB_Nucleotide]:
     """
         Find nucleotides that most look like an oxDNA nucleotide (orthogonal a1 and a3 vectors).
+
+        This function is never used in any production code, but it is used for building the reference library by `development code <https://github.com/ErikPoppleton/oxDNA_backmapping>`_. 
 
         Parameters:
             nucleotides (List[PDB_Nucleotide]) : List of nucleotides to compare.
@@ -227,7 +235,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
 def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
     """
-        Convert an oxDNA file to a PDB file.  Directly writes the file.
+        Convert an oxDNA file to a PDB file using fragment assembly.  Directly writes the file.
 
         Parameters:
             conf (Configuration) : The Configuration to convert
@@ -242,11 +250,16 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
 
     """
     # Open PDB File of nice lookin duplexes to get base structures from
-    DNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH))
-    RNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), RNA_PDB_PATH))
-
-    DNAbases = choose_reference_nucleotides(DNAnucleotides)
-    RNAbases = choose_reference_nucleotides(RNAnucleotides)
+    DNAbases = {}
+    RNAbases = {}
+    for f in PDB_PATH.iterdir():
+        base = get_nucs_from_PDB(str(f))[0]
+        base.compute_as()
+        base.a1, base.a2, base.a3 = utils.get_orthonormalized_base(base.a1, base.a2, base.a3)
+        if 'D' in f.stem:
+            DNAbases[f.stem] = base
+        else:
+            RNAbases[f.stem] = base
 
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
@@ -323,32 +336,38 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             elif strand.id >= 0:
                 for nucleotide in nucleotides_in_strand:
                     # Get paragon DNA or RNA nucleotide
-                    if type(nucleotide.btype) != str:
+                    if type(nucleotide.btype) == int:
                         if isDNA:
                             nb = number_to_DNAbase[nucleotide.btype]
                         else:
                             nb = number_to_RNAbase[nucleotide.btype]
-                    else: 
+                    elif type(nucleotide.btype) == str: 
                         nb = nucleotide.btype
+                    else:
+                        raise RuntimeError(f"Bad base type: {nucleotide.btype} on nucleotide id {nucleotide.id}")
                     
+                    # Change the base type for the ends
+                    if (nucleotide == strand.monomers[0] or nucleotide == strand.monomers[-1]) and not strand.is_circular():
+                        if strand.is_old():
+                            if nucleotide == strand.monomers[0]:
+                                end_type = "3"
+                            elif nucleotide == strand.monomers[-1]:
+                                end_type = "5"
+                        else:
+                            if nucleotide == strand.monomers[0]:
+                                end_type = "5"
+                            elif nucleotide == strand.monomers[-1]:
+                                end_type = "3"
+                    else:
+                        end_type = ""
+
+                    sugar_type = 'D' if (strand.type == 'DNA') else 'R' if (strand.type == 'RNA' and end_type) else ''
+                    nb = sugar_type + nb + end_type
+
                     if isDNA:
                         my_base = copy.deepcopy(DNAbases[nb])
                     else:
                         my_base = copy.deepcopy(RNAbases[nb])
-
-                    # end residue identifiers
-                    residue_type = ""
-                    if not uniform_residue_names:
-                        if strand.is_old():
-                            if nucleotide == strand.monomers[0] and not strand.is_circular():
-                                residue_type = "3"
-                            elif nucleotide == strand.monomers[-1] and not strand.is_circular():
-                                residue_type = "5"
-                        else:
-                            if nucleotide == strand.monomers[0] and not strand.is_circular():
-                                residue_type = "5"
-                            elif nucleotide == strand.monomers[-1] and not strand.is_circular():
-                                residue_type = "3"
 
                     nuc_data = {
                         'pos' : conf.positions[nucleotide.id],
@@ -366,7 +385,6 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                     # Turn nucleotide object into a dict for output
                     nucleotide_pdb = my_base.to_pdb(
                         hydrogen,
-                        residue_type,
                         bfactor=rmsf_per_nucleotide[nucleotide.id],
                     )
                     strand_pdb.append(nucleotide_pdb)
