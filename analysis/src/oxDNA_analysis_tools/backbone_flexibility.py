@@ -30,9 +30,6 @@ def rad2degree(angle:float) -> float:
     """
     return (angle * 180 / np.pi)
 
-def get_internal_coords():
-    pass
-
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     torsions = np.zeros(ctx.top_info.nbases-(2*len(ctx.system.strands)))
     dihedrals = np.zeros(ctx.top_info.nbases-(3*len(ctx.system.strands)))

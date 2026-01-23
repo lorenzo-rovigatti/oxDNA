@@ -21,7 +21,8 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "input_file"])
 
 # This is the function which gets parallelized
-def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+# pragma: no cover - coverage.py cannot track execution inside oxpy.Context()
+def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:  # pragma: no cover
     # Create the oxpy context
     with oxpy.Context():
         inp = oxpy.InputFile()                      # Create an empty input file
