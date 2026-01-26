@@ -42,6 +42,7 @@ def get_potentials(ctx) -> List[str]:
 
     return pot_names
 
+# pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     with oxpy.Context():
         inp = oxpy.InputFile()

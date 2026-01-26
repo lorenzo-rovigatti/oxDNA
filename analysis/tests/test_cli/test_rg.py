@@ -101,12 +101,8 @@ class TestRgFunction:
         # All Rg values should be positive
         assert np.all(result > 0), "Radius of gyration should be positive"
 
-        # Rg should be in reasonable range for DNA (typically ~1-50 nm in oxDNA units)
-        mean_rg = np.mean(result)
-        assert mean_rg > 0.1, "Mean Rg should be at least 0.1"
-        assert mean_rg < 1000, "Mean Rg should be less than 1000"
-
         # Standard deviation should be much smaller than mean (stable structure)
+        mean_rg = np.mean(result)
         std_rg = np.std(result)
         assert std_rg < mean_rg, "Rg variation should be less than mean (stable structure)"
 

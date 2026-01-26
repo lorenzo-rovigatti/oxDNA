@@ -28,11 +28,9 @@ def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
     current_chunk = 0  
     while True:
         b = file.read(size)
-        if not b: 
-            break
+        if not b: break
         yield Chunk(b,current_chunk*size, current_chunk * size + size > fsize, fsize)
         current_chunk+=1
-
 
 def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iterator[List[Configuration]]:
     """
@@ -312,7 +310,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
             if not s.is_circular():
                 monomers[s.monomers[0].id].n5 = None
                 monomers[s.monomers[-1].id].n3 = None
-            # Fixt the bad assumption for circular strands
+            # Fix the bad assumption for circular strands
             else:    
                 monomers[s.monomers[0].id].n5 = s.monomers[-1].id
                 monomers[s.monomers[-1].id].n3 = s.monomers[0].id

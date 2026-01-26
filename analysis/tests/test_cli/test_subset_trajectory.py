@@ -89,9 +89,10 @@ class TestCompute:
 
         assert isinstance(result, list), "Should return list"
         assert len(result) == len(indexes), "Should have one string per index set"
-        for r in result:
+        for i, r in zip(indexes, result):
             assert isinstance(r, str), "Each element should be string"
-            assert len(r) > 0, "Strings should not be empty"
+            n_lines = len(r.split('\n'))
+            assert n_lines == len(i)+4, "Number of particles in output should match index count (3-line header plus newline at end)"
 
         # Test single index set
         ctx_single = ComputeContext(
