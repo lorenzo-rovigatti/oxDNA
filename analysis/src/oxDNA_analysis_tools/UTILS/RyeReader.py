@@ -463,13 +463,16 @@ def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray
     cms = np.zeros(3)
     target = np.zeros(3)
     if center:
-        if centerpoint == 'bc':
+        if type(centerpoint) == str and centerpoint == 'bc':
             target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
-        else:
+        elif type(centerpoint) == np.ndarray:
             target = centerpoint
+        else:
+            raise RuntimeError("Invalid centerpoint argument to inbox: {}".format(centerpoint))
         cms = calc_PBC_COM(conf)
     positions = conf.positions + target - cms   
     new_poses = coord_in_box(positions)
+    #assert np.allclose(np.mean(new_poses, axis=0),  center), "Centering failed in inboxing."
 
     return Configuration(
         conf.time, conf.box, conf.energy,

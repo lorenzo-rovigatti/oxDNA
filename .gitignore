@@ -74,7 +74,7 @@ MANIFEST
 .DS_Store
 
 # Pytest and coverage.py stuff
-analysis/.coverage/
+**/.coverage*
 
 select_compute_arch_laptop.cmake
 cmake-build-debug
