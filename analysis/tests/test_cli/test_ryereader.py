@@ -110,6 +110,10 @@ def new_style_top_content():
     """Content for a new-style topology file."""
     return "6 2 5->3\nACG type=DNA circular=False\nCGU type=RNA circular=False\n"
 
+@pytest.fixture
+def new_style_top_numebered_bases_content():
+    """Content for a new-style topology file."""
+    return "10 2 5->3\n(13)(14)(15)AA type=DNA circular=False\nUU(-12)(-11)(-10) type=RNA circular=False\n"
 
 @pytest.fixture
 def old_style_top_content():
@@ -139,20 +143,30 @@ class TestChunker:
 
         fsize = os.stat(test_file).st_size
         with open(test_file, 'rb') as f:
-            chunks = list(Chunker(f, fsize, size=250))
+            chunks = Chunker(f, fsize, size=250)
 
-        # Should have 4 chunks for 1000 bytes with 250 byte chunks
-        assert len(chunks) == 4, "Should have 4 chunks"
+            # Get first chunk and verify structure
+            chunk = next(chunks, None)
+            assert chunk is not None, "Should yield at least one chunk"
+            assert isinstance(chunk, Chunk), "Should return Chunk dataclass"
+            assert hasattr(chunk, 'block'), "Chunk should have block attribute"
+            assert hasattr(chunk, 'offset'), "Chunk should have offset attribute"
+            assert hasattr(chunk, 'is_last'), "Chunk should have is_last attribute"
+            assert chunk.offset == 0, "First chunk offset should be 0"
+            assert chunk.is_last is False, "First chunk should not be last"
+            assert chunk.file_size == fsize, "File size should be correct"
 
-        # Check first chunk
-        assert chunks[0].offset == 0, "First chunk offset should be 0"
-        assert chunks[0].is_last is False, "First chunk should not be last"
-        assert chunks[0].file_size == fsize, "File size should be correct"
+            # Iterate through remaining chunks, counting and verifying offsets
+            chunk_count = 1  # Already consumed first chunk
+            chunk = next(chunks, None)
+            while chunk is not None:
+                assert chunk.offset == chunk_count * 250, \
+                    f"Chunk {chunk_count} offset should be {chunk_count * 250}"
+                chunk_count += 1
+                chunk = next(chunks, None)
 
-        # Check last chunk offset
-        assert chunks[-1].offset == 750, "Last chunk offset should be 750"
-        # Note: is_last is True only when chunk extends beyond file size
-        # For exact-fit chunks, is_last may be False on last chunk
+            # Should have 4 chunks for 1000 bytes with 250 byte chunks
+            assert chunk_count == 4, f"Should have 4 chunks, got {chunk_count}"
 
     def test_chunker_small_file(self, temp_output_dir):
         """Test Chunker with file smaller than chunk size."""
@@ -162,26 +176,18 @@ class TestChunker:
 
         fsize = os.stat(test_file).st_size
         with open(test_file, 'rb') as f:
-            chunks = list(Chunker(f, fsize, size=1000000))
+            chunks = Chunker(f, fsize, size=1000000)
 
-        assert len(chunks) == 1, "Small file should yield one chunk"
-        assert chunks[0].is_last is True, "Single chunk should be last"
-        assert chunks[0].block == content, "Content should match"
+            # Get first (and only) chunk
+            chunk = next(chunks, None)
 
-    def test_chunker_returns_chunk_type(self, temp_output_dir):
-        """Test that Chunker returns Chunk dataclass instances."""
-        test_file = temp_output_dir / "type_test.dat"
-        test_file.write_bytes(b"test content")
+            assert chunk is not None, "Should yield one chunk"
+            assert chunk.is_last is True, "Single chunk should be last"
+            assert chunk.block == content, "Content should match"
 
-        fsize = os.stat(test_file).st_size
-        with open(test_file, 'rb') as f:
-            chunk = next(Chunker(f, fsize, size=100))
-
-        assert isinstance(chunk, Chunk), "Should return Chunk dataclass"
-        assert hasattr(chunk, 'block'), "Chunk should have block attribute"
-        assert hasattr(chunk, 'offset'), "Chunk should have offset attribute"
-        assert hasattr(chunk, 'is_last'), "Chunk should have is_last attribute"
-
+            # Verify no more chunks
+            next_chunk = next(chunks, None)
+            assert next_chunk is None, "Should have no more chunks"
 
 # =============================================================================
 # Topology Info Tests
@@ -274,7 +280,12 @@ class TestGetTrajInfo:
 
         traj_info = get_traj_info(str(traj_copy))
 
+        # Load the regenerated index
+        with open(idx_path, 'rb') as f:
+            idxs = pickle.load(f)
+
         assert traj_info.nconfs > 1, "Should regenerate index with correct count"
+        assert len(idxs) == traj_info.nconfs, "Index count should match nconfs"
 
     def test_get_traj_info_detects_velocities(self, mini_traj_path):
         """Test velocity detection in trajectory."""
@@ -315,6 +326,12 @@ class TestDescribe:
         assert top_info.nbases == 132, "Should have correct base count"
         assert traj_info.nconfs > 0, "Should have configurations"
 
+        # Verify paths are correctly stored
+        assert top_info.path == str(old_top_path), \
+            f"top_info.path should be '{old_top_path}', got '{top_info.path}'"
+        assert traj_info.path == str(mini_traj_path), \
+            f"traj_info.path should be '{mini_traj_path}', got '{traj_info.path}'"
+
     def test_describe_without_topology(self, mini_traj_path):
         """Test describe() with None topology - reads from trajectory."""
         top_info, traj_info = describe(None, str(mini_traj_path))
@@ -338,7 +355,7 @@ class TestDescribe:
 class TestGetConfs:
     """Tests for the get_confs() function."""
 
-    def test_get_confs_returns_configurations(self, trajectory_info):
+    def test_get_confs(self, trajectory_info):
         """Test get_confs returns list of Configuration objects."""
         top_info, traj_info = trajectory_info
 
@@ -348,33 +365,12 @@ class TestGetConfs:
         assert len(confs) == 2, "Should return 2 configurations"
         for conf in confs:
             assert isinstance(conf, Configuration), "Each should be Configuration"
-
-    def test_get_confs_positions_shape(self, trajectory_info):
-        """Test that positions have correct shape."""
-        top_info, traj_info = trajectory_info
-
-        confs = get_confs(top_info, traj_info, start_conf=0, n_confs=1)
-
-        assert confs[0].positions.shape == (top_info.nbases, 3), \
-            f"Positions should be ({top_info.nbases}, 3)"
-
-    def test_get_confs_orientations_shape(self, trajectory_info):
-        """Test that orientation vectors have correct shape."""
-        top_info, traj_info = trajectory_info
-
-        confs = get_confs(top_info, traj_info, start_conf=0, n_confs=1)
-
-        assert confs[0].a1s.shape == (top_info.nbases, 3), "a1s should be (nbases, 3)"
-        assert confs[0].a3s.shape == (top_info.nbases, 3), "a3s should be (nbases, 3)"
-
-    def test_get_confs_box_shape(self, trajectory_info):
-        """Test that box vector has correct shape."""
-        top_info, traj_info = trajectory_info
-
-        confs = get_confs(top_info, traj_info, start_conf=0, n_confs=1)
-
-        assert confs[0].box.shape == (3,), "Box should be shape (3,)"
-        assert np.all(confs[0].box > 0), "Box dimensions should be positive"
+            assert conf.positions.shape == (top_info.nbases, 3), f"Positions should be ({top_info.nbases}, 3)"
+            assert conf.a1s.shape == (top_info.nbases, 3), "a1s should be (nbases, 3)"
+            assert conf.a3s.shape == (top_info.nbases, 3), "a3s should be (nbases, 3)"
+            assert np.dot(conf.a1s[0], conf.a3s[0]) < 1e-5, "a1 and a3 should be orthogonal"
+            assert conf.box.shape == (3,), "Box should be shape (3,)"
+            assert np.all(conf.box > 0), "Box dimensions should be positive"
 
     def test_get_confs_different_start(self, trajectory_info):
         """Test get_confs with different start positions."""
@@ -400,22 +396,15 @@ class TestLinearRead:
         top_info, traj_info = trajectory_info
 
         chunk_count = 0
+        total_confs = 0
         for chunk in linear_read(traj_info, top_info, chunk_size=2):
             chunk_count += 1
+            total_confs += len(chunk)
             assert isinstance(chunk, list), "Should yield lists"
             for conf in chunk:
                 assert isinstance(conf, Configuration), "List should contain Configurations"
 
         assert chunk_count > 0, "Should yield at least one chunk"
-
-    def test_linear_read_covers_all_confs(self, trajectory_info):
-        """Test that linear_read covers all configurations."""
-        top_info, traj_info = trajectory_info
-
-        total_confs = 0
-        for chunk in linear_read(traj_info, top_info, chunk_size=3):
-            total_confs += len(chunk)
-
         assert total_confs == traj_info.nconfs, "Should read all configurations"
 
 
@@ -430,26 +419,28 @@ class TestStrandDescribe:
         """Test strand_describe with old-style topology."""
         system, monomers = strand_describe(str(old_top_path))
 
-        assert isinstance(system, System), "Should return System"
+        # Check that monomers is correct
         assert isinstance(monomers, list), "Should return monomer list"
         assert len(monomers) == 132, "Should have 132 monomers"
-
-    def test_strand_describe_system_structure(self, old_top_path):
-        """Test that System has correct strand structure."""
-        system, monomers = strand_describe(str(old_top_path))
-
-        assert len(system.strands) >= 1, "Should have at least one strand"
-        for strand in system:
-            assert isinstance(strand, Strand), "System should contain Strands"
-
-    def test_strand_describe_monomer_types(self, old_top_path):
-        """Test that monomers have correct base types."""
-        system, monomers = strand_describe(str(old_top_path))
-
         valid_bases = {'A', 'C', 'G', 'T', 'U'}
         for m in monomers:
             assert isinstance(m, Monomer), "Should be Monomer objects"
             assert m.btype in valid_bases, f"Base type {m.btype} should be valid"
+
+        # Check that system is correct
+        assert isinstance(system, System), "Should return System"
+        assert len(system.strands) >= 1, "Should have at least one strand"
+        for strand in system:
+            assert isinstance(strand, Strand), "System should contain Strands"
+
+        # In old topology format (3'-5' direction), first monomer in strand
+        # is at 3' end, so it has n3 = -1 or None (no 3' neighbor)
+        first_monomer = monomers[0]
+        assert first_monomer.n3 is None, \
+            "First monomer n3 should be -1 or None (3' end of strand)"
+        last_monomer = monomers[-1]
+        assert last_monomer.n5 is None, \
+            "Last monomer n5 should be -1 or None (5' end of strand)"
 
     def test_strand_describe_new_format(self, temp_output_dir, new_style_top_content):
         """Test strand_describe with new-style topology."""
@@ -461,25 +452,30 @@ class TestStrandDescribe:
         assert len(monomers) == 6, "Should have 6 monomers"
         assert len(system.strands) == 2, "Should have 2 strands"
 
-    def test_strand_describe_strand_types(self, temp_output_dir, new_style_top_content):
-        """Test that strand types are correctly parsed."""
-        top_file = temp_output_dir / "typed_top.top"
-        top_file.write_text(new_style_top_content)
-
-        system, monomers = strand_describe(str(top_file))
-
         assert system[0].type == "DNA", "First strand should be DNA"
         assert system[1].type == "RNA", "Second strand should be RNA"
 
-    def test_strand_describe_neighbor_links(self, old_top_path):
-        """Test that n3/n5 neighbors are set correctly."""
-        system, monomers = strand_describe(str(old_top_path))
-
-        # In old topology format (3'-5' direction), first monomer in strand
-        # is at 3' end, so it has n3 = -1 or None (no 3' neighbor)
+        # In new topology format (5'-3' direction), first monomer in strand
+        # is at 5' end, so it has n5 = None (no 5' neighbor)
         first_monomer = monomers[0]
-        assert first_monomer.n3 == -1 or first_monomer.n3 is None, \
-            "First monomer n3 should be -1 or None (3' end of strand)"
+        assert first_monomer.n5 is None, \
+            "First monomer n5 should be -1 or None (5' end of strand)"
+        last_monomer = monomers[-1]
+        assert last_monomer.n3 is None, \
+            "Last monomer n3 should be -1 or None (3' end of strand)"
+
+    def test_strand_describe_numbered_bases(self, temp_output_dir, new_style_top_numebered_bases_content):
+        """Test parsing topology with numbered bases."""
+        top_file = temp_output_dir / "numbered_bases.top"
+        top_file.write_text(new_style_top_numebered_bases_content)
+
+        system, monomers = strand_describe(str(top_file))
+
+        expected_btypes = [13, 14, 15, 'A', 'A', 'U', 'U', -12, -11, -10]
+
+        assert len(monomers) == 10, "Should have 10 monomers"
+        for m, expected in zip(monomers, expected_btypes):
+            assert m.btype == expected, f"Monomer btype should be {expected}, got {m.btype}"
 
     def test_strand_describe_circular_strand(self, temp_output_dir):
         """Test parsing circular strand."""
@@ -489,6 +485,7 @@ class TestStrandDescribe:
         system, monomers = strand_describe(str(circular_top))
 
         assert system[0].circular is True, "Strand should be circular"
+        assert system[0].is_old() is False, "Strand should not be old-style"
         # First monomer should link to last
         assert monomers[0].n5 == 4, "First should link to last in circular"
         assert monomers[4].n3 == 0, "Last should link to first in circular"

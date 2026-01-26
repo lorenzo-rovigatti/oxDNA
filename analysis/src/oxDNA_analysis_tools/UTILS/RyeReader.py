@@ -28,9 +28,11 @@ def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
     current_chunk = 0  
     while True:
         b = file.read(size)
-        if not b: break
+        if not b: 
+            break
         yield Chunk(b,current_chunk*size, current_chunk * size + size > fsize, fsize)
         current_chunk+=1
+
 
 def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iterator[List[Configuration]]:
     """
@@ -284,11 +286,11 @@ def strand_describe(top:str) -> Tuple[System, list]:
                     monomers[mid].btype = seq[i]
                 else:
                     btype = []
+                    i += 1
                     while seq[i] != ')':
                         btype.append(seq[i])
                         i += 1
-                    btype.append(')')
-                    monomers[mid].btype = ''.join(btype)
+                    monomers[mid].btype = int(''.join(btype))
 
                 # At least this one is obvious...
                 monomers[mid].strand = s
@@ -297,17 +299,6 @@ def strand_describe(top:str) -> Tuple[System, list]:
                 monomers[mid].n5 = mid-1
                 monomers[mid].n3 = mid+1
 
-                # Fix the assumption for ends of straight strands
-                if mid == s_start:
-                    monomers[mid].n5 = -1
-                elif i == len(seq)-1:
-                    monomers[mid].n3 = -1
-                
-                # Fix the assumption for 'ends' of circular strands
-                if kwdata['circular'] and i == len(seq)-1:
-                    monomers[s_start].n5 = mid
-                    monomers[mid].n3 = s_start
-
                 i += 1
                 mid += 1
             
@@ -315,6 +306,16 @@ def strand_describe(top:str) -> Tuple[System, list]:
             s.set_old(False)
             strands.append(s)
             s_start = mid
+
+        for s in strands:
+            # Fix the bad assumption for ends of straight strands
+            if not s.is_circular():
+                monomers[s.monomers[0].id].n5 = None
+                monomers[s.monomers[-1].id].n3 = None
+            # Fixt the bad assumption for circular strands
+            else:    
+                monomers[s.monomers[0].id].n5 = s.monomers[-1].id
+                monomers[s.monomers[-1].id].n3 = s.monomers[0].id
 
         system = System(top_file=abspath(top_file), strands=strands)
 
