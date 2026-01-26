@@ -208,15 +208,20 @@ class TestPcaFunction:
         # =====================================================================
         # The coordinates array contains projections onto each PC
         # Variance of projections onto PC i should equal eigenvalue i
+        #
+        # Note: With n samples, PCA can only produce n-1 meaningful components
+        # (after mean centering). Components beyond that are numerical noise
+        # where eigenvalues may not match actual variance.
+        max_meaningful_components = min(traj_info.nconfs - 1, 10, n_dims)
 
-        for i in range(min(10, n_dims)):  # Check first 10 components
+        for i in range(max_meaningful_components):
             if real_evalues[i] < 1e-10:  # Skip near-zero eigenvalues
                 continue
             projection_variance = np.var(coordinates[:, i], ddof=1)
             # Allow some tolerance due to numerical precision and small sample size
             relative_error = abs(projection_variance - real_evalues[i]) / (real_evalues[i] + 1e-10)
             assert relative_error < 0.5, \
-                f"PC{i}: projection variance ({projection_variance:.6f}) should approximately " \
+                f"PC {i}: projection variance ({projection_variance:.6f}) should approximately " \
                 f"match eigenvalue ({real_evalues[i]:.6f}), relative error: {relative_error:.2f}"
 
         # =====================================================================
@@ -244,11 +249,12 @@ class TestPcaFunction:
             # Get the raw position deviations for comparison
             # We need to reconstruct what the implementation computed
             confs = get_confs(top_info, traj_info, 0, traj_info.nconfs)
+            mean_center = np.mean(mean_conf.positions, axis=0)
 
             # Prepare data matrix: each row is a flattened configuration
             data_matrix = np.zeros((traj_info.nconfs, n_dims))
             for i, c in enumerate(confs):
-                c = inbox(c, center=True)
+                c = inbox(c, center=True, centerpoint=mean_center)
                 aligned = align_positions(mean_conf.positions, c.positions)
                 deviation = (aligned - mean_conf.positions).flatten()
                 data_matrix[i] = deviation
@@ -277,7 +283,7 @@ class TestPcaFunction:
             if sklearn_evalues_sorted[0] > 1e-6:
                 ratio = oat_top_evalues[0] / sklearn_evalues_sorted[0]
                 assert 0.1 < ratio < 10, \
-                    f"Top eigenvalue ratio vs sklearn ({ratio:.2f}) should be reasonable"
+                    f"Top eigenvalue ratio vs sklearn ({ratio:.5f}) should be reasonable"
 
         except ImportError:
             # sklearn not available, skip this part

@@ -233,7 +233,7 @@ def main():
     prep_pos_for_json = lambda conf: list(
                         list(p) for p in conf
                         )
-    log("Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N))
+    log("Printing oxView overlays for the first {} components.".format(N))
     for i in range(0, N): #how many eigenvalues do you want?
         f = outfile.removesuffix(".json")+str(i)+".json"
         out = np.sqrt(evalues[i])*evectors[i]
@@ -246,6 +246,7 @@ def main():
             file.write(dumps({
                 "pca" : prep_pos_for_json(output_vectors)
             }))
+        log("Wrote component {} to {}".format(i, f))
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

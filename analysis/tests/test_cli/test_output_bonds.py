@@ -76,7 +76,7 @@ class TestParseHeader:
 
     def test_parse_header_extracts_potentials(self):
         """Test parse_header extracts potential names from header string."""
-        header = "# id1 id2 fene bexc stack nexc hb cr_stack cx_stack total, t = 1000000"
+        header = "#id1 id2 fene bexc stack nexc hb cr_stack cx_stack total, t = 1000000"
         result = parse_header(header)
 
         assert isinstance(result, list), "Should return list"
