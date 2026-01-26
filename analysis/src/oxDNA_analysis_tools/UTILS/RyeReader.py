@@ -461,18 +461,28 @@ def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray
     # You generally want to center cohesive structures in the box so they're not cut in visualization
     # For diffuse simulations, you generally do not want centering.
     cms = np.zeros(3)
-    target = np.zeros(3)
     if center:
+        bc = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
         if type(centerpoint) == str and centerpoint == 'bc':
-            target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
+            target = bc
         elif type(centerpoint) == np.ndarray:
             target = centerpoint
         else:
             raise RuntimeError("Invalid centerpoint argument to inbox: {}".format(centerpoint))
+        # Get the center-of-mass, regardless of which box the particles are in
         cms = calc_PBC_COM(conf)
-    positions = conf.positions + target - cms   
-    new_poses = coord_in_box(positions)
-    #assert np.allclose(np.mean(new_poses, axis=0),  center), "Centering failed in inboxing."
+
+        # Move the PBC center-of-mass to the center of the box
+        new_poses = conf.positions - (cms + bc) 
+
+        # Put everything back in the box, then shift to target  
+        # This could put some particles outside the box, but at least the structure will be together.
+        new_poses = coord_in_box(new_poses)
+        new_poses += target - np.mean(new_poses, axis=0)
+
+    else:
+        # Just put everything in the box, even if it breaks structures.
+        new_poses = coord_in_box(conf.positions)
 
     return Configuration(
         conf.time, conf.box, conf.energy,

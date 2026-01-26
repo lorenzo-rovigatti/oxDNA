@@ -48,6 +48,7 @@ from oxDNA_analysis_tools.UTILS.data_structures import (
     Strand,
     Monomer,
 )
+from oxDNA_analysis_tools.distance import vectorized_min_image
 
 
 # =============================================================================
@@ -537,6 +538,14 @@ class TestGetInputParameter:
 # Inbox Tests
 # =============================================================================
 
+def check_distances(old_conf, new_conf):
+    """Tests that inter-particle distances are preserved after inboxing."""
+    original_distances = vectorized_min_image(old_conf.positions, old_conf.positions, old_conf.box[0])
+    new_distances = vectorized_min_image(new_conf.positions, new_conf.positions, new_conf.box[0])
+    np.testing.assert_array_equal(original_distances, new_distances,
+        err_msg="Inter-particle distances should be preserved after inboxing"
+    )
+
 class TestInbox:
     """Tests for the inbox() function."""
 
@@ -544,26 +553,24 @@ class TestInbox:
         """Test inbox returns Configuration with positions in box."""
         result = inbox(sample_configuration)
 
+        # Basic sanity checks on output
         assert isinstance(result, Configuration), "Should return Configuration"
+        assert result.time == sample_configuration.time, "Time should be preserved"
+        np.testing.assert_array_equal(result.box, sample_configuration.box, err_msg="Box should be preserved")
+        np.testing.assert_array_equal(result.energy, sample_configuration.energy, err_msg="Energy should be preserved")
+        np.testing.assert_array_equal(result.a1s, sample_configuration.a1s, err_msg="a1s should be preserved")
+        np.testing.assert_array_equal(result.a3s, sample_configuration.a3s, err_msg="a3s should be preserved")
+
+        # The center of mass should be at box center
+        assert np.allclose(np.mean(result.positions, axis=0), result.box / 2, atol=0.5), "Center of mass should be at box center"
+        
         # All positions should be within [0, box)
         for i in range(3):
             assert np.all(result.positions[:, i] >= 0), f"Dim {i} should be >= 0"
             assert np.all(result.positions[:, i] < result.box[i]), f"Dim {i} should be < box"
 
-    def test_inbox_preserves_metadata(self, sample_configuration):
-        """Test that inbox preserves time, box, energy."""
-        result = inbox(sample_configuration)
-
-        assert result.time == sample_configuration.time, "Time should be preserved"
-        np.testing.assert_array_equal(result.box, sample_configuration.box), "Box should be preserved"
-        np.testing.assert_array_equal(result.energy, sample_configuration.energy), "Energy should be preserved"
-
-    def test_inbox_preserves_orientations(self, sample_configuration):
-        """Test that inbox preserves orientation vectors."""
-        result = inbox(sample_configuration)
-
-        np.testing.assert_array_equal(result.a1s, sample_configuration.a1s), "a1s should be preserved"
-        np.testing.assert_array_equal(result.a3s, sample_configuration.a3s), "a3s should be preserved"
+        # Distances should be preserved
+        check_distances(sample_configuration, result)
 
     def test_inbox_no_center(self, sample_configuration):
         """Test inbox without centering wraps positions into [0, box)."""
@@ -575,21 +582,23 @@ class TestInbox:
                 f"Dimension {i}: all positions should be >= 0"
             assert np.all(result.positions[:, i] < result.box[i]), \
                 f"Dimension {i}: all positions should be < box ({result.box[i]})"
+            
+        # The PBC COM should not be changed
+        def calc_PBC_COM(conf):
+            angle = (conf.positions * 2 * np.pi) / conf.box
+            cm = np.array([[np.sum(np.cos(angle[:,0])), np.sum(np.sin(angle[:,0]))], 
+            [np.sum(np.cos(angle[:,1])), np.sum(np.sin(angle[:,1]))], 
+            [np.sum(np.cos(angle[:,2])), np.sum(np.sin(angle[:,2]))]]) / len(angle)
+            return conf.box / (2 * np.pi) * (np.arctan2(-cm[:,1], -cm[:,0]) + np.pi)
+        
+        original_com = calc_PBC_COM(sample_configuration)
+        new_com = calc_PBC_COM(result)
+        np.testing.assert_allclose(original_com, new_com, atol=1e-5,
+            err_msg="PBC center of mass should be unchanged when not centering"
+        )
 
-    def test_inbox_bc_centerpoint(self, sample_configuration):
-        """Test inbox with 'bc' centerpoint (box center).
-
-        This should produce identical wrapping behavior to center=False,
-        as 'bc' is the default argument and centers the structure at box center.
-        """
-        result = inbox(sample_configuration, center=True, centerpoint='bc')
-
-        # Positions should be wrapped into [0, box) in each dimension
-        for i in range(3):
-            assert np.all(result.positions[:, i] >= 0), \
-                f"Dimension {i}: all positions should be >= 0"
-            assert np.all(result.positions[:, i] < result.box[i]), \
-                f"Dimension {i}: all positions should be < box ({result.box[i]})"
+        # Distances should be preserved
+        check_distances(sample_configuration, result)
 
     def test_inbox_custom_centerpoint(self):
         """Test inbox with custom center point places center-of-mass at target.
@@ -616,13 +625,6 @@ class TestInbox:
         custom_center = np.array([2.0, 2.0, 2.0])
         result = inbox(conf, center=True, centerpoint=custom_center)
 
-        # Positions should still be in box
-        for i in range(3):
-            assert np.all(result.positions[:, i] >= 0), \
-                f"Dimension {i}: all positions should be >= 0"
-            assert np.all(result.positions[:, i] < result.box[i]), \
-                f"Dimension {i}: all positions should be < box ({result.box[i]})"
-
         # The center of mass should now be at the custom centerpoint
         resulting_com = np.mean(result.positions, axis=0)
         np.testing.assert_allclose(
@@ -631,22 +633,29 @@ class TestInbox:
                     f"but got {resulting_com}"
         )
 
+        # Distances should be preserved
+        check_distances(conf, result)
+
     def test_inbox_wraps_outside_positions(self):
         """Test that positions outside box are wrapped."""
         conf = Configuration(
             time=0,
             box=np.array([10.0, 10.0, 10.0]),
             energy=np.array([0.0, 0.0, 0.0]),
-            positions=np.array([[15.0, -3.0, 25.0]]),  # All outside box
-            a1s=np.array([[1.0, 0.0, 0.0]]),
-            a3s=np.array([[0.0, 0.0, 1.0]])
+            positions=np.array([[15.0, -3.0, 25.0], [100.0, 102.3, 105.4]]),  # All outside box
+            a1s=np.array([[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
+            a3s=np.array([[0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
         )
 
         result = inbox(conf, center=False)
 
         # All should be wrapped into [0, 10)
         for i in range(3):
-            assert 0 <= result.positions[0, i] < 10, f"Dim {i} should be wrapped"
+            assert np.all(result.positions[:, i] >= 0), f"Dim {i} should be wrapped"
+            assert np.all(result.positions[:, i] < result.box[i]), f"Dim {i} should be wrapped"
+
+        # Distances should be preserved
+        check_distances(conf, result)
 
 
 # =============================================================================
