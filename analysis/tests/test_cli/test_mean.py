@@ -17,7 +17,8 @@ import pytest
 
 from oxDNA_analysis_tools.mean import mean, compute, cli_parser, ComputeContext, main
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, inbox, write_conf
-from oxDNA_analysis_tools.UTILS.data_structures import Configuration
+from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TrajInfo
+from oxDNA_analysis_tools.align import svd_align
 
 
 # =============================================================================
@@ -355,6 +356,202 @@ class TestMain:
         with patch.object(sys, 'argv', test_args):
             with pytest.raises(RuntimeError, match="index file must be a space-seperated list"):
                 main()
+
+
+# =============================================================================
+# Mean Calculation Validation Tests
+# =============================================================================
+
+class TestMeanCalculationValidation:
+    """Tests that verify the correctness of the mean calculation."""
+
+    def test_mean_calculation_accuracy(self, trajectory_info):
+        """
+        Test that mean calculation produces correct arithmetic mean of aligned positions.
+
+        This test manually computes the expected mean for a small number of configurations
+        and compares it to the mean() function output.
+        """
+        top_info, traj_info = trajectory_info
+
+        # Use a small, deterministic subset of configurations
+        traj_info_subset = TrajInfo(
+            traj_info.path,
+            nconfs=3,
+            idxs=traj_info.idxs[0:3],  # First 3 configurations
+            incl_v=traj_info.incl_v
+        )
+
+        # Use first configuration as reference for alignment
+        ref_conf = get_confs(top_info, traj_info_subset, 0, 1)[0]
+        ref_conf = inbox(ref_conf, center=True)
+
+        # Compute mean using the function
+        result = mean(traj_info_subset, top_info, ref_conf=ref_conf, ncpus=1)
+
+        # Manually compute expected mean
+        # Get all configurations
+        confs = get_confs(top_info, traj_info_subset, 0, traj_info_subset.nconfs)
+
+        # Apply same processing as mean() function
+        confs = [inbox(c, center=True) for c in confs]
+
+        # Align to reference
+        indexes = np.arange(top_info.nbases)
+        reference_coords = ref_conf.positions
+        ref_cms = np.mean(reference_coords, axis=0)
+        centered_ref_coords = reference_coords - ref_cms
+
+        # Manually align each configuration and accumulate
+        manual_sum = np.zeros([3, top_info.nbases, 3])
+        for conf in confs:
+            conf_array = np.array([conf.positions, conf.a1s, conf.a3s])
+            aligned = svd_align(centered_ref_coords, conf_array, indexes, ref_center=np.zeros(3))
+            manual_sum += aligned
+
+        # Compute manual mean
+        manual_mean = manual_sum / traj_info_subset.nconfs
+        manual_positions = manual_mean[0]
+
+        # Compare positions (main validation)
+        np.testing.assert_allclose(
+            result.positions,
+            manual_positions,
+            rtol=1e-6,
+            err_msg="Mean positions don't match manually computed mean"
+        )
+
+        # Verify the mean is actually different from any single configuration
+        # (sanity check that we're not just returning the reference)
+        for i, conf in enumerate(confs):
+            position_diff = np.linalg.norm(result.positions - conf.positions)
+            assert position_diff > 0.01, \
+                f"Mean should differ from individual configuration {i}"
+
+    def test_mean_accumulation_across_chunks(self, trajectory_info):
+        """
+        Test that mean accumulation works correctly when data is split across chunks.
+
+        This verifies that the callback function correctly accumulates results
+        from multiple compute() calls.
+        """
+        top_info, traj_info = trajectory_info
+
+        # Use a small deterministic subset
+        traj_info_subset = TrajInfo(
+            traj_info.path,
+            nconfs=4,
+            idxs=traj_info.idxs[0:4],
+            incl_v=traj_info.incl_v
+        )
+
+        # Fixed reference for reproducibility
+        ref_conf = get_confs(top_info, traj_info_subset, 0, 1)[0]
+        ref_conf = inbox(ref_conf, center=True)
+
+        # Prepare context for manual chunk processing
+        indexes = list(range(top_info.nbases))
+        reference_coords = ref_conf.positions[indexes]
+        ref_cms = np.mean(reference_coords, axis=0)
+        centered_ref_coords = reference_coords - ref_cms
+
+        ctx = ComputeContext(
+            traj_info=traj_info_subset,
+            top_info=top_info,
+            centered_ref_coords=centered_ref_coords,
+            indexes=indexes
+        )
+
+        # Manually process two chunks (2 confs each)
+        chunk_size = 2
+        chunk_0_result = compute(ctx, chunk_size=chunk_size, chunk_id=0)
+        chunk_1_result = compute(ctx, chunk_size=chunk_size, chunk_id=1)
+
+        # Manually accumulate
+        manual_accumulated = chunk_0_result + chunk_1_result
+        manual_mean = manual_accumulated / traj_info_subset.nconfs
+
+        # Compare with mean() function result
+        result = mean(traj_info_subset, top_info, ref_conf=ref_conf, ncpus=1)
+
+        np.testing.assert_allclose(
+            result.positions,
+            manual_mean[0],  # positions are first element
+            rtol=1e-6,
+            err_msg="Accumulated mean across chunks doesn't match mean() output"
+        )
+
+
+# =============================================================================
+# Parallel Processing Consistency Tests
+# =============================================================================
+
+class TestParallelConsistency:
+    """Tests that verify parallel processing produces same results as serial."""
+
+    def test_parallel_vs_serial_consistency(self, trajectory_info):
+        """Test that ncpus=1 and ncpus=2 produce identical results.
+
+        This ensures the parallelization doesn't introduce any numerical
+        differences or race conditions.
+        """
+        top_info, traj_info = trajectory_info
+
+        # Use fixed reference for reproducibility
+        ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
+        ref_conf = inbox(ref_conf, center=True)
+
+        # Compute with serial processing
+        result_serial = mean(traj_info, top_info, ref_conf=ref_conf, ncpus=1)
+
+        # Compute with parallel processing
+        result_parallel = mean(traj_info, top_info, ref_conf=ref_conf, ncpus=2)
+
+        # Results should be identical (within floating point tolerance)
+        np.testing.assert_allclose(
+            result_serial.positions,
+            result_parallel.positions,
+            rtol=1e-10,
+            atol=1e-12,
+            err_msg="Parallel and serial processing should produce identical positions"
+        )
+
+        np.testing.assert_allclose(
+            result_serial.a1s,
+            result_parallel.a1s,
+            rtol=1e-10,
+            atol=1e-12,
+            err_msg="Parallel and serial processing should produce identical a1 vectors"
+        )
+
+        np.testing.assert_allclose(
+            result_serial.a3s,
+            result_parallel.a3s,
+            rtol=1e-10,
+            atol=1e-12,
+            err_msg="Parallel and serial processing should produce identical a3 vectors"
+        )
+
+    def test_parallel_consistency_with_subset_indexes(self, trajectory_info):
+        """Test parallel consistency when using subset of indexes for alignment."""
+        top_info, traj_info = trajectory_info
+
+        # Use first half of particles for alignment
+        indexes = list(range(top_info.nbases // 2))
+
+        ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
+        ref_conf = inbox(ref_conf, center=True)
+
+        result_serial = mean(traj_info, top_info, ref_conf=ref_conf, indexes=indexes, ncpus=1)
+        result_parallel = mean(traj_info, top_info, ref_conf=ref_conf, indexes=indexes, ncpus=2)
+
+        np.testing.assert_allclose(
+            result_serial.positions,
+            result_parallel.positions,
+            rtol=1e-10,
+            atol=1e-12,
+            err_msg="Parallel consistency should hold with subset indexes"
+        )
 
 
 # =============================================================================
