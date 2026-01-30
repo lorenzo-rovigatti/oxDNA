@@ -124,7 +124,7 @@ class TestCompute:
             top_info=top_info,
             centered_ref_coords=centered_ref_coords,
             indexes=indexes,
-            center=True
+            no_center=False
         )
 
         # Process first two chunks
@@ -178,11 +178,6 @@ class TestAlignFunction:
         align(str(mini_traj_path), outfile2, ncpus=1, indexes=indexes)
         assert Path(outfile2).exists(), "Output should be created with indexes"
 
-        # Test with center=False
-        outfile3 = str(temp_output_dir / "aligned_nocenter.dat")
-        align(str(mini_traj_path), outfile3, ncpus=1, center=False)
-        assert Path(outfile3).exists(), "Output should be created with nocenter"
-
 
 # =============================================================================
 # CLI Parser Tests
@@ -206,7 +201,6 @@ class TestCLIParser:
             "-p", "4",
             "-i", "index.txt",
             "-r", "ref.dat",
-            "-c",
             "-q",
             "trajectory.dat",
             "aligned.dat"
@@ -217,7 +211,6 @@ class TestCLIParser:
         assert args.parallel == [4], "Parallel option not parsed"
         assert args.index_file == ["index.txt"], "Index file option not parsed"
         assert args.reference_structure == ["ref.dat"], "Reference option not parsed"
-        assert args.no_center is True, "Nocenter option not parsed"
         assert args.quiet is True, "Quiet option not parsed"
 
         # Defaults
@@ -225,7 +218,6 @@ class TestCLIParser:
         assert args_defaults.parallel is None
         assert args_defaults.index_file is None
         assert args_defaults.reference_structure is None
-        assert args_defaults.no_center is False
         assert args_defaults.quiet is False
 
 
@@ -321,3 +313,289 @@ class TestEdgeCases:
         outfile2 = str(temp_output_dir / "aligned_single_idx.dat")
         align(str(mini_traj_path), outfile2, ncpus=1, indexes=[0])
         assert Path(outfile2).exists(), "Should handle single particle index"
+
+
+# =============================================================================
+# Quality and Correctness Tests
+# =============================================================================
+
+class TestAlignmentQuality:
+    """Tests for alignment quality and correctness."""
+
+    def test_golden_output_comparison(self, mini_traj_path, temp_output_dir, trajectory_info, expected_align_path):
+        """
+        Compares actual alignment output against the golden reference file
+        (aligntraj.dat), verifying positions, a1s, and a3s match within tolerance.
+        """
+        top_info, traj_info = trajectory_info
+        outfile = str(temp_output_dir / "aligned_golden.dat")
+
+        # Use first conf as reference (same as default behavior)
+        ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
+
+        # Execute alignment
+        align(str(mini_traj_path), outfile, ncpus=1, ref_conf=ref_conf)
+
+        # Load both the expected and actual aligned trajectories
+        _, expected_traj_info = describe(None, str(expected_align_path))
+        _, actual_traj_info = describe(None, outfile)
+
+        # Verify same number of configurations
+        assert actual_traj_info.nconfs == expected_traj_info.nconfs, \
+            f"Configuration count mismatch: expected {expected_traj_info.nconfs}, got {actual_traj_info.nconfs}"
+
+        # Compare each configuration
+        expected_confs = get_confs(top_info, expected_traj_info, 0, expected_traj_info.nconfs)
+        actual_confs = get_confs(top_info, actual_traj_info, 0, actual_traj_info.nconfs)
+
+        for i, (expected_conf, actual_conf) in enumerate(zip(expected_confs, actual_confs)):
+            # 1. Correct type
+            assert isinstance(actual_conf, Configuration), f"Conf {i} should be Configuration type"
+
+            # 2. Correct shape
+            assert actual_conf.positions.shape == expected_conf.positions.shape, \
+                f"Conf {i} positions shape mismatch"
+            assert actual_conf.a1s.shape == expected_conf.a1s.shape, \
+                f"Conf {i} a1s shape mismatch"
+            assert actual_conf.a3s.shape == expected_conf.a3s.shape, \
+                f"Conf {i} a3s shape mismatch"
+
+            # 3. No invalid values
+            assert not np.any(np.isnan(actual_conf.positions)), f"Conf {i} positions contain NaN"
+            assert not np.any(np.isnan(actual_conf.a1s)), f"Conf {i} a1s contain NaN"
+            assert not np.any(np.isnan(actual_conf.a3s)), f"Conf {i} a3s contain NaN"
+
+            # 4. Correct content - match expected output within tolerance
+            np.testing.assert_allclose(
+                actual_conf.positions, expected_conf.positions,
+                rtol=1e-5, atol=1e-6,
+                err_msg=f"Conf {i} positions don't match expected output"
+            )
+            np.testing.assert_allclose(
+                actual_conf.a1s, expected_conf.a1s,
+                rtol=1e-5, atol=1e-6,
+                err_msg=f"Conf {i} a1s don't match expected output"
+            )
+            np.testing.assert_allclose(
+                actual_conf.a3s, expected_conf.a3s,
+                rtol=1e-5, atol=1e-6,
+                err_msg=f"Conf {i} a3s don't match expected output"
+            )
+
+    def test_distance_preservation(self, mini_traj_path, temp_output_dir, trajectory_info):
+        """
+        Since alignment is a rigid rotation/translation, distances between
+        particles should be identical before and after alignment.
+        """
+        top_info, traj_info = trajectory_info
+        outfile = str(temp_output_dir / "aligned_distance.dat")
+
+        # Execute alignment
+        align(str(mini_traj_path), outfile, ncpus=1)
+
+        # Load original and aligned trajectories
+        original_confs = get_confs(top_info, traj_info, 0, traj_info.nconfs)
+        _, aligned_traj_info = describe(None, outfile)
+        aligned_confs = get_confs(top_info, aligned_traj_info, 0, aligned_traj_info.nconfs)
+
+        # Test distance preservation for each configuration
+        for conf_idx, (orig_conf, aligned_conf) in enumerate(zip(original_confs, aligned_confs)):
+            # Calculate distances between consecutive bases in original
+            orig_distances = np.linalg.norm(
+                orig_conf.positions[1:] - orig_conf.positions[:-1],
+                axis=1
+            )
+
+            # Calculate distances between consecutive bases in aligned
+            aligned_distances = np.linalg.norm(
+                aligned_conf.positions[1:] - aligned_conf.positions[:-1],
+                axis=1
+            )
+
+            # 1. Correct type and shape
+            assert isinstance(aligned_distances, np.ndarray), "Distances should be numpy array"
+            assert aligned_distances.shape == orig_distances.shape, \
+                f"Conf {conf_idx}: Distance array shape mismatch"
+
+            # 2. No invalid values
+            assert not np.any(np.isnan(aligned_distances)), \
+                f"Conf {conf_idx}: Aligned distances contain NaN"
+            assert not np.any(np.isinf(aligned_distances)), \
+                f"Conf {conf_idx}: Aligned distances contain Inf"
+
+            # 3. Reasonable values (should be positive and similar to original)
+            assert np.all(aligned_distances > 0), \
+                f"Conf {conf_idx}: All distances should be positive"
+
+            # 4. Distances should be preserved (rigid transformation)
+            np.testing.assert_allclose(
+                aligned_distances, orig_distances,
+                rtol=1e-10, atol=1e-10,
+                err_msg=f"Conf {conf_idx}: Distances not preserved by alignment"
+            )
+
+    def test_rmsd_reduction(self, mini_traj_path, temp_output_dir, trajectory_info):
+        """
+        The purpose of alignment is to minimize RMSD between structures.
+        The aligned RMSD should be less than or equal to the unaligned RMSD.
+        """
+        top_info, traj_info = trajectory_info
+        outfile = str(temp_output_dir / "aligned_rmsd.dat")
+
+        # Execute alignment with default settings (uses first conf as reference)
+        align(str(mini_traj_path), outfile, ncpus=1)
+
+        # Load reference (first conf), original, and aligned trajectories
+        ref_conf_orig = get_confs(top_info, traj_info, 0, 1)[0]
+        ref_conf_orig = inbox(ref_conf_orig, center=True)
+
+        original_confs = get_confs(top_info, traj_info, 1, traj_info.nconfs - 1)
+        _, aligned_traj_info = describe(None, outfile)
+        aligned_confs = get_confs(top_info, aligned_traj_info, 0, aligned_traj_info.nconfs)
+
+        # Get aligned reference for comparison (first conf in aligned trajectory)
+        ref_conf_aligned = aligned_confs[0]
+        aligned_confs = aligned_confs[1:]  # Skip reference
+
+        # Calculate RMSD for each configuration before and after alignment
+        for conf_idx, (orig_conf, aligned_conf) in enumerate(zip(original_confs, aligned_confs), start=1):
+            # Inbox original conf for fair comparison
+            orig_conf = inbox(orig_conf, center=True)
+
+            # Calculate unaligned RMSD (both centered at origin)
+            unaligned_rmsd = np.sqrt(
+                np.mean(np.sum((orig_conf.positions - ref_conf_orig.positions) ** 2, axis=1))
+            )
+
+            # Calculate aligned RMSD
+            aligned_rmsd = np.sqrt(
+                np.mean(np.sum((aligned_conf.positions - ref_conf_aligned.positions) ** 2, axis=1))
+            )
+
+            # 1. Correct type
+            assert isinstance(aligned_rmsd, (float, np.floating)), \
+                f"Conf {conf_idx}: RMSD should be float type"
+
+            # 2. Reasonable value
+            assert not np.isnan(aligned_rmsd), f"Conf {conf_idx}: Aligned RMSD is NaN"
+            assert not np.isinf(aligned_rmsd), f"Conf {conf_idx}: Aligned RMSD is Inf"
+            assert aligned_rmsd >= 0, f"Conf {conf_idx}: RMSD should be non-negative"
+
+            # 3. RMSD should be reduced by alignment
+            assert aligned_rmsd <= unaligned_rmsd, \
+                f"Conf {conf_idx}: Alignment should reduce RMSD " \
+                f"(unaligned: {unaligned_rmsd:.6f}, aligned: {aligned_rmsd:.6f})"
+
+    def test_centering_correctness(self, mini_traj_path, temp_output_dir, trajectory_info):
+        """
+        The aligned indexed particles should be centered at the origin.
+        """
+        top_info, traj_info = trajectory_info
+
+        # Use subset of particles for alignment
+        indexes = list(range(min(50, top_info.nbases)))
+
+        outfile_centered = str(temp_output_dir / "aligned_centered.dat")
+        align(str(mini_traj_path), outfile_centered, ncpus=1, indexes=indexes)
+
+        # Load aligned trajectory with centering
+        _, aligned_traj_info = describe(None, outfile_centered)
+        aligned_confs = get_confs(top_info, aligned_traj_info, 0, aligned_traj_info.nconfs)
+
+        # Check that centered output has indexed particles centered near origin
+        for conf_idx, aligned_conf in enumerate(aligned_confs):
+            # Calculate center of mass of aligned indexed particles
+            aligned_center = np.mean(aligned_conf.positions[indexes], axis=0)
+
+            # 1. Correct type and shape
+            assert isinstance(aligned_center, np.ndarray), \
+                f"Conf {conf_idx}: Center should be numpy array"
+            assert aligned_center.shape == (3,), \
+                f"Conf {conf_idx}: Center should be 3D coordinate"
+
+            # 2. No invalid values
+            assert not np.any(np.isnan(aligned_center)), \
+                f"Conf {conf_idx}: Center contains NaN"
+
+            # 3. With, indexed particles should be centered at origin
+            np.testing.assert_allclose(
+                aligned_center, np.zeros(3),
+                rtol=1e-10, atol=1e-10,
+                err_msg=f"Conf {conf_idx}: Centered alignment should place indexed particles at origin"
+            )
+
+        # On the other hand, if you disable centering, the center-of-mass of the inboxed ref conf should be preserved.
+        outfile_nocenter = str(temp_output_dir / "aligned_nocenter.dat")
+        ref_traj = get_confs(top_info, traj_info, 0, traj_info.nconfs)
+        centers = np.array([np.mean(inbox(c, center=False).positions[indexes], axis=0) for c in ref_traj])
+        align(str(mini_traj_path), outfile_nocenter, ncpus=1, indexes=indexes, no_center=True)
+
+        # Load aligned trajectory with centering
+        _, aligned_traj_info = describe(None, outfile_nocenter)
+        aligned_confs = get_confs(top_info, aligned_traj_info, 0, aligned_traj_info.nconfs)
+        aligned_centers = np.array([np.mean(c.positions[indexes], axis=0) for c in aligned_confs])
+
+        # 4. test that original center is preserved
+        np.testing.assert_allclose(
+            aligned_centers, centers,
+            rtol=1e-10, atol=1e-10,
+            err_msg="Disabling centering should preserve original centers"
+        )
+
+    def test_parallel_serial_consistency(self, mini_traj_path, temp_output_dir, trajectory_info):
+        """
+        MEDIUM: Test that parallel and serial execution produce identical results.
+
+        Running align() with ncpus=1 should produce identical output to ncpus=4.
+        """
+        top_info, traj_info = trajectory_info
+
+        # Use first conf as reference for reproducibility
+        ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
+
+        # Execute with serial processing
+        outfile_serial = str(temp_output_dir / "aligned_serial.dat")
+        align(str(mini_traj_path), outfile_serial, ncpus=1, ref_conf=ref_conf)
+
+        # Execute with parallel processing
+        outfile_parallel = str(temp_output_dir / "aligned_parallel.dat")
+        align(str(mini_traj_path), outfile_parallel, ncpus=4, ref_conf=ref_conf)
+
+        # Load both trajectories
+        _, serial_traj_info = describe(None, outfile_serial)
+        _, parallel_traj_info = describe(None, outfile_parallel)
+
+        # 1. Same number of configurations
+        assert serial_traj_info.nconfs == parallel_traj_info.nconfs, \
+            "Serial and parallel should produce same number of configurations"
+
+        # Load all configurations
+        serial_confs = get_confs(top_info, serial_traj_info, 0, serial_traj_info.nconfs)
+        parallel_confs = get_confs(top_info, parallel_traj_info, 0, parallel_traj_info.nconfs)
+
+        # Compare each configuration
+        for conf_idx, (serial_conf, parallel_conf) in enumerate(zip(serial_confs, parallel_confs)):
+            # 2. Correct shapes
+            assert serial_conf.positions.shape == parallel_conf.positions.shape, \
+                f"Conf {conf_idx}: Position shapes differ between serial and parallel"
+
+            # 3. No invalid values
+            assert not np.any(np.isnan(parallel_conf.positions)), \
+                f"Conf {conf_idx}: Parallel positions contain NaN"
+
+            # 4. Results should be identical
+            np.testing.assert_allclose(
+                serial_conf.positions, parallel_conf.positions,
+                rtol=1e-10, atol=1e-10,
+                err_msg=f"Conf {conf_idx}: Serial and parallel positions differ"
+            )
+            np.testing.assert_allclose(
+                serial_conf.a1s, parallel_conf.a1s,
+                rtol=1e-10, atol=1e-10,
+                err_msg=f"Conf {conf_idx}: Serial and parallel a1s differ"
+            )
+            np.testing.assert_allclose(
+                serial_conf.a3s, parallel_conf.a3s,
+                rtol=1e-10, atol=1e-10,
+                err_msg=f"Conf {conf_idx}: Serial and parallel a3s differ"
+            )
