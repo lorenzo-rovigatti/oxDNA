@@ -3,7 +3,7 @@
 import numpy as np
 from sys import exit
 from collections import namedtuple
-from typing import List
+from typing import List, Union
 import argparse
 import os
 import matplotlib.pyplot as plt
@@ -64,11 +64,11 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     distances = np.empty((len(ctx.p1s), len(confs)))
 
     for i, conf in enumerate(confs):
-        distances[:,i] = [min_image(conf.positions[p1], conf.positions[p2], box)* 0.85 for p1, p2 in zip(ctx.p1s, ctx.p2s)]
+        distances[:,i] = [min_image(conf.positions[p1], conf.positions[p2], box[0])* 0.8518 for p1, p2 in zip(ctx.p1s, ctx.p2s)]
     
     return distances
 
-def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[int]], p2ss:List[List[int]], ncpus:int=1) -> List[List[float]]:
+def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[int]], p2ss:List[List[int]], ncpus:int=1) -> List[Union[List[float], np.ndarray]]:
     """
         Compute the distance between two lists of particles
 
@@ -287,7 +287,6 @@ def main():
         plt.xlabel("Simulation Steps")
         plt.ylabel("Distance (nm)")
         plt.legend()
-        #plt.show()
         plt.tight_layout()
         log("Writing trajectory plot to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)
