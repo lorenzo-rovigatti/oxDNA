@@ -229,8 +229,8 @@ class Nucleotide(Printable):
         self._a3 = np.array (a3)
         #self._a2 = np.cross (a3, a1) # implemented as property
         # _base should be a number
-        if isinstance(base, int):
-            pass
+        if isinstance(base, (int, np.integer)):
+            base = int(base)  # ensure plain Python int
         else:
             try:
                 base = base_to_number[base]
