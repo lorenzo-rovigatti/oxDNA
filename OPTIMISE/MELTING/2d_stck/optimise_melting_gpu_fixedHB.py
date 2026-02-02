@@ -938,8 +938,8 @@ ofile_ave.close()
 #print("Exit +debug.")
 #exit(1)
 
-#if cg.Nseq_n8 > 0 : cfun.print_energy_n8()
-#if cg.Nseq_n15 > 0 : cfun.print_energy_n15()
+if cg.Nseq_n8 > 0 : cfun.print_energy_n8()
+if cg.Nseq_n15 > 0 : cfun.print_energy_n15()
 
 print("Memory usage before optim-1:")
 print_memory_usage()
@@ -976,6 +976,21 @@ print("OPTIMISING")
 
 cfun.PAR0 = torch.clone(cfun.CURR_PARS)
 
+
+for i in range(5):
+   for j in range(5):
+       #AT
+       ty = i+j*125+0*5+3*25
+       cfun.PAR0[4][ty] =
+       ty = i+j*125+3*5+0*25
+       cfun.PAR0[4][ty] =
+
+       #CG
+       ty = i+j*125+1*5+2*25
+       cfun.PAR0[4][ty] =
+       ty = i+j*125+2*5+1*25
+       cfun.PAR0[4][ty] =
+
 TMP = torch.tensor(OPTI_PAR,device='cpu')
 
 X0 = TMP.numpy()
@@ -996,10 +1011,10 @@ for n in range(len(low_bond)) :
         ub = up_bond[n]*2.0
         low_bond[n] = lb
         up_bond[n] = ub
-        if lb > 1.0: low_bond[n] = lb
-        else: low_bond[n] = 1.0
-        if ub < 2.20: up_bond[n] = ub
-        else: up_bond[n] = 2.20
+        if lb > 1.2: low_bond[n] = lb
+        else: low_bond[n] = 1.3
+        if ub < 1.95: up_bond[n] = ub
+        else: up_bond[n] = 1.95
     elif cfun.OPT_PAR_LIST[n][0] == 77 or cfun.OPT_PAR_LIST[n][0] == 116:
         low_bond[n] = 0
         up_bond[n] = 76.1
@@ -1120,9 +1135,8 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='Nelder-Mead', callback=Callback, bounds=bnd, options={'maxiter':50, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':50,'iprint': 1})
 
-sol = optimize.minimize(cfun.COST,sol.x, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':30, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
 
 #change slightly parameters at boundaries to avoid problems with next iteration
 par_fin = sol.x

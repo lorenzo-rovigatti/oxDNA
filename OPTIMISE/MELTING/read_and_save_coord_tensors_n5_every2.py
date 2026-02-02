@@ -210,7 +210,7 @@ def read_n5_seq(id) :
             tr_file = open(tr_file_name, 'r')
 
             #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n5[l], tr_file, topo_file, cg.boxes_n5[l])
+            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles_every(rclow, rchigh, rcut_dh_n5[l], tr_file, topo_file, cg.boxes_n5[l],2)
 
             if m == 0 and rp == 0:
                 fene_r = fr
