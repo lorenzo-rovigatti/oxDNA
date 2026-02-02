@@ -14,6 +14,7 @@ import cost_function as cfun
 import config as cg
 import sys
 import time
+import random
 from scipy import optimize
 import resource
 
@@ -106,6 +107,7 @@ test_file.close()
 #create all tensors on the gpu. Change this to easily swap between gpu and cpu
 #device = torch.device("cpu")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 print("Memory usage after read optim options:")
 print_memory_usage()
@@ -980,6 +982,19 @@ TMP = torch.tensor(OPTI_PAR,device='cpu')
 
 X0 = TMP.numpy()
 
+#print("Before reshuffling")
+print(X0)
+
+print("S0 true: "+str(cfun.COST(X0)))
+
+#print("Shuffling X0")
+
+#for i in range(len(X0)):
+#    X0[i] += random.uniform(-0.1,0.1)
+
+#print("Reshuffled")
+#print(X0)
+
 low_bond = torch.tensor(TMP, device='cpu').numpy()
 up_bond = torch.tensor(TMP, device='cpu').numpy()
 
@@ -996,10 +1011,10 @@ for n in range(len(low_bond)) :
         ub = up_bond[n]*2.0
         low_bond[n] = lb
         up_bond[n] = ub
-        if lb > 1.0: low_bond[n] = lb
-        else: low_bond[n] = 1.0
-        if ub < 2.20: up_bond[n] = ub
-        else: up_bond[n] = 2.20
+        if lb > 1.2: low_bond[n] = lb
+        else: low_bond[n] = 1.2
+        if ub < 1.8502: up_bond[n] = ub
+        else: up_bond[n] = 1.8502
     elif cfun.OPT_PAR_LIST[n][0] == 77 or cfun.OPT_PAR_LIST[n][0] == 116:
         low_bond[n] = 0
         up_bond[n] = 76.1
@@ -1013,7 +1028,7 @@ bnd = optimize.Bounds(low_bond,up_bond)
 print("Memory usage before optim-2:")
 print_memory_usage()
 
-print("S0: "+str(cfun.COST(X0)))
+print("S0 shuffled: "+str(cfun.COST(X0)))
 
 torch.set_printoptions(profile="full")
 
@@ -1120,11 +1135,14 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='Nelder-Mead', callback=Callback, bounds=bnd, options={'maxiter':50, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
+#sol = optimize.minimize(cfun.COST,X0, method='Nelder-Mead', callback=Callback, bounds=bnd, options={'maxiter':300, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
 
-sol = optimize.minimize(cfun.COST,sol.x, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':30, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
-
+sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':30, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
 #change slightly parameters at boundaries to avoid problems with next iteration
+#par_fin = sol.x
+
+sol = optimize.minimize(cfun.COST,sol.x, method='Nelder-Mead', callback=Callback, bounds=bnd, options={'maxiter':50, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
+
 par_fin = sol.x
 
 for n in range(len(par_fin)) :

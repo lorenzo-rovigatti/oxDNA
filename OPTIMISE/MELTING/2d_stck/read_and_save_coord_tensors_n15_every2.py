@@ -19,17 +19,6 @@ import resource
 
 import torch.multiprocessing as mp
 
-
-import psutil
-
-def print_available_memory():
-    mem = psutil.virtual_memory()
-    available_mb = mem.available / (1024 * 1024)  # Convert bytes to MB
-    print(f"Available memory: {available_mb:.2f} MB")
-
-print_available_memory()
-
-
 #from mpi4py import MPI
 
 
@@ -48,9 +37,9 @@ def print_memory_usage():
 
 
 # READ CONFIG FILE
-if len(sys.argv) != 3 :
+if len(sys.argv) != 2 :
     print("Unknown argument format.")
-    print("Usage: python3 optimise.py config_file batch_size")
+    print("Usage: python3 optimise.py config_file")
     sys.exit()
 
 start_time = time.time()
@@ -145,9 +134,8 @@ print_memory_usage()
 ############## READ TRAJECTORY, COMPUTE OXDNA COORDINATES (i.e angles and distances) AND INTERNAL COORDINATES ###########
 #########################################################################################################################
 
-
 #################
-### nbps = 5 ####
+### nbps = 15 ####
 #################
 
 
@@ -161,7 +149,7 @@ def type_to_base4(TY) :
 
     return str(ty0)+str(ty1)+str(ty2)+str(ty3)
 
-def read_n5_seq(id) :
+def read_n15_seq(id) :
 
     l = int(id)
 
@@ -193,24 +181,24 @@ def read_n5_seq(id) :
     print("DH cuts n8: ", rcut_dh_n8)
     print("DH cuts n15: ", rcut_dh_n15)
 
-    print("Reading seq " + str(l) + " n5")
+    print("Reading seq " + str(l) + " n15")
 
     N_pts = 1
-    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n5
+    if cg.parallel_tempering : N_pts = cg.N_PT_reps_n15
 
     for rp in range(N_pts) :
         for m in range(cg.Nreps) :
 
-            tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
-            topo_file = open("n5/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
+            tr_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/trajectory.dat"
+            topo_file = open("n15/Seq"+str(l)+"/Rep"+str(m)+"/generated.top", 'r')
 
             if cg.parallel_tempering :
-                tr_file_name = "n5/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
+                tr_file_name = "n15/Seq"+str(l)+"/Rep"+str(m)+"/mpi_"+str(rp)+"_trajectory.dat"
 
             tr_file = open(tr_file_name, 'r')
 
             #oxdna distances, types and angles
-            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles(rclow, rchigh, rcut_dh_n5[l], tr_file, topo_file, cg.boxes_n5[l])
+            fr, sr, t4bn, t5, t6, cp1, cp2, tbn, hr, t1, t2, t3, t4un, t7, t8, tun33, tun55, dh_r, dh_ty, dh_chcut = fun.read_oxdna_trajectory_dist_and_angles_every(rclow, rchigh, rcut_dh_n15[l], tr_file, topo_file, cg.boxes_n15[l],2)
 
             if m == 0 and rp == 0:
                 fene_r = fr
@@ -262,31 +250,6 @@ def read_n5_seq(id) :
     return fene_r, stck_r, th4_bn, th5, th6 , cosphi1, cosphi2, types_bn, hydr_r, th1, th2, th3, th4_unbn, th7, th8, types_unbn_33, types_unbn_55, debye_huckel_r, debye_huckel_types, debye_huckel_charge_cut
 
 
-"""
-#gather all seqs to rank 0
-fene_r_all = comm.gather(fene_r, root=0)
-stck_r_all = comm.gather(stck_r, root=0)
-th4_bn_all = comm.gather(th4_bn, root=0)
-th5_all = comm.gather(th5, root=0)
-th6_all = comm.gather(th6, root=0)
-cosphi1_all = comm.gather(cosphi1, root=0)
-cosphi2_all = comm.gather(cosphi2, root=0)
-types_bn_all = comm.gather(types_bn, root=0)
-hydr_r_all = comm.gather(hydr_r, root=0)
-th1_all = comm.gather(th1, root=0)
-th2_all = comm.gather(th2, root=0)
-th3_all = comm.gather(th3, root=0)
-th4_unbn_all = comm.gather(th4_unbn, root=0)
-th7_all = comm.gather(th7, root=0)
-th8_all = comm.gather(th8, root=0)
-types_unbn_33_all = comm.gather(types_unbn_33, root=0)
-types_unbn_55_all = comm.gather(types_unbn_55, root=0)
-debye_huckel_r_all = comm.gather(debye_huckel_r, root=0)
-debye_huckel_types_all = comm.gather(debye_huckel_types, root=0)
-debye_huckel_charge_cut_all = comm.gather(debye_huckel_charge_cut, root=0)
-"""
-
-
 fene_r_all = []
 stck_r_all = []
 th4_bn_all = []
@@ -309,66 +272,48 @@ debye_huckel_types_all = []
 debye_huckel_charge_cut_all = []
 
 
-batch_size = int(sys.argv[2])
-
-Nbatches = 0
-if cg.Nseq_n5 % batch_size == 0:
-    Nbatches = int(cg.Nseq_n5/batch_size)
-else:
-    Nbatches = int(cg.Nseq_n5/batch_size)+1
-#nbh = 0
-
-print("Number of batches: ", Nbatches)
-
 if __name__ == '__main__':
 
+    seq_ids = torch.arange(cg.Nseq_n15)
 
-    for nbh in range(Nbatches) :
+    with mp.Pool(cg.Nseq_n15) as pool:
 
-        print_memory_usage()
-
-        seq_ids = torch.arange( nbh*batch_size, min(cg.Nseq_n5,(nbh+1)*batch_size) )
-
-        results = None
-
-        with mp.Pool(len(seq_ids)) as pool:
-
-            results = pool.map(read_n5_seq, seq_ids)
+        results = pool.map(read_n15_seq, seq_ids)
 
         #print(len(results))
 
-        for i in range(len(results)):
-            fene_r_all.append(results[i][0])
-            stck_r_all.append(results[i][1])
-            th4_bn_all.append(results[i][2])
-            th5_all.append(results[i][3])
-            th6_all.append(results[i][4])
-            cosphi1_all.append(results[i][5])
-            cosphi2_all.append(results[i][6])
-            types_bn_all.append(results[i][7])
-            hydr_r_all.append(results[i][8])
-            th1_all.append(results[i][9])
-            th2_all.append(results[i][10])
-            th3_all.append(results[i][11])
-            th4_unbn_all.append(results[i][12])
-            th7_all.append(results[i][13])
-            th8_all.append(results[i][14])
-            types_unbn_33_all.append(results[i][15])
-            types_unbn_55_all.append(results[i][16])
-            debye_huckel_r_all.append(results[i][17])
-            debye_huckel_types_all.append(results[i][18])
-            debye_huckel_charge_cut_all.append(results[i][19])
+    for i in range(len(results)):
+        fene_r_all.append(results[i][0])
+        stck_r_all.append(results[i][1])
+        th4_bn_all.append(results[i][2])
+        th5_all.append(results[i][3])
+        th6_all.append(results[i][4])
+        cosphi1_all.append(results[i][5])
+        cosphi2_all.append(results[i][6])
+        types_bn_all.append(results[i][7])
+        hydr_r_all.append(results[i][8])
+        th1_all.append(results[i][9])
+        th2_all.append(results[i][10])
+        th3_all.append(results[i][11])
+        th4_unbn_all.append(results[i][12])
+        th7_all.append(results[i][13])
+        th8_all.append(results[i][14])
+        types_unbn_33_all.append(results[i][15])
+        types_unbn_55_all.append(results[i][16])
+        debye_huckel_r_all.append(results[i][17])
+        debye_huckel_types_all.append(results[i][18])
+        debye_huckel_charge_cut_all.append(results[i][19])
 
 
 #make unbnd tensor square. Extra unbnd pairs have zero interaction energy.
 max_ints = 0
 print("Len unbn")
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n15) :
     for j in range(len(types_unbn_33_all[l])):
         if len(types_unbn_33_all[l][j]) > max_ints:
             max_ints = len(types_unbn_33_all[l][j])
 print("max unbn pairs: "+str(max_ints))
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n15) :
     for j in range(len(types_unbn_33_all[l])):
         for z in range(len(types_unbn_33_all[l][j]), max_ints):
             types_unbn_33_all[l][j].append(0)
@@ -386,12 +331,12 @@ for l in range(cg.Nseq_n5) :
 max_ints = 0
 
 print("Len debye huckle")
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n15) :
     for j in range(len(debye_huckel_types_all[l])):
         if len(debye_huckel_types_all[l][j]) > max_ints:
            max_ints = len(debye_huckel_types_all[l][j])
 print("max debye huckle pairs: "+str(max_ints))
-for l in range(cg.Nseq_n5) :
+for l in range(cg.Nseq_n15) :
     for j in range(len(debye_huckel_types_all[l])):
         for z in range(len(debye_huckel_types_all[l][j]), max_ints):
             debye_huckel_types_all[l][j].append(0)
@@ -408,7 +353,7 @@ if len(hydr_r_all) > 0 : print("hydr_r: "+str(len(hydr_r_all))+", "+str(len(hydr
 if len(debye_huckel_r_all) > 0 : print("debye_huckel_r: "+str(len(debye_huckel_r_all))+", "+str(len(debye_huckel_r_all[0]))+", "+ str(len(debye_huckel_r_all[0][0])))
 
 
-print("Memory usage after reading n5 data:")
+print("Memory usage after reading n15 data:")
 print_memory_usage()
 
 
@@ -417,24 +362,13 @@ print(fene_r_all,file=ofile)
 ofile.close()
 
 
-cfun.init_tensors_n5(device,fene_r_all, stck_r_all, th4_bn_all, th5_all, th6_all, cosphi1_all, cosphi2_all, types_bn_all, hydr_r_all, th1_all, th2_all, th3_all,\
-                  th4_unbn_all, th7_all, th8_all, types_unbn_33_all, types_unbn_55_all, debye_huckel_r_all, debye_huckel_types_all, debye_huckel_charge_cut_all, shifts, OXPS_zero)
+cfun.init_tensors_n15(device,fene_r_all, stck_r_all, th4_bn_all, th5_all, th6_all, cosphi1_all, cosphi2_all, types_bn_all, hydr_r_all, th1_all, th2_all, th3_all,\
+                  th4_unbn_all, th7_all, th8_all, types_unbn_33_all, types_unbn_55_all, debye_huckel_r_all, debye_huckel_types_all, debye_huckel_charge_cut_all)
 
-print("Memory usage after initialising n5 tensors:")
+print("Memory usage after initialising n15 tensors:")
 print_memory_usage()
 
-
-ofile = open("dists_and_angles_n5.txt", 'w')
-cfun.print_dists_and_angles_n5(ofile)
-ofile.close()
-
-#ofile = open("energy_in_all_n5.txt", 'w')
-#ofile_ave = open("energy_in_ave_n5.txt", 'w')
-
-#ofile.close()
-#ofile_ave.close()
-
-#if cg.Nseq_n5 > 0 : cfun.print_energy_n5(ofile,ofile_ave)
+cfun.print_dists_and_angles_n15()
 
 #for l in types_bn[0][0] :
 #    print(type_to_base4(l))
@@ -457,7 +391,7 @@ del th8_all
 del types_unbn_33_all
 del types_unbn_55_all
 
-print("Memory usage after deleting n5 lists:")
+print("Memory usage after deleting n15 lists:")
 print_memory_usage()
 
 

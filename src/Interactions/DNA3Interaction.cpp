@@ -449,7 +449,8 @@ void DNA3Interaction::init() {
 
                         // STACKING
 
-                        sprintf(key, "STCK_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+                        //this does not depend on the flanks
+                        sprintf(key, "STCK_%c_%c", Utils::encode_base(j), Utils::encode_base(k));
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_EPS[STCK_F1](i, j, k, l) = tmp_value * (1.0 - stck_fact_eps + (_T * 9.0 * stck_fact_eps));
 
 
