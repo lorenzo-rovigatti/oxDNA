@@ -158,6 +158,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
             try:
                 anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(360), interval=20, blit=True)
                 anim.save(plot_file, fps=30, extra_args=['-vcodec', 'libx264'])
+                plt.close(fig)
                 log("Saved cluster plot to {}".format(plot_file))
             except:
                 print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead")
@@ -185,6 +186,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
         if not interactive_plot:
             plt.tight_layout()
             plt.savefig(plot_file, dpi=FIG_DPI)
+            plt.close(fig)
             log("Saved cluster plot to {}".format(plot_file))
         else:
             plt.show()

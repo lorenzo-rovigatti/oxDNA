@@ -141,6 +141,7 @@ def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, desi
     plt.legend()
     plt.tight_layout()
     plt.savefig(plotname, dpi=FIG_DPI)
+    plt.close(fig)
     return
 
 def cli_parser(prog="bond_analysis.py"):

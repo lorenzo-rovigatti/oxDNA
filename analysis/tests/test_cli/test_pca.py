@@ -112,10 +112,13 @@ class TestAlignPositions:
 class TestPcaFunction:
     """Tests for the pca() API function."""
 
-    def test_pca_behavior(self, trajectory_info, mean_conf):
+    def test_pca_behavior(self, trajectory_info, mean_conf, temp_output_dir, monkeypatch):
         """Test pca() returns correct shapes, sorted eigenvalues, and non-negative values."""
         import matplotlib
         matplotlib.use('Agg')
+
+        # pca() saves scree.png to current directory
+        monkeypatch.chdir(temp_output_dir)
 
         top_info, traj_info = trajectory_info
 
@@ -140,7 +143,7 @@ class TestPcaFunction:
         # Real parts should be non-negative (small negative due to numerical errors ok)
         assert np.all(real_evalues >= -1e-10), "Eigenvalues should be non-negative"
 
-    def test_pca_mathematical_correctness(self, trajectory_info, mean_conf):
+    def test_pca_mathematical_correctness(self, trajectory_info, mean_conf, temp_output_dir, monkeypatch):
         """
         Validate PCA output correctness using mathematical properties.
 
@@ -154,6 +157,9 @@ class TestPcaFunction:
         """
         import matplotlib
         matplotlib.use('Agg')
+
+        # pca() saves scree.png to current directory
+        monkeypatch.chdir(temp_output_dir)
 
         top_info, traj_info = trajectory_info
 

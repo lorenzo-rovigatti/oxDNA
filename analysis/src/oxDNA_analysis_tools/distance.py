@@ -265,7 +265,6 @@ def main():
         plt.xlabel("Distance (nm)")
         plt.ylabel("Normalized frequency")
         plt.legend()
-        #plt.show()
         plt.tight_layout()
         log("Writing histogram to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)

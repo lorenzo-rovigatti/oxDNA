@@ -15,6 +15,7 @@ from typing import Tuple
 from sklearn.manifold import MDS
 from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.contact_map import contact_map
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.distance import vectorized_min_image
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
@@ -49,7 +50,8 @@ def make_heatmap(contact_map:np.ndarray):
        xlabel="nucleotide id")
     b = fig.colorbar(a, ax=ax)
     b.set_label("distance", rotation = 270)
-    plt.show()
+    plt.savefig("contact_map.png", dpi=FIG_DPI)
+    plt.close(fig)
 
 def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ): 
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)

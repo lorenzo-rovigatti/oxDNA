@@ -73,6 +73,7 @@ def make_heatmap(covariance:np.ndarray):
     b.set_label("covariance", rotation = 270)
     plt.tight_layout()
     plt.savefig("heatmap.png", dpi=FIG_DPI)
+    plt.close(fig)
 
 
 def compute_cov(ctx:ComputeContext_cov, chunk_size:int, chunk_id:int):
@@ -224,6 +225,7 @@ def main():
     ax.scatter(coordinates[:,0], coordinates[:,1], coordinates[:,2], c='g', s=25)
     plt.tight_layout()
     plt.savefig("coordinates.png", dpi=FIG_DPI)
+    plt.close(fig)
 
     #Create an oxView overlays for the first N components
     if args.N:

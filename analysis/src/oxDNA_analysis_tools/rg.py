@@ -74,6 +74,7 @@ def make_rg_plot(rg_values:np.ndarray, out:str):
     ax.set_ylabel("Radius of gyration (nm)")
     fig.tight_layout()
     fig.savefig(out, dpi=FIG_DPI)
+    plt.close(fig)
     log(f"Wrote RG plot to {out}")
 
 # This is what gets picked up by the cli documentation builder
