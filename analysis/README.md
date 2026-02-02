@@ -21,7 +21,7 @@ oat config               #verifies installation
 ```
 
 `oat` can also be installed (or updated) separate from oxDNA via `pip` by running the following in the `oxDNA` directory:
-```
+```shell
 python -m pip install ./analysis
 ```
 
@@ -67,6 +67,24 @@ If you make changes to the Cython files in `src/oxDNA_analysis_tools/cython_util
 ### Test your installation
 To check your installation run:  
    `oat config`
+
+## Unit testing
+The `tests/test_cli/` folder contains comprehensive unit tests for oxDNA_analysis_tools using [PyTest](https://docs.pytest.org/en/stable/). The tests can be run from this directory with:
+```shell
+pytest tests/test_cli/
+```
+Or specific tests can be run with:
+```shell
+pytest test/test_cli/test_mean.py
+``` 
+To check code coverage, use [coverage.py](https://coverage.readthedocs.io).
+```shell
+coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/
+coverage combine
+coverage html
+open htmlcov/index.html
+```
+Note that PyTest and Coverage.py are not listed as dependencies for oxDNA_analysis_tools, as they are not necessary for running the package, but are highly recommended if you're extending and modifying the source code.
 
 -------------------------------------------------------------------
 
