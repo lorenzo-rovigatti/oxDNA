@@ -362,9 +362,6 @@ class TestMain:
 
     def test_main_histogram_output(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() creates histogram output file."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -386,9 +383,6 @@ class TestMain:
 
     def test_main_trajectory_output(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() creates trajectory plot output file."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -410,9 +404,6 @@ class TestMain:
 
     def test_main_both_format(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() creates both histogram and trajectory plots."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -437,9 +428,6 @@ class TestMain:
 
     def test_main_json_data_output(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() creates valid JSON data file."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -466,9 +454,6 @@ class TestMain:
 
     def test_main_default_output_and_multiple_pairs(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test default output filename and multiple particle pairs."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -493,9 +478,6 @@ class TestMain:
 
     def test_main_with_options(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() with parallel, quiet, and custom names options."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"

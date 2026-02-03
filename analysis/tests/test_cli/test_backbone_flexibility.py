@@ -220,9 +220,6 @@ class TestMain:
 
     def test_main_creates_outputs(self, mini_traj_path, topology_path, temp_output_dir, monkeypatch):
         """Test main() creates plot and data files with various options."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -258,9 +255,6 @@ class TestMain:
 
     def test_main_default_output(self, mini_traj_path, topology_path, temp_output_dir, monkeypatch):
         """Test main() uses default output filename."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -278,9 +272,6 @@ class TestMain:
 
     def test_main_with_parallel_and_quiet(self, mini_traj_path, topology_path, temp_output_dir, monkeypatch):
         """Test main() with parallel processing and quiet mode."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"

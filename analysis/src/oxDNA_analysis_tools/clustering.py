@@ -161,7 +161,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
                 plt.close(fig)
                 log("Saved cluster plot to {}".format(plot_file))
             except:
-                print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead")
+                log("ffmpeg not found, cannot make animated plot, opening interactivley instead", level=1)
                 f = init()
                 plt.show()
         else:
@@ -191,6 +191,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
         else:
             plt.show()
 
+    plt.close(fig)
     return
     
 

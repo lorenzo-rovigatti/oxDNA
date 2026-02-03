@@ -188,9 +188,6 @@ class TestOutputFunctions:
 
     def test_plot_trajectories_creates_file(self, temp_output_dir):
         """Test plot_trajectories creates PNG file."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         correct = np.array([5, 6, 5, 7, 6])
         incorrect = np.array([1, 0, 1, 0, 1])
         designed = 10
@@ -255,9 +252,6 @@ class TestMain:
         self, mini_traj_path, input_file_path, designed_pairs_path, test_resources, temp_output_dir, monkeypatch
     ):
         """Test main() creates all output files."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(test_resources)
 
         output_file = temp_output_dir / "test_bonds.json"

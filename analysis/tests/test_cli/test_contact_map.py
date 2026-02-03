@@ -150,9 +150,6 @@ class TestMain:
 
     def test_main_creates_output_files(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() creates graph and data output files."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -177,9 +174,6 @@ class TestMain:
 
     def test_main_default_filenames(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test main() uses default filenames."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -196,9 +190,6 @@ class TestMain:
 
     def test_main_data_file_loadable(self, mini_traj_path, temp_output_dir, monkeypatch):
         """Test that saved data file can be loaded and has correct shape."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"

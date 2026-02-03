@@ -524,8 +524,7 @@ class TestFitPL:
 
     def test_fit_pl_returns_positive_value(self, trajectory_info, input_file_path, temp_output_dir, test_resources, monkeypatch):
         """Test fit_PL() returns positive persistence length and creates plot."""
-        import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+                  # Non-interactive backend
 
         # Change to test resources directory so oxpy can find rna_sequence_dependent_parameters.txt
         monkeypatch.chdir(test_resources)
@@ -561,9 +560,6 @@ class TestFitPL:
 
     def test_fit_pl_with_exponential_decay(self, temp_output_dir):
         """Test fit_PL() correctly fits known exponential decay."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         # Create synthetic correlation data with known persistence length
         true_pl = 10.0
         x = np.arange(0, 50)
@@ -644,9 +640,6 @@ class TestMain:
 
     def test_main_creates_default_plot(self, mini_traj_path, topology_path, input_file_path, test_resources, temp_output_dir, monkeypatch):
         """Test main() creates default persistence_length.png plot."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -677,9 +670,6 @@ class TestMain:
 
     def test_main_creates_custom_outputs(self, mini_traj_path, topology_path, input_file_path, test_resources, temp_output_dir, monkeypatch):
         """Test main() creates custom plot and data files."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -732,9 +722,6 @@ class TestMain:
 
     def test_main_with_parallel_and_quiet(self, mini_traj_path, topology_path, input_file_path, test_resources, temp_output_dir, monkeypatch):
         """Test main() with parallel processing and quiet mode."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -768,9 +755,6 @@ class TestMain:
 
     def test_main_data_file_contains_exact_correlation_values(self, mini_traj_path, topology_path, input_file_path, test_resources, temp_output_dir, monkeypatch):
         """Test that data file written by main() contains exact correlation values from computation."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         # Copy required files
@@ -899,9 +883,6 @@ class TestEdgeCases:
 
     def test_fit_pl_with_minimal_data(self, temp_output_dir):
         """Test fit_PL() handles minimal data points."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         # Just 3 points (minimum for a reasonable fit)
         correlations = np.array([1.0, 0.5, 0.25])
 

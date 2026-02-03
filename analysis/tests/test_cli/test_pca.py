@@ -114,9 +114,6 @@ class TestPcaFunction:
 
     def test_pca_behavior(self, trajectory_info, mean_conf, temp_output_dir, monkeypatch):
         """Test pca() returns correct shapes, sorted eigenvalues, and non-negative values."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         # pca() saves scree.png to current directory
         monkeypatch.chdir(temp_output_dir)
 
@@ -155,9 +152,6 @@ class TestPcaFunction:
         4. Comparison with independent PCA implementation (sklearn)
         5. First few PCs should capture most variance (sanity check)
         """
-        import matplotlib
-        matplotlib.use('Agg')
-
         # pca() saves scree.png to current directory
         monkeypatch.chdir(temp_output_dir)
 
@@ -360,9 +354,6 @@ class TestMain:
 
     def test_main_creates_output_files(self, mini_traj_path, mean_conf_path, temp_output_dir, monkeypatch):
         """Test main() creates expected output files."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"

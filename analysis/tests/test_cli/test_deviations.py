@@ -114,9 +114,6 @@ class TestOutputFunction:
 
     def test_output_behavior(self, trajectory_info, mean_conf, temp_output_dir):
         """Test output() creates files with valid JSON structure and expected keys."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         top_info, traj_info = trajectory_info
         RMSDs, RMSFs = deviations(traj_info, top_info, mean_conf, ncpus=1)
 
@@ -192,9 +189,6 @@ class TestMain:
 
     def test_main_creates_output_files(self, mini_traj_path, mean_conf_path, temp_output_dir, monkeypatch):
         """Test main() creates all output files."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -224,9 +218,6 @@ class TestMain:
 
     def test_main_default_filenames(self, mini_traj_path, mean_conf_path, temp_output_dir, monkeypatch):
         """Test main() uses default filenames."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         monkeypatch.chdir(temp_output_dir)
 
         traj_copy = temp_output_dir / "traj.dat"
@@ -367,9 +358,6 @@ class TestOutputContentValidation:
 
     def test_rmsf_json_content_structure(self, trajectory_info, mean_conf, temp_output_dir):
         """Test RMSF JSON file contains correct structure and valid values."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         top_info, traj_info = trajectory_info
 
         RMSDs, RMSFs = deviations(traj_info, top_info, mean_conf, ncpus=1)
@@ -409,9 +397,6 @@ class TestOutputContentValidation:
 
     def test_rmsd_json_content_structure(self, trajectory_info, mean_conf, temp_output_dir):
         """Test RMSD JSON file contains correct structure and valid values."""
-        import matplotlib
-        matplotlib.use('Agg')
-
         top_info, traj_info = trajectory_info
 
         # Slice trajectory because we can
