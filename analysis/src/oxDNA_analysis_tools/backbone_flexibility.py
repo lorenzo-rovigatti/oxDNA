@@ -152,11 +152,13 @@ def main():
         out = "ramachandran.png"
         log("No output file specified, writing to {}".format(out))
 
-    plt.scatter(torsions[len(system.strands):], dihedrals)
-    plt.xlabel("torsion_angle")
-    plt.ylabel("dihedral_angle")
-    plt.tight_layout()
-    plt.savefig(out, dpi=FIG_DPI)
+    fig, ax = plt.subplots()
+    ax.scatter(torsions[len(system.strands):], dihedrals)
+    ax.set_xlabel("torsion_angle")
+    ax.set_ylabel("dihedral_angle")
+    fig.tight_layout()
+    fig.savefig(out, dpi=FIG_DPI)
+    plt.close(fig)
     log("Wrote plot to {}".format(out))
 
     if args.data:

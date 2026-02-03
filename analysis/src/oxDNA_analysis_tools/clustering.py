@@ -161,9 +161,11 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
                 plt.close(fig)
                 log("Saved cluster plot to {}".format(plot_file))
             except:
-                log("ffmpeg not found, cannot make animated plot, opening interactivley instead", level=1)
+                log("ffmpeg not found, cannot make animated plot, showing just one angle", level=1)
                 f = init()
-                plt.show()
+                fname = plot_file.replace(".mp4", ".png")
+                f[0].savefig(fname, dpi=FIG_DPI)
+                plt.close(f[0])
         else:
             f = init()
             plt.show()
