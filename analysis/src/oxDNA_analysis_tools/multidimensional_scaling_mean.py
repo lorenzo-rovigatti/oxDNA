@@ -94,7 +94,15 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
     masked_mean = np.ma.masked_array(mean_distances, ~(mean_distances < CUTOFF))
 
     log("fitting local distance data")
-    mds = MDS(n_components=3, metric=True, max_iter=3000, eps=1e-12, dissimilarity="precomputed", n_jobs=1, n_init=1)
+    mds = MDS(n_components=3, 
+              metric="precomputed", 
+              metric_mds=True,
+              max_iter=3000, 
+              eps=1e-12,
+              n_jobs=1, 
+              n_init=1,
+              init='random' #TODO: See if 'classical_mds' improves scaling without taking too long.
+              ) 
     out_coords = mds.fit_transform(masked_mean, init=example_conf.positions) #without the init you can get a left-handed structure.
     a1s = np.zeros((top_info.nbases, 3))
     a3s = np.zeros((top_info.nbases, 3))
@@ -173,7 +181,7 @@ def main():
 
     #-d names the deviations file
     if args.dev_file:
-        devfile = args.dev_file[0].split(".")[0] + ".json"
+        devfile = args.dev_file[0].rsplit(".", 1)[0] + ".json"
     else:
         devfile = "devs_mds.json"
         log("No deviations file name provided, defaulting to \"{}\"".format(devfile))

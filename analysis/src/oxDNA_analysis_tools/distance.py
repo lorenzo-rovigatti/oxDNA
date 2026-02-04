@@ -253,7 +253,7 @@ def main():
     if hist == True:
         if lineplt == True:
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.find(".")]+"_hist"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_hist"+outfile[outfile.rfind("."):]
         else:
             out = outfile
         bins = np.linspace(np.floor(lower-(lower*0.1)), np.ceil(upper+(upper*0.1)), 60)
@@ -268,14 +268,13 @@ def main():
         plt.tight_layout()
         log("Writing histogram to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)
+        plt.close()
 
     #make a trajectory plot
     if lineplt == True:
         if hist == True:
-            #clear the histogram plot
-            plt.clf()
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.find(".")]+"_traj"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_traj"+outfile[outfile.rfind("."):]
         else:
             out = outfile
         graph_count = 0
@@ -289,6 +288,7 @@ def main():
         plt.tight_layout()
         log("Writing trajectory plot to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)
+        plt.close()
 
     if cluster == True:
         if not all([x == trajectories[0] for x in trajectories]):
