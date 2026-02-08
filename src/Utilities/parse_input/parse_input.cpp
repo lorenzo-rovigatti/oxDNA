@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>
 #endif
 
-#include <exprtk/exprtk.hpp>
+#include <tinyexpr/tinyexpr.h>
 
 #include <regex>
 #include <algorithm>
@@ -41,14 +41,15 @@ void input_value::expand_value(std::map<std::string, std::string> expanded_depen
 	std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
 	std::smatch m;
 	std::string to_search = expanded_value;
-	exprtk::parser<double> parser;
 	while(std::regex_search(to_search, m, pattern)) {
-		exprtk::expression<double> expression;
+		std::string expr_str = m[1].str();
+		int err;
+		double result = te_interp(expr_str.c_str(), &err);
 
-		if(!parser.compile(m[1].str(), expression) || std::isnan(expression.value())) {
+		if(err != 0 || std::isnan(result)) {
 			throw oxDNAException("An error occurred during the evaluation of the mathematical expression '%s' required to expand the '%s' key", m[1].str().c_str(), key.c_str());
 		}
-		std::string expr_value = Utils::sformat("%lf", expression.value());
+		std::string expr_value = Utils::sformat("%lf", result);
 
 		size_t pos = expanded_value.find(m[0].str());
 		expanded_value.replace(pos, m[0].str().length(), expr_value);

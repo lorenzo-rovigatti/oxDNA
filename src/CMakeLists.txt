@@ -334,9 +334,12 @@ ELSE()
 	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
 ENDIF()
 
-TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
-TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})
-TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
+add_library(tinyexpr extern/tinyexpr/tinyexpr.c)
+target_include_directories(tinyexpr PUBLIC extern/tinyexpr)
+
+TARGET_LINK_LIBRARIES(${exe_name} ${lib_name} tinyexpr)
+TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name} tinyexpr)
+TARGET_LINK_LIBRARIES(confGenerator ${lib_name} tinyexpr)
 
 # we add these executable as dependencies for the test targets
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)
