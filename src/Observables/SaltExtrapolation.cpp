@@ -6,11 +6,13 @@
  */
 
 #include "SaltExtrapolation.h"
-#include <sstream>
-#include <map>
 
 #include "../Interactions/InteractionFactory.h"
 #include "../Interactions/DNA2Interaction.h"
+
+#include <map>
+#include <sstream>
+#include <fstream>
 
 SaltExtrapolation::SaltExtrapolation() {
 	_skip_zeros = false;

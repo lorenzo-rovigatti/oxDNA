@@ -5,9 +5,9 @@
  *      Author: sulc
  */
 
-#include <cfloat>
-
 #include "Weights.h"
+
+#include <fstream>
 
 // functions for Weights class
 // Constructor

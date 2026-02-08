@@ -2,12 +2,11 @@
  * Histogram.cpp
  * author: flavio
  */
-
-#include <cfloat>
-#include <sstream>
-
 #include "Histogram.h"
 #include "OrderParameters.h"
+
+#include <sstream>
+#include <fstream>
 
 Histogram::Histogram() {
 	_data = NULL;
