@@ -73,9 +73,7 @@ public:
 	 */
 	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists);
 
-	virtual void set_box(BaseBox *box) {
-		_box = box;
-	}
+	virtual void set_box(BaseBox *box);
 
 	virtual void get_settings(input_file &inp);
 
@@ -97,9 +95,7 @@ public:
 	 *
 	 * @return Interaction cutoff
 	 */
-	virtual number get_rcut() const {
-		return _rcut;
-	}
+	virtual number get_rcut() const;
 
 	/**
 	 * @brief Check whether the initial configuration makes sense.
@@ -136,9 +132,7 @@ public:
 	 *
 	 * @return
 	 */
-	virtual bool has_custom_stress_tensor() const {
-		return false;
-	}
+	virtual bool has_custom_stress_tensor() const;
 
 	void reset_stress_tensor();
 
@@ -146,9 +140,7 @@ public:
 
 	StressTensor stress_tensor() const;
 
-	void set_stress_tensor(StressTensor st) {
-		_stress_tensor = st;
-	}
+	void set_stress_tensor(StressTensor st);
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
@@ -231,18 +223,14 @@ public:
 	/**
 	 * @brief Returns the state of the interaction
 	 */
-	bool get_is_infinite() {
-		return _is_infinite;
-	}
+	bool get_is_infinite() const;
 
 	/**
 	 * @brief Sets _is_infinite
 	 *
 	 * @param arg bool
 	 */
-	void set_is_infinite(bool arg) {
-		_is_infinite = arg;
-	}
+	void set_is_infinite(bool arg);
 
 	/**
 	 * @brief Sets the distance between particles to be used by the pair_interaction_* methods.

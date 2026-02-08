@@ -21,22 +21,11 @@
  */
 class Mesh {
 public:
-	Mesh() : _N(0) {
-		_delta = _inv_sqr_delta = _xlow = _xupp = -1.;
-	};
+	Mesh();
 
-	void init(int size) {
-		_N = size;
-		_delta = 0;
-		_A.resize(size + 1);
-		_B.resize(size + 1);
-		_C.resize(size + 1);
-		_D.resize(size + 1);
-	}
+	~Mesh();
 
-	~Mesh() {
-
-	}
+	void init(int size);
 
 	/**
 	 * @brief Build a mesh by using a function and its derivative.
@@ -50,7 +39,7 @@ public:
 	 */
 	void build(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *pars, int npoints, number xlow, number xupp);
 
-	inline number query(number x) {
+	inline number query(number x) const {
 		if(x <= _xlow) return _A[0];
 		if(x >= _xupp) x = _xupp - FLT_EPSILON;
 		int i = (int) ((x - _xlow) / _delta);
@@ -58,7 +47,7 @@ public:
 		return (_A[i] + dx * (_B[i] + dx * (_C[i] + dx * _D[i]) * _inv_sqr_delta));
 	}
 
-	inline number query_derivative(number x) {
+	inline number query_derivative(number x) const {
 		if(x < _xlow) return _B[0];
 		if(x >= _xupp) x = _xupp - FLT_EPSILON;
 		int i = (int) ((x - _xlow) / _delta);
@@ -66,9 +55,7 @@ public:
 		return (_B[i] + (2 * dx * _C[i] + 3 * dx * dx * _D[i]) * _inv_sqr_delta);
 	}
 
-	number x_low() {
-		return _xlow;
-	}
+	number x_low() const;
 
 private:
 	int _N;

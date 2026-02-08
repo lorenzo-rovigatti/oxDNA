@@ -122,7 +122,6 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteraction.cpp
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
-	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
 )
@@ -188,7 +187,6 @@ SET(common_SOURCES
 	Particles/PatchyParticle.cpp
 	Particles/PatchyParticleDan.cpp
 	Particles/SpheroCylinder.cpp
-	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp

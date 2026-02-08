@@ -24,7 +24,6 @@
 #include "BoxInteraction.h"
 #include "HardCylinderInteraction.h"
 #include "HardSpheroCylinderInteraction.h"
-#include "CustomInteraction.h"
 #include "RNAInteraction_relax.h"
 #include "TEPInteraction.h"
 #include "JordanInteraction.h"
@@ -65,7 +64,6 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("HardCylinder") == 0) return std::make_shared<HardCylinderInteraction>();
 	else if(inter_type.compare("HardSpheroCylinder") == 0) return std::make_shared<HardSpheroCylinderInteraction>();
 	else if(inter_type.compare("DHS") == 0) return std::make_shared<DHSInteraction>();
-	else if(inter_type.compare("custom") == 0) return std::make_shared<CustomInteraction>();
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<TEPInteraction>();
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();
 	else if(inter_type.compare("NA") == 0) return std::make_shared<DRHInteraction>();
