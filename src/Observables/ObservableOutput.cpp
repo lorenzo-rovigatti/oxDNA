@@ -5,12 +5,12 @@
  *      Author: rovigatti
  */
 
-#include <sstream>
-#include <iostream>
-
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
 #include "../Utilities/Utils.h"
+
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 

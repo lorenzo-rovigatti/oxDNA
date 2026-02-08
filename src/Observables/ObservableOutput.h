@@ -9,7 +9,7 @@
 #define OBSERVABLEOUTPUT_H_
 
 #include <vector>
-#include <fstream>
+#include <iosfwd>
 
 #include "BaseObservable.h"
 

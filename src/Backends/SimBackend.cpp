@@ -5,9 +5,6 @@
  *      Author: lorenzo
  */
 
-#include <sstream>
-#include <fstream>
-
 #include "SimBackend.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
@@ -19,6 +16,9 @@
 #include "../PluginManagement/PluginManager.h"
 #include "../Particles/BaseParticle.h"
 #include "../Utilities/Timings.h"
+
+#include <sstream>
+#include <fstream>
 
 SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can

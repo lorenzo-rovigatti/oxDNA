@@ -9,14 +9,10 @@
 #ifndef BASEPARTICLE_H_
 #define BASEPARTICLE_H_
 
-#include <cstring>
-#include <cstdlib>
-#include <cassert>
-
-#include <stdio.h>
-
 #include "../defs.h"
 #include "../Utilities/oxDNAException.h"
+
+#include <cassert>
 
 class ParticlePair;
 class BaseBox;
