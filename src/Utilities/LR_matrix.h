@@ -113,11 +113,7 @@ public:
 		v2 = v3.cross(v1);
 	}
 	
-	friend std::ostream &operator<<(std::ostream &os, LR_matrix const m) {
-		return os << "[(" << m.v1.x << ", " << m.v1.y << ", " << m.v1.z << "),\n" << 
-					 " (" << m.v2.x << ", " << m.v2.y << ", " << m.v2.z << "),\n" <<
-					 " (" << m.v3.x << ", " << m.v3.y << ", " << m.v3.z << ")]";
-	}
+	friend std::ostream &operator<<(std::ostream &os, LR_matrix const m);
 };
 
 #endif /* SRC_UTILITIES_LR_MATRIX_H_ */

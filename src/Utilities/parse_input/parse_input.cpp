@@ -13,6 +13,7 @@
 
 #include <regex>
 #include <algorithm>
+#include <cmath>
 
 using std::string;
 using std::map;

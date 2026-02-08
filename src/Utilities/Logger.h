@@ -89,19 +89,12 @@ public:
 	/**
 	 * @brief Disables logging.
 	 */
-	void disable_log() { _allow_log = false; }
+	void disable_log();
 
 	/**
 	 * @brief Enabled logging.
 	 */
-	void enable_log() { _allow_log = true; }
-
-	/**
-	 * @brief Returns the pointer to the log stream used by this Logger
-	 *
-	 * @return pointer to the log stream (it can be stdout, stderr or an open file)
-	 */
-	FILE *get_log_stream() { return _log_stream; }
+	void enable_log();
 
 	/**
 	 * @brief Returns the actual logger. Static method to enforce the singleton pattern.

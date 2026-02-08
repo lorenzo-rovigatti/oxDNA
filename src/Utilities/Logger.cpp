@@ -67,6 +67,14 @@ void Logger::debug(const char *format, ...) {
 	}
 }
 
+void Logger::disable_log() { 
+	_allow_log = false;
+}
+
+void Logger::enable_log() {
+	_allow_log = true;
+}
+
 void Logger::get_settings(input_file &inp) {
 	char filename[256];
 
