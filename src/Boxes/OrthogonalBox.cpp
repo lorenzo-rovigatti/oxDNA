@@ -8,6 +8,7 @@
 #include "OrthogonalBox.h"
 
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
 #include "../Particles/BaseParticle.h"
 
 #include <limits>

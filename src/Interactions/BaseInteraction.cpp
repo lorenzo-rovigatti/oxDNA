@@ -7,6 +7,8 @@
 
 #include "BaseInteraction.h"
 
+#include "../Utilities/ConfigInfo.h"
+
 BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;

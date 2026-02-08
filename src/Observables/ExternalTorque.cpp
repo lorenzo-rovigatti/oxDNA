@@ -8,6 +8,9 @@
  */
 
 #include "ExternalTorque.h"
+
+#include "../Forces/BaseForce.h"
+
 #include <string>
 
 ExternalTorque::ExternalTorque() {

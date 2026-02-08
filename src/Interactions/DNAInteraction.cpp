@@ -2,6 +2,7 @@
 
 #include "../Particles/DNANucleotide.h"
 #include "../Utilities/TopologyParser.h"
+#include "../Utilities/ConfigInfo.h"
 
 #include <fstream>
 #include <cfloat>

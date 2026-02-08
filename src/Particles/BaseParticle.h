@@ -16,10 +16,11 @@
 #include <stdio.h>
 
 #include "../defs.h"
-#include "../Boxes/BaseBox.h"
-#include "../Forces/BaseForce.h"
+#include "../Utilities/oxDNAException.h"
 
 class ParticlePair;
+class BaseBox;
+class BaseForce;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
@@ -60,19 +61,7 @@ public:
 	 */
 	bool add_ext_force(BaseForce *f);
 
-	inline void set_initial_forces(llint step, BaseBox *box) {
-		if(is_rigid_body()) {
-			torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-		}
-		force = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-
-		if(ext_forces.size() > 0) {
-			LR_vector abs_pos = box->get_abs_pos(this);
-			for(auto ext_force : ext_forces) {
-				force += ext_force->value(step, abs_pos);
-			}
-		}
-	}
+	void set_initial_forces(llint step, BaseBox *box);
 
 	/**
 	 * @brief Computes the interaction resulting from all the external forces acting on the particle. Stores the result in the ext_potential member.
@@ -81,15 +70,7 @@ public:
 	 * @param box pointer to the box object
 	 * @return true if the external potential was added, false otherwise
 	 */
-	inline void set_ext_potential(llint step, BaseBox *box) {
-		if(ext_forces.size() > 0) {
-			LR_vector abs_pos = box->get_abs_pos(this);
-			ext_potential = (number) 0.;
-			for(auto ext_force : ext_forces) {
-				ext_potential += ext_force->potential(step, abs_pos);
-			}
-		}
-	}
+	void set_ext_potential(llint step, BaseBox *box);
 
 	/**
 	 * @brief Checks whether q and the current particle are bonded neighbours (such as neighbouring particles on a DNA strand).
@@ -166,8 +147,9 @@ public:
 	BaseParticle *second;
 
 	ParticlePair(BaseParticle *p, BaseParticle *q) {
-		if(p == q)
+		if(p == q) {
 			throw oxDNAException("ParticlePair: p == q (%d) is not allowed", p->index);
+		}
 		if(p->index < q->index) {
 			first = p;
 			second = q;

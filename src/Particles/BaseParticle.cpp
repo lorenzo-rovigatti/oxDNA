@@ -8,6 +8,7 @@
 #include "BaseParticle.h"
 
 #include "../Boxes/BaseBox.h"
+#include "../Forces/BaseForce.h"
 
 BaseParticle::BaseParticle() :
 				index(-1),
@@ -60,6 +61,30 @@ bool BaseParticle::add_ext_force(BaseForce *f) {
 	ext_forces.push_back(f);
 
 	return true;
+}
+
+void BaseParticle::set_initial_forces(llint step, BaseBox *box) {
+	if(is_rigid_body()) {
+		torque = LR_vector();
+	}
+	force = LR_vector();
+
+	if(ext_forces.size() > 0) {
+		LR_vector abs_pos = box->get_abs_pos(this);
+		for(auto ext_force : ext_forces) {
+			force += ext_force->value(step, abs_pos);
+		}
+	}
+}
+
+void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
+	if(ext_forces.size() > 0) {
+		LR_vector abs_pos = box->get_abs_pos(this);
+		ext_potential = (number) 0.;
+		for(auto ext_force : ext_forces) {
+			ext_potential += ext_force->potential(step, abs_pos);
+		}
+	}
 }
 
 uint BaseParticle::N_int_centers() const {

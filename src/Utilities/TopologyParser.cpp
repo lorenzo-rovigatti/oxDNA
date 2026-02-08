@@ -8,6 +8,7 @@
 #include "TopologyParser.h"
 
 #include "../Particles/BaseParticle.h"
+#include "Utils.h"
 
 #include <fstream>
 
