@@ -3,6 +3,7 @@
 #define DNA_INTERACTION_H
 
 #include "BaseInteraction.h"
+#include "Mesh.h"
 
 /**
  * @brief Handles interactions between DNA nucleotides.
@@ -66,7 +67,7 @@ protected:
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4 (number cost, int i) { return this->_mesh_f4[i].query(cost); }
+	virtual number _custom_f4 (number cost, int i);
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -74,7 +75,7 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
+	virtual number _custom_f4D (number cost, int i);
 
 	number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
@@ -109,9 +110,7 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	bool has_custom_stress_tensor() const override {
-		return true;
-	}
+	bool has_custom_stress_tensor() const override;
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);

@@ -9,15 +9,11 @@
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"
-#include "../Lists/BaseList.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
-#include "Mesh.h"
-
 #include "../Lists/Cells.h"
 
 #include <map>
-#include <fstream>
 #include <set>
 #include <vector>
 #include <functional>

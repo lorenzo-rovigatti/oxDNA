@@ -10,6 +10,8 @@
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
 
+#include <fstream>
+
 PatchyInteraction::PatchyInteraction() :
 				BaseInteraction(),
 				_N_patches(0),

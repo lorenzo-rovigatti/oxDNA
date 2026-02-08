@@ -11,6 +11,7 @@
 #include "BaseObservable.h"
 
 #include <sstream>
+#include <fstream>
 
 /**
  * @brief Outputs stress autocorrelation functions

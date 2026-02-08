@@ -7,8 +7,6 @@
 
 #include "StressAutocorrelation.h"
 
-#include <sstream>
-
 StressAutocorrelation::StressAutocorrelation() :
 				BaseObservable() {
 

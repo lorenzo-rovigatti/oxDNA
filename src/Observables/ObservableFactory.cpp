@@ -63,6 +63,8 @@
 #include <nlohmann/json.hpp>
 #endif
 
+#include <fstream>
+
 ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);

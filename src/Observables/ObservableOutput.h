@@ -8,10 +8,10 @@
 #ifndef OBSERVABLEOUTPUT_H_
 #define OBSERVABLEOUTPUT_H_
 
-#include <vector>
-#include <iosfwd>
-
 #include "BaseObservable.h"
+
+#include <vector>
+#include <fstream>
 
 /**
  * @brief Manages a single output stream.

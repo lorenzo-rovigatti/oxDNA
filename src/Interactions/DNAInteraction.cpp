@@ -1166,6 +1166,14 @@ number DNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 	return energy;
 }
 
+number DNAInteraction::_custom_f4 (number cost, int i) { 
+	return this->_mesh_f4[i].query(cost);
+}
+
+number DNAInteraction::_custom_f4D (number cost, int i) {
+	return this->_mesh_f4[i].query_derivative(cost);
+}
+
 number DNAInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
@@ -1480,6 +1488,10 @@ void DNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new DNANucleotide(_grooving);
 	}
+}
+
+bool DNAInteraction::has_custom_stress_tensor() const {
+	return true;
 }
 
 void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {

@@ -9,6 +9,8 @@
 
 #include "../Utilities/ConfigInfo.h"
 
+#include <fstream>
+
 BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
