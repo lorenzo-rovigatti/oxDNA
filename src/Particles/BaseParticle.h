@@ -38,32 +38,19 @@ public:
 
 	std::vector<ParticlePair> affected;
 
-	virtual void set_positions() {
-
-	}
+	virtual void set_positions();
 
 	/// number of boxes the particle has diffused in each direction
 	int _pos_shift[3];
 
 	virtual void copy_from(const BaseParticle &);
-	inline void soft_copy_from(const BaseParticle * p) {
-		pos = p->pos;
-		orientation = p->orientation;
-		orientationT = p->orientationT;
-		en3 = p->en3;
-		en5 = p->en5;
-		esn3 = p->esn3;
-		esn5 = p->esn5;
-	}
 
 	number en3, en5, esn3, esn5;
 	bool inclust;
 
 	void init();
 
-	int get_index() const {
-		return index;
-	}
+	int get_index() const;
 
 	/**
 	 * @brief Add an external force.
@@ -110,18 +97,14 @@ public:
 	 * @param q candidate bonded neighbour
 	 * @return true if the current particle and q are bonded neighbours, false otherwise
 	 */
-	virtual bool is_bonded(BaseParticle *q) {
-		return false;
-	}
+	virtual bool is_bonded(BaseParticle *q);
 
 	/**
 	 * @brief Defaults to false.
 	 *
 	 * @return true if the particle is a rigid body (i.e. orientational degrees of freedom are to be taken into account), false otherwise
 	 */
-	virtual bool is_rigid_body() {
-		return false;
-	}
+	virtual bool is_rigid_body() const;
 
 	inline void set_pos_shift(int x, int y, int z) {
 		_pos_shift[0] = x;
@@ -129,15 +112,9 @@ public:
 		_pos_shift[2] = z;
 	}
 
-	void get_pos_shift(int *arg) {
-		arg[0] = _pos_shift[0];
-		arg[1] = _pos_shift[1];
-		arg[2] = _pos_shift[2];
-	}
+	void get_pos_shift(int *arg);
 
-	virtual uint N_int_centers() {
-		return int_centers.size();
-	}
+	virtual uint N_int_centers() const;
 
 	/// Index of the particle. Usually it is a useful way of accessing arrays of particles
 	int index;

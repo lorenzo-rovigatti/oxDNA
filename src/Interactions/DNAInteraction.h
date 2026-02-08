@@ -76,7 +76,7 @@ protected:
 	 */
 	virtual number _custom_f4D (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
 
-	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 	/**
 	 * @brief Check the relation between p and q. Used by the bonded interaction terms.
@@ -155,31 +155,5 @@ public:
 	number F5_PHI_XC[4];
 	number F5_PHI_XS[4];
 };
-
-
-number DNAInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
-	// this is a bit faster than calling r.norm()
-	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
-	number energy = (number) 0;
-
-	if(rnorm < SQR(rc)) {
-		if(rnorm > SQR(rstar)) {
-			number rmod = sqrt(rnorm);
-			number rrc = rmod - rc;
-			energy = EXCL_EPS * b * SQR(rrc);
-			if(update_forces) force = -r * (2 * EXCL_EPS * b * rrc / rmod);
-		}
-		else {
-			number tmp = SQR(sigma) / rnorm;
-			number lj_part = tmp * tmp * tmp;
-			energy = 4 * EXCL_EPS * (SQR(lj_part) - lj_part);
-			if(update_forces) force = -r * (24 * EXCL_EPS * (lj_part - 2*SQR(lj_part)) / rnorm);
-		}
-	}
-
-	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
-
-	return energy;
-}
 
 #endif /* DNA_INTERACTION_H */

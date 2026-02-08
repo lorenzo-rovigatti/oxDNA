@@ -33,7 +33,7 @@ public:
 
 	virtual void copy_from(const BaseParticle &);
 
-	virtual bool is_rigid_body() {
+	bool is_rigid_body() const override {
 		return true;
 	}
 

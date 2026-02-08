@@ -62,13 +62,39 @@ bool BaseParticle::add_ext_force(BaseForce *f) {
 	return true;
 }
 
-void BaseParticle::init() {
-	force = LR_vector(0., 0., 0.);
-	torque = LR_vector(0., 0., 0.);
-	_check();
+uint BaseParticle::N_int_centers() const {
+	return int_centers.size();
+}
+
+void BaseParticle::set_positions() {
+	return;
+}
+
+int BaseParticle::get_index() const {
+	return index;
 }
 
 void BaseParticle::_check() {
 	assert(index >= 0);
 	assert(type != P_INVALID);
+}
+
+bool BaseParticle::is_bonded(BaseParticle *q) {
+	return false;
+}
+
+bool BaseParticle::is_rigid_body() const {
+	return false;
+}
+
+void BaseParticle::get_pos_shift(int *arg) {
+	arg[0] = _pos_shift[0];
+	arg[1] = _pos_shift[1];
+	arg[2] = _pos_shift[2];
+}
+
+void BaseParticle::init() {
+	force = LR_vector(0., 0., 0.);
+	torque = LR_vector(0., 0., 0.);
+	_check();
 }

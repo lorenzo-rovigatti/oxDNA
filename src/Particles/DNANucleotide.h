@@ -35,7 +35,7 @@ public:
 	virtual bool is_bonded(BaseParticle *q);
 	virtual void set_positions();
 
-	virtual bool is_rigid_body() {
+	bool is_rigid_body() const override {
 		return true;
 	}
 };

@@ -29,12 +29,14 @@ public:
 		BOT = 1
 	};
 	virtual void set_positions();
-	virtual bool is_rigid_body() { return true; }
+	bool is_rigid_body() const override { 
+		return true;
+	}
 
-	void set_initial_forces (llint step, BaseBox * box); 
-	void set_ext_potential (llint step, BaseBox * box); 
+	void set_initial_forces(llint step, BaseBox * box); 
+	void set_ext_potential(llint step, BaseBox * box); 
 
-	void set_length (number arg);
+	void set_length(number arg);
 };
 
 #endif /* SPHEROCYLINDER_H_ */
