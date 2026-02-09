@@ -2,8 +2,6 @@
  * @file    CUDAUtils.h
  * @date    24/set/2010
  * @author  lorenzo
- *
- *
  */
 
 #ifndef GPUUTILS_H_
