@@ -634,7 +634,7 @@ with open(file_path, 'r') as file:
 file.close()
 
 print(" ")
-print("RELATIVE STACKING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
+print("RELATIVE STACKING AND COAXIAL STACKING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
 for i in range(len(lines_stk_eta_value)):
     print(lines_stk_eta_seq[i], end=" ")
     print(float(lines_stk_eta_value[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1))
