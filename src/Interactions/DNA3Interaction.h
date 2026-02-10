@@ -27,6 +27,7 @@ protected:
     virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
     virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
     virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+    virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
     number _f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
@@ -40,7 +41,7 @@ protected:
 
     number _fakef4_SD(number t, void * par);
     number _fakef4D_SD(number t, void * par);
-
+    
     virtual number _custom_f4_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query(cost); }
     virtual number _custom_f4D_SD(number cost, int i, int n3_2, int n3_1, int n5_1, int n5_2) { return _mesh_f4_SD[i][n3_2][n3_1][n5_1][n5_2].query_derivative(cost); }
 
