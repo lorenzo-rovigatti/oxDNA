@@ -177,7 +177,7 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     F4_SD_THETA_T0[8].fill(CRST_THETA4_T0);
     F4_SD_THETA_T0[9].fill(CRST_THETA7_T0);
 
-    F4_SD_THETA_T0[10].fill(CXST_THETA1_T0_OXDNA);
+    F4_SD_THETA_T0[10].fill(CXST_THETA1_T0_OXDNA2);
     F4_SD_THETA_T0[11].fill(CXST_THETA4_T0);
     F4_SD_THETA_T0[12].fill(CXST_THETA5_T0);
     F4_SD_THETA_T0[13].fill(CRST_THETA1_T0_33);
@@ -242,7 +242,7 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     F4_SD_THETA_TC[20].fill(CRST_THETA7_TC_55);
 
     F2_SD_K[0].fill(CRST_K);
-    F2_SD_K[1].fill(CXST_K_OXDNA);
+    F2_SD_K[1].fill(CXST_K_OXDNA2);
     F2_SD_K[2].fill(CRST_K_33);
     F2_SD_K[3].fill(CRST_K_55);
 
@@ -748,6 +748,13 @@ void DNA3Interaction::init() {
                         if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_55](i, j, k, l) = tmp_value;
                         */
 
+                        // COAXIAL_STACKING
+                        // this is pair type dependent
+                        sprintf(key, "CXST_K_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](k, i, j, l) = tmp_value;
+                        sprintf(key, "CXST_K_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](k, i, j, l) = tmp_value;
+                        
                         // F5 -- TODO, eventually
 
                         // MESH POINTS --TODO, ?
@@ -1722,6 +1729,114 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
     return energy;
 }
+
+
+number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+    if(p->is_bonded(q)) {
+        return (number) 0.f;
+    }
+
+    LR_vector rstack = _computed_r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
+    number rstackmod = rstack.module();
+    number energy = (number) 0.f;
+
+    if(CXST_RCLOW < rstackmod && rstackmod < CXST_RCHIGH) {
+        LR_vector rstackdir = rstack / rstackmod;
+
+        // particle axes according to Allen's paper
+        LR_vector &a1 = p->orientationT.v1;
+        LR_vector &a3 = p->orientationT.v3;
+        LR_vector &b1 = q->orientationT.v1;
+        LR_vector &b3 = q->orientationT.v3;
+
+        // angles involved in the CXST interaction
+        number cost1 = -a1 * b1;
+        number cost4 = a3 * b3;
+        number cost5 = a3 * rstackdir;
+        number cost6 = -b3 * rstackdir;
+        
+        // functions and their derivatives needed for energies and forces
+        int type_n3_2 = NO_TYPE;
+        int type_n5_2 = NO_TYPE;
+
+        if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+        if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+        
+
+        // functions called at their relevant arguments
+        number f2 = _f2_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+        number f4t1 = _custom_f4(cost1, CXST_F4_THETA1);
+        number f4t4 = _custom_f4(cost4, CXST_F4_THETA4);
+        number f4t5 = _custom_f4(cost5, CXST_F4_THETA5) + _custom_f4(-cost5, CXST_F4_THETA5);
+        number f4t6 = _custom_f4(cost6, CXST_F4_THETA6) + _custom_f4(-cost6, CXST_F4_THETA6);
+
+        energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
+        
+        // makes sense since the above f? can return exacly 0.
+        if(update_forces && energy != 0.) {
+            LR_vector force(0, 0, 0);
+            LR_vector torquep(0, 0, 0);
+            LR_vector torqueq(0, 0, 0);
+
+            // derivatives called at the relevant arguments
+            number f2D = _f2D_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+            number f4t1Dsin = _custom_f4D(cost1, CXST_F4_THETA1);
+            number f4t4Dsin = -_custom_f4D(cost4, CXST_F4_THETA4);
+            number f4t5Dsin = -_custom_f4D(cost5, CXST_F4_THETA5) + _custom_f4D(-cost5, CXST_F4_THETA5);
+            number f4t6Dsin = _custom_f4D(cost6, CXST_F4_THETA6) - _custom_f4D(-cost6, CXST_F4_THETA6);
+
+            // RADIAL PART
+            force = -rstackdir * (f2D * f4t1 * f4t4 * f4t5 * f4t6);
+
+            // THETA1; t1 = LRACOS (-a1 * b1);
+            LR_vector dir = a1.cross(b1);
+            number torquemod = -f2 * f4t1Dsin * f4t4 * f4t5 * f4t6;
+
+            torquep -= dir * torquemod;
+            torqueq += dir * torquemod;
+
+            // THETA4; t4 = LRACOS (a3 * b3);
+            dir = a3.cross(b3);
+            torquemod = -f2 * f4t1 * f4t4Dsin * f4t5 * f4t6;
+
+            torquep -= dir * torquemod;
+            torqueq += dir * torquemod;
+
+            // THETA5; t5 = LRACOS ( a3 * rstackdir);
+            number fact = f2 * f4t1 * f4t4 * f4t5Dsin * f4t6;
+            force += fact * (a3 - rstackdir * cost5) / rstackmod;
+            dir = rstackdir.cross(a3);
+            torquep -= dir * fact;
+
+            // THETA6; t6 = LRACOS (-b3 * rstackdir);
+            fact = f2 * f4t1 * f4t4 * f4t5 * f4t6Dsin;
+            force += (b3 + rstackdir * cost6) * (fact / rstackmod);
+            dir = rstackdir.cross(b3);
+
+            torqueq += -dir * fact;
+
+            // final update of forces and torques for CXST
+            p->force -= force;
+            q->force += force;
+
+            _update_stress_tensor(_computed_r, force);
+
+            torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
+            torqueq += q->int_centers[DNANucleotide::STACK].cross(force);
+
+            // we need torques in the reference system of the particle
+            p->torque += p->orientationT * torquep;
+            q->torque += q->orientationT * torqueq;
+        }
+    }
+
+    return energy;
+}
+
+
+
+
+
 
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
