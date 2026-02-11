@@ -381,6 +381,7 @@
 /// radial part
 #define CXST_F2 1
 #define CXST_R0 0.400f
+#define CXST_R0_OXDNA3 0.370011f
 #define CXST_RC 0.6f
 #define CXST_K_OXDNA 46.0f
 #define CXST_K_OXDNA2 58.5f
