@@ -252,7 +252,7 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     F2_SD_RC[3].fill(CRST_RC_55);
 
     F2_SD_R0[0].fill(CRST_R0);
-    F2_SD_R0[1].fill(CXST_R0);
+    F2_SD_R0[1].fill(CXST_R0_OXDNA3);
     F2_SD_R0[2].fill(CRST_R0_33);
     F2_SD_R0[3].fill(CRST_R0_55);
 
@@ -885,10 +885,17 @@ void DNA3Interaction::init() {
                         // f2
                         for(int m = 0; m < 4; m++) {
 
-                            F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.08;
-                            F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.08;
-                            F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.1;
-
+                            if(m == 1) {  //for coaxial
+                                F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.18;
+                                F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.18;
+                                F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.2;
+                            }
+                            else {  //for cross-stacking
+                                F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.08;
+                                F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.08;
+                                F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.1;
+                            }
+                                
                             term1 = F2_SD_RLOW[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term2 = F2_SD_RHIGH[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
                             term3 = F2_SD_RC[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
