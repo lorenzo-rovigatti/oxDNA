@@ -37,8 +37,6 @@ protected:
 	int MESH_F4_POINTS[13];
 	Mesh _mesh_f4[13];
 
-	virtual void _on_T_update();
-
 	number _f1(number r, int type, int n3, int n5);
 	number _f1D(number r, int type, int n3, int n5);
 	number _f2(number r, int type);
@@ -123,6 +121,12 @@ public:
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+
+    number get_T() {
+        return _T;
+    }
+
+    virtual void _on_T_update();
 
 	// model constants
 	number F1_EPS[2][5][5];

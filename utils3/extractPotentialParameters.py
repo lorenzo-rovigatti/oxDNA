@@ -1,6 +1,4 @@
 import sys
-import re
-
 # Specify the file path and the string to match
 file_path = '../oxDNA3_sequence_dependent_parameters.txt'
 
@@ -60,29 +58,6 @@ with open(file_path, 'r') as file:
             part = stripped_line.split(' ')
             lines_excv_rstar.append(part[2])
 file.close()
-
-# Stacking strengths
-lines_stk_eta = []
-#lines_stk_eta_seq = []
-nucl_type = ['A', 'C', 'G', 'T']
-
-for n1 in nucl_type:
-    for n2 in nucl_type:
-        for n3 in nucl_type:
-            for n4 in nucl_type:
-                start_string = 'STCK' + '_' + n1 + '_' + n2 + '_' + n3 + '_' + n4
-                exclude_string = start_string + r'(?!_[ACGT])'
-                with open(file_path, 'r') as file:
-                    for line in file:
-                        # Remove leading/trailing whitespace
-                        stripped_line = line.strip()
-                        # Check if the line starts with the specified string
-                        if re.match(exclude_string,line):
-                            part = stripped_line.split(' ')
-                            lines_stk_eta.append(part[2])
-                            #lines_stk_eta_seq.append(start_string)
-                file.close()
-
 
 lines_stk_r0 = []
 start_string = 'STCK_R0'
@@ -388,12 +363,7 @@ for i in range(len(lines_excv_rstar)):
 print("")
 
 # Write stk
-print("* * stk     1.3523 2.6717", end=" ")
-for i in range(len(lines_stk_eta)):
-    print("%21.15le" % (float(lines_stk_eta[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1)), end=" ")
-print(end=" ")
-print("6.0", end=" ")
-print(end=" ")
+print("* * stk     1.3523 2.6717 6.0", end=" ")
 for i in range(len(lines_stk_r0)):
     print("%21.15le" % float(lines_stk_r0[i]), end=" ")
 print(end=" ")
@@ -460,12 +430,215 @@ print("1.7 0.875 2.266592653589793 0.68 1.7 0.875 2.266592653589793 0.68", end="
 print("")
 
 # Write coaxstk
-print("* * coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0.0 0.8 0.9 0.0 0.95 0.9 0.0 0.95 40.0 3.116592653589793", end=" ")
+print("* * coaxstk 58.5 0.370011 0.570011 0.190011 0.550011 2.0 2.891592653589793 0.65 1.3 0.0 0.8 0.9 0.0 0.95 0.9 0.0 0.95 40.0 3.116592653589793", end=" ")
 print("")
 
 # Write dh
 print("* * dh      0.815", end=" ")
 print("")
+
+# relative stacking strengths
+lines_stk_eta_seq = []
+lines_stk_eta_value = []
+
+start_string = 'STCK_A_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_A ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_A')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_C ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_C')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_G ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_G')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_A_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('A_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_C_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('C_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_G_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('G_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+start_string = 'STCK_T_T ='
+with open(file_path, 'r') as file:
+    for line in file:
+        # Remove leading/trailing whitespace
+        stripped_line = line.strip()
+        # Check if the line starts with the specified string
+        if stripped_line.startswith(start_string):
+            part = stripped_line.split(' ')
+            lines_stk_eta_seq.append('T_T')
+            lines_stk_eta_value.append(part[2])
+file.close()
+
+print(" ")
+print("RELATIVE STACKING AND COAXIAL STACKING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
+for i in range(len(lines_stk_eta_value)):
+    print(lines_stk_eta_seq[i], end=" ")
+    print(float(lines_stk_eta_value[i])*(1.0-0.18+(0.1*9.0*0.18))/(1.3523+2.6717*0.1))
+
 
 # relative hydrogen bonding strengths
 
@@ -501,3 +674,4 @@ print("RELATIVE HYDROGEN BONDING STRENGHTS -- REMOVE FROM UPPER POTENTIAL FILE")
 for i in range(len(lines_hb_alpha_value)):
     print(lines_hb_alpha_seq[i], end=" ")
     print(float(lines_hb_alpha_value[i])/1.0678)
+

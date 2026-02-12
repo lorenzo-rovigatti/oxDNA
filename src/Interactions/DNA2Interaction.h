@@ -78,6 +78,18 @@ protected:
 public:
 	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
+    void _update_stacking_strengths(number T,number T0) {
+
+        number stck_fact_eps = 0.18;
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 4; j++) {
+                F1_EPS[STCK_F1][i][j] *= (1.0 - stck_fact_eps + (T * 9.0 * stck_fact_eps))/(1.0 - stck_fact_eps + (T0 * 9.0 * stck_fact_eps));
+                F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(STCK_RC - STCK_R0) * STCK_A));
+            }
+        }
+        return;
+    }
+
 	enum {
 		DEBYE_HUCKEL = 7
 	};

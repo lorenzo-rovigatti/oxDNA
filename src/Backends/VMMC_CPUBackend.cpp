@@ -1544,13 +1544,13 @@ void VMMC_CPUBackend::sim_step() {
 		 // check ext potential done*/
 
 		// add to the histogram
-		if(_have_us && current_step() > _equilibration_steps) {
-                        _h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
-                }
+		if(_have_us && current_step() > _equilibration_steps)
+        _h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
 // CAN THIS BE REMOVED?
 		//Andrea: check
 		//if ( _U < -20 || _U > 20 ) {
-		//	_compute_energy_debug();
+		//	
+        //_compute_energy_debug();
 		//}
 
 		// reset the inclust property to the particles
@@ -1564,10 +1564,12 @@ void VMMC_CPUBackend::sim_step() {
 	delete[] clust;
 
 	// check energy for percolation
+
 	if(current_step() % (llint) _check_energy_every == 1) {
 		//printf ("checking energy for percolation..\n");
 		number U_from_tally = _U;
 		_compute_energy();
+        //printf ("step %d checking en diff (%g %g)... \n", current_step(), U_from_tally, _U);
 		if((_U - U_from_tally) > 1.e-4) {
                         throw oxDNAException("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, _U);
                 }
@@ -1761,11 +1763,16 @@ void VMMC_CPUBackend::_compute_energy() {
 
 	_U = (number) 0;
 
+    //number stck_1, stck_all;
+    //stck_all = 0.;
+
 	for(int i = 0; i < N(); i++) {
 		p = _particles[i];
 		if(p->n3 != P_VIRTUAL) {
 			q = p->n3;
-			dres = _particle_particle_bonded_interaction_n3_VMMC(p, q);
+            dres = _particle_particle_bonded_interaction_n3_VMMC(p, q);
+			//dres = _particle_particle_bonded_interaction_n3_VMMC(p, q, &stck_1);
+            //stck_all += stck_1;
 			res += dres;
 			_U += dres;
 			if(_overlap) {
@@ -1787,6 +1794,14 @@ void VMMC_CPUBackend::_compute_energy() {
 			}
 		}
 	}
+
+   /*
+    DNA3Interaction * d3i = dynamic_cast<DNA3Interaction *>(_interaction.get());
+    if (d3i != NULL) std::cout << "Compute_energy_VMMC " << " T: " << _T << " " << d3i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
+
+    DNA2Interaction * d2i = dynamic_cast<DNA2Interaction *>(_interaction.get());
+    if (d2i != NULL) std::cout << " Compute_energy_VMMC " << " T: " << _T << " " << d2i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
+   */
 
 	if(_overlap) {
 		throw oxDNAException("overlap found. Aborting..\n");

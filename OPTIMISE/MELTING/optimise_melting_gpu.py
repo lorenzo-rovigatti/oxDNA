@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jul 31 12:04:54 2024
@@ -927,13 +928,18 @@ print("Computed initial energy")
 ofile = open("energy_in_all_n5.txt", 'w')
 ofile_ave = open("energy_in_ave_n5.txt", 'w')
 
+print("# of sequences n5", cg.Nseq_n5)
+
 if cg.Nseq_n5 > 0 : cfun.print_energy_n5(ofile,ofile_ave)
 
 ofile.close()
 ofile_ave.close()
 
-if cg.Nseq_n8 > 0 : cfun.print_energy_n8()
-if cg.Nseq_n15 > 0 : cfun.print_energy_n15()
+#print("Exit +debug.")
+#exit(1)
+
+#if cg.Nseq_n8 > 0 : cfun.print_energy_n8()
+#if cg.Nseq_n15 > 0 : cfun.print_energy_n15()
 
 print("Memory usage before optim-1:")
 print_memory_usage()
@@ -945,6 +951,10 @@ for i in range(len(cfun.OPT_PAR_LIST)) :
     id = cfun.OPT_PAR_LIST[i][0]
     ty = cfun.OPT_PAR_LIST[i][1]
     ids.append(id*625+ty)
+
+#now that we computed the energy, let's take the T factor in eps stack away, so that in pars are correct.
+
+cfun.CURR_PARS[par_index[44]] = cfun.CURR_PARS[par_index[44]]/ (1.0 - cg.stck_fact_eps + (0.1 * 9.0 * cg.stck_fact_eps))
 
 
 IDS_OP = torch.tensor(ids,device=device)
@@ -985,11 +995,11 @@ for n in range(len(low_bond)) :
         lb = low_bond[n]*0.25
         ub = up_bond[n]*2.0
         low_bond[n] = lb
-        up_bond[n] =ub
-        if lb > 1.2: low_bond[n] = lb
-        else: low_bond[n] = 1.3
-        if ub < 1.95: up_bond[n] = ub
-        else: up_bond[n] = 1.95
+        up_bond[n] = ub
+        if lb > 1.0: low_bond[n] = lb
+        else: low_bond[n] = 1.0
+        if ub < 2.20: up_bond[n] = ub
+        else: up_bond[n] = 2.20
     elif cfun.OPT_PAR_LIST[n][0] == 77 or cfun.OPT_PAR_LIST[n][0] == 116:
         low_bond[n] = 0
         up_bond[n] = 76.1
@@ -1048,11 +1058,19 @@ def Callback(sol):
 
     cg.update_rews = True
 
-    print("x: ")
+    print("x_norm: ")
     tmp = []
     for i in range(len(sol)):
         tmp.append(sol[i]/X0[i])
     print(tmp)
+
+    print("x: ")
+    tmp = []
+    for i in range(len(sol)):
+        tmp.append(sol[i])
+    print(tmp)
+
+
     print("S: "+str(cfun.COST(sol)))
 
     torch.set_printoptions(profile="full")
@@ -1102,15 +1120,16 @@ print("Memory usage before optim-3:")
 print_memory_usage()
 
 ####### THIS LINE RUNS THE OPTIMISAION #######################
-sol = optimize.minimize(cfun.COST,X0, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':2,'iprint': 1})
+sol = optimize.minimize(cfun.COST,X0, method='Nelder-Mead', callback=Callback, bounds=bnd, options={'maxiter':50, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
 
+sol = optimize.minimize(cfun.COST,sol.x, method='L-BFGS-B', callback=Callback, bounds=bnd, options={'maxiter':30, 'ftol': 1e-20, 'gtol': 1e-20 ,'iprint': 1})
 
 #change slightly parameters at boundaries to avoid problems with next iteration
 par_fin = sol.x
 
 for n in range(len(par_fin)) :
-    if (par_fin[n]-low_bond[n])/(low_bond[n]+0.00000001) <= 0.001: par_fin[n]= par_fin[n]*1.001
-    if (up_bond[n]-par_fin[n])/up_bond[n] <= 0.001: par_fin[n] = par_fin[n]*0.999
+    if (par_fin[n]-low_bond[n])/(low_bond[n]+0.00000001) <= 0.0001: par_fin[n]= par_fin[n]*1.0001
+    if (up_bond[n]-par_fin[n])/up_bond[n] <= 0.0001: par_fin[n] = par_fin[n]*0.9999
 
 
 S = cfun.COST(sol.x)
