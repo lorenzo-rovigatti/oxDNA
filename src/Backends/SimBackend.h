@@ -15,6 +15,7 @@
 #include "../defs.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Particles/Molecule.h"
+#include "../Interactions/BaseInteraction.h"
 
 #include <cmath>
 #include <fstream>
@@ -172,6 +173,9 @@ public:
 	 * @return true if the operation was successful, false otherwise
 	 */
 	virtual bool read_next_configuration(bool binary=false);
+	virtual bool read_stored_configuration(std::string conf, std::string box);
+
+	virtual void update_interaction_parameters(std::string names, std::string values);
 
 	int N() {
 		return _particles.size();

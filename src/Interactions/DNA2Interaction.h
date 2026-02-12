@@ -43,6 +43,16 @@ protected:
 	number _f4Dsin_pure_harmonic(number t, int type);
 	number _f4D_pure_harmonic(number t, int type);
 
+	// we use those for debugging purposes, QUESTION: REMOVE AFTER OXDNA3 IMPLEMENTATION?
+	bool _enable_backbone = true;
+	bool _enable_bonded_excluded_volume = true;
+	bool _enable_stacking = true;
+	bool _enable_nonbonded_excluded_volume = true;
+	bool _enable_hydrogen_bonding = true;
+	bool _enable_cross_stacking = true;
+	bool _enable_coaxial_stacking = true;
+	bool _enable_debye_huckel = true;
+
 	/**
 	 * @brief Custom function that returns f4. Meshes are never used for the coaxial stacking f4(theta1) term for the DNA2 interaction
 	 *
@@ -67,6 +77,18 @@ protected:
 
 public:
 	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+
+    void _update_stacking_strengths(number T,number T0) {
+
+        number stck_fact_eps = 0.18;
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 4; j++) {
+                F1_EPS[STCK_F1][i][j] *= (1.0 - stck_fact_eps + (T * 9.0 * stck_fact_eps))/(1.0 - stck_fact_eps + (T0 * 9.0 * stck_fact_eps));
+                F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(STCK_RC - STCK_R0) * STCK_A));
+            }
+        }
+        return;
+    }
 
 	enum {
 		DEBYE_HUCKEL = 7
@@ -96,7 +118,6 @@ public:
  * This interaction is selected with
  * interaction_type = DNA2_nomesh
  */
-
 class DNA2Interaction_nomesh: public DNA2Interaction {
 protected:
 
@@ -125,11 +146,9 @@ protected:
 public:
 	DNA2Interaction_nomesh() {
 	}
-	;
+	
 	virtual ~DNA2Interaction_nomesh() {
 	}
-	;
-
 };
 
 #endif /* DNA2_INTERACTION_H */

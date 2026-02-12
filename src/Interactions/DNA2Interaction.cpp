@@ -16,7 +16,7 @@ DNA2Interaction::DNA2Interaction() :
 
 	_salt_concentration = 0.5;
 	_debye_huckel_half_charged_ends = true;
-	_grooving = true;
+	_grooving = 1;
 	_fene_r0 = FENE_R0_OXDNA2;
 }
 
@@ -30,11 +30,11 @@ number DNA2Interaction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q
 		return (number) 0;
 	}
 
-	// The methods with "" in front of them are inherited from DNAInteraction. The
-	// other one belongs to DNA2Interaction
-	number energy = _backbone(p, q, false, update_forces);
-	energy += _bonded_excluded_volume(p, q, false, update_forces);
-	energy += _stacking(p, q, false, update_forces);
+	number energy = 0;
+
+	energy += (_enable_backbone) ? _backbone(p, q, false, update_forces) : 0;
+	energy += (_enable_bonded_excluded_volume) ? _bonded_excluded_volume(p, q, false, update_forces) : 0;
+	energy += (_enable_stacking) ? _stacking(p, q, false, update_forces) : 0;
 
 	return energy;
 }
@@ -48,13 +48,13 @@ number DNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 		return (number) 0.f;
 	}
 
-	// The methods with "" in front of them are inherited from DNAInteraction. The
-	// other two methods belong to DNA2Interaction
-	number energy = _nonbonded_excluded_volume(p, q, false, update_forces);
-	energy += _hydrogen_bonding(p, q, false, update_forces);
-	energy += _cross_stacking(p, q, false, update_forces);
-	energy += _coaxial_stacking(p, q, false, update_forces);
-	energy += _debye_huckel(p, q, false, update_forces);
+	number energy = 0;
+	
+	energy += (_enable_nonbonded_excluded_volume) ? _nonbonded_excluded_volume(p, q, false, update_forces) : 0;
+	energy += (_enable_hydrogen_bonding) ? _hydrogen_bonding(p, q, false, update_forces) : 0;
+	energy += (_enable_cross_stacking) ? _cross_stacking(p, q, false, update_forces) : 0;
+	energy += (_enable_coaxial_stacking) ? _coaxial_stacking(p, q, false, update_forces) : 0;
+	energy += (_enable_debye_huckel) ? _debye_huckel(p, q, false, update_forces) : 0;
 
 	return energy;
 }
@@ -63,7 +63,6 @@ void DNA2Interaction::get_settings(input_file &inp) {
 	DNAInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
-	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt concentration =  %g", _salt_concentration);
 
 	getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
 	//OX_LOG(Logger::LOG_INFO,"dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
@@ -90,6 +89,15 @@ void DNA2Interaction::get_settings(input_file &inp) {
 	if(_grooving && (getInputBool(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) {
 		OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 	}
+
+	getInputBool(&inp, "DNA_enable_backbone", &_enable_backbone, 0);
+	getInputBool(&inp, "DNA_enable_bonded_excluded_volume", &_enable_bonded_excluded_volume, 0);
+	getInputBool(&inp, "DNA_enable_stacking", &_enable_stacking, 0);
+	getInputBool(&inp, "DNA_enable_nonbonded_excluded_volume", &_enable_nonbonded_excluded_volume, 0);
+	getInputBool(&inp, "DNA_enable_hydrogen_bonding", &_enable_hydrogen_bonding, 0);
+	getInputBool(&inp, "DNA_enable_cross_stacking", &_enable_cross_stacking, 0);
+	getInputBool(&inp, "DNA_enable_coaxial_stacking", &_enable_coaxial_stacking, 0);
+	getInputBool(&inp, "DNA_enable_debye_huckel", &_enable_debye_huckel, 0);
 }
 
 void DNA2Interaction::init() {
@@ -115,7 +123,7 @@ void DNA2Interaction::init() {
 	}
 
 	// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide _T by 0.1
-	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
+	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
 	_minus_kappa = -1.0 / lambda;
 
 	// these are just for convenience for the smoothing parameter computation
@@ -129,21 +137,21 @@ void DNA2Interaction::init() {
 
 	number debyecut;
 	if(_grooving) {
-		debyecut = 2.0f * sqrt((POS_MM_BACK1) * (POS_MM_BACK1) + (POS_MM_BACK2) * (POS_MM_BACK2)) + _debye_huckel_RC;
+		debyecut = 2.0 * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
 	}
 	else {
-		debyecut = 2.0f * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
+		debyecut = 2.0 * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
 	}
 	// the cutoff radius for the potential should be the larger of rcut and debyecut
 	if(debyecut > _rcut) {
 		_rcut = debyecut;
-		_sqr_rcut = debyecut * debyecut;
+		_sqr_rcut = SQR(_rcut);
 	}
 
 	// NB lambda goes into the exponent for the D-H potential and is given by lambda = lambda_k * sqrt((T/300K)/(I/1M))
 	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, _rcut);
 	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
-	OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature and salt concentration is %f", lambda);
+	OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature (%lf) and salt concentration (%lf) is %f", _T, _salt_concentration, lambda);
 }
 
 number DNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

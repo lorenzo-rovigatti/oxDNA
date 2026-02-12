@@ -48,7 +48,10 @@
 #include <memory>
 #include <array>
 
-using uint = uint32_t;
+#if __cplusplus < 201103L
+typedef unsigned int uint32_t;
+#endif
+typedef uint32_t uint;
 using llint = long long int;
 using StressTensor = std::array<number, 6>;
 
