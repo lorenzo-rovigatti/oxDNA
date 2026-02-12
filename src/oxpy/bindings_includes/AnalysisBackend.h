@@ -33,6 +33,24 @@ void export_AnalysisBackend(py::module &m) {
 	backend.def("read_next_configuration", &AnalysisBackend::read_next_configuration, py::arg("binary")=false, R"pbdoc(
 		Load up the next configuration from the trajectory file.
 	)pbdoc");
+	
+	backend.def("read_stored_configuration", &AnalysisBackend::read_stored_configuration, py::arg("conf"), py::arg("box"), R"pbdoc(
+		Load up the next configuration from input.
+	)pbdoc");
+	
+	backend.def("update_interaction_parameters", &AnalysisBackend::update_interaction_parameters, py::arg("names"), py::arg("values"), R"pbdoc(
+		Updates parameters of the model. Currently supporting only DNAInteraction3
+		
+		Parameters:
+		-------------
+		names : string
+			A string containing the manes of the parameters to update. Separated by space.
+		values : string
+			A string with the new values of the parameters to update. Separated by space.
+			the i-th value is the new value of parameter i-th name
+			
+		
+    )pbdoc");
 
 	backend.def("analyse", &AnalysisBackend::analyse, R"pbdoc(
 		Analyse the current configuration using the observables set through the input file.

@@ -11,6 +11,9 @@
 
 #include "Step.h"
 #include "PotentialEnergy.h"
+#include "PotentialEnergySelected.h"
+#include "StackingPropensity.h"
+#include "CrossStackingPropensity.h"
 #include "KineticEnergy.h"
 #include "TotalEnergy.h"
 #include "Configurations/Configuration.h"
@@ -50,6 +53,7 @@
 #include "AllVectors.h"
 #include "StressAutocorrelation.h"
 #include "ExternalForce.h"
+#include "ParticleForceAndTorque.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -71,6 +75,9 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 
 	if(!strncasecmp(obs_type, "step", 512)) res = std::make_shared<Step>();
 	else if(!strncasecmp(obs_type, "potential_energy", 512)) res = std::make_shared<PotentialEnergy>();
+	else if(!strncasecmp(obs_type, "potential_energy_selected", 512)) res = std::make_shared<PotentialEnergySelected>();
+	else if(!strncasecmp(obs_type, "stacking_propensity", 512)) res = std::make_shared<StackingPropensity>();	//new
+	else if(!strncasecmp(obs_type, "cross_stacking_propensity", 512)) res = std::make_shared<CrossStackingPropensity>();	//new
 	else if(!strncasecmp(obs_type, "kinetic_energy", 512)) res = std::make_shared<KineticEnergy>();
 	else if(!strncasecmp(obs_type, "total_energy", 512)) res = std::make_shared<TotalEnergy>();
 	else if(!strncasecmp(obs_type, "backend_info", 512)) res = std::make_shared<BackendInfo>();
@@ -117,6 +124,7 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = std::make_shared<AllVectors>();
 	else if(!strncasecmp(obs_type, "stress_autocorrelation", 512)) res = std::make_shared<StressAutocorrelation>();
 	else if(!strncasecmp(obs_type, "external_force", 512)) res = std::make_shared<ExternalForce>();
+	else if(!strncasecmp(obs_type, "force_and_torque", 512)) res = std::make_shared<ParticleForceAndTorque>();
 	else {
 		res = PluginManager::instance()->get_observable(obs_type);
 		if(res == NULL) throw oxDNAException("Observable '%s' not found. Aborting", obs_type);
