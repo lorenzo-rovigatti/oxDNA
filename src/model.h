@@ -3,7 +3,6 @@
  * @date    Jun 2, 2011
  * @author  fromano
  *
- *
  */
 
 #ifndef MODEL_H_
@@ -18,29 +17,6 @@
 #define POS_MM_BACK2 0.3408f
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
-
-/*
-// oxDNA3 - oxDNA2 bases
-#define POS_MM_BACK1_A -0.3400f
-#define POS_MM_BACK2_A 0.3408f
-#define POS_STACK_A 0.34f
-#define POS_BASE_A  0.4f
-
-#define POS_MM_BACK1_G -0.3400f
-#define POS_MM_BACK2_G 0.3408f
-#define POS_STACK_G 0.34f
-#define POS_BASE_G  0.4f
-
-#define POS_MM_BACK1_C -0.3400f
-#define POS_MM_BACK2_C 0.3408f
-#define POS_STACK_C 0.34f
-#define POS_BASE_C  0.4f
-
-#define POS_MM_BACK1_T -0.3400f
-#define POS_MM_BACK2_T 0.3408f
-#define POS_STACK_T 0.34f
-#define POS_BASE_T  0.4f
-*/
 
 #define POS_MM_BACK1_A -0.3400f
 #define POS_MM_BACK2_A 0.3408f
@@ -77,21 +53,21 @@
 /**
  * EXCLUDED VOLUME
  */
-#define EXCL_EPS 2.0f  //eps
-#define EXCL_S1 0.70f  //s_back
-#define EXCL_S2 0.33f  //s_base      non-bonded
-#define EXCL_S3 0.515f //s_base_back non-bonded
-#define EXCL_S4 0.515f //s_back_base non-bonded
-#define EXCL_S5 0.33f  //s_base      bonded        <<< TETRAMER 
-#define EXCL_S6 0.515f //s_base_back bonded
-#define EXCL_S7 0.515f //s_back_base bonded
-#define EXCL_R1 0.675f //r^*_back
-#define EXCL_R2 0.32f  //r^*_base      non-bonded
-#define EXCL_R3 0.50f  //r^*_base_back non-bonded
-#define EXCL_R4 0.50f  //r^*_back_base non-bonded
-#define EXCL_R5 0.32f  //r^*_base      bonded      <<< TETRAMER
-#define EXCL_R6 0.50f  //r^*_base_back bonded
-#define EXCL_R7 0.50f  //r^*_back_base bonded
+#define EXCL_EPS 2.0f
+#define EXCL_S1 0.70f
+#define EXCL_S2 0.33f
+#define EXCL_S3 0.515f
+#define EXCL_S4 0.515f
+#define EXCL_S5 0.33f
+#define EXCL_S6 0.515f
+#define EXCL_S7 0.515f
+#define EXCL_R1 0.675f
+#define EXCL_R2 0.32f
+#define EXCL_R3 0.50f
+#define EXCL_R4 0.50f
+#define EXCL_R5 0.32f
+#define EXCL_R6 0.50f
+#define EXCL_R7 0.50f
 #define EXCL_B1 892.016223343f
 #define EXCL_B2 4119.70450017f
 #define EXCL_B3 1707.30627298f
@@ -178,29 +154,29 @@
 #define STCK_FACT_EPS_OXDNA 2.6568f
 #define STCK_FACT_EPS_OXDNA2 2.6717f
 #define STCK_A 6.f
-#define STCK_RC 0.9f         // <<< TETRAMER
-#define STCK_R0 0.4f         // <<< TETRAMER
-#define STCK_BLOW -68.1857f  // round-off difference
-#define STCK_BHIGH -3.12992f // round-off difference
-#define STCK_RLOW 0.32f      // <<< TETRAMER
-#define STCK_RHIGH 0.75f     // <<< TETRAMER
-#define STCK_RCLOW 0.23239f  // <<< enslaved TETRAMER
-#define STCK_RCHIGH 0.956f   // <<< enslaved TETRAMER
+#define STCK_RC 0.9f
+#define STCK_R0 0.4f
+#define STCK_BLOW -68.1857f
+#define STCK_BHIGH -3.12992f
+#define STCK_RLOW 0.32f
+#define STCK_RHIGH 0.75f
+#define STCK_RCLOW 0.23239f
+#define STCK_RCHIGH 0.956f
 
 /// angular part, theta
 #define STCK_F4_THETA4 0
 #define STCK_F4_THETA5 1
 #define STCK_F4_THETA6 1
-#define STCK_THETA4_A 1.3f    // <<< TETRAMER
-#define STCK_THETA4_B 6.4381f // <<< enslaved TETRAMER
+#define STCK_THETA4_A 1.3f
+#define STCK_THETA4_B 6.4381f
 #define STCK_THETA4_T0 0.f
-#define STCK_THETA4_TS 0.8f      // <<< TETRAMER
-#define STCK_THETA4_TC 0.961538f // <<< enslaved TETRAMER
-#define STCK_THETA5_A 0.9f       // different value     
-#define STCK_THETA5_B 3.89361f   // different value
+#define STCK_THETA4_TS 0.8f
+#define STCK_THETA4_TC 0.961538f
+#define STCK_THETA5_A 0.9f
+#define STCK_THETA5_B 3.89361f
 #define STCK_THETA5_T0 0.f
-#define STCK_THETA5_TS 0.95f     // different value
-#define STCK_THETA5_TC 1.16959f  // different value
+#define STCK_THETA5_TS 0.95f
+#define STCK_THETA5_TC 1.16959f
 #define STCK_THETA6_A 0.9f
 #define STCK_THETA6_B 3.89361f
 #define STCK_THETA6_T0 0.f

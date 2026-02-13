@@ -78,7 +78,6 @@ public:
 	}
 
 	virtual void get_settings(input_file &inp);
-	virtual void update_parameters(std::string names, std::string values);
 
 	/**
 	 * Initialization of class constants.

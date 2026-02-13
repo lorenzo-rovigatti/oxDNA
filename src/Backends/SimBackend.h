@@ -15,7 +15,6 @@
 #include "../defs.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Particles/Molecule.h"
-#include "../Interactions/BaseInteraction.h"
 
 #include <cmath>
 #include <fstream>
