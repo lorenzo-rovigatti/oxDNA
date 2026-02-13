@@ -1486,11 +1486,10 @@ void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			}
 
 			int N_in_strand = btypes.size();
+			if(current_idx + N_in_strand > parser.N()) {
+				throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
+			}
 			for(int i = 0; i < N_in_strand; i++, current_idx++) {
-				if(current_idx == parser.N()) {
-					throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
-				}
-
 				BaseParticle *p = particles[current_idx];
 				p->strand_id = ns;
 				p->btype = btypes[i];
