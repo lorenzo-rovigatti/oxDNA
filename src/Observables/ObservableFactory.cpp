@@ -11,7 +11,6 @@
 
 #include "Step.h"
 #include "PotentialEnergy.h"
-#include "PotentialEnergySelected.h"
 #include "StackingPropensity.h"
 #include "CrossStackingPropensity.h"
 #include "KineticEnergy.h"
@@ -75,7 +74,6 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 
 	if(!strncasecmp(obs_type, "step", 512)) res = std::make_shared<Step>();
 	else if(!strncasecmp(obs_type, "potential_energy", 512)) res = std::make_shared<PotentialEnergy>();
-	else if(!strncasecmp(obs_type, "potential_energy_selected", 512)) res = std::make_shared<PotentialEnergySelected>();
 	else if(!strncasecmp(obs_type, "stacking_propensity", 512)) res = std::make_shared<StackingPropensity>();	//new
 	else if(!strncasecmp(obs_type, "cross_stacking_propensity", 512)) res = std::make_shared<CrossStackingPropensity>();	//new
 	else if(!strncasecmp(obs_type, "kinetic_energy", 512)) res = std::make_shared<KineticEnergy>();

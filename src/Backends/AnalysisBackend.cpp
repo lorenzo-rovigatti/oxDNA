@@ -123,40 +123,6 @@ bool AnalysisBackend::read_next_configuration(bool binary) {
 	return !_done;
 }
 
-bool AnalysisBackend::read_stored_configuration(std::string conf,std::string box) {
-	if(_n_conf == _confs_to_analyse) {
-		_done = true;
-		return false;
-	}
-
-	// _backend_ready is false whenever read_next_configuration() is called by SimBackend::init(), which may
-	// happen repeatedly if configurations are to be skipped
-	if(!_backend_ready) {
-		_done = !SimBackend::read_stored_configuration(conf,box);
-	}
-	else {
-		// since the first configuration has been already loaded up by SimBackend::init(), we make sure to
-		// not overwrite it the first time we call AnalysisBackend::read_next_configuration()
-		if(_n_conf != 0) {
-			_done = !SimBackend::read_stored_configuration(conf,box);
-
-			for(auto p : _particles) {
-				_lists->single_update(p);
-			}
-			_lists->global_update();
-		}
-		_n_conf++;
-	}
-	_config_info->curr_step = _read_conf_step;
-
-	return !_done;
-}
-
-void AnalysisBackend::update_interaction_parameters(std::string names, std::string values) {
-	SimBackend::update_interaction_parameters(names, values);
-}
-
-
 void AnalysisBackend::analyse() {
 	if(read_next_configuration(_initial_conf_is_binary)) {
 		SimBackend::update_observables_data();

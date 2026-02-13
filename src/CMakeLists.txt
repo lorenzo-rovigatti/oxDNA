@@ -16,7 +16,6 @@ SET(observables_SOURCES
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
 	Observables/PotentialEnergy.cpp
-	Observables/PotentialEnergySelected.cpp
 	Observables/StackingPropensity.cpp
 	Observables/CrossStackingPropensity.cpp
 	Observables/KineticEnergy.cpp

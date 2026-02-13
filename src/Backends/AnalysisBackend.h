@@ -61,9 +61,6 @@ public:
 	}
 
 	bool read_next_configuration(bool binary=false) override;
-	bool read_stored_configuration(std::string conf,std::string box) override;
-	
-	void update_interaction_parameters(std::string names, std::string values) override;
 
 	void analyse();
 
