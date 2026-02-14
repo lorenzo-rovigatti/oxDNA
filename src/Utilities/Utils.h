@@ -208,6 +208,12 @@ void assert_is_valid_particle(int n, int N, std::string identifier);
  */
 bool is_integer(std::string s);
 
+inline number safe_acos(number x) {
+    // branchless clamp into [–1,1]
+    number y = std::fmax(-1.0, std::fmin(1.0, x));
+    return std::acos(y);
+}
+
 }
 
 inline LR_vector Utils::get_random_vector() {
