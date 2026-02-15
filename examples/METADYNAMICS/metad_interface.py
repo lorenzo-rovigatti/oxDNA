@@ -646,58 +646,102 @@ class Estimator():
                 
         self.stop_runners()
 
-        
-if __name__ == '__main__': 
 
-    import argparse
-    
+import argparse
+import sys
+import toml
+
+
+def build_parser():
     parser = argparse.ArgumentParser(
-        description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("base_dir", help="The directory storing the base simulation files")
+        description="Metadynamics interface for oxDNA. Requires oxpy.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    # Config file
+    parser.add_argument("--config", type=str, help="Path to TOML configuration file"
+    )
+
+    # Positional
+    parser.add_argument("base_dir", help="Directory storing the base simulation files"
+    )
+
+    # Scalar parameters
     parser.add_argument("--A", type=float, default=0.1, help="Initial bias-height increment")
     parser.add_argument("--sigma", type=float, default=0.05, help="Width of the deposited Gaussian")
-    parser.add_argument("--tau", type=int, default=10000, help="Length of a metadynamics iteration (in simulation steps)")
-    parser.add_argument("--dX", type=float, default=0.001, help="The spacing of the grid used to approximate the potential")
-    parser.add_argument("--N_walkers", type=int, default=6, help="Number of parallel processes to be launched")
-    parser.add_argument("--dT", type=float, default=3, help="Strength of the tempering (dT -> 0 leads to conventional simulations, dt -> infinity leads to conventional, non-well-tempered metadynamics)")
+    parser.add_argument("--tau", type=int, default=10000, help="Length of a metadynamics iteration")
+    parser.add_argument("--dX", type=float, default=0.001, help="Spacing of the potential grid")
+    parser.add_argument("--N_walkers", type=int, default=6, help="Number of parallel walkers")
+    parser.add_argument("--dT", type=float, default=3, help="Tempering strength")
     parser.add_argument("--dim", type=int, default=1, help="Dimension of the order parameter")
-    parser.add_argument("--p_fname", type=str, default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
-    parser.add_argument("--ratio", action="store_true", help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
-    parser.add_argument("--angle", action="store_true", help="Use the angle defined from three centres of mass as the order parameter")
-    parser.add_argument("--coordination", action="store_true", help="Use a continuous coordination number of given pairs of particles as the order parameter")
+    parser.add_argument("--p_fname", type=str, default="locs.meta", help="File storing particle indexes")
     parser.add_argument("--Niter", type=int, default=10000, help="Number of metadynamics iterations")
-    parser.add_argument("--xmin", type=float, default=0, help="The lower boundary of the potential grid")
-    parser.add_argument("--xmax", type=float, default=30, help="The upper boundary of the potential grid")
-    parser.add_argument("--conf_interval", type=int, default=1000, help="Frequency (in metadynamics iterations) with which configurations should be saved")
-    parser.add_argument("--save_hills", type=int, default=10, help="Frequency (in metadynamics iterations) with which the potential grid is sampled")
-    parser.add_argument("--continue_run", action="store_true", help="Whether the simulation should continue or start anew")
-    parser.add_argument("--T", default=None, help="The temperature at which the simulations will be run. If not set, the temperature in the initial input file will be used")
-    parser.add_argument("--use_sequential_GPUs", action="store_true", help="Each walker will try to use a dedicated GPU: the first one will attempt to use GPU 1, the second one GPU 2, etc.")
-    parser.add_argument("--op_interval", type=int, default=1000, help="Frequency (in simulation steps) with which the order parameter is printed")
-    
-    args = parser.parse_args()
-    
-    # here we check that the options make sense
-    if sum([args.ratio, args.angle, args.coordination]) > 1:
-        print("CRITICAL: --angle, --ratio, and --coordination are mutually exclusive options, exiting", file=sys.stderr)
-        exit(0)
+    parser.add_argument("--xmin", type=float, default=0, help="Lower boundary of the grid")
+    parser.add_argument("--xmax", type=float, default=30, help="Upper boundary of the grid")
+    parser.add_argument("--conf_interval", type=int, default=1000, help="Configuration save frequency")
+    parser.add_argument("--save_hills", type=int, default=10, help="Potential sampling frequency")
+    parser.add_argument("--T", default=None, help="Simulation temperature")
+    parser.add_argument("--op_interval", type=int, default=1000, help="Order parameter print frequency")
 
+    # Boolean flags
+    parser.add_argument("--continue_run", action="store_true", help="Continue previous simulation")
+    parser.add_argument("--use_sequential_GPUs", action="store_true", help="Assign walkers to GPUs sequentially")
+
+    # Mutually exclusive order parameter choices
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--ratio", action="store_true", help="Use COM distance ratio as OP")
+    group.add_argument("--angle", action="store_true", help="Use 3-COM angle as OP")
+    group.add_argument("--coordination", action="store_true", help="Use continuous coordination number")
+
+    return parser
+
+
+def validate_args(args):
     if args.dim > 2:
-        print("CRITICAL: Only 1D and 2D order parameters are supported", file=sys.stderr)
-        exit(0)
-        
-    if args.dim == 2 and (args.ratio or args.angle or args.coodination):
-        print("CRITICAL: --angle, --ratio, and --coordination can only be used as one-dimensional order parameters", file=sys.stderr)
-        exit(0)
+        sys.exit("CRITICAL: Only 1D and 2D order parameters are supported.")
+
+    if args.dim == 2 and (args.ratio or args.angle or args.coordination):
+        sys.exit("CRITICAL: --angle, --ratio, and --coordination can only be used for 1D order parameters.")
 
     if args.op_interval > args.tau:
-        print("WARNING: The order parameter print interval (op_interval) is larger than the duration of a metadynamics interation (tau): the OP will never be printed!")
+        print("WARNING: op_interval > tau: OP will never be printed!", file=sys.stderr)
 
-    arg_dict = vars(args)
-    with open("metad_details.toml", "w") as f:
+
+def parse_input(parser):
+    """
+    First-stage parse to check for --config.
+    Then load TOML and update parser defaults.
+    """
+    partial_args, remaining_argv = parser.parse_known_args()
+
+    if partial_args.config:
+        try:
+            with open(partial_args.config, "r") as f:
+                config_data = toml.load(f)
+        except Exception as e:
+            sys.exit(f"Failed to load config file: {e}")
+
+        parser.set_defaults(**config_data)
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    parser = build_parser()
+
+    args = parse_input(parser)
+
+    validate_args(args)
+
+    arg_dict = vars(args).copy()
+    arg_dict.pop("config", None) # we don't need to pass the config file path to the Estimator
+
+    # export the final configuration to a TOML file named with the PID
+    filename = f"metad_{os.getpid()}.toml"
+    with open(filename, "w") as f:
         toml.dump(arg_dict, f)
 
+    print(f"Configuration written to {filename}", file=sys.stderr)
+
     estimator = Estimator(**arg_dict)
-    
     estimator.do_run()
