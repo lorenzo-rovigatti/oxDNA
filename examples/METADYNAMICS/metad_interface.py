@@ -69,7 +69,7 @@ class CoordinationHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = pos.dat
+    name = op.dat
     print_every = {op_interval}
     col_1 = {{
         type = coordination
@@ -103,7 +103,7 @@ class COMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = pos.dat
+    name = op.dat
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -137,7 +137,7 @@ class COM2DTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = pos.dat
+    name = op.dat
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -181,7 +181,7 @@ class AtanCOMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = pos.dat
+    name = op.dat
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -222,7 +222,7 @@ class AngleCOMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int):
         return f'''{{
-    name = pos.dat
+    name = op.dat
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -457,8 +457,8 @@ class Estimator():
             w.start()
                 
     def get_new_data(self, dir_name):
-        os.system(f"tail -n 3 ./{dir_name}/pos.dat > ./{dir_name}/pos_min.dat")
-        data = np.loadtxt(f'./{dir_name}/pos_min.dat')
+        os.system(f"tail -n 3 ./{dir_name}/op.dat > ./{dir_name}/op_min.dat")
+        data = np.loadtxt(f'./{dir_name}/op_min.dat')
 
         if self.ratio:
             if self.handler.dim == 1:
