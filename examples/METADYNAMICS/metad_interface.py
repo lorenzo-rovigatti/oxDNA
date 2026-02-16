@@ -478,29 +478,30 @@ class Estimator():
             w.start()
                 
     def get_new_data(self, dir_name):
-        os.system(f"tail -n 3 ./{dir_name}/{OP_FILE} > ./{dir_name}/op_min.dat")
+        # Read only the last sampled order parameter value
+        os.system(f"tail -n 1 ./{dir_name}/{OP_FILE} > ./{dir_name}/op_min.dat")
         data = np.loadtxt(f'./{dir_name}/op_min.dat')
-        data = data[:, :-1] # we don't need the last column, which contains the energy of the bias forces, which is not used for the update and would just create confusion
+        data = data[:-1]  # remove last element (energy of bias forces)
 
         if self.ratio:
             if self.handler.dim == 1:
-                data[:, 0] = data[:, 1] / data[:, 0] 
-                data = np.arctan(data[:, 0])
+                data_val = data[1] / data[0]
+                return np.arctan(data_val)
 
         elif self.angle:
             if self.handler.dim == 1:
-                A = data[:, 0]
-                B = data[:, 1]
-                C = data[:, 2]
+                A = data[0]
+                B = data[1]
+                C = data[2]
                 val = (A**2 + B**2 - C**2) / (2 * A * B)
-                val[np.where(val >= 1)] = 1  # just in case numerical precision takes us outside the domain 
-                data_new = np.arccos(val)
-                data = data_new
+                if val >= 1:  # just in case numerical precision takes us outside the domain
+                    val = 1
+                return np.arccos(val)
         else:
             if self.handler.dim == 1:
-                data = data.flatten()
-            else: # data is fine as it is
-                pass
+                return data[0]  # return scalar
+            else:  # dim == 2
+                return data  # return 2-element array
 
         return data
 
@@ -621,10 +622,9 @@ class Estimator():
         for w in self.walkers:
             new_data = self.get_new_data(w.working_dir)
             new_collective_data.append(copy(new_data))
-           
+
         # update forces
-        for data_selection in new_collective_data:
-            x = data_selection[-1]
+        for x in new_collective_data:
             if self.handler.dim == 1:
                 local_potential = self.interpolatePotential1D(x, self.potential_grid)
 
