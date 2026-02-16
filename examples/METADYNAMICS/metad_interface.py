@@ -8,6 +8,7 @@ import glob
 import oxpy
 import toml
 
+OP_FILE = "op.dat"
 
 class IForceHandler:
     def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
@@ -69,7 +70,7 @@ class CoordinationHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = op.dat
+    name = {OP_FILE}
     print_every = {op_interval}
     col_1 = {{
         type = coordination
@@ -77,6 +78,10 @@ class CoordinationHandler(IForceHandler):
         d0 = 1.2
         r0 = 0.5
         n = 6
+    }}
+    col_2 = {{
+        type = force_energy
+        print_group = metadynamics
     }}
 }}'''
     
@@ -103,13 +108,17 @@ class COMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = op.dat
+    name = {OP_FILE}
     print_every = {op_interval}
     col_1 = {{
         type = distance
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p2a']}
         PBC = false
+    }}
+    col_2 = {{
+        type = force_energy
+        print_group = metadynamics
     }}
 }}'''
     
@@ -137,7 +146,7 @@ class COM2DTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = op.dat
+    name = {OP_FILE}
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -150,6 +159,10 @@ class COM2DTrapHandler(IForceHandler):
         particle_1 = {self.p_dict['p1b']}
         particle_2 = {self.p_dict['p2b']}
         PBC = false
+    }}
+    col_3 = {{
+        type = force_energy
+        print_group = metadynamics
     }}
 }}'''
 
@@ -181,7 +194,7 @@ class AtanCOMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int) -> str:
         return f'''{{
-    name = op.dat
+    name = {OP_FILE}
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -194,6 +207,10 @@ class AtanCOMTrapHandler(IForceHandler):
         particle_1 = {self.p_dict['p1b']}
         particle_2 = {self.p_dict['p2b']}
         PBC = false
+    }}
+    col_3 = {{
+        type = force_energy
+        print_group = metadynamics
     }}
 }}'''
     
@@ -222,7 +239,7 @@ class AngleCOMTrapHandler(IForceHandler):
 
     def observable_string(self, op_interval: int):
         return f'''{{
-    name = op.dat
+    name = {OP_FILE}
     print_every = {op_interval}
     col_1 = {{
         type = distance
@@ -241,6 +258,10 @@ class AngleCOMTrapHandler(IForceHandler):
         particle_1 = {self.p_dict['p1a']}
         particle_2 = {self.p_dict['p3a']}
         PBC = false
+    }}
+    col_4 = {{
+        type = force_energy
+        print_group = metadynamics
     }}
 }}'''
 
@@ -457,8 +478,9 @@ class Estimator():
             w.start()
                 
     def get_new_data(self, dir_name):
-        os.system(f"tail -n 3 ./{dir_name}/op.dat > ./{dir_name}/op_min.dat")
+        os.system(f"tail -n 3 ./{dir_name}/{OP_FILE} > ./{dir_name}/op_min.dat")
         data = np.loadtxt(f'./{dir_name}/op_min.dat')
+        data = data[:, :-1] # we don't need the last column, which contains the energy of the bias forces, which is not used for the update and would just create confusion
 
         if self.ratio:
             if self.handler.dim == 1:
