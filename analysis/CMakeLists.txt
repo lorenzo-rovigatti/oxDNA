@@ -1,4 +1,16 @@
 IF(Python)
+    # First, check that the user's default Python meets the minimum version requirement.
+	# Without this check, find_package may silently find a different Python installation
+	# that meets the version requirement, causing oxpy to be installed for a Python
+	# interpreter other than the one the user expects.
+	find_program(DEFAULT_PYTHON NAMES python3 python)
+	if(NOT DEFAULT_PYTHON)
+		message(FATAL_ERROR "No python3 or python executable found in PATH.")
+	endif()
+
+	# Pin find_package to the user's default Python, preventing it from picking a different one.
+	set(Python_EXECUTABLE "${DEFAULT_PYTHON}" CACHE FILEPATH "Path to Python interpreter" FORCE)
+
 	if(OxpyVersionOverride)
 		message(STATUS "OxpyVersionOverride is ON: skipping oxDNA_analysis_tools (requires Python >= 3.11)")
 	else()
