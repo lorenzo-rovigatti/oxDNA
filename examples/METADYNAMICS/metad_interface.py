@@ -24,8 +24,13 @@ class IForceHandler:
         with open(pfile) as f:
             self.p_dict = {}
             for line in f.readlines():
-                com_name, particles = [l.strip() for l in line.split(':')]
+                try:
+                    com_name, particles = [l.strip() for l in line.split(':')]
+                except ValueError:
+                    print(f"CRITICAL: When using COM-based traps, the particle file \"{pfile}\" must contain lines of the form 'com_name: p1, p2, ...'", file=sys.stderr)
+                    exit(1)
                 self.p_dict[com_name] = particles
+            
 
     def prepare_folder(self, working_dir: str):
         pass
@@ -82,6 +87,10 @@ class CoordinationHandler(IForceHandler):
     col_2 = {{
         type = force_energy
         print_group = metadynamics
+    }}
+    col_3 = {{
+        type = order_parameters
+        op_file = op_coordination.dat
     }}
 }}'''
     
@@ -481,22 +490,23 @@ class Estimator():
         # Read only the last sampled order parameter value
         os.system(f"tail -n 1 ./{dir_name}/{OP_FILE} > ./{dir_name}/op_min.dat")
         data = np.loadtxt(f'./{dir_name}/op_min.dat')
-        data = data[:-1]  # remove last element (energy of bias forces)
+        if self.coordination:
+            data = data[:-2]  # remove the last two elements (energy of bias forces and "real" coordination number)
+        else:
+            data = data[:-1]  # remove last element (energy of bias forces)
 
         if self.ratio:
-            if self.handler.dim == 1:
-                data_val = data[1] / data[0]
-                return np.arctan(data_val)
+            data_val = data[1] / data[0]
+            return np.arctan(data_val)
 
         elif self.angle:
-            if self.handler.dim == 1:
-                A = data[0]
-                B = data[1]
-                C = data[2]
-                val = (A**2 + B**2 - C**2) / (2 * A * B)
-                if val >= 1:  # just in case numerical precision takes us outside the domain
-                    val = 1
-                return np.arccos(val)
+            A = data[0]
+            B = data[1]
+            C = data[2]
+            val = (A**2 + B**2 - C**2) / (2 * A * B)
+            if val >= 1:  # just in case numerical precision takes us outside the domain
+                val = 1
+            return np.arccos(val)
         else:
             if self.handler.dim == 1:
                 return data[0]  # return scalar
@@ -669,12 +679,8 @@ class Estimator():
         self.stop_runners()
 
 
-import argparse
-import sys
-import toml
-
-
 def build_parser():
+    import argparse
     parser = argparse.ArgumentParser(
         description="Metadynamics interface for oxDNA. Requires oxpy.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -713,7 +719,7 @@ def build_parser():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--ratio", action="store_true", help="Use COM distance ratio as OP")
     group.add_argument("--angle", action="store_true", help="Use 3-COM angle as OP")
-    group.add_argument("--coordination", action="store_true", help="Use continuous coordination number")
+    group.add_argument("--coordination", action="store_true", help="Use continuous coordination number as OP")
 
     return parser
 
@@ -727,6 +733,12 @@ def validate_args(args):
 
     if args.op_interval > args.tau:
         print("WARNING: op_interval > tau: OP will never be printed!", file=sys.stderr)
+
+    if os.path.exists(args.base_dir) and not os.path.isdir(args.base_dir):
+        sys.exit(f'CRITICAL: base_dir "{args.base_dir}" exists and is not a directory.')
+
+    if not os.path.exists(args.base_dir):
+        sys.exit(f'CRITICAL: base_dir "{args.base_dir}" does not exist.')
 
 
 def parse_input(parser):
