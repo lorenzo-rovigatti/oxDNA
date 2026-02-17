@@ -77,9 +77,9 @@ IF(Python)
 	)
 	# and one to test oat
 	add_custom_target(test_oat
-	    bash test.sh ${PYTHON_EXECUTABLE} && bash cleanup.sh
-	    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/analysis/tests
-	    COMMENT "Running oxpy tests" VERBATIM
+	    pytest
+	    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/analysis
+	    COMMENT "Running oat tests" VERBATIM
 	)
 	add_dependencies(test test_oxpy test_oat)
 	
