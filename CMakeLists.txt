@@ -10,7 +10,7 @@ project(oxDNA LANGUAGES CXX)
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
-OPTION(CUDA "Set to ON to compile with CUDA support" ON)
+OPTION(CUDA "Set to ON to compile with CUDA support" OFF)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
 OPTION(Debug "Set to ON to compile with debug symbols" OFF)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
