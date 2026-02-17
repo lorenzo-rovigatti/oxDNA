@@ -33,3 +33,11 @@ classifiers = [
 ]
 
 urls = { Homepage = "https://github.com/sulcgroup/oxdna_analysis_tools", Bug-Tracker = "https://github.com/sulcgroup/oxdna_analysis_tools/issues" }
+
+[project.scripts]
+oat = "oxDNA_analysis_tools.entry:main"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+concurrency = ["multiprocessing"]
