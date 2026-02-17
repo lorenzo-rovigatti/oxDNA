@@ -42,6 +42,24 @@ confs = get_confs(top_info, traj_info, start_conf, n_confs)
 
 The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
 
+## Unit tests
+
+For development purposes, `oat` has comprehensive unit tests implemented in [Pytest](https://docs.pytest.org/en/stable/) which can be found in `oxDNA/analysis/tests/`. To run all tests, first install `oat` either via `make install` as described in the [installation instructions](../install.md#compiling-oxdna), or with `python -m pip install oxDNA/analysis/`, then run:
+```shell
+pytest oxDNA/analysis/tests/test_cli/`
+```
+Or run a specific test:
+```shell
+pytest oxDNA/analysis/tests/test_cli/test_mean.py
+```
+
+Test coverage can be checked using [Coverage.py](https://coverage.readthedocs.io/en/latest/):
+```shell
+coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/ && coverage combine && coverage html && open htmlcov/index.html 
+```
+
+If a test fails on your machine, please consider opening an issue on GitHub to let us know!
+
 Full API documentation:
 
 ### Top-level API
