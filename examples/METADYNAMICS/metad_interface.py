@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import os, shutil, sys
 from copy import copy
@@ -5,8 +7,13 @@ import multiprocessing as mp
 import traceback
 import pickle as pkl
 import glob
-import oxpy
 import toml
+
+try:
+    import oxpy
+except ImportError:
+    print("CRITICAL: oxpy is required to run this script.")
+    exit(1)
 
 OP_FILE = "op.dat"
 
@@ -687,12 +694,10 @@ def build_parser():
     )
 
     # Config file
-    parser.add_argument("--config", type=str, help="Path to TOML configuration file"
-    )
+    parser.add_argument("--config", type=str, help="Path to TOML configuration file")
 
     # Positional
-    parser.add_argument("base_dir", help="Directory storing the base simulation files"
-    )
+    parser.add_argument("base_dir", help="Directory storing the base simulation files")
 
     # Scalar parameters
     parser.add_argument("--A", type=float, default=0.1, help="Initial bias-height increment")
@@ -768,7 +773,9 @@ if __name__ == "__main__":
     validate_args(args)
 
     arg_dict = vars(args).copy()
-    arg_dict.pop("config", None) # we don't need to pass the config file path to the Estimator
+    # the config file path is only used to set the other parameters we don't want 
+    # to pass it to the Estimator, so we remove it from the dictionary
+    arg_dict.pop("config", None)
 
     # export the final configuration to a TOML file named with the PID
     filename = f"metad_{os.getpid()}.toml"
