@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: OAT Linux
+name: OAT/oxpy Linux
 
 on: push
 
@@ -29,15 +29,18 @@ jobs:
         pushd build
         cmake .. -DPython=1 -DOxpySystemInstall=1
         make -j2   
+        make install
         popd 
-    
-    - name: Install oxpy
-      run: |
-        python -m pip install .
 
-    - name: Install oat
+    - name: Check import from Command Line
       run: |
-        python -m pip install ./analysis
+        python -c 'import oxpy; import oxDNA_analysis_tools'
+
+    - name: Check oxpy
+      run: |
+        pushd examples/OxPy
+        python run.py
+        popd
         
     - name: Check config
       run: |
@@ -50,3 +53,7 @@ jobs:
     - name: Uninstall oat
       run: |
         pip uninstall oxDNA_analysis_tools -y
+
+    - name: Uninstall oxpy
+      run: |
+        pip uninstall oxpy -y
