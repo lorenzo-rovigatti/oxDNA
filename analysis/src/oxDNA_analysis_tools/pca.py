@@ -154,6 +154,7 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
     plt.ylabel("eigenvalue")
     plt.tight_layout()
     plt.savefig("scree.png", dpi=FIG_DPI)
+    plt.close()
 
     total = sum(evalues)
     running = 0

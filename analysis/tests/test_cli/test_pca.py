@@ -6,6 +6,7 @@ Tests cover:
 - pca() API function
 - CLI argument parsing
 """
+import os
 import sys
 from pathlib import Path
 from shutil import copy
@@ -57,6 +58,18 @@ def mean_conf(trajectory_info, mean_conf_path):
     cms = np.mean(conf.positions, axis=0)
     conf.positions -= cms
     return conf
+
+
+@pytest.fixture(scope="module")
+def pca_result(trajectory_info, mean_conf, tmp_path_factory):
+    """Run pca() once and share the result across all tests in this module."""
+    out_dir = tmp_path_factory.mktemp("pca")
+    original_dir = os.getcwd()
+    os.chdir(out_dir)
+    top_info, traj_info = trajectory_info
+    result = pca(traj_info, top_info, mean_conf, ncpus=1)
+    os.chdir(original_dir)
+    return result
 
 
 @pytest.fixture
@@ -112,14 +125,11 @@ class TestAlignPositions:
 class TestPcaFunction:
     """Tests for the pca() API function."""
 
-    def test_pca_behavior(self, trajectory_info, mean_conf, temp_output_dir, monkeypatch):
+    def test_pca_behavior(self, trajectory_info, pca_result):
         """Test pca() returns correct shapes, sorted eigenvalues, and non-negative values."""
-        # pca() saves scree.png to current directory
-        monkeypatch.chdir(temp_output_dir)
-
         top_info, traj_info = trajectory_info
 
-        coordinates, evalues, evectors = pca(traj_info, top_info, mean_conf, ncpus=1)
+        coordinates, evalues, evectors = pca_result
 
         n_dims = top_info.nbases * 3
 
@@ -140,7 +150,7 @@ class TestPcaFunction:
         # Real parts should be non-negative (small negative due to numerical errors ok)
         assert np.all(real_evalues >= -1e-10), "Eigenvalues should be non-negative"
 
-    def test_pca_mathematical_correctness(self, trajectory_info, mean_conf, temp_output_dir, monkeypatch):
+    def test_pca_mathematical_correctness(self, trajectory_info, mean_conf, pca_result):
         """
         Validate PCA output correctness using mathematical properties.
 
@@ -152,12 +162,9 @@ class TestPcaFunction:
         4. Comparison with independent PCA implementation (sklearn)
         5. First few PCs should capture most variance (sanity check)
         """
-        # pca() saves scree.png to current directory
-        monkeypatch.chdir(temp_output_dir)
-
         top_info, traj_info = trajectory_info
 
-        coordinates, evalues, evectors = pca(traj_info, top_info, mean_conf, ncpus=1)
+        coordinates, evalues, evectors = pca_result
 
         n_dims = top_info.nbases * 3
 
