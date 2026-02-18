@@ -38,7 +38,7 @@ jobs:
 
     - name: Check oxpy
       run: |
-        pushd examples/OxPy
+        pushd examples/OXPY
         python run.py
         popd
         
