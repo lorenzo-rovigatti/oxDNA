@@ -3,6 +3,9 @@
  *
  *  Created on: 09/jul/2022
  *      Author: lorenzo
+ * 
+ *  Modified on 19/feb/2026
+ * 		Author: Victor
  */
 
 #ifndef STRESSAUTOCORRELATION_H_
