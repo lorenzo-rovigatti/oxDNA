@@ -11,6 +11,8 @@
 #include "BaseObservable.h"
 
 #include <sstream>
+#include <fstream>   // ADD
+#include <string>    // ADD
 
 /**
  * @brief Outputs stress autocorrelation functions
@@ -169,30 +171,48 @@ class StressAutocorrelation: public BaseObservable {
 	};
 
 protected:
-	uint _m = 2;
-	uint _p = 16;
-	std::vector<LR_vector> _old_forces, _old_torques;
-	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz, _sigma_xx, _sigma_yy, _sigma_zz, _sigma_P;
-	StressTensor _st_avg = {};
-	double _delta_t = 0.0;
-	bool _anisotropic = false;
-	bool _enable_serialisation = false;
+    uint _m = 2;
+    uint _p = 16;
+    std::vector<LR_vector> _old_forces, _old_torques;
+    std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz, _sigma_xx, _sigma_yy, _sigma_zz, _sigma_P;
+    StressTensor _st_avg = {};
+    double _delta_t = 0.0;
+    bool _anisotropic = false;
+    bool _enable_serialisation = false;
 
-	std::shared_ptr<Level> _deserialise(std::string filename);
+    // =========================
+    // NEW: raw tensor dumping
+    // =========================
+    bool _dump_tensor = true;
+    std::string _tensor_filename = "stress_tensor_3x3.dat";
+    std::ofstream _tensor_out;
+
+    std::shared_ptr<Level> _deserialise(std::string filename);
+
+	// =========================
+	// NEW: cylindrical tensor dumping
+	// =========================
+	bool _dump_tensor_cyl = false;
+	std::string _tensor_cyl_filename = "stress_tensor_cyl_3x3.dat";
+	std::ofstream _tensor_cyl_out;
+
+	// origin for cylindrical transform (point on tube axis)
+	bool _cyl_origin_set = false;
+	LR_vector _cyl_origin = LR_vector(0., 0., 0.);
 
 public:
-	StressAutocorrelation();
-	virtual ~StressAutocorrelation();
+    StressAutocorrelation();
+    virtual ~StressAutocorrelation();
 
-	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init() override;
+    void get_settings(input_file &my_inp, input_file &sim_inp);
+    void init() override;
 
-	void serialise() override;
+    void serialise() override;
 
-	bool require_data_on_CPU() override;
-	void update_data(llint curr_step) override;
+    bool require_data_on_CPU() override;
+    void update_data(llint curr_step) override;
 
-	std::string get_output_string(llint curr_step);
+    std::string get_output_string(llint curr_step);
 };
 
 #endif /* STRESSAUTOCORRELATION_H_ */
