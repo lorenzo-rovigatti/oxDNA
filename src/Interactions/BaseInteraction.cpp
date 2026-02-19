@@ -203,12 +203,140 @@ void BaseInteraction::reset_stress_tensor() {
 }
 
 StressTensor BaseInteraction::stress_tensor() const {
-	StressTensor norm_st(_stress_tensor);
-	for(auto &v : norm_st) {
-		v /= CONFIG_INFO->box->V();
-	}
+    StressTensor norm_st(_stress_tensor);
+    for(auto &v : norm_st) {
+        v /= CONFIG_INFO->box->V();
+    }
+    return norm_st;
+}  // <-- THIS brace must be here, before the next function starts
 
-	return norm_st;
+
+StressTensor BaseInteraction::stress_tensor_subset(const std::vector<BaseParticle *>& subset,
+                                                  const LR_vector& reference_point,
+                                                  number volume,
+                                                  bool use_min_image,
+                                                  bool include_kinetic) const
+	{
+    StressTensor st = {0., 0., 0., 0., 0., 0.};
+
+    if(volume <= (number)0.) return st;
+
+    BaseBox *box = CONFIG_INFO->box;
+
+    for(const auto *p : subset) {
+        // Position relative to reference point
+        LR_vector dr;
+        if(use_min_image && box != NULL) {
+            dr = box->min_image(p->pos, reference_point);
+        } else {
+            dr = p->pos - reference_point;
+        }
+
+        // Total force already computed on particle
+        const LR_vector &F = p->force;
+
+        // Virial part. Sign chosen to match the convention used in compute_standard_stress_tensor()
+        // (which accumulates - r_ij \otimes F_ij).
+        st[0] -= dr.x * F.x;
+        st[1] -= dr.y * F.y;
+        st[2] -= dr.z * F.z;
+        st[3] -= dr.x * F.y;
+        st[4] -= dr.x * F.z;
+        st[5] -= dr.y * F.z;
+
+        if(include_kinetic) {
+            const LR_vector &v = p->vel;
+            st[0] += SQR(v.x);
+            st[1] += SQR(v.y);
+            st[2] += SQR(v.z);
+            st[3] += v.x * v.y;
+            st[4] += v.x * v.z;
+            st[5] += v.y * v.z;
+        }
+    }
+
+    // Normalise by volume
+    for(auto &x : st) x /= volume;
+    return st;
+}
+
+StressTensor BaseInteraction::stress_tensor_subset_cylindrical(const std::vector<BaseParticle *>& subset,
+                                                               const LR_vector& reference_point,
+                                                               number volume,
+                                                               bool use_min_image,
+                                                               bool include_kinetic) const
+{
+    StressTensor st = {0., 0., 0., 0., 0., 0.}; // rr, tt, zz, rt, rz, tz
+    if(volume <= (number)0.) return st;
+
+    BaseBox *box = CONFIG_INFO->box;
+
+    for(const auto *p : subset) {
+        // Position relative to reference point (axis point)
+        LR_vector dr;
+        if(use_min_image && box != NULL) {
+            dr = box->min_image(p->pos, reference_point);
+        } else {
+            dr = p->pos - reference_point;
+        }
+
+        const LR_vector &F = p->force;
+
+        // Build local cylindrical basis around z-axis:
+        // er = (dx,dy,0)/r; et = (-er_y, er_x, 0); ez = (0,0,1)
+        const number rx = dr.x;
+        const number ry = dr.y;
+        const number r2 = rx*rx + ry*ry;
+
+        // If a particle lies exactly on the axis, cylindrical basis is undefined.
+        // Skip it (or you could fall back to Cartesian there).
+        if(r2 <= (number)1e-20) continue;
+
+        const number rinv = (number)1.0 / std::sqrt(r2);
+
+        LR_vector er(rx * rinv, ry * rinv, (number)0.0);
+        LR_vector et(-er.y, er.x, (number)0.0);
+        LR_vector ez((number)0.0, (number)0.0, (number)1.0);
+
+        // Projections of dr and F onto cylindrical basis
+        const number r_r  = dr * er;
+        const number r_t  = dr * et;
+        const number r_z  = dr * ez;
+
+        const number f_r  = F * er;
+        const number f_t  = F * et;
+        const number f_z  = F * ez;
+
+        // Virial contribution: - (dr ⊗ F) expressed in cylindrical basis:
+        // sigma_ab += - ( (dr·ea) * (F·eb) )
+        st[0] -= r_r * f_r; // rr
+        st[1] -= r_t * f_t; // tt
+        st[2] -= r_z * f_z; // zz
+
+        // Off-diagonals (keep same 6-entry convention)
+        st[3] -= r_r * f_t; // rt
+        st[4] -= r_r * f_z; // rz
+        st[5] -= r_t * f_z; // tz
+
+        if(include_kinetic) {
+            const LR_vector &v = p->vel;
+            const number v_r = v * er;
+            const number v_t = v * et;
+            const number v_z = v * ez;
+
+            st[0] += v_r * v_r;
+            st[1] += v_t * v_t;
+            st[2] += v_z * v_z;
+            st[3] += v_r * v_t;
+            st[4] += v_r * v_z;
+            st[5] += v_t * v_z;
+        }
+    }
+
+    // Normalise by volume
+    for(auto &x : st) x /= volume;
+
+    return st;
 }
 
 number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
