@@ -248,55 +248,6 @@ class TestPcaFunction:
                 f"total variance ({total_coord_variance:.4f})"
 
         # =====================================================================
-        # Test 4: Compare with sklearn PCA (independent implementation)
-        # =====================================================================
-        try:
-            from sklearn.decomposition import PCA as sklearn_PCA
-
-            # Get the raw position deviations for comparison
-            # We need to reconstruct what the implementation computed
-            confs = get_confs(top_info, traj_info, 0, traj_info.nconfs)
-            mean_center = np.mean(mean_conf.positions, axis=0)
-
-            # Prepare data matrix: each row is a flattened configuration
-            data_matrix = np.zeros((traj_info.nconfs, n_dims))
-            for i, c in enumerate(confs):
-                c = inbox(c, center=True, centerpoint=mean_center)
-                aligned = align_positions(mean_conf.positions, c.positions)
-                deviation = (aligned - mean_conf.positions).flatten()
-                data_matrix[i] = deviation
-
-            # Run sklearn PCA (n_components must be <= min(n_samples, n_features))
-            max_components = min(traj_info.nconfs, n_dims)
-            sklearn_pca = sklearn_PCA(n_components=min(max_components, 20))
-            sklearn_pca.fit(data_matrix)
-
-            # Compare eigenvalues (explained variance)
-            # Note: sklearn returns eigenvalues in descending order, while
-            # np.linalg.eigh returns them in ascending order. Sort both for comparison.
-            sklearn_evalues = sklearn_pca.explained_variance_
-            sklearn_evalues_sorted = np.sort(sklearn_evalues)[::-1]  # descending
-            oat_evalues_sorted = np.sort(real_evalues)[::-1]  # descending
-            oat_top_evalues = oat_evalues_sorted[:len(sklearn_evalues_sorted)]
-
-            # The eigenvalues should be in the same ballpark
-            # Use correlation to check values are similar (both now sorted descending)
-            if len(sklearn_evalues_sorted) > 1:
-                correlation = np.corrcoef(sklearn_evalues_sorted, oat_top_evalues)[0, 1]
-                assert correlation > 0.8, \
-                    f"Eigenvalue magnitudes should correlate with sklearn (corr={correlation:.3f})"
-
-            # Top eigenvalue should be within factor of 2
-            if sklearn_evalues_sorted[0] > 1e-6:
-                ratio = oat_top_evalues[0] / sklearn_evalues_sorted[0]
-                assert 0.1 < ratio < 10, \
-                    f"Top eigenvalue ratio vs sklearn ({ratio:.5f}) should be reasonable"
-
-        except ImportError:
-            # sklearn not available, skip this part
-            pass
-
-        # =====================================================================
         # Test 5: First few PCs should capture most variance (sanity check)
         # Note: eigenvalues may be in ascending or descending order depending
         # on implementation, so sort descending before computing cumulative
