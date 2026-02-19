@@ -50,6 +50,7 @@
 #include "AllVectors.h"
 #include "StressAutocorrelation.h"
 #include "ExternalForce.h"
+#include "StressInBox.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
