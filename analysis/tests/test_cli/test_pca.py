@@ -6,6 +6,7 @@ Tests cover:
 - pca() API function
 - CLI argument parsing
 """
+import os
 import sys
 from pathlib import Path
 from shutil import copy
@@ -60,10 +61,15 @@ def mean_conf(trajectory_info, mean_conf_path):
 
 
 @pytest.fixture(scope="module")
-def pca_result(trajectory_info, mean_conf):
+def pca_result(trajectory_info, mean_conf, tmp_path_factory):
     """Run pca() once and share the result across all tests in this module."""
+    out_dir = tmp_path_factory.mktemp("pca")
+    original_dir = os.getcwd()
+    os.chdir(out_dir)
     top_info, traj_info = trajectory_info
-    return pca(traj_info, top_info, mean_conf, ncpus=1)
+    result = pca(traj_info, top_info, mean_conf, ncpus=1)
+    os.chdir(original_dir)
+    return result
 
 
 @pytest.fixture
