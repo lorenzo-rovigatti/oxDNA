@@ -27,21 +27,6 @@ Documentation for individual scripts:
    cli.md
 ```
 
-## Scripting interface
-
-The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
-
-```python
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
-
-# get the top and traj names from the command line or hardcode them
-
-top_info, traj_info = describe(top, traj)
-confs = get_confs(top_info, traj_info, start_conf, n_confs)
-```
-
-The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
-
 ## Unit tests
 
 For development purposes, `oat` has comprehensive unit tests implemented in [Pytest](https://docs.pytest.org/en/stable/) which can be found in `oxDNA/analysis/tests/`. To run all tests, first install `oat` either via `make install` as described in the [installation instructions](../install.md#compiling-oxdna), or with `python -m pip install oxDNA/analysis/`, then run:
@@ -59,6 +44,21 @@ coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/ && coverage
 ```
 
 If a test fails on your machine, please consider opening an issue on GitHub to let us know!
+
+## Scripting interface
+
+The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
+
+```python
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
+
+# get the top and traj names from the command line or hardcode them
+
+top_info, traj_info = describe(top, traj)
+confs = get_confs(top_info, traj_info, start_conf, n_confs)
+```
+
+The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
 
 Full API documentation:
 
