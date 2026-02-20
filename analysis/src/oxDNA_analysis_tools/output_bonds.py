@@ -36,10 +36,13 @@ def get_potentials(ctx) -> List[str]:
 
         backend.read_next_configuration()
         e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
+        print(e_txt[0])
         pot_names = parse_header(e_txt[0])
+        print(pot_names)
 
     return pot_names
 
+# pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     with oxpy.Context():
         inp = oxpy.InputFile()
