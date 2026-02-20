@@ -10,7 +10,7 @@ Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If y
 
 ### Python bindings
 
-Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.9 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.9 and woud like to use `oxpy`
+Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.11 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.11 and woud like to use `oxpy`
 
 ## Compiling oxDNA
 
