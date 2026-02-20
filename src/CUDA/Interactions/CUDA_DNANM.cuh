@@ -1118,7 +1118,7 @@ template< bool qisN3>
 __forceinline__ __device__ void ang_pot(c_number4 &dF, c_number4 &dT, const c_number4 &a1, const c_number4 &a3, const c_number4 &b1, const c_number4 &b3, const c_number4 &r, const c_number4 &ang_params, c_number (&kbkt)[2]) {
     dF.x = dF.y = dF.z = dF.w = (c_number) 0.;
     dT.x = dT.y = dT.z = dT.w = (c_number) 0.;
-    c_number4 rij = _normalize(r);
+    c_number4 rij = stably_normalised(r);
     c_number4 rji = -1.f * rij;
 
     c_number o1 = (CUDA_DOT(rij, a1)) - ang_params.x;
@@ -1229,8 +1229,8 @@ __forceinline__ __device__ void excluded_volume_quart_ang(const c_number4 &r, c_
             F.w = 4.f * EXCL_EPS * (SQR(lj_part) - lj_part);
         }
 
-        pT += _cross(_normalize(r)*(MD_pro_sigma*0.5f), -F); //add torque
-        qT += _cross(-_normalize(r)*(MD_pro_sigma*0.5f), F); //add torque
+        pT += _cross(stably_normalised(r)*(MD_pro_sigma*0.5f), -F); //add torque
+        qT += _cross(-stably_normalised(r)*(MD_pro_sigma*0.5f), F); //add torque
     }
 
 
@@ -1322,14 +1322,14 @@ __forceinline__ __device__ void excluded_volume_quart_ang(const c_number4 &r, c_
 ////        dT += _cross(nuc_back, Ftmp);
 //        dF += Ftmp;
 //
-////        qT = _cross(-_normalize(rback)*(MD_pro_sigma*0.5f), -Ftmp); // cross of (point of contact on protein sphere and dna backbone, force on q)
+////        qT = _cross(-stably_normalised(rback)*(MD_pro_sigma*0.5f), -Ftmp); // cross of (point of contact on protein sphere and dna backbone, force on q)
 //
 //
 //        excluded_volume_quart(rbase, Ftmp, MD_pro_base_sigma, MD_pro_base_rstar, MD_pro_base_b, MD_pro_base_rc);
 ////        dT += _cross(nuc_base, Ftmp);
 //        dF += Ftmp;
 //
-////        qT += _cross(-_normalize(rbase)*(MD_pro_sigma*0.5f), -Ftmp);// cross of (point of contact on protein sphere and dna base, force on q)
+////        qT += _cross(-stably_normalised(rbase)*(MD_pro_sigma*0.5f), -Ftmp);// cross of (point of contact on protein sphere and dna base, force on q)
 //
 //
 //        if ((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f)
@@ -1844,8 +1844,6 @@ __global__ void dna_forces_edge_bonded_dnanm(const c_number4 __restrict__ *poss,
         st[IND] += p_st;
     }
 }
-
-
 
 
 

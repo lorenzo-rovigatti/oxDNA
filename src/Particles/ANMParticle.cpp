@@ -5,7 +5,7 @@
 #include "ANMParticle.h"
 
 
-ANMParticle::ANMParticle() : BaseParticle()  {
+ANMParticle::ANMParticle(bool is_rigid_body) : BaseParticle(), _is_rigid_body(is_rigid_body) {
     this->bonded_neighs = {};
 }
 

@@ -7,19 +7,19 @@
 
 
 #include "BaseParticle.h"
-//#include <set>
 
 /**
  * @brief A customisable particle. Used by ACInteraction.
  */
 class ANMParticle: public BaseParticle {
 protected:
+    bool _is_rigid_body;
 
 public:
-    ANMParticle();
+    explicit ANMParticle(bool is_rigid_body = false);
     virtual ~ANMParticle();
 
-    virtual bool is_rigid_body() { return false; }
+    virtual bool is_rigid_body() { return _is_rigid_body; }
 
     virtual bool is_bonded(BaseParticle *q);
     virtual void add_bonded_neighbor(BaseParticle *nn);

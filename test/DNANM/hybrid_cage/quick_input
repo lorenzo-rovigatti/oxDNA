@@ -18,7 +18,7 @@ max_io = 4
 ##############################
 ####    SIM PARAMETERS    ####
 ##############################
-steps = 10000
+steps = 1000
 
 ensemble = nvt
 delta_translation = 0.02
@@ -35,9 +35,9 @@ newtonian_steps = 103
 ##############################
 ####    INPUT / OUTPUT    ####
 ##############################
-parfile = ac.par
-topology = acc2.top
-conf_file = acc2_relaxed.dat
+parfile = ../../../examples/DNANM/hybrid_cage/ac.par
+topology = ../../../examples/DNANM/hybrid_cage/acc2.top
+conf_file = ../../../examples/DNANM/hybrid_cage/acc2_relaxed.dat
 trajectory_file = trajectory.dat
 refresh_vel = 1
 log_file = log.dat
@@ -48,4 +48,4 @@ print_conf_interval = 1000
 print_energy_every = 1000
 time_scale = linear
 external_forces = 1
-external_forces_file = acforceponly.txt
+external_forces_file = ../../../examples/DNANM/hybrid_cage/acforceponly.txt

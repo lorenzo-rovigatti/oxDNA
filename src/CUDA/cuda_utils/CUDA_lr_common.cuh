@@ -183,11 +183,6 @@ __forceinline__ __device__ c_number _module(const float3 &v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-__forceinline__ __device__ c_number4 _normalize(const c_number4 v){
-    c_number mod = _module(v);
-    return make_c_number4(v.x/mod, v.y/mod, v.z/mod, 0.);
-}
-
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
 __forceinline__ __device__ c_number4 _vectors_c_number4_product(const c_number4 a1, const c_number4 a2, const c_number4 a3, const c_number4 v) {
 	c_number4 res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };

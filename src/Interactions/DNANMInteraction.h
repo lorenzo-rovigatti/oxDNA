@@ -16,6 +16,8 @@
  * @verbatim
  parfile = string (set parameter file for protein component, set to none for DNA only sims)
  massfile = string (set massfile for simulations w/ different massed items)
+ topology = mixed legacy topology format:
+            <N> <N_strands> <ndna> <npro> <ndnas>
  */
 
 #ifndef DNANM_INTERACTION_H

@@ -16,7 +16,6 @@
 
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/ANMParticle.h"
-#include "../Particles/ANMTParticle.h"
 
 
 RNANMInteraction::RNANMInteraction(bool btp) : RNA2Interaction() { // @suppress("Class members should be properly initialized")
@@ -113,10 +112,8 @@ void RNANMInteraction::get_settings(input_file &inp){
         parameters.open(_parameterfile, std::ios::in);
         parameters >> N;
         int spring_connection_num = 0;
-        if (parameters.is_open())
-        {
-            while (parameters >> key1 >> key2 >> dist >> potswitch >> potential)
-            {
+        if (parameters.is_open()) {
+            while (parameters >> key1 >> key2 >> dist >> potswitch >> potential) {
                 valid_spring_params(N, key1, key2, dist, potswitch, potential);
                 spring_connection_num += 1;
 
@@ -146,8 +143,7 @@ void RNANMInteraction::get_settings(input_file &inp){
                 _potential[lkeys] = pot;
             }
         }
-        else
-        {
+        else {
             throw oxDNAException("ParameterFile Could Not Be Opened");
         }
         parameters.close();
@@ -175,8 +171,7 @@ void RNANMInteraction::check_input_sanity(std::vector<BaseParticle*> &particles)
 void RNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
     if (nrna==0 || nrnas==0) {
         OX_LOG(Logger::LOG_INFO, "No RNA Particles Specified, Continuing with just Protein Particles");
-        if (_angular) for (int i = 0; i < npro; i++) particles[i] = new ANMTParticle();
-        else for (int i = 0; i < npro; i++) particles[i] = new ANMParticle();
+        for (int i = 0; i < npro; i++) particles[i] = new ANMParticle(_angular);
     } else if (npro == 0) {
         OX_LOG(Logger::LOG_INFO, "No Protein Particles Specified, Continuing with just RNA Particles");
         for (int i = 0; i < nrna; i++) particles[i] = new RNANucleotide();
@@ -184,12 +179,10 @@ void RNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
         if (_firststrand > 0){
             for (int i = 0; i < nrna; i++) particles[i] = new RNANucleotide();
             // Protein
-            if (_angular) for (uint i = nrna; i < particles.size(); i++) particles[i] = new ANMTParticle();
-            else for (uint i = nrna; i < particles.size(); i++) particles[i] = new ANMParticle();
+            for (uint i = nrna; i < particles.size(); i++) particles[i] = new ANMParticle(_angular);
 
         } else {
-            if (_angular) for (int i = 0; i < npro; i++) particles[i] = new ANMTParticle();
-            else for (int i = 0; i < npro; i++) particles[i] = new ANMParticle();
+            for (int i = 0; i < npro; i++) particles[i] = new ANMParticle(_angular);
             // RNA
             for (uint i = npro; i < particles.size(); i++) particles[i] = new RNANucleotide();
         }
@@ -210,10 +203,10 @@ void RNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> 
     std::stringstream head(line);
 
     head >> my_N >> my_N_strands >> nrna >> npro >>nrnas;
-    if (head.fail()) throw oxDNAException("Problem with header make sure the format is correct for RNANM Interaction");
+    if (head.fail()) throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
 
     if(my_N_strands < 0 || my_N_strands > my_N || nrna > my_N || nrna < 0 || npro > my_N || npro < 0 || nrnas < 0 || nrnas > my_N) {
-        throw oxDNAException("Problem with header make sure the format is correct for RNANM Interaction");
+        throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
     }
 
 
@@ -262,20 +255,10 @@ void RNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> 
                 myneighs.insert(x);
             }
 
-            if (_angular) {
-                auto *q = dynamic_cast< ANMTParticle * > (p);
-                for(auto & k : myneighs){
-                    if (p->index < k) {
-                        q->add_bonded_neighbor(particles[k]);
-                    }
-                }
-
-            } else {
-                auto *q = dynamic_cast< ANMParticle * > (p);
-                for(auto & k : myneighs){
-                    if (p->index < k) {
-                        q->add_bonded_neighbor(particles[k]);
-                    }
+            auto *q = dynamic_cast<ANMParticle *>(p);
+            for(auto & k : myneighs){
+                if (p->index < k) {
+                    q->add_bonded_neighbor(particles[k]);
                 }
             }
 
@@ -418,22 +401,19 @@ number RNANMInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticl
 }
 
 
-number RNANMInteraction::_protein_rna_exc_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)
-{
+number RNANMInteraction::_protein_rna_exc_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     BaseParticle *protein;
     BaseParticle *nuc;
 
     LR_vector force(0, 0, 0);
     LR_vector rcenter = _computed_r;
 
-    if(p->btype < 4 && q->btype > 4)
-    {
+    if(p->btype < 4 && q->btype > 4) {
         //rcenter = -rcenter;
         protein = q;
         nuc = p;
     }
-    else if (p->btype > 4 && q->btype < 4)
-    {
+    else if (p->btype > 4 && q->btype < 4) {
         rcenter = -rcenter;
         protein = p;
         nuc = q;
@@ -568,8 +548,7 @@ number RNANMInteraction::_protein_exc_volume(BaseParticle *p, BaseParticle *q, b
     LR_vector force(0,0,0);
     number energy =  _protein_repulsive_lj(_computed_r, force, update_forces);
 
-    if(update_forces)
-    {
+    if(update_forces) {
         p->force -= force;
         q->force += force;
         if(_angular){
@@ -689,7 +668,6 @@ void RNANMInteraction::load_massfile(std::string &filename) {
 }
 
 RNANMInteraction::~RNANMInteraction() = default;
-
 
 
 

@@ -14,7 +14,6 @@
 
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/ANMParticle.h"
-#include "../Particles/ANMTParticle.h"
 
 
 DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
@@ -119,16 +118,9 @@ void DNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
             while (parameters >> key1 >> key2 >> dist >> potswitch >> potential)
             {
                 valid_spring_params(N, key1, key2, dist, potswitch, potential);
-                if (_angular) {
-                    auto *q = dynamic_cast< ANMTParticle * > (particles[key1]);
-                    if (key1 < key2) {
-                        q->add_bonded_neighbor(particles[key2]);
-                    }
-                } else {
-                    auto *q = dynamic_cast< ANMParticle * > (particles[key1]);
-                    if (key1 < key2) {
-                        q->add_bonded_neighbor(particles[key2]);
-                    }
+                auto *q = dynamic_cast<ANMParticle *>(particles[key1]);
+                if (key1 < key2) {
+                    q->add_bonded_neighbor(particles[key2]);
                 }
 
                 spring_connection_num += 1;
@@ -187,8 +179,7 @@ void DNANMInteraction::check_input_sanity(std::vector<BaseParticle*> &particles)
 void DNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
     if (ndna==0 || ndnas==0) {
         OX_LOG(Logger::LOG_INFO, "No DNA Particles Specified, Continuing with just Protein Particles");
-        if (_angular) for (int i = 0; i < npro; i++) particles[i] = new ANMTParticle();
-        else for (int i = 0; i < npro; i++) particles[i] = new ANMParticle();
+        for (int i = 0; i < npro; i++) particles[i] = new ANMParticle(_angular);
 
     } else if (npro == 0) {
         OX_LOG(Logger::LOG_INFO, "No Protein Particles Specified, Continuing with just DNA Particles");
@@ -198,12 +189,10 @@ void DNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
         if (_firststrand > 0){
             for (int i = 0; i < ndna; i++) particles[i] = new DNANucleotide(this->_grooving);
             // Protein
-            if (_angular) for (uint i = ndna; i < particles.size(); i++) particles[i] = new ANMTParticle();
-            else for (uint i = ndna; i < particles.size(); i++) particles[i] = new ANMParticle();
+            for (uint i = ndna; i < particles.size(); i++) particles[i] = new ANMParticle(_angular);
         } else {
             // Protein
-            if (_angular) for (int i = 0; i < npro; i++) particles[i] = new ANMTParticle();
-            else for (int i = 0; i < npro; i++) particles[i] = new ANMParticle();
+            for (int i = 0; i < npro; i++) particles[i] = new ANMParticle(_angular);
 
             for (uint i = npro; i < particles.size(); i++) particles[i] = new DNANucleotide(this->_grooving);
         }
@@ -224,10 +213,10 @@ void DNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> 
     std::stringstream head(line);
 
     head >> my_N >> my_N_strands >> ndna >> npro >>ndnas;
-    if (head.fail()) throw oxDNAException("Problem with header make sure the format is correct for DNANM Interaction");
+    if (head.fail()) throw oxDNAException("Invalid topology header for DNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <ndna> <npro> <ndnas>'.");
 
     if(my_N_strands < 0 || my_N_strands > my_N || ndna > my_N || ndna < 0 || npro > my_N || npro < 0 || ndnas < 0 || ndnas > my_N) {
-        throw oxDNAException("Problem with header make sure the format is correct for DNANM Interaction");
+        throw oxDNAException("Invalid topology header for DNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <ndna> <npro> <ndnas>'.");
     }
 
 
@@ -702,7 +691,6 @@ int DNANMInteraction::get_id(int btype){
 };
 
 DNANMInteraction::~DNANMInteraction() = default;
-
 
 
 

@@ -6,7 +6,6 @@
 #define ANM_INTERACTION_H
 
 #include "BaseInteraction.h"
-// #include "../Particles/ANMParticle.h"
 
 /**
  * @brief Handles (generalised) Anisotropic-Chain interactions between spheres of size .1573 simulation units

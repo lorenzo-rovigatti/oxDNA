@@ -395,33 +395,6 @@ void get_seed(unsigned short *seedptr) {
 	seed48(seedptr);
 }
 
-number gamma(number alpha, number beta) {
-	number x, v, u;
-	double d = alpha - 1. / 3.;
-	double c = (1. / 3.) / sqrt(d);
-
-	if(alpha < 1.)
-		return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
-
-	while(true) {
-		do {
-			x = gaussian();
-			v = 1. + c * x;
-		} while(v <= 0);
-
-		v = v * v * v;
-		u = drand48();
-
-		if(u < 1. - 0.0331 * x * x * x * x)
-			break;
-
-		if(log(u) < 0.5 * x * x + d * (1 - v + log(v)))
-			break;
-	}
-
-	return beta * d * v;
-}
-
 void assert_is_valid_particle(int index, int N, std::string identifier) {
 	if(index >= N || index < -1) {
 		throw oxDNAException("Trying to add a %s on non-existent particle %d. Aborting", identifier.c_str(), index);
@@ -545,4 +518,3 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle*> &particles
 }
 
 }
-

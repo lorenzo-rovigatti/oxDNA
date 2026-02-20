@@ -193,7 +193,6 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
-	Particles/ANMTParticle.cpp
 	Particles/ANMParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
