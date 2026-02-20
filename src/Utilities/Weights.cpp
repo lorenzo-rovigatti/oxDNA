@@ -113,9 +113,7 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 		else OX_LOG (Logger::LOG_INFO, "(Weights.cpp) number of lines in the weights file do not match the dimensions of the order parameter. Expecting %d lines, got %d. Using default weight %g", _dim, lineno, default_weight);
 	}
 	
-	OX_LOG (Logger::LOG_INFO, "(Weights.cpp) parser: parsing done"); 
-
-	return;
+	OX_LOG (Logger::LOG_INFO, "(Weights.cpp) parser: parsing done");
 }
 
 void Weights::print() {
@@ -132,7 +130,6 @@ void Weights::print() {
 		printf ("%d %lf %lf\n", i, _w[i], get_weight(tmp));
 	}
 	printf ("###################################\n");
-	return;
 }
 
 double Weights::get_weight_by_index (int index) {

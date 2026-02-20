@@ -13,6 +13,16 @@
 #include <sstream>
 #include <limits>
 
+inline bool find(int * clust, int size, int value) {
+	int i;
+	for(i = 0; i < size; i++) {
+		if(clust[i] == value) {
+			return true;
+		}
+	}
+	return false;
+}
+
 VMMC_CPUBackend::VMMC_CPUBackend() :
 				MC_CPUBackend() {
 	_have_us = false;
@@ -78,7 +88,6 @@ VMMC_CPUBackend::~VMMC_CPUBackend() {
 			delete[] hbijm_old;
 		}
 	}
-	return;
 }
 
 void VMMC_CPUBackend::init() {
@@ -95,7 +104,9 @@ void VMMC_CPUBackend::init() {
 	}
 
 	if(_have_us) {
+		// load order parameters fom order parameter file
 		_op.init_from_file(_op_file, _particles, N());
+		// load weights from weight file
 		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
 		if(_reload_hist) {
 			_h.init(_init_hist_file, &_op, _etemps, _netemps);
@@ -436,15 +447,6 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	return energy;
 }
 
-inline bool find(int * clust, int size, int value) {
-	int i;
-	for(i = 0; i < size; i++) {
-		if(clust[i] == value) {
-			return true;
-		}
-	}
-	return false;
-}
 
 inline void VMMC_CPUBackend::store_particle(BaseParticle * src) {
 	BaseParticle *dst = _particles_old[src->index];

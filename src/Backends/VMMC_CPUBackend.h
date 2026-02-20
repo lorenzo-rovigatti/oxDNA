@@ -48,12 +48,17 @@ class VMMC_CPUBackend: public MC_CPUBackend {
 	};
 
 protected:
+	// whether the system has umbrella sampling
 	bool _have_us;
 	bool _reload_hist;
+	// order parameters
 	OrderParameters _op;
 	char _op_file[512];
+	// weights matrix
 	Weights _w;
+	// file name for weights file
 	char _weights_file[512];
+	// histogram of state sampling
 	Histogram _h;
 
 	bool _safe_weights;
@@ -87,10 +92,16 @@ protected:
 
 	void _print_pos(int);
 
+	// file name for trajectory histogram
 	char _traj_hist_file[512];
+	// file name for last histogram
 	char _last_hist_file[512];
+	// file name for initial histogram??
 	char _init_hist_file[512];
 	char _state_str[512];
+
+	// additional options for compressed weights / hists
+
 
 	int _maxclust;
 
