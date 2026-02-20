@@ -208,6 +208,11 @@ void assert_is_valid_particle(int n, int N, std::string identifier);
  */
 bool is_integer(std::string s);
 
+template <typename T>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+    return (v < lo) ? lo : (hi < v) ? hi : v;
+}
+
 }
 
 inline LR_vector Utils::get_random_vector() {

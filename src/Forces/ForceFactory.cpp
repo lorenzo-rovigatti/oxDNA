@@ -30,6 +30,7 @@
 
 
 // metadynamics-related forces
+#include "Metadynamics/LTCoordination.h"
 #include "Metadynamics/LT2DCOMTrap.h"
 #include "Metadynamics/LTAtanCOMTrap.h"
 #include "Metadynamics/LTCOMAngleTrap.h"
@@ -91,6 +92,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
 	else if(type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
 	else if(type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
+	else if(type_str.compare("meta_coordination") == 0) extF = std::make_shared<LTCoordination>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
