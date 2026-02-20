@@ -1,0 +1,39 @@
+interaction_type = DNA2
+salt_concentration = 1.0
+sim_type = MD
+dt = 0.005
+thermostat = brownian
+diff_coeff = 1.0
+newtonian_steps = 53
+
+backend = CPU
+
+steps = 1e9
+list_type = verlet
+T = 50C
+verlet_skin = 0.2
+
+back_in_box = false
+fix_diffusion = false
+
+topology = topology.dat
+conf_file = init_conf.dat
+lastconf_file = output/last.conf
+trajectory_file = output/trajectory.dat
+refresh_vel = true
+log_file = log.txt
+no_stdout_energy = true
+restart_step_counter = false
+energy_file = log.energy.dat
+print_conf_interval = 1
+print_energy_every = 10000
+time_scale = linear
+
+data_output_1 = {
+    print_every = 1e3
+    name = hb_count.dat
+    col_1 = {
+    type = hb_list
+    only_count=True
+    }
+}
