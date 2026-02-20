@@ -74,7 +74,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#decimate">Decimate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#deviations">Deviations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#distance">Distance</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dot-bracket-to-force">Dot-bracket to force</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dot-bracket-to-forces">Dot-bracket to forces</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#duplex-angle-plotter">Duplex angle plotter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#duplex-finder">Duplex finder</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#file-info">File info</a></li>
@@ -98,6 +98,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#unit-tests">Unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#constants">Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#analysis-notebooks">Analysis notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#citation">Citation</a></li>
 </ul>
@@ -359,7 +361,7 @@
 <h2>Config<a class="headerlink" href="#config" title="Permalink to this heading"></a></h2>
 <p><p>Configure oxDNA_analysis_tools</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FIG_DPI</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Named Arguments">
@@ -367,6 +369,9 @@
 <dl class="option-list">
 <dt><kbd>-n, --chunk_size</kbd></dt>
 <dd><p>Number of configurations to per chunk.  Persistent across analyses.</p>
+</dd>
+<dt><kbd>-f, --fig_dpi</kbd></dt>
+<dd><p>The DPI of figures saved by oat scripts.  Persistent across analyses.</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>
@@ -499,7 +504,7 @@
 <p><p>Finds the ensemble of distances between any two particles in the system</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">distance</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="n">p1</span> <span class="n">p2</span><span class="o">...</span><span class="p">)</span> <span class="p">[</span><span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="p">(</span><span class="n">p1</span> <span class="n">p2</span><span class="o">...</span> <span class="o">...</span><span class="p">]]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="p">(</span><span class="n">p1</span> <span class="n">p2</span><span class="o">...</span><span class="p">)</span> <span class="p">[</span><span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="p">(</span><span class="n">p1</span> <span class="n">p2</span><span class="o">...</span><span class="p">)</span> <span class="o">...</span><span class="p">]]</span>
                     <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
                     <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                     <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
@@ -537,11 +542,11 @@
 </dl>
 </section>
 </section>
-<section id="dot-bracket-to-force">
-<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this heading"></a></h2>
+<section id="dot-bracket-to-forces">
+<h2>Dot-bracket to forces<a class="headerlink" href="#dot-bracket-to-forces" title="Permalink to this heading"></a></h2>
 <p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">db_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_forces</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">db_file</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -738,8 +743,8 @@
 <h2>Generate force<a class="headerlink" href="#generate-force" title="Permalink to this heading"></a></h2>
 <p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">generate_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PAIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
-                          <span class="n">inputfile</span> <span class="n">configuration</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">generate_forces</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PAIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                           <span class="n">inputfile</span> <span class="n">configuration</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -1210,7 +1215,7 @@
 <h2>Superimpose<a class="headerlink" href="#superimpose" title="Permalink to this heading"></a></h2>
 <p><p>superimposes one or more structures sharing a topology to a reference structure</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_files</span><span class="p">)</span> <span class="p">[</span><span class="n">index_file</span><span class="p">(</span><span class="n">s</span> <span class="o">...</span><span class="p">]]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">[</span><span class="n">index_file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">...</span><span class="p">]]</span>
                        <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_names</span> <span class="p">[</span><span class="n">output_names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                        <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>

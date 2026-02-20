@@ -65,7 +65,8 @@
 <li class="toctree-l3"><a class="reference internal" href="cli.html">OAT command line documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#scripting-interface">Scripting interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#scripting-interface">Scripting interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unit-tests">Unit tests</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#top-level-api">Top-level API</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api.html">OAT scripting interface documentation</a></li>
 </ul>
@@ -80,6 +81,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#constants">Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#analysis-notebooks">Analysis notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 </ul>
@@ -122,7 +124,12 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">oat</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">name</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">arguments</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>There are bash autocompletes avilable for the script names, which can be activated by copying the file <code class="docutils literal notranslate"><span class="pre">/oxDNA/analysis/oat-completion.sh</span></code> to your autocompletes file (generally <code class="docutils literal notranslate"><span class="pre">~/.bash_completion</span></code>) and restarting your command line session.</p>
+<p>There are Bash and Zsh autocompletes avilable for the script names, which can be activated by copying the file <code class="docutils literal notranslate"><span class="pre">/oxDNA/analysis/oat-completion.sh</span></code> to your autocompletes file (in Bash: <code class="docutils literal notranslate"><span class="pre">~/.bash_completion</span></code>) or adding <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">/path/to/oxDNA/analysis/oat-completion.sh</span></code> to your rc file and restarting your command line session.  Note that for Zsh, you must be using the modern completion engine by adding</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autoload</span> <span class="o">-</span><span class="n">U</span> <span class="n">compinit</span>
+<span class="n">compinit</span>
+</pre></div>
+</div>
+<p>to your <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code> file.</p>
 <p>Documentation for individual scripts:</p>
 <div class="toctree-wrapper compound">
 <ul>
@@ -138,7 +145,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cli.html#decimate">Decimate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#deviations">Deviations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#distance">Distance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#dot-bracket-to-force">Dot-bracket to force</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#dot-bracket-to-forces">Dot-bracket to forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#duplex-angle-plotter">Duplex angle plotter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#duplex-finder">Duplex finder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#file-info">File info</a></li>
@@ -165,7 +172,7 @@
 <section id="scripting-interface">
 <h2>Scripting interface<a class="headerlink" href="#scripting-interface" title="Permalink to this heading"></a></h2>
 <p>The scripting API for <code class="docutils literal notranslate"><span class="pre">oat</span></code> can be imported into Python scripts as the <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span> <span class="kn">import</span> <span class="n">describe</span><span class="p">,</span> <span class="n">get_confs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">describe</span><span class="p">,</span> <span class="n">get_confs</span>
 
 <span class="c1"># get the top and traj names from the command line or hardcode them</span>
 
@@ -174,6 +181,22 @@
 </pre></div>
 </div>
 <p>The mean.py script located at <code class="docutils literal notranslate"><span class="pre">oxDNA/analysis/src/oxDNA_analysis_tools/mean.py</span></code> has been commented in detail to give a full example of how to use <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> to write your own analyses.</p>
+</section>
+<section id="unit-tests">
+<h2>Unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
+<p>For development purposes, <code class="docutils literal notranslate"><span class="pre">oat</span></code> has comprehensive unit tests implemented in <a class="reference external" href="https://docs.pytest.org/en/stable/">Pytest</a> which can be found in <code class="docutils literal notranslate"><span class="pre">oxDNA/analysis/tests/</span></code>. To run all tests, first install <code class="docutils literal notranslate"><span class="pre">oat</span></code> either via <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> as described in the <a class="reference internal" href="../install.html#compiling-oxdna"><span class="std std-ref">installation instructions</span></a>, or with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">oxDNA/analysis/</span></code>, then run:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>oxDNA/analysis/tests/test_cli/<span class="sb">`</span>
+</pre></div>
+</div>
+<p>Or run a specific test:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>oxDNA/analysis/tests/test_cli/test_mean.py
+</pre></div>
+</div>
+<p>Test coverage can be checked using <a class="reference external" href="https://coverage.readthedocs.io/en/latest/">Coverage.py</a>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>coverage<span class="w"> </span>run<span class="w"> </span>--source<span class="o">=</span>oxDNA_analysis_tools<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_cli/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>coverage<span class="w"> </span>combine<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>coverage<span class="w"> </span>html<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>open<span class="w"> </span>htmlcov/index.html<span class="w"> </span>
+</pre></div>
+</div>
+<p>If a test fails on your machine, please consider opening an issue on GitHub to let us know!</p>
 <p>Full API documentation:</p>
 <section id="top-level-api">
 <h3>Top-level API<a class="headerlink" href="#top-level-api" title="Permalink to this heading"></a></h3>
@@ -240,6 +263,14 @@
 </div>
 </section>
 </section>
+<section id="constants">
+<h2>Constants<a class="headerlink" href="#constants" title="Permalink to this heading"></a></h2>
+<p>There are a couple global constants which <code class="docutils literal notranslate"><span class="pre">oat</span></code> uses across scripts. These can be found in <code class="docutils literal notranslate"><span class="pre">oxDNA/analysis/src/oxDNA_analysis_tools/UTILS/constants.py</span></code>. They can be set persistently on an installed copy of <code class="docutils literal notranslate"><span class="pre">oat</span></code> using <code class="docutils literal notranslate"><span class="pre">oat</span> <span class="pre">config</span></code> with a flag, where the following options are available:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>oat<span class="w"> </span>config<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="c1"># Load configurations in chunks of 100 per process while reading trajectories</span>
+oat<span class="w"> </span>config<span class="w"> </span>-f<span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="c1"># Set output figure DPI to 300</span>
+</pre></div>
+</div>
+</section>
 <section id="analysis-notebooks">
 <h2>Analysis notebooks<a class="headerlink" href="#analysis-notebooks" title="Permalink to this heading"></a></h2>
 <p>As simulations become more prevalent and analysis pipelines more complicated, it can be beneficial for researchers to define their entire simulation/analysis pipeline in Python notebooks, much as is often done in the machine learning community.  The modular nature of <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> lends itself to composing analyses together to ask specific scientific questions.</p>
@@ -247,18 +278,20 @@
 <p>From a directory containing an oxDNA input file, and initial configuration/topology files:</p>
 <p><strong>First, we will set up some functions for running simulations with oxpy</strong>
 Instead of modifying an existing input file, you can also simply provide the entire input file as a <code class="docutils literal notranslate"><span class="pre">dict</span></code> to kwargs and remove the <code class="docutils literal notranslate"><span class="pre">init_from_filename</span></code> call.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
-<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">oxpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
 
 <span class="c1"># Running oxpy multiple times from the same jupyter kernel crashes the kernel for some reason</span>
 <span class="c1"># So we will be starting simulations from a separate thread.</span>
-<span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">spawn</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">p</span>
 
 <span class="c1"># Sets up and runs the simulation</span>
-<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
         <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
@@ -308,9 +341,9 @@ For this example, we set the number of steps and print intervals to be smaller s
 </pre></div>
 </div>
 <p><strong>Use <code class="docutils literal notranslate"><span class="pre">oat</span></code> to compute the mean structure and RMSF</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.mean</span> <span class="kn">import</span> <span class="n">mean</span>
-<span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.deviations</span> <span class="kn">import</span> <span class="n">deviations</span>
-<span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span> <span class="kn">import</span> <span class="n">describe</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.mean</span><span class="w"> </span><span class="kn">import</span> <span class="n">mean</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.deviations</span><span class="w"> </span><span class="kn">import</span> <span class="n">deviations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">describe</span>
 
 <span class="c1"># Get the trajectory and topology file names from the oxpy.InputFile object</span>
 <span class="n">top</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;topology&quot;</span><span class="p">]</span>
@@ -326,7 +359,7 @@ For this example, we set the number of steps and print intervals to be smaller s
 </pre></div>
 </div>
 <p><strong>oxView iframes can be embedded in Jupyter Notebooks with <code class="docutils literal notranslate"><span class="pre">oat</span></code>’s oxView lib</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.oxview</span> <span class="kn">import</span> <span class="n">oxdna_conf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.UTILS.oxview</span><span class="w"> </span><span class="kn">import</span> <span class="n">oxdna_conf</span>
 
 <span class="c1"># Display python objects in an oxview iframe</span>
 <span class="n">oxdna_conf</span><span class="p">(</span><span class="n">top_info</span><span class="p">,</span> <span class="n">mean_conf</span><span class="p">,</span> <span class="n">RMSFs</span><span class="p">)</span>

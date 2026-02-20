@@ -278,27 +278,41 @@ mask = 1, 1, 0
 </section>
 <section id="repulsion-plane">
 <h2>Repulsion plane<a class="headerlink" href="#repulsion-plane" title="Permalink to this heading"></a></h2>
-<p>This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion.</p>
+<p>This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion. The position of the plane can optionally move with a fixed velocity along its normal.</p>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code>. The relevant keys are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the repulsion.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: the vector normal to the plane: it should point towards the half-plane where the repulsion is not acting.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">position</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: defines the position of the plane along the direction identified by the plane normal.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[v</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the velocity with which the plane’s position moves along the normal, defined in units of inverse number of steps (rather than simulation time, which is number of steps times <code class="docutils literal notranslate"><span class="pre">dt</span></code>). The sign of the velocity controls whether the position moves in the same or opposite direction given by the plane’s normal. Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[end_position</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: If the position of the plane reaches this value, the plane will stop moving. Defaults to <code class="docutils literal notranslate"><span class="pre">1e6</span></code> (which practically means that the movement will never stop).</p></li>
 </ul>
-<p>If direction is <code class="docutils literal notranslate"><span class="pre">dir</span></code><span class="math notranslate nohighlight">\( = (u,v,w)\)</span>, then the plane contains all the points <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy the equation: <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} = 0\)</span>.
-Only nucleotides  with coordinates <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \lt 0\)</span> will feel the force.
-The force exerted on a nucleotide is equal to <code class="docutils literal notranslate"><span class="pre">stiff</span></code> * <em>D</em>, where <span class="math notranslate nohighlight">\(D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }\)</span> is the distance of the nucleotide from the plane.
-For nucleotides for which <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \geq 0\)</span>, no force will be exerted.</p>
+<p>If direction is <code class="docutils literal notranslate"><span class="pre">dir</span></code><span class="math notranslate nohighlight">\( = (a,b,c)\)</span>, then the plane contains all the points <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy the equation: <span class="math notranslate nohighlight">\(a x + b y + c z + {\rm position_t} = 0\)</span>, where <span class="math notranslate nohighlight">\({\rm position}_t = {\rm position} + v \cdot N_{\rm step}\)</span>, where <span class="math notranslate nohighlight">\(N_{\rm step}\)</span> is the current time step.
+Only nucleotides  with coordinates <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy <span class="math notranslate nohighlight">\(a x + b y + c z + {\rm position}_t \lt 0\)</span> will feel the force.
+The force exerted on a nucleotide is equal to <code class="docutils literal notranslate"><span class="pre">stiff</span></code> * <em>D</em>, where <span class="math notranslate nohighlight">\(D = | ax + by + cz + \mbox{position}_t| / \sqrt{a^2 + b^2 + c^2 }\)</span> is the distance of the nucleotide from the plane.
+For nucleotides for which <span class="math notranslate nohighlight">\(a x + b y + c z + {\rm position}_t \geq 0\)</span>, no force will be exerted.</p>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
-<p>The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit * x (48.6 pN * x for DNA) will be exerted on all particles .</p>
+<p>The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit * x (48.6 pN * x for DNA) will be exerted on all particles.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
 type = repulsion_plane
 particle = -1
 stiff = 1.00
 dir = 1, 0, 0
 position = 0
+}
+</pre></div>
+</div>
+<p>In the following example, the plane will move along the <span class="math notranslate nohighlight">\(x\)</span> coordinate with a rate of <span class="math notranslate nohighlight">\(10^{-6}\)</span> simulation units per time step until the plane’s position becomes <span class="math notranslate nohighlight">\(10\)</span>, which will take <span class="math notranslate nohighlight">\(10 / 10^{-6} = 10^7\)</span> steps.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = repulsion_plane
+particle = -1
+stiff = 1.00
+dir = 1, 0, 0
+position = 0
+v = 1e-6
+end_position = 10
 }
 </pre></div>
 </div>

@@ -98,12 +98,12 @@
 <p>oxDNA supports a basic <a class="reference external" href="https://en.wikipedia.org/wiki/Observer_pattern">observer pattern</a> to associate callbacks to specific events. The system can be used from both C++ and Python. The basic idea is to call <code class="docutils literal notranslate"><span class="pre">ConfigInfo</span></code>’s <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> and <code class="docutils literal notranslate"><span class="pre">notify</span></code> methods to register callbacks and to trigger events, respectively.</p>
 <div class="admonition-python admonition">
 <p class="admonition-title">Python</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">oxpy</span>
 
 <span class="p">[</span><span class="o">...</span><span class="p">]</span>
 
 <span class="c1"># define a callback</span>
-<span class="k">def</span> <span class="nf">on_T_update</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">on_T_update</span><span class="p">():</span>
   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Temperature was updated to&quot;</span><span class="p">,</span> <span class="n">conf_info</span><span class="o">.</span><span class="n">temperature</span><span class="p">())</span>
 
 <span class="c1"># associate the callback to the &quot;T_updated&quot; event</span>

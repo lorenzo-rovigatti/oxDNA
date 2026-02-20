@@ -112,8 +112,8 @@
 <section id="an-example-of-a-simple-simulation">
 <h2>An example of a simple simulation<a class="headerlink" href="#an-example-of-a-simple-simulation" title="Permalink to this heading"></a></h2>
 <p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation using the input file <code class="docutils literal notranslate"><span class="pre">input</span></code>, changes the temperature, runs more simulations steps and computes the average position of the final configuration:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">oxpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">oxpy</span>
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
 	<span class="c1"># init the manager with the given input file</span>
@@ -184,8 +184,8 @@
 <section id="an-example-of-a-simple-analysis">
 <h2>An example of a simple analysis<a class="headerlink" href="#an-example-of-a-simple-analysis" title="Permalink to this heading"></a></h2>
 <p>Here we loop over all the configurations stored in an oxDNA trajectory file, printing the position of the first particle.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">oxpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">oxpy</span>
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
