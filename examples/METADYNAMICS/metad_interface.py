@@ -94,6 +94,7 @@ class CoordinationHandler(IForceHandler):
     col_2 = {{
         type = force_energy
         print_group = metadynamics
+        per_particle = false
     }}
     col_3 = {{
         type = order_parameters

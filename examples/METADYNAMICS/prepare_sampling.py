@@ -14,10 +14,12 @@ LINES = {
     "conf_file" : ["last_conf.dat", "init_conf.dat"],
     "log_file" : ["oxDNA_log.txt", ""],
     "no_stdout_energy" : ["true", ""],
-    "print_conf_interval" : ["1e11", "1e5"]
+    "print_conf_interval" : ["1e11", "1e5"],
+    "restart_step_counter" : ["false", "true"]
 }
 
 BASE_RUNNER_DIR = "run-meta_0"
+METAD_CONFIG_FILENAME = "original_metad_config.toml"
 
 def build_parser():
     import argparse
@@ -50,6 +52,9 @@ if __name__ == "__main__":
     # If the OP is a coordination OP, copy the order-parameter file as well
     if config_data["coordination"] == True:
         FILES["op_coordination.dat"] = "op_coordination.dat"
+
+    # Copy also the metadynamics configuration file
+    shutil.copy(args.config, os.path.join(args.sampling_dir, METAD_CONFIG_FILENAME))
 
     # Copy the base simulation files
     for f_old, f_new in FILES.items():

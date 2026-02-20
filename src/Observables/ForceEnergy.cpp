@@ -19,6 +19,7 @@ void ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputString(&my_inp, "print_group", _group_name, 0);
+	getInputBool(&my_inp, "per_particle", &_per_particle, 0);
 }
 
 std::string ForceEnergy::get_output_string(llint curr_step) {
@@ -38,7 +39,9 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 			}
 		}
 	}
-	U /= _config_info->N();
+	if(_per_particle) {
+		U /= _config_info->N();
+	}
 
 	return Utils::sformat(_number_formatter, U);
 }
