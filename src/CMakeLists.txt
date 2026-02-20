@@ -125,6 +125,9 @@ SET(interactions_SOURCES
 	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
+	Interactions/ANMInteraction.cpp
+	Interactions/DNANMInteraction.cpp
+	Interactions/RNANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -190,6 +193,7 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
+	Particles/ANMParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
@@ -261,6 +265,7 @@ IF(CUDA)
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
+		CUDA/Interactions/CUDADNANMInteraction.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu

@@ -34,6 +34,8 @@ namespace Utils {
 int decode_base(char c);
 char encode_base(int b);
 std::vector<int> btypes_from_sequence(const std::string &sequence);
+int decode_aa(char c); // Subho 
+char encode_aa(int b); // Subho
 
 number gaussian();
 

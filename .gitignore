@@ -69,6 +69,7 @@ MANIFEST
 # Vim/gvim/vscode swp files
 .*.swp
 .vscode/
+.cache
 
 # MacOS desktop servies
 .DS_Store
