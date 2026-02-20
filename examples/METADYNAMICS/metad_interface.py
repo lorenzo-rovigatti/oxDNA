@@ -347,8 +347,9 @@ class oxDNARunner(mp.Process):
 class Estimator():
     
     INPUT_FILE = "input-meta"
-    EXT_FORCES_FILE = "ext-meta"
-    LAST_CONF = "output/last_conf.dat"
+    EXT_FORCES_FILE = "ext_meta.txt"
+    LAST_CONF = "last_conf.dat"
+    TRAJECTORY_FILE = "trajectory.dat"
     BIAS_DIR = "bias"
     RUN_BASEDIR = "run-meta_"
 
@@ -424,6 +425,7 @@ class Estimator():
             input_file["print_conf_interval"] = "1e11" # configurations are printed manually every conf_interval metadynamics iterations
             # we standardise the location of the last configuration, which is also the configuration we will start from
             input_file["lastconf_file"] = Estimator.LAST_CONF
+            input_file["trajectory_file"] = Estimator.TRAJECTORY_FILE
             input_file["conf_file"] = Estimator.LAST_CONF
             # next we try to avoid issues with strands diffusing through boundaries and being brought back by fix_diffusion, which would be disastrous for the forces, which do not take into account PBC by construction
             input_file["fix_diffusion"] = "false"
@@ -468,7 +470,6 @@ class Estimator():
                     shutil.rmtree(w.working_dir, ignore_errors=True)
                     
                     os.mkdir(w.working_dir)
-                    os.mkdir(f"{w.working_dir}/output")
                     
                     shutil.copy(initial_conf, os.path.join(w.working_dir, Estimator.LAST_CONF))
                     shutil.copy(top_file, w.working_dir)
@@ -620,7 +621,7 @@ class Estimator():
                 print(f"The following error was raised during the execution of one of the child processes (index: {w.index}, working dir: {w.working_dir}), aborting run:")
                 print(error)
                 print(traceback)
-                print("Each child process will write the current configuration to its 'output' folder")
+                print("Each child process will write the current configuration to its folder")
                 self.stop_runners(True)
                 exit(1)
 
@@ -778,4 +779,21 @@ if __name__ == "__main__":
     print(f"Configuration written to {filename}", file=sys.stderr)
 
     estimator = Estimator(**arg_dict)
-    estimator.do_run()
+    try:
+        estimator.do_run()
+    except KeyboardInterrupt:
+        print("\nInterrupted, stopping runners and cleaning up... ", file=sys.stderr, end="")
+        estimator.stop_runners(print_last_conf=True)
+
+        # give walkers a short time to exit, otherwise force-terminate
+        for w in estimator.walkers:
+            if w.is_alive():
+                w.join(timeout=5)
+                if w.is_alive():
+                    try:
+                        w.terminate()
+                        print("Force-terminating walker with index %s and working dir %s" % (w.index, w.working_dir), file=sys.stderr)
+                    except Exception:
+                        pass
+        print("Done.", file=sys.stderr)
+        sys.exit(1)
