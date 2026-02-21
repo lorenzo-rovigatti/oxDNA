@@ -297,6 +297,22 @@ forces2db.forces2db
 .. autofunction:: oxDNA_analysis_tools.forces2db.forces2db
 ```
 
+## IDconvert
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    IDconvert.read_strands
+
+.. autofunction:: oxDNA_analysis_tools.IDconvert.read_strands
+```
+
 ## Mean
 
 ```{eval-rst}

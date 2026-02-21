@@ -159,6 +159,35 @@
     :prog: oat generate_forces
 ```
 
+## IDconvert
+
+Translate nucleotide IDs between two oxDNA topology files.
+
+```
+oat IDconvert <reference.top> <compare.top> <ids.txt>
+```
+
+**Positional arguments:**
+
+| Argument | Description |
+|---|---|
+| `reference.top` | Topology file whose nucleotide IDs are provided as input. |
+| `compare.top` | Topology file to map the IDs into. |
+| `ids.txt` | Plain-text file containing a comma-separated list of nucleotide IDs from the reference topology. |
+
+Both old-style (`<N_nucs> <N_strands>`) and new-style (`<N_nucs> <N_strands> 5->3`) topology formats are supported in any combination.
+
+**Output:**
+
+- **stdout** – comma-separated list of the corresponding nucleotide IDs in the compare topology. Nucleotides present in the reference but absent from the compare file are listed as `DELETED`.
+- **stderr** – human-readable summary: nucleotide and strand counts for both files, per-strand sequence-similarity scores, and the total number of deleted/added nucleotides.
+
+**Example:**
+
+```bash
+oat IDconvert before.top after.top selected_ids.txt
+```
+
 ## Mean
 
 ```{eval-rst}
