@@ -58,6 +58,16 @@ void export_BaseObservable(py::module &m) {
         access the current configuration's details.
 	)pbdoc");
 
+	obs.def("update_data", &BaseObservable::update_data, py::arg("curr_step"), R"pbdoc(
+		Update the observable's data structures. Some observables may need to update their data structures
+		even when they are not being printed (for instance, if they output averages over time).
+
+		Parameters
+		---------- 
+		curr_step : int
+			The current simulation step.
+	)pbdoc");
+
 	obs.def("get_output_string", &BaseObservable::get_output_string, py::arg("curr_step"), R"pbdoc(
 		Compute the quantity/quantities of interest and returns the output string.
 
