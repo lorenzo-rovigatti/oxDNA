@@ -214,6 +214,7 @@ inline number safe_acos(number x) {
     // branchless clamp into [–1,1]
     number y = std::fmax(-1.0, std::fmin(1.0, x));
     return std::acos(y);
+}
 
 template <typename T>
 constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
