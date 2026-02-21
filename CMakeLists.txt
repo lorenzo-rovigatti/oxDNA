@@ -25,6 +25,7 @@ OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the p
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
+OPTION(OxpyVersionOverride "Skip the Python version check and use the default Python regardless of version" OFF)
 
 if(DEFINED PYTHON)
 	set(Python ${PYTHON})
@@ -299,3 +300,4 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(contrib)
 ADD_SUBDIRECTORY(src/oxpy)
+ADD_SUBDIRECTORY(analysis)

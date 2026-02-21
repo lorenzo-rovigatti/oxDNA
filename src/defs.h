@@ -34,6 +34,29 @@
 #define N_T 3
 #define N_DUMMY 4
 
+//Amino Acids Added
+#define A_A (5)
+#define A_R (6)
+#define A_N (7)
+#define A_D (8)
+#define A_C (9)
+#define A_E (10)
+#define A_Q (11)
+#define A_G (12)
+#define A_H (13)
+#define A_I (14)
+#define A_L (15)
+#define A_K (16)
+#define A_M (17)
+#define A_F (18)
+#define A_P (19)
+#define A_S (20)
+#define A_T (21)
+#define A_W (22)
+#define A_Y (23)
+#define A_V (24)
+#define A_DUMMY (25)
+
 // TODO: this is the cutoff for considering a hydrogen bond "formed", but it should be
 // possible to set it from input file and not hard coded
 #define HB_CUTOFF (-0.1f)

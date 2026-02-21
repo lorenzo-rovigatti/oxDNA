@@ -83,6 +83,10 @@ void OxpyManager::remove_output(std::string filename) {
 	_backend->remove_output(filename);
 }
 
+void OxpyManager::update_observable_data() {
+	_backend->update_observables_data(true); // always force update
+}
+
 void OxpyManager::update_CPU_data_structures() {
 	_backend->apply_simulation_data_changes();
 }
@@ -177,6 +181,13 @@ input: :class:`InputFile`
         -------
         :class:`ConfigInfo`
             The object that stores all the simulation's details (particles, interaction, `etc`).
+	)pbdoc");
+
+	manager.def("update_observable_data", &OxpyManager::update_observable_data, R"pbdoc(
+		Make sure that the observables' data structures are up to date.
+
+		This method should be called every time an observable's get_output_string() method is called
+		not in sync with its update_every (or print_every for outputs) parameter (for instance, from a callback).
 	)pbdoc");
 
 	manager.def("system_energy", &OxpyManager::system_energy, R"pbdoc(

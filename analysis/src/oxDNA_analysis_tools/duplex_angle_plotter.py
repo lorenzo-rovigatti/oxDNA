@@ -185,7 +185,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
     import matplotlib.pyplot as plt
     if hist == True:
         if line == True:
-            out = outfile[:outfile.find(".")]+"_hist"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_hist"+outfile[outfile.rfind("."):]
         else:
             out = outfile
     
@@ -203,12 +203,12 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         log("Saving histogram to {}".format(out))
         plt.tight_layout()
         plt.savefig(out, dpi=FIG_DPI)
+        plt.close()
 
     #make a trajectory plot
     if line == True:
         if hist == True:
-            plt.clf()
-            out = outfile[:outfile.find(".")]+"_traj"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_traj"+outfile[outfile.rfind("."):]
         else:
             out = outfile
         
@@ -223,7 +223,8 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         log("Saving line plot to {}".format(out))
         plt.tight_layout()
         plt.savefig(out, dpi=FIG_DPI)
-    
+        plt.close()
+
     return
 
 def cli_parser(prog="duplex_angle_plotter.py"):

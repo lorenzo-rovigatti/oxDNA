@@ -1,0 +1,19 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+interaction_type = RNA2
+salt_concentration = 1.0
+
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 1000
+T = 35C
+verlet_skin = 0.2
+use_average_seq = 0
+seq_dep_file = rna_sequence_dependent_parameters.txt
+
+####    INPUT / OUTPUT    ####
+topology = rna_tile.top
+conf_file = minitraj.dat
+trajectory_file = minitraj.dat

@@ -616,12 +616,12 @@ void SimBackend::print_observables() {
 	_mytimer->pause();
 }
 
-void SimBackend::update_observables_data() {
+void SimBackend::update_observables_data(bool force) {
 	_obs_timer->resume();
 
 	bool updated = false;
 	for(auto const &obs : _config_info->observables) {
-		if(obs->need_updating(current_step())) {
+		if(obs->need_updating(current_step()) || force) {
 			if(!updated && obs->require_data_on_CPU()) {
 				apply_simulation_data_changes();
 				updated = true;
