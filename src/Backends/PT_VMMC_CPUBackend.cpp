@@ -6,8 +6,10 @@
  */
 
 #include "PT_VMMC_CPUBackend.h"
+#include "../Interactions/DNA3Interaction.h"
 
 #include <mpi.h>
+#include <iostream>
 
 PT_VMMC_CPUBackend::PT_VMMC_CPUBackend() :
 				VMMC_CPUBackend() {
@@ -20,12 +22,14 @@ PT_VMMC_CPUBackend::PT_VMMC_CPUBackend() :
 	_pt_exchange_accepted = (llint) 1;
 	_pt_common_weights = false;
 	_U_ext = (number) 0.;
+    _first_step = true;
 }
 
 PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 	delete[] _exchange_conf;
 	delete[] _pttemps;
 }
+
 
 void PT_VMMC_CPUBackend::init() {
 	if(_oxRNA_stacking) {
@@ -65,8 +69,74 @@ void PT_VMMC_CPUBackend::init() {
 
 	CONFIG_INFO->update_temperature(_T);
 
+    VMMC_CPUBackend::init();
+
+    //we have to update Ts in interaction as well!! Here it does not work, though.
+    //Need to recompute energy as well: VMMC_CPUBackend::init() computes the energy.
+    //Must be done after initialising VMMC, otherwise it does not work.
+    //For this reason, some stuff in VMMC.init() must be done again.
+    DNA2Interaction *it2 = dynamic_cast<DNA2Interaction*>(_interaction.get());
+    if(it2 != NULL) {
+        it2->_on_T_update();
+        it2->init();
+    }
+    _compute_energy();
+    DNA3Interaction *it3 = dynamic_cast<DNA3Interaction*>(_interaction.get());
+    if(it3 != NULL) {
+        //std::cout << "updating T" << endl;
+        it3->_on_T_update();
+        it3->init();
+    }
+
 	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
-	VMMC_CPUBackend::init();
+	//VMMC_CPUBackend::init();
+
+    //need to do these again...
+
+    number tmpf, epq;
+    BaseParticle * p, *q;
+    for(int k = 0; k < N(); k++) {
+        p = _particles[k];
+        if(p->n3 != P_VIRTUAL) {
+            q = p->n3;
+            epq = _particle_particle_bonded_interaction_n3_VMMC(p, q, &tmpf);
+            p->en3 = epq;
+            q->en5 = epq;
+            p->esn3 = tmpf;
+            q->esn5 = tmpf;
+        }
+    }
+
+    if(_small_system) {
+        eijm = new number*[N()];
+        eijm_old = new number*[N()];
+        hbijm = new bool*[N()];
+        hbijm_old = new bool*[N()];
+        for(int k = 0; k < N(); k++) {
+            eijm[k] = new number[N()];
+            eijm_old[k] = new number[N()];
+            hbijm[k] = new bool[N()];
+            hbijm_old[k] = new bool[N()];
+        }
+
+        for(int k = 0; k < N(); k++) {
+            for(int l = 0; l < k; l++) {
+                p = _particles[k];
+                q = _particles[l];
+                if(p->n3 != q && p->n5 != q) {
+                    eijm[k][l] = eijm[l][k] = eijm_old[k][l] = eijm_old[l][k] = _particle_particle_nonbonded_interaction_VMMC(p, q, &tmpf);
+                    hbijm[k][l] = hbijm[l][k] = hbijm_old[k][l] = hbijm_old[l][k] = (tmpf < HB_CUTOFF);
+                }
+            }
+        }
+    }
+
+    _init_cells();
+
+    _compute_energy();
+
+    //DONE
+
 	// N() returns no non-sense only after having called init()
 	_exchange_conf = new PT_serialized_particle_info[N()];
 
@@ -101,7 +171,7 @@ void PT_VMMC_CPUBackend::init() {
 		}
 
 		_irresp_w.init((const char*) _irresp_weights_file, &_op, _safe_weights, _default_weight);
-
+        _w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);    //Andrea: we have to update this, otherwise weight will be common!
 		fprintf(stderr, "(from replica %d) common_weights = %d; weights file = %s\n", _my_mpi_id, _pt_common_weights, _weights_file);
 	}
 }
@@ -196,9 +266,20 @@ void PT_serialized_particle_info::write_to(BaseParticle *par) {
 	par->orientation = orientation;
 }
 
+
 void PT_VMMC_CPUBackend::sim_step() {
+
+    //DNA3Interaction * d3i = dynamic_cast<DNA3Interaction *>(_interaction.get());
+    //if (d3i != NULL) std::cout << "Rep" << _my_mpi_id << " T: " << _T << " " << d3i->get_T() << " U " << _U << " U_stack " << _U_stack <<  std::endl;
+
+    //DNA2Interaction * d2i = dynamic_cast<DNA2Interaction *>(_interaction.get());
+    //if (d2i != NULL) std::cout << "Rep" << _my_mpi_id << " T: " << _T << " " << d2i->get_T() << " U " << _U << " U_stack " << _U_stack <<  std::endl;
+
 	//printf("This is a step %ld in process %d, with ene %f \n",curr_step,_my_mpi_id,_U);
+
+    //std::cout << "Rep" <<_my_mpi_id <<" Attempting step " << endl;
 	VMMC_CPUBackend::sim_step();
+    //std::cout << "Rep" <<_my_mpi_id <<" Done step " << endl;
 
 	if(current_step() % _pt_move_every == 0 && current_step() > 2) {
 
