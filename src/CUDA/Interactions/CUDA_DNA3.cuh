@@ -4,16 +4,6 @@ __constant__ int MD_n_forces[1];
 
 __constant__ float MD_hb_multi[1];
 
-__constant__ float MD_F2_K[2];
-__constant__ float MD_F2_RC[2];
-__constant__ float MD_F2_R0[2];
-__constant__ float MD_F2_BLOW[2];
-__constant__ float MD_F2_RLOW[2];
-__constant__ float MD_F2_RCLOW[2];
-__constant__ float MD_F2_BHIGH[2];
-__constant__ float MD_F2_RCHIGH[2];
-__constant__ float MD_F2_RHIGH[2];
-
 __constant__ float MD_dh_RC[1];
 __constant__ float MD_dh_RHIGH[1];
 __constant__ float MD_dh_prefactor[1];
@@ -177,22 +167,6 @@ __forceinline__ __device__ c_number _f1D_SD(c_number r, int type, int n3_2, int 
     return val;
 }
 
-__forceinline__ __device__ c_number _f2(c_number r, int type) {
-    c_number val = 0.f;
-    if(r < MD_F2_RCHIGH[type]) {
-        if(r > MD_F2_RHIGH[type]) {
-            val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
-        }
-        else if(r > MD_F2_RLOW[type]) {
-            val = (MD_F2_K[type] * 0.5f) * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type]));
-        }
-        else if(r > MD_F2_RCLOW[type]) {
-            val = MD_F2_K[type] * MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]);
-        }
-    }
-    return val;
-}
-
 __forceinline__ __device__ c_number _f2_SD(c_number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     c_number val = 0.f;
     if(r < MD_F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
@@ -220,22 +194,6 @@ __forceinline__ __device__ c_number _f2D_SD(number r, int type, int n3_2, int n3
         } 
     else if(r > MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
             val = 2.f * MD_F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * MD_F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - MD_F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
-        }
-    }
-    return val;
-}
-
-__forceinline__ __device__ c_number _f2D(c_number r, int type) {
-    c_number val = (c_number) 0.f;
-    if(r < MD_F2_RCHIGH[type]) {
-        if(r > MD_F2_RHIGH[type]) {
-            val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
-        }
-        else if(r > MD_F2_RLOW[type]) {
-            val = MD_F2_K[type] * (r - MD_F2_R0[type]);
-        }
-        else if(r > MD_F2_RCLOW[type]) {
-            val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
         }
     }
     return val;
@@ -855,7 +813,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
         c_number f5cosphi3 = 1.f;
 
         // functions called at their relevant arguments
-        c_number f2 = _f2(rstackmod, CXST_F2);
+        c_number f2 = _f2_SD(rstackmod, CXST_F2, type_q_n3, qtype, ptype, type_p_n5);
         c_number f4t1 = _f4(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
         c_number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
         c_number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) + _f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
@@ -865,7 +823,7 @@ __device__ void _DNA3_particle_particle_DNA_interaction(const c_number4 &r, cons
 
         if(cxst_energy < (c_number) 0) {
             // derivatives called at the relevant arguments
-            c_number f2D = _f2D(rstackmod, CXST_F2);
+            c_number f2D = _f2D_SD(rstackmod, CXST_F2, type_q_n3, qtype, ptype, type_p_n5);
             c_number f4t1D = -_f4D(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) - _f4D_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
             c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
             c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);

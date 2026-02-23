@@ -1737,7 +1737,6 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
     return energy;
 }
 
-
 number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->is_bonded(q)) {
         return (number) 0.f;
@@ -1768,7 +1767,6 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
 
         if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
         if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-        
 
         // functions called at their relevant arguments
         number f2 = _f2_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
@@ -1839,11 +1837,6 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
 
     return energy;
 }
-
-
-
-
-
 
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
