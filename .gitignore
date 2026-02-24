@@ -72,13 +72,9 @@ analysis/src/oxDNA_analysis_tools/cython_utils/get_confs.c
 # Vim/gvim/vscode swp files
 .*.swp
 .vscode/
-.cache
 
 # MacOS desktop servies
 .DS_Store
-
-# Pytest and coverage.py stuff
-**/.coverage*
 
 select_compute_arch_laptop.cmake
 cmake-build-debug
