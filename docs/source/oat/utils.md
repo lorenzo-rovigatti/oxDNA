@@ -75,6 +75,21 @@
 .. autofunction:: oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf
 ```
 
+## Logger
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    UTILS.logger.log
+
+.. autofunction:: oxDNA_analysis_tools.UTILS.logger.log
+```
+
 ## Multiprocesser
 
 ```{eval-rst}
