@@ -66,6 +66,9 @@ wheels/
 *.egg
 MANIFEST
 
+# Compiled Cython reader
+analysis/src/oxDNA_analysis_tools/cython_utils/get_confs.c
+
 # Vim/gvim/vscode swp files
 .*.swp
 .vscode/
