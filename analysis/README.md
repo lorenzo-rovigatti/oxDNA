@@ -1,4 +1,4 @@
-# oxDNA Analysis Tools v 2.1
+# oxDNA Analysis Tools v 2.6
 
 OxDNA analysis tools (`oat`) is both a command line program as well as an importable Python library for structural analysis of oxDNA simulation trajectories.
 
@@ -6,7 +6,7 @@ The documentation for using `oat` as either a command-line-interface or as an im
 
 An overarching description can be found in this paper: https://academic.oup.com/nar/article/48/12/e72/5843822.
 
-Note, however, that since the original publication all scripts have been completley rewritten to be 10-100x faster, however in the process many of the names have changed and the coding style is very different, please make sure you update your CLI autocompletes and take a look at `mean.py` for an example of how to use the new framework. 
+Note, however, that since the original publication all scripts have been completley rewritten to be 10-100x faster, however in the process many of the names have changed and the coding style is very different, please make sure you update your CLI autocompletes and take a look at `skeleton.py` for an example of how to use the new framework. 
 
 ## Dependencies and installation
 
