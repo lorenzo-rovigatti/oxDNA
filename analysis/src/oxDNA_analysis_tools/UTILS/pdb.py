@@ -91,6 +91,12 @@ class PDB_Nucleotide(object):
         self.ring_names = ["C2", "C4", "C5", "C6", "N1", "N3"]
         self.chain_id = None
 
+    def __getitem__(self, name: str) -> Atom:
+        return self.named_atoms[name]
+    
+    def __setitem__(self, name: str, atom: Atom):
+        self.named_atoms[name] = atom
+
     def get_atoms(self):
         return self.base_atoms + self.phosphate_atoms + self.sugar_atoms
 
@@ -158,7 +164,6 @@ class PDB_Nucleotide(object):
         self.compute_a1()
         self.compute_a3()
         self.a2 = np.cross(self.a3, self.a1)
-        self.check = abs(np.dot(self.a1, self.a3))
         
     def correct_for_large_boxes(self, box):
         map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.get_atoms())

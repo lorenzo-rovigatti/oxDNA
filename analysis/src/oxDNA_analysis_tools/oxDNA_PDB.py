@@ -91,7 +91,7 @@ def get_nucs_from_PDB(file:str) -> List[PDB_Nucleotide]:
 # Don't delete this function!
 def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, PDB_Nucleotide]:
     """
-        Find nucleotides that most look like an oxDNA nucleotide (orthogonal a1 and a3 vectors).
+        Find nucleotides that most look like an oxDNA nucleotide geometry.
 
         This function is never used in any production code, but it is used for building the reference library by `development code <https://github.com/ErikPoppleton/oxDNA_backmapping>`_. 
 
@@ -101,16 +101,71 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
         Returns:
             Dict[str, PDB_Nucleotide] : The best nucleotide for each type in the format `{'C' : PDB_Nucleotide}`.
     """
+    # Functions to get the positions of various all-atom components
+    get_base_center = lambda nuc: np.mean([a.pos - nuc.get_com() for a in nuc.base_atoms], axis=0)
+    get_base_C2 = lambda nuc: nuc["C2"].pos - nuc.get_com()
+    get_base_edge = lambda nuc: nuc['N1'].pos - nuc.get_com() if any((c in nuc.name for c in ['A', 'G'])) else nuc['N3'].pos - nuc.get_com()
+    get_base_hex_bottom = lambda nuc: nuc['N3'].pos - nuc.get_com() if any((c in nuc.name for c in ['A', 'G'])) else nuc['C2'].pos - nuc.get_com()
+    get_phosphate = lambda nuc: nuc['P'].pos - nuc.get_com() if not '5' in nuc.name \
+                    else nuc["HO5'"].pos - nuc.get_com() if "HO5'" in nuc.named_atoms \
+                    else np.array([np.nan, np.nan, np.nan])
+    
+    # Equivalent to configuration file 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0
+    # Array rows are base site, stack site, backbone site.
+    oxDNA2_ref_angstroms = np.array(
+        [[ 3.40720018,  0,          0,        ],
+         [ 2.89612003,  0,          0,        ],
+         [-2.89612003,  0,         -2.90293429]]
+         )
+    oxRNA2_ref_angstroms = np.array(
+         [[3.40720005, 0.         , 0.        ],
+          [2.89612003, 0.         , 0.        ],
+          [-3.40720005, 1.70360003,  0.        ]]
+    )
+
+    # Empirically computed best reference points for DNA/RNA
+    DNA_funcs = (get_base_edge, get_base_center, get_phosphate)
+    #RNA_funcs = (get_base_edge, get_base_center, get_phosphate)
+    RNA_funcs = (get_base_C2, get_base_hex_bottom, get_phosphate)
+
+    log("Scoring bases... Lower scores are better.")
     bases = {}
     for n in nucleotides:
-        n.compute_as()
+        if 'D' in n.name:
+            ref = oxDNA2_ref_angstroms
+            funcs = DNA_funcs
+        else:
+            # Things that aren't DNA are treated as RNA.
+            ref = oxRNA2_ref_angstroms
+            funcs = RNA_funcs
+
+        # Get the all-atom proxies for the oxDNA sites
+        proxies = np.array([funcs[0](n), funcs[1](n), funcs[2](n)])
+        if any(np.isnan(proxies[2])):
+            continue
+
+        # Align the all-atom representation to the oxDNA bead
+        a = np.dot(np.transpose(proxies), ref)
+        u, _, vt = np.linalg.svd(a)
+        rot = np.transpose(np.dot(np.transpose(vt), np.transpose(u)))
+        aligned = np.dot(proxies, rot)
+
+        diff = np.mean(np.linalg.norm(aligned - ref, axis=1))
+        
         if n.base in bases:
-            if n.check < bases[n.base].check: # Find the most orthogonal a1/a3 in the reference
+            if diff < bases[n.base].pdb_score: # Find the most oxDNA-like nucleotide for each base type
                 bases[n.base] = copy.deepcopy(n)
-                bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+                bases[n.base].pdb_score = diff
+                bases[n.base].compute_as()
+                bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(bases[n.base].a1, bases[n.base].a2, bases[n.base].a3)
         else:
             bases[n.base] = copy.deepcopy(n)
-            bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+            bases[n.base].pdb_score = diff
+            bases[n.base].compute_as()
+            bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(bases[n.base].a1, bases[n.base].a2, bases[n.base].a3)
+
+    for k, v in bases.items():
+        log(f"Base {k} : best score {v.pdb_score:.3f}")
 
     return bases
 
