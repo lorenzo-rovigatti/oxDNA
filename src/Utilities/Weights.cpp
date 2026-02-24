@@ -24,6 +24,13 @@ Weights::~Weights () {
 	free (_sizes);
 }
 
+/**
+ * loads weights from a file
+ * @param filename filename from which to load weights
+ * @param op order parameters object for which weights will be loaded
+ * @param safe if True, check that the number of weights in the file match the number of possible states defined by the order parameter.
+ * @param default_weight default weight to use for states not explicitly assigned weights, if param `safe` is set to false
+ */
 void Weights::init (const char * filename, OrderParameters * op, bool safe, double default_weight) {
 	// aprire file
 	ifstream inp;
@@ -45,7 +52,7 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 	_w = new double[_dim];
 	//for (int i = 0; i < _dim; i ++)  _w[i] = 1.;
 	for (int i = 0; i < _dim; i ++)  _w[i] = default_weight;
-	
+
 	OX_LOG (Logger::LOG_INFO, "(Weights.cpp) weights found; O.P. dim: %d, tot size: %d", _ndim, _dim);
 
 	// read the file linewise...
@@ -54,7 +61,7 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 	int lineno = 1;
 	while (inp.good()) {
 		getline (inp, cpp_line);
-
+		// if this actually becomes a problem, we have a **problem**
 		if (cpp_line.length() > 1000) throw oxDNAException ("(Weights.cpp) weight parser: error parsing line %d in %s. Lines cannot exceed 1000 characters.", lineno, filename);
 		strcpy (line, cpp_line.c_str());
 

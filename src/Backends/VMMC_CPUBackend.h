@@ -61,8 +61,11 @@ protected:
 	// histogram of state sampling
 	Histogram _h;
 
+	// whether to demand all weights be explicitly stated in the weights file
 	bool _safe_weights;
+	// whether to skip states with zero sampling
 	bool _skip_hist_zeros;
+	// default value for weights not explicitly stated in weights file, if _safe_weights = False. if safe_weights = True, will ignore
 	number _default_weight;
 
 	int _last_move;

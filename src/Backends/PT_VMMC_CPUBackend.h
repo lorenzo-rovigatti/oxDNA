@@ -41,8 +41,11 @@ struct PT_energy_info {
 
 class PT_VMMC_CPUBackend: public VMMC_CPUBackend {
 protected:
+	// number of parallel tempering temperatures
 	int _npttemps;
+	// list of parallel tempering temperatures
 	double * _pttemps;
+
 	bool _pt_common_weights;
 
 	char _replica_info[256];
@@ -52,9 +55,11 @@ protected:
 
 	llint _pt_exchange_tries, _pt_exchange_accepted;
 
+
 	Weights _irresp_w;
 	char _irresp_weights_file[512];
 
+	// step interval at which to perform replica exchange
 	int _pt_move_every;
 	int _my_mpi_id, _mpi_nprocs;
 	int _MPI_send_block_data(void *data, size_t size, int node_to,int TAG=1);
