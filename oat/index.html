@@ -174,6 +174,7 @@
 <section id="writing-your-own-oat-scripts">
 <h2>Writing your own <code class="docutils literal notranslate"><span class="pre">oat</span></code> scripts<a class="headerlink" href="#writing-your-own-oat-scripts" title="Permalink to this heading"></a></h2>
 <p>The scripts in this library are organized in a specific way to facilitate composability and allow use both as command-line tools and as an importable Python library. When contributing to the package, please first take a look at <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/blob/master/analysis/src/oxDNA_analysis_tools/skeleton.py">skeleton.py</a>, which is a ‘skeleton’ of a trajectory analysis script. You might also want to look at the <a class="reference internal" href="utils.html#rye-reader"><span class="std std-ref">RyeReader</span></a>, which contains file-reading utilities and the built-in <a class="reference internal" href="utils.html#data-structures"><span class="std std-ref">data structures</span></a></p>
+<p>If you make changes to the Cython file reader, the pre-transpiled .c file is currently in the .gitignore because of random strings that change every time its built. To override .gitignore, use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-f</span> <span class="pre">analysis/src/oxDNA_analysis_tools/cython_utils/get_confs.c</span></code>.</p>
 </section>
 <section id="unit-tests">
 <h2>Unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
@@ -250,6 +251,7 @@
 <li class="toctree-l2"><a class="reference internal" href="utils.html#data-structures">Data structures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#geometry-utilities">Geometry utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#ipython-oxview-plugin">iPython oxView plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#logger">Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#multiprocesser">Multiprocesser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#rye-reader">Rye reader</a></li>
 </ul>
