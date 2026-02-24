@@ -91,14 +91,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#persistence-length">Persistence Length</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#plot-energy">Plot energy</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#skeleton">Skeleton</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#subset-trajectory">Subset trajectory</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#superimpose">Superimpose</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#writing-your-own-oat-scripts">Writing your own <code class="docutils literal notranslate"><span class="pre">oat</span></code> scripts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#unit-tests">Unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#constants">Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#analysis-notebooks">Analysis notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#citation">Citation</a></li>
@@ -1164,6 +1166,41 @@
 </dd>
 <dt><kbd>-n, --view_comps</kbd></dt>
 <dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
+</dd>
+<dt><kbd>-q, --quiet</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="skeleton">
+<h2>Skeleton<a class="headerlink" href="#skeleton" title="Permalink to this heading"></a></h2>
+<p><p>Example script showing how to contribute to OAT</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">skeleton</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FLAG1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                    <span class="n">trajectory</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>-f, --flag1</kbd></dt>
+<dd><p>An optional flag taking an int from the CLI</p>
+</dd>
+<dt><kbd>-p, --parallel</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename to save the output to</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>

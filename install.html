@@ -163,6 +163,12 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 <li><p><code class="docutils literal notranslate"><span class="pre">-DNATIVE_COMPILATION=ON</span></code> Set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code> to compile without the <code class="docutils literal notranslate"><span class="pre">-march=native</span></code> flag. This may be required when compiling binaries to be used elsewhere</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-DJSON_ENABLED=On</span></code> Set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code> to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers.</p></li>
 </ul>
+<p>When compiling with CUDA with newer CMake versions (&gt; 3.18), you may have to specify the location of <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> by hand with <code class="docutils literal notranslate"><span class="pre">-DCMAKE_CUDA_COMPILER=/path/to/nvcc</span></code>. If doing so results in CMake errors, you may also have to manually specify a C/C++ compiler compatible with the current CUDA install, which can be done by exporting the following environment variables prior to calling CMake:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">CC</span><span class="o">=</span>gcc-9
+<span class="nb">export</span><span class="w"> </span><span class="nv">CXX</span><span class="o">=</span>g++-9
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDAHOSTCXX</span><span class="o">=</span>g++-9
+</pre></div>
+</div>
 <p>The following options pertain to <code class="docutils literal notranslate"><span class="pre">oxpy</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">-DPython=ON</span></code> Enables Python bindings</p></li>

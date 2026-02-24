@@ -65,6 +65,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#hydrogen-bonds">Hydrogen bonds</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#position-of-a-single-nucleotide">Position of a single nucleotide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forces-and-torques-due-to-pair-interactions">Forces and torques due to pair interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forces-and-torques-on-individual-particles">Forces and torques on individual particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#distance-between-two-sets-of-particles">Distance between two (sets of) particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#distance-between-all-pairs-of-particles">Distance between all pairs of particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#interaction-energy-between-pairs-of-particles">Interaction energy between pairs of particles</a></li>
@@ -256,6 +257,15 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pair_force</span></code>: the observable type.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[particle_id</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: if set, only pairs in which one of the particles has the given id will be considered.</p></li>
+</ul>
+</section>
+<section id="forces-and-torques-on-individual-particles">
+<h2>Forces and torques on individual particles<a class="headerlink" href="#forces-and-torques-on-individual-particles" title="Permalink to this heading"></a></h2>
+<p>Print forces and torques of individual particles.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">force_and_torque</span></code>: the observable type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;</span></code>: index of the first particle or comma-separated list of particle indexes composing the first set. Use <code class="docutils literal notranslate"><span class="pre">all</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code> to print information about all particles.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[lab_frame</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: print torques in the laboratory reference frame. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
 </ul>
 </section>
 <section id="distance-between-two-sets-of-particles">

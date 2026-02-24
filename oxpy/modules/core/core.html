@@ -365,6 +365,14 @@ It is automatically invoked by meth:<cite>run</cite>, and therefore it makes sen
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="oxpy.core.OxpyManager.update_observable_data">
+<span class="sig-name descname"><span class="pre">update_observable_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><span class="pre">oxpy.core.OxpyManager</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#oxpy.core.OxpyManager.update_observable_data" title="Permalink to this definition"></a></dt>
+<dd><p>Make sure that the observables’ data structures are up to date.</p>
+<p>This method should be called every time an observable’s get_output_string() method is called
+not in sync with its update_every (or print_every for outputs) parameter (for instance, from a callback).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="oxpy.core.OxpyManager.update_temperature">
 <span class="sig-name descname"><span class="pre">update_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><span class="pre">oxpy.core.OxpyManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_T</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#oxpy.core.OxpyManager.update_temperature" title="Permalink to this definition"></a></dt>
 <dd><p>Change the temperature at which the simulation is run.</p>
