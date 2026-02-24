@@ -27,20 +27,8 @@ Documentation for individual scripts:
    cli.md
 ```
 
-## Scripting interface
-
-The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
-
-```python
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
-
-# get the top and traj names from the command line or hardcode them
-
-top_info, traj_info = describe(top, traj)
-confs = get_confs(top_info, traj_info, start_conf, n_confs)
-```
-
-The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
+## Writing your own `oat` scripts
+The scripts in this library are organized in a specific way to facilitate composability and allow use both as command-line tools and as an importable Python library. When contributing to the package, please first take a look at [skeleton.py](https://github.com/lorenzo-rovigatti/oxDNA/blob/master/analysis/src/oxDNA_analysis_tools/skeleton.py), which is a 'skeleton' of a trajectory analysis script. You might also want to look at the [RyeReader](utils.md#rye-reader), which contains file-reading utilities and the built-in [data structures](utils.md#data-structures)
 
 ## Unit tests
 
@@ -59,6 +47,21 @@ coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/ && coverage
 ```
 
 If a test fails on your machine, please consider opening an issue on GitHub to let us know!
+
+## Scripting interface
+
+The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
+
+```python
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
+
+# get the top and traj names from the command line or hardcode them
+
+top_info, traj_info = describe(top, traj)
+confs = get_confs(top_info, traj_info, start_conf, n_confs)
+```
+
+The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
 
 Full API documentation:
 
