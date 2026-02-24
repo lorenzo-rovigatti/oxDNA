@@ -61,6 +61,10 @@ protected:
 	// histogram of state sampling
 	Histogram _h;
 
+	// flag to print trajectory histograms to file. default to true
+	bool _print_traj_hist_file;
+
+
 	// whether to demand all weights be explicitly stated in the weights file
 	bool _safe_weights;
 	// whether to skip states with zero sampling

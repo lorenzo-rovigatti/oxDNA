@@ -50,6 +50,7 @@ VMMC_CPUBackend::VMMC_CPUBackend() :
 	_vmmc_N_cells_side = -1;
 	_reload_hist = false;
 	_just_updated_lists = false;
+	_print_traj_hist_file = true;
 
 	_dU = 0.;
 	_U_stack = 0.;
@@ -192,6 +193,7 @@ void VMMC_CPUBackend::init() {
 void VMMC_CPUBackend::get_settings(input_file & inp) {
 	MC_CPUBackend::get_settings(inp);
 	int is_us, tmpi;
+	bool tmpb;
 
 	CHECK_BOX("VMMC_CPUBackend", inp);
 
@@ -241,7 +243,16 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 				sprintf(_last_hist_file, "last_hist.dat");
 				OX_LOG(Logger::LOG_INFO, "Using default hist file %s", _last_hist_file);
 			}
-			if(getInputString(&inp, "traj_hist_file", _traj_hist_file, 0) == KEY_NOT_FOUND) {
+			// whether to print trajectory histogram
+			if (getInputBool(&inp, "print_traj_hist_file", &tmpb, 0) == KEY_FOUND) {
+				_print_traj_hist_file = tmpb;
+			}
+			else {
+				_print_traj_hist_file = true; // default behavior is to print traj hist
+			}
+			// don't require traj hist file if _print_traj_hist_file flag is set to false
+			if( _print_traj_hist_file && getInputString(&inp, "traj_hist_file", _traj_hist_file, 0) == KEY_NOT_FOUND) {
+				// cannot possibly be optimal way to
 				sprintf(_traj_hist_file, "traj_hist.dat");
 				OX_LOG(Logger::LOG_INFO, "Using default traj hist file %s", _traj_hist_file);
 			}
@@ -253,8 +264,10 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 			}
 			else {
 				_reload_hist = false;
-				FILE *temp_file = fopen(_traj_hist_file, "w");
-				fclose(temp_file);
+				if (_print_traj_hist_file) {
+					FILE *temp_file = fopen(_traj_hist_file, "w");
+					fclose(temp_file);
+				}
 			}
 
 			// whether to use unsafe weights
@@ -274,6 +287,8 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 					OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Skipping zero entries in traj_hist and last_hist files");
 				}
 			}
+
+
 
 			// should we extrapolate the histogram at different
 			// temperatures?
@@ -1660,7 +1675,7 @@ char * VMMC_CPUBackend::get_op_state_str() {
 void VMMC_CPUBackend::print_conf(bool reduced, bool only_last) {
 	SimBackend::print_conf(reduced, only_last);
 	if(_have_us) {
-		if(!only_last) {
+		if(!only_last && _print_traj_hist_file) {
 			_h.print_to_file(_traj_hist_file, current_step(), false, _skip_hist_zeros);
 		}
 		_h.print_to_file(_last_hist_file, current_step(), true, _skip_hist_zeros);
@@ -1670,7 +1685,7 @@ void VMMC_CPUBackend::print_conf(bool reduced, bool only_last) {
 void VMMC_CPUBackend::print_conf(bool only_last) {
 	SimBackend::print_conf(only_last);
 	if(_have_us) {
-		if(!only_last) {
+		if(!only_last && _print_traj_hist_file) {
 			_h.print_to_file(_traj_hist_file, current_step(), false, _skip_hist_zeros);
 		}
 		_h.print_to_file(_last_hist_file, current_step(), true, _skip_hist_zeros);
