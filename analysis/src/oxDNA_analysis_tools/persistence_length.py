@@ -166,6 +166,7 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
     plt.legend()
     plt.tight_layout()
     plt.savefig(plt_name, dpi=FIG_DPI)
+    plt.close(fig)
     log(f"Saving figure to {plt_name}")
 
     return pl

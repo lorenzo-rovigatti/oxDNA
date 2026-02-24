@@ -338,9 +338,9 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                     # Get paragon DNA or RNA nucleotide
                     if type(nucleotide.btype) == int:
                         if isDNA:
-                            nb = number_to_DNAbase[nucleotide.btype]
+                            nb = number_to_DNAbase[nucleotide.btype % 4]
                         else:
-                            nb = number_to_RNAbase[nucleotide.btype]
+                            nb = number_to_RNAbase[nucleotide.btype % 4]
                     elif type(nucleotide.btype) == str: 
                         nb = nucleotide.btype
                     else:

@@ -93,6 +93,7 @@ def find_duplex(monomers:List[Monomer]) -> List[Duplex]:
 
     return duplex_list
 
+# pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     duplexes_at_step = []

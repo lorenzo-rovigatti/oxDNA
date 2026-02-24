@@ -248,6 +248,15 @@
     :prog: oat pca
 ```
 
+## Skeleton
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/skeleton.py
+    :func: cli_parser
+    :prog: oat skeleton
+```
+
 ## Subset trajectory
 
 ```{eval-rst}

@@ -284,11 +284,11 @@ def strand_describe(top:str) -> Tuple[System, list]:
                     monomers[mid].btype = seq[i]
                 else:
                     btype = []
+                    i += 1
                     while seq[i] != ')':
                         btype.append(seq[i])
                         i += 1
-                    btype.append(')')
-                    monomers[mid].btype = ''.join(btype)
+                    monomers[mid].btype = int(''.join(btype))
 
                 # At least this one is obvious...
                 monomers[mid].strand = s
@@ -297,17 +297,6 @@ def strand_describe(top:str) -> Tuple[System, list]:
                 monomers[mid].n5 = mid-1
                 monomers[mid].n3 = mid+1
 
-                # Fix the assumption for ends of straight strands
-                if mid == s_start:
-                    monomers[mid].n5 = -1
-                elif i == len(seq)-1:
-                    monomers[mid].n3 = -1
-                
-                # Fix the assumption for 'ends' of circular strands
-                if kwdata['circular'] and i == len(seq)-1:
-                    monomers[s_start].n5 = mid
-                    monomers[mid].n3 = s_start
-
                 i += 1
                 mid += 1
             
@@ -315,6 +304,16 @@ def strand_describe(top:str) -> Tuple[System, list]:
             s.set_old(False)
             strands.append(s)
             s_start = mid
+
+        for s in strands:
+            # Fix the bad assumption for ends of straight strands
+            if not s.is_circular():
+                monomers[s.monomers[0].id].n5 = None
+                monomers[s.monomers[-1].id].n3 = None
+            # Fix the bad assumption for circular strands
+            else:    
+                monomers[s.monomers[0].id].n5 = s.monomers[-1].id
+                monomers[s.monomers[-1].id].n3 = s.monomers[0].id
 
         system = System(top_file=abspath(top_file), strands=strands)
 
@@ -461,15 +460,28 @@ def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray
     # You generally want to center cohesive structures in the box so they're not cut in visualization
     # For diffuse simulations, you generally do not want centering.
     cms = np.zeros(3)
-    target = np.zeros(3)
     if center:
-        if centerpoint == 'bc':
-            target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
-        else:
+        bc = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
+        if type(centerpoint) == str and centerpoint == 'bc':
+            target = bc
+        elif type(centerpoint) == np.ndarray:
             target = centerpoint
+        else:
+            raise RuntimeError("Invalid centerpoint argument to inbox: {}".format(centerpoint))
+        # Get the center-of-mass, regardless of which box the particles are in
         cms = calc_PBC_COM(conf)
-    positions = conf.positions + target - cms   
-    new_poses = coord_in_box(positions)
+
+        # Move the PBC center-of-mass to the center of the box
+        new_poses = conf.positions - (cms + bc) 
+
+        # Put everything back in the box, then shift to target  
+        # This could put some particles outside the box, but at least the structure will be together.
+        new_poses = coord_in_box(new_poses)
+        new_poses += target - np.mean(new_poses, axis=0)
+
+    else:
+        # Just put everything in the box, even if it breaks structures.
+        new_poses = coord_in_box(conf.positions)
 
     return Configuration(
         conf.time, conf.box, conf.energy,

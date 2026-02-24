@@ -14,6 +14,7 @@
 #include "LTCOMAngleTrap.h"
 #include "LTAtanCOMTrap.h"
 #include "LT2DCOMTrap.h"
+#include "LTCoordination.h"
 #include "MovingTrap.h"
 #include "RepulsiveSphere.h"
 
@@ -145,6 +146,7 @@ Returns
 	export_LTCOMAngleTrap(sub_m);
 	export_LTAtanCOMTrap(sub_m);
 	export_LT2DCOMTrap(sub_m);
+	export_LTCoordination(sub_m);
 	export_MovingTrap(sub_m);
 	export_RepulsiveSphere(sub_m);
 }

@@ -27,6 +27,27 @@ Documentation for individual scripts:
    cli.md
 ```
 
+## Writing your own `oat` scripts
+The scripts in this library are organized in a specific way to facilitate composability and allow use both as command-line tools and as an importable Python library. When contributing to the package, please first take a look at [skeleton.py](https://github.com/lorenzo-rovigatti/oxDNA/blob/master/analysis/src/oxDNA_analysis_tools/skeleton.py), which is a 'skeleton' of a trajectory analysis script. You might also want to look at the [RyeReader](utils.md#rye-reader), which contains file-reading utilities and the built-in [data structures](utils.md#data-structures)
+
+## Unit tests
+
+For development purposes, `oat` has comprehensive unit tests implemented in [Pytest](https://docs.pytest.org/en/stable/) which can be found in `oxDNA/analysis/tests/`. To run all tests, first install `oat` either via `make install` as described in the [installation instructions](../install.md#compiling-oxdna), or with `python -m pip install oxDNA/analysis/`, then run:
+```shell
+pytest oxDNA/analysis/tests/test_cli/`
+```
+Or run a specific test:
+```shell
+pytest oxDNA/analysis/tests/test_cli/test_mean.py
+```
+
+Test coverage can be checked using [Coverage.py](https://coverage.readthedocs.io/en/latest/):
+```shell
+coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/ && coverage combine && coverage html && open htmlcov/index.html 
+```
+
+If a test fails on your machine, please consider opening an issue on GitHub to let us know!
+
 ## Scripting interface
 
 The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
