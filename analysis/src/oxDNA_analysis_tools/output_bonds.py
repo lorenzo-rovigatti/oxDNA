@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import numpy as np
 import argparse
 from os import path
@@ -14,13 +14,14 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "input_file",
                                               "visualize",
                                               "conversion_factor",
-                                              "n_potentials"])
+                                              "n_potentials",
+                                              "fields"])
 
 def parse_header(e_txt:str) -> List[str]:
     e_txt = e_txt.strip('#') # strip leading #
     e_txt = e_txt.split(',')[0] # remove time section
     e_list = e_txt.split(' ')[2:] # The first two are id1 and id2 (unless somebody writes a non-pairwise potential, then it's your problem)
-    return e_list 
+    return e_list
 
 def get_potentials(ctx) -> List[str]:
     with oxpy.Context():
@@ -36,11 +37,45 @@ def get_potentials(ctx) -> List[str]:
 
         backend.read_next_configuration()
         e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
-        print(e_txt[0])
         pot_names = parse_header(e_txt[0])
-        print(pot_names)
 
     return pot_names
+
+def _resolve_fields(pot_names: List[str], field_names: Optional[List[str]]):
+    """Resolve field name strings to indices into pot_names.
+
+    Returns:
+        Tuple of (indices_or_None, active_names)
+        - indices_or_None: list of int indices for numpy indexing, or None for all fields
+        - active_names: list of active potential names in the order requested
+    """
+    if field_names is None or 'all' in [f.lower() for f in field_names]:
+        return None, pot_names
+
+    # Build lookup: lowercase name -> index, with 'dh' alias for Debye-Huckel
+    field_map = {}
+    for i, name in enumerate(pot_names):
+        field_map[name.lower()] = i
+        if 'debye' in name.lower():
+            field_map['dh'] = i
+
+    indices = []
+    active_names = []
+    for f in field_names:
+        f_lower = f.lower()
+        if f_lower in field_map:
+            idx = field_map[f_lower]
+            if idx not in indices:
+                indices.append(idx)
+                active_names.append(pot_names[idx])
+        else:
+            log(f"Unrecognized field: '{f}'. Available fields: {', '.join(pot_names)}", level="warning")
+
+    if not indices:
+        log("No valid fields specified, using all fields.", level="warning")
+        return None, pot_names
+
+    return indices, active_names
 
 # pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
@@ -61,89 +96,82 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         # The 9 energies in oxDNA2 are:
         # 0 fene
         # 1 bexc
-        # 2 stack
+        # 2 stck
         # 3 nexc
         # 4 hb
         # 5 cr_stack
         # 6 cx_stack
         # 7 Debye-Huckel <- this one is missing in oxDNA1
         # 8 total
-        if ctx.visualize:
-            energies = np.zeros((ctx.top_info.nbases, ctx.n_potentials))
-
+        chunk_frames = []
         while backend.read_next_configuration():
             e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
-            if ctx.visualize:
-                for e in e_txt[1:]:
-                    if not e[0] == '#':
-                        e = e.split()
-                        p = int(e[0])
-                        q = int(e[1])
-                        l = np.array([float(x) for x in e[2:]])*ctx.conversion_factor
-                        energies[p] += l
-                        energies[q] += l
-            else:
-                print(e_txt[0])
-                for e in e_txt[1:]:
-                    if not e[0] == '#':
-                        e = e.split()
-                        p = int(e[0])
-                        q = int(e[1])
-                        l = np.array([float(x) for x in e[2:]])*ctx.conversion_factor
-                        print(p, q, end=' ')
-                        [print(v, end=' ') for v in l]
-                        print()
-                    else: 
-                        print(e)
+            frame = {'header': e_txt[0], 'pairs': [], 'comments': []}
+            for e in e_txt[1:]:
+                if e and e[0] != '#':
+                    parts = e.split()
+                    p = int(parts[0])
+                    q = int(parts[1])
+                    l = np.array([float(x) for x in parts[2:]]) * ctx.conversion_factor
+                    if ctx.fields is not None:
+                        l = l[ctx.fields]
+                    frame['pairs'].append((p, q, l))
+                else:
+                    frame['comments'].append(e)
+            chunk_frames.append(frame)
 
-        if ctx.visualize:
-            return energies
-        else:
-            return
-                
-def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:bool=False, conversion_factor:float=1, ncpus:int=1):
+        return chunk_frames
+
+def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:bool=False, conversion_factor:float=1, ncpus:int=1, fields:Optional[List[str]]=None):
     """
-        Computes the potentials in a trajectory
+        Computes the potentials in a trajectory.
 
         Parameters:
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             inputfile (str): Path to the input file.
-            visualize (bool): (optional) If True, the energies are saved as a mean-per-particle oxView file.  If False, they are printed to the screen.
+            visualize (bool): (optional) Unused; kept for backwards compatibility.
             conversion_factor (float): (optional) Conversion factor for the energies. 1 for oxDNA SU, 41.42 for pN nm.
             ncpus (int): (optional) Number of CPUs to use.
+            fields (List[str]): (optional) Names of energy fields to include (e.g. ['fene', 'hb', 'total']).
+                                 None means all fields. Use 'dh' as an alias for Debye-Huckel.
 
         Returns:
-            np.ndarray or None: If visualize is True, the energies are saved as a mean-per-particle oxView file.  If False, they are printed to the screen and None is returned.
+            Tuple[List[dict], List[str]]:
+                all_data: list of frame dicts, each with keys 'header' (str), 'pairs'
+                    (list of (p, q, energies_array) tuples), and 'comments' (list of str).
+                    Energies are already filtered to the requested fields.
+                active_names: list of energy field names corresponding to each energy value.
     """
-    
-    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, 0)
-    
-    # have to process one conf to get the potentials
-    # This is to maintain back/forward compatibility with models besides DNA2
-    pot_names = get_potentials(ctx)
-    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, len(pot_names))
 
-    energies = np.zeros((ctx.top_info.nbases, len(pot_names)))
+    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, 0, None)
+
+    # Process one conf to discover the available potential names
+    pot_names = get_potentials(ctx)
+
+    # Resolve requested fields to indices
+    field_indices, active_names = _resolve_fields(pot_names, fields)
+
+    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, len(pot_names), field_indices)
+
+    all_data = []
     def callback(i, r):
-        nonlocal visualize, energies
-        if visualize:
-            energies += r
-        else:
-            print(r)
+        nonlocal all_data
+        all_data.extend(r)
 
     oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
 
-    if visualize:
-        return energies, pot_names
-    else:
-        return energies, None
+    return all_data, active_names
 
 def cli_parser(prog="output_bonds.py"):
     parser = argparse.ArgumentParser(prog = prog, description="List all the interactions between nucleotides")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-v', '--view', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as an oxView JSON')
+    parser.add_argument('-t', '--traj_view', type=str, nargs=1, dest='traj_view', help='Write an oxView trajectory json overlay.')
+    parser.add_argument('-f', '--fields', type=str, nargs='+', dest='fields', help='(optional) The fields to print out // save to files.  If not specified, all fields are printed.  Recognized options are: all, fene, bexc, stck, nexc, hb, cr_stack, cx_stack, dh, total')
+    parser.add_argument('-d', '--data_file', type=str, nargs=1, dest='data_file', help='(optional) If specified, the output will be written to this file instead of printed to the screen. Default if n_confs > 10')
+    parser.add_argument('--force_print', dest='force_print', action='store_const', const=True, default=False, help='(optional) If specified, the output will be printed to the screen even if n_confs > 10')
     parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-u', '--units', type=str, nargs=1, dest='units', help="(optional) The units of the energy (pNnm or oxDNA)")
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
@@ -169,10 +197,9 @@ def main():
         outfile = ''
         visualize = False
 
-    #if path.dirname(inputfile) != getcwd():
-    #    sim_directory = path.dirname(inputfile)
-    #else:
-    #    sim_directory = ""
+    traj_view = args.traj_view[0] if args.traj_view else None
+    data_file = args.data_file[0] if args.data_file else None
+    fields = args.fields  # list of field name strings, or None
 
     if args.parallel:
         ncpus = args.parallel[0]
@@ -193,11 +220,22 @@ def main():
         conversion_factor = 1
         log("no units specified, assuming oxDNA su")
 
-    energies, potentials = output_bonds(traj_info, top_info, inputfile, visualize, conversion_factor, ncpus)
+    # Auto-default to a data file for large trajectories when no visualization is requested
+    if not visualize and not traj_view and not data_file and not args.force_print and traj_info.nconfs > 10:
+        data_file = 'output_bonds.txt'
+        log("Trajectory has more than 10 configurations, writing bond data to 'output_bonds.txt' instead of printing to screen.", level="warning")
 
+    all_data, pot_names = output_bonds(traj_info, top_info, inputfile, visualize, conversion_factor, ncpus, fields)
+
+    # -v output: average per-particle energy as oxView JSON (one file per field)
     if visualize:
+        energies = np.zeros((top_info.nbases, len(pot_names)))
+        for frame in all_data:
+            for p, q, l in frame['pairs']:
+                energies[p] += l
+                energies[q] += l
         energies /= traj_info.nconfs
-        for i, potential in enumerate(potentials):
+        for i, potential in enumerate(pot_names):
             if '.json' in outfile:
                 fname = '.'.join(outfile.split('.')[:-1])+"_"+potential+'.json'
             else:
@@ -207,6 +245,44 @@ def main():
                 f.write(', '.join([str(x) for x in energies[:,i]]))
                 f.write("]\n}")
             log(f"Wrote oxView overlay to: {fname}")
+
+    # -t output: per-frame per-particle energy as oxView trajectory JSON (one file per field)
+    if traj_view:
+        for i, potential in enumerate(pot_names):
+            if '.json' in traj_view:
+                fname = '.'.join(traj_view.split('.')[:-1])+"_"+potential+'.json'
+            else:
+                fname = traj_view+"_"+potential+'.json'
+            with open(fname, 'w+') as f:
+                f.write('{{\n"{} ({})": [\n'.format(potential, units))
+                frame_strs = []
+                for frame in all_data:
+                    frame_e = np.zeros(top_info.nbases)
+                    for p, q, l in frame['pairs']:
+                        frame_e[p] += l[i]
+                        frame_e[q] += l[i]
+                    frame_strs.append('[' + ', '.join([str(x) for x in frame_e]) + ']')
+                f.write(',\n'.join(frame_strs))
+                f.write('\n]\n}')
+            log(f"Wrote oxView trajectory overlay to: {fname}")
+
+    # Data output: pair interactions to file or stdout
+    # Produced when no visualization flag is active, or when -d is explicitly given
+    produce_data = data_file is not None or (not visualize and not traj_view)
+    if produce_data:
+        lines = ['# p1 p2 ' + ' '.join(pot_names) + f' ({units})\n']
+        for frame in all_data:
+            lines.append(frame['header'] + '\n')
+            for comment in frame['comments']:
+                lines.append(comment + '\n')
+            for p, q, l in frame['pairs']:
+                lines.append(f"{p} {q} " + ' '.join([str(v) for v in l]) + '\n')
+        if data_file:
+            with open(data_file, 'w') as f:
+                f.writelines(lines)
+            log(f"Wrote bond data to: {data_file}")
+        else:
+            print(''.join(lines), end='')
 
 
 if __name__ == "__main__":
