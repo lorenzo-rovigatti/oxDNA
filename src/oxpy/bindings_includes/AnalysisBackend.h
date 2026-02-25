@@ -13,6 +13,8 @@
 #include <Backends/AnalysisBackend.h>
 
 std::shared_ptr<AnalysisBackend> backend_builder(input_file &input) {
+	Logger::instance()->get_settings(input);
+	
 	std::shared_ptr<AnalysisBackend> backend = std::make_shared<AnalysisBackend>();
 	backend->get_settings(input);
 	backend->init();
