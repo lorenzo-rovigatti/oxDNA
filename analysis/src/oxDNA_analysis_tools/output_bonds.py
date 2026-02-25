@@ -179,6 +179,12 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
     produce_data = produce_print or (data_file is not None)
     needs_serial = produce_data or (traj_view is not None)
 
+    if needs_serial and ncpus > 1:
+        raise RuntimeError(
+            "No flags and the -t, -d, and --force_print flags require serial processing and are "
+            "incompatible with -p. Please re-run without the -p flag."
+        )
+
     if not needs_serial:
         # ── Parallel path ────────────────────────────────────────────────────
         # Used when -v is the only requested output.  compute() runs in worker
