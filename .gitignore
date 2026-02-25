@@ -87,5 +87,5 @@ cmake-build-debug
 oxpy/_version.py
 src/oxpy/_version.py
 
-# Mac Double
+# AppleDouble Files
 ._*

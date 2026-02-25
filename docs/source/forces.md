@@ -392,4 +392,57 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
     [sigma = <float>]
         "Diameter" of the wall. It effectively rescales the distance between
         particle and wall. Defaults to 1.
-        
+
+## `type = repulsive_sphere_moving`
+
+    particle = <int>
+        index(es) of the particle(s) on which the force shall be applied. Can
+        be a list of comma-separated indexes / ranges. If -1 or all, the force
+        will be exerted on all the particles.
+    stiff = <float>
+        energy scale (used as ε) for the repulsive WCA-style interaction.
+    r0 = <float>
+        sphere radius at step 0 (in simulation units).
+    rate = <float>
+        radius growth per step: radius(step) = r0 + rate * step.
+    [center = <float>,<float>,<float>]
+        sphere center (used as default origin if origin is not provided).
+        Defaults to 0,0,0.
+    [origin = <float>,<float>,<float>]
+        starting center position of the sphere. If omitted, defaults to center.
+    [target = <float>,<float>,<float>]
+        target center position of the sphere. Defaults to 0,0,0.
+    [steps = <int>]
+        number of MD steps over which the center linearly interpolates from
+        origin -> target. If 0 (default), the sphere is static at origin.
+    [move_steps = <int>]
+        alias for steps.
+    [r_ext = <float>]
+        additional cutoff on the surface gap r = |pos-center| - radius.
+        If r >= r_ext, no force is applied. Defaults to 1e10 (effectively off).
+
+## `type = repulsive_kepler_poinsot`
+
+    particle = <int>
+        index(es) of the particle(s) on which the force shall be applied. Can
+        be a list of comma-separated indexes / ranges. If -1 or all, the force
+        will be exerted on all the particles.
+    stiff = <float>
+        energy/force scale for the repulsor (required).
+    rate = <float>
+        linear growth rate per step. A scale factor (1 + rate * step) is applied
+        to apex/base/base_radius. Defaults to 0.
+    [center = <float>,<float>,<float>]
+        center of the star repulsor. Defaults to 0,0,0.
+    [apex = <float>]
+        spike tip distance along each icosahedral axis (from center).
+        Defaults to 1.2. Must satisfy apex > base.
+    [base = <float>]
+        spike base plane distance along each axis (from center).
+        Defaults to 0.7. Must satisfy base < apex.
+    [base_radius = <float>]
+        circumradius of the pentagon at the base plane. Defaults to 0.45.
+        Must be > 0.
+    [kappa = <float>]
+        soft-max sharpness used to smoothly approximate the pentagon support
+        function (bigger = sharper). Defaults to 25. If <= 0, it is reset to 25.
