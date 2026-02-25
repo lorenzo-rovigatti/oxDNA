@@ -1,4 +1,6 @@
 from typing import List, Optional
+import sys
+import time
 import numpy as np
 import argparse
 from os import path
@@ -8,6 +10,8 @@ from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_input_parameter
 import oxpy
+
+start_time = time.time()
 
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
@@ -79,6 +83,12 @@ def _resolve_fields(pot_names: List[str], field_names: Optional[List[str]]):
 
 # pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
+    """Parallel compute function: used only when -v is the sole output mode.
+
+    Accumulates per-nucleotide energy sums across the chunk and returns
+    an ndarray of shape (nbases, n_potentials) for the callback to add into
+    the pre-allocated output array.
+    """
     with oxpy.Context():
         inp = oxpy.InputFile()
         inp.init_from_filename(ctx.input_file)
@@ -103,10 +113,9 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         # 6 cx_stack
         # 7 Debye-Huckel <- this one is missing in oxDNA1
         # 8 total
-        chunk_frames = []
+        energies = np.zeros((ctx.top_info.nbases, ctx.n_potentials))
         while backend.read_next_configuration():
             e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
-            frame = {'header': e_txt[0], 'pairs': [], 'comments': []}
             for e in e_txt[1:]:
                 if e and e[0] != '#':
                     parts = e.split()
@@ -115,14 +124,16 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
                     l = np.array([float(x) for x in parts[2:]]) * ctx.conversion_factor
                     if ctx.fields is not None:
                         l = l[ctx.fields]
-                    frame['pairs'].append((p, q, l))
-                else:
-                    frame['comments'].append(e)
-            chunk_frames.append(frame)
+                    energies[p] += l
+                    energies[q] += l
 
-        return chunk_frames
+        return energies
 
-def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:bool=False, conversion_factor:float=1, ncpus:int=1, fields:Optional[List[str]]=None):
+def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
+                 visualize:bool=False, conversion_factor:float=1, ncpus:int=1,
+                 fields:Optional[List[str]]=None, traj_view:Optional[str]=None,
+                 data_file:Optional[str]=None, produce_print:bool=False,
+                 units:str="oxDNA su"):
     """
         Computes the potentials in a trajectory.
 
@@ -130,38 +141,166 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:
             traj_info (TrajInfo): Information about the trajectory.
             top_info (TopInfo): Information about the topology.
             inputfile (str): Path to the input file.
-            visualize (bool): (optional) Unused; kept for backwards compatibility.
-            conversion_factor (float): (optional) Conversion factor for the energies. 1 for oxDNA SU, 41.42 for pN nm.
-            ncpus (int): (optional) Number of CPUs to use.
-            fields (List[str]): (optional) Names of energy fields to include (e.g. ['fene', 'hb', 'total']).
-                                 None means all fields. Use 'dh' as an alias for Debye-Huckel.
+            visualize (bool): (optional) If True, accumulates mean per-nucleotide energies
+                              (returned as ndarray for the caller to write as oxView JSON).
+            conversion_factor (float): (optional) Conversion factor for the energies.
+                              1 for oxDNA SU, 41.42 for pN nm.
+            ncpus (int): (optional) Number of CPUs to use. Ignored when any data-output
+                         mode is active (serial processing is required).
+            fields (List[str]): (optional) Names of energy fields to include.
+                              None means all fields. Use 'dh' as alias for Debye-Huckel.
+            traj_view (str): (optional) Path prefix for per-frame oxView JSON files.
+                              Written incrementally; one file per active field.
+            data_file (str): (optional) Path to write raw pair-interaction data.
+                              Written incrementally, one frame at a time.
+            produce_print (bool): (optional) If True, print raw pair-interaction data
+                              to stdout, one frame at a time.
+            units (str): (optional) Unit label used in output file headers/keys.
 
         Returns:
-            Tuple[List[dict], List[str]]:
-                all_data: list of frame dicts, each with keys 'header' (str), 'pairs'
-                    (list of (p, q, energies_array) tuples), and 'comments' (list of str).
-                    Energies are already filtered to the requested fields.
-                active_names: list of energy field names corresponding to each energy value.
+            Tuple[np.ndarray or None, List[str]]:
+                energies: mean per-nucleotide energy array of shape (nbases, n_potentials)
+                          when visualize=True (already averaged over all frames), otherwise None.
+                active_names: list of energy field names included in the output.
     """
 
     ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, 0, None)
 
-    # Process one conf to discover the available potential names
+    # Discover available potential names from a single configuration
     pot_names = get_potentials(ctx)
 
-    # Resolve requested fields to indices
+    # Resolve requested fields to column indices
     field_indices, active_names = _resolve_fields(pot_names, fields)
+    n_potentials = len(active_names)
 
-    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, len(pot_names), field_indices)
+    ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, n_potentials, field_indices)
 
-    all_data = []
-    def callback(i, r):
-        nonlocal all_data
-        all_data.extend(r)
+    # Determine execution path
+    produce_data = produce_print or (data_file is not None)
+    needs_serial = produce_data or (traj_view is not None)
 
-    oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
+    if not needs_serial:
+        # ── Parallel path ────────────────────────────────────────────────────
+        # Used when -v is the only requested output.  compute() runs in worker
+        # processes and returns per-nucleotide sums for each chunk; the callback
+        # accumulates them into a single pre-allocated array.
 
-    return all_data, active_names
+        energies = np.zeros((top_info.nbases, n_potentials))
+        def callback(i, r):
+            nonlocal energies
+            energies += r
+
+        oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
+        energies /= traj_info.nconfs
+        return energies, active_names
+
+    else:
+        # ── Serial path ──────────────────────────────────────────────────────
+        # Used whenever raw pair data must be written/printed, or when -t is
+        # requested.  The oxpy backend runs in the main thread; each frame is
+        # processed and output immediately to avoid buffering the full trajectory.
+
+        energies = np.zeros((top_info.nbases, n_potentials)) if visualize else None
+
+        # Open data output stream (file or stdout)
+        data_fh = None
+        opened_data_file = False
+        if data_file:
+            data_fh = open(data_file, 'w')
+            opened_data_file = True
+        elif produce_print:
+            data_fh = sys.stdout
+
+        if data_fh:
+            data_fh.write('# p1 p2 ' + ' '.join(active_names) + f' ({units})\n')
+
+        # Open per-field file handles for -t output
+        # Each entry: [fname, file_handle, is_first_frame]
+        traj_fhs = {}
+        if traj_view:
+            for i, potential in enumerate(active_names):
+                if '.json' in traj_view:
+                    fname = '.'.join(traj_view.split('.')[:-1]) + "_" + potential + '.json'
+                else:
+                    fname = traj_view + "_" + potential + '.json'
+                fh = open(fname, 'w')
+                fh.write('{{\n"{} ({})": [\n'.format(potential, units))
+                traj_fhs[i] = [fname, fh, True]
+
+        # Process the entire trajectory frame by frame in the main thread
+        with oxpy.Context():
+            inp = oxpy.InputFile()
+            inp.init_from_filename(inputfile)
+            inp["list_type"] = "cells"
+            inp["trajectory_file"] = traj_info.path
+            inp["analysis_bytes_to_skip"] = str(0)
+            inp["confs_to_analyse"] = str(traj_info.nconfs)
+            inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = pair_energy \n } \n }'
+
+            if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
+                log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
+
+            backend = oxpy.analysis.AnalysisBackend(inp)
+
+            while backend.read_next_configuration():
+                e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(
+                    backend.config_info().current_step).strip().split('\n')
+
+                # Parse this frame's pair interactions
+                pairs = []
+                comments = []
+                for e in e_txt[1:]:
+                    if e and e[0] != '#':
+                        parts = e.split()
+                        p = int(parts[0])
+                        q = int(parts[1])
+                        l = np.array([float(x) for x in parts[2:]]) * conversion_factor
+                        if field_indices is not None:
+                            l = l[field_indices]
+                        pairs.append((p, q, l))
+                    elif e:
+                        comments.append(e)
+
+                # Raw pair data output (file or stdout)
+                if data_fh:
+                    data_fh.write(e_txt[0] + '\n')
+                    for comment in comments:
+                        data_fh.write(comment + '\n')
+                    for p, q, l in pairs:
+                        if np.any(l != 0):
+                            data_fh.write(f"{p} {q} " + ' '.join([str(v) for v in l]) + '\n')
+
+                # -v: accumulate per-nucleotide sums
+                if visualize:
+                    for p, q, l in pairs:
+                        energies[p] += l
+                        energies[q] += l
+
+                # -t: write this frame's per-nucleotide energies to the JSON file
+                for i, entry in traj_fhs.items():
+                    fname, fh, is_first = entry
+                    frame_e = np.zeros(top_info.nbases)
+                    for p, q, l in pairs:
+                        frame_e[p] += l[i]
+                        frame_e[q] += l[i]
+                    if not is_first:
+                        fh.write(',\n')
+                    fh.write('[' + ', '.join([str(x) for x in frame_e]) + ']')
+                    entry[2] = False  # mark as no longer the first frame
+
+        # Finalize outputs
+        if opened_data_file:
+            data_fh.close()
+            log(f"Wrote bond data to: {data_file}")
+
+        for i, (fname, fh, _) in traj_fhs.items():
+            fh.write('\n]\n}')
+            fh.close()
+            log(f"Wrote oxView trajectory overlay to: {fname}")
+
+        if visualize:
+            energies /= traj_info.nconfs
+        return energies, active_names
 
 def cli_parser(prog="output_bonds.py"):
     parser = argparse.ArgumentParser(prog = prog, description="List all the interactions between nucleotides")
@@ -223,18 +362,34 @@ def main():
     # Auto-default to a data file for large trajectories when no visualization is requested
     if not visualize and not traj_view and not data_file and not args.force_print and traj_info.nconfs > 10:
         data_file = 'output_bonds.txt'
-        log("Trajectory has more than 10 configurations, writing bond data to 'output_bonds.txt' instead of printing to screen.", level="warning")
+        log("Trajectory has more than 10 configurations, writing bond data to 'output_bonds.txt' instead of printing to screen. Set this filename with the -d flag.", level="warning")
 
-    all_data, pot_names = output_bonds(traj_info, top_info, inputfile, visualize, conversion_factor, ncpus, fields)
+    # Determine whether raw pair data should be written/printed.
+    # produce_print is True when data output is needed but no file was specified.
+    produce_data = data_file is not None or args.force_print or (not visualize and not traj_view)
+    produce_print = produce_data and data_file is None
 
-    # -v output: average per-particle energy as oxView JSON (one file per field)
+    needs_serial = produce_data or (traj_view is not None)
+    if needs_serial and ncpus > 1:
+        raise RuntimeError(
+            "No flags and the -t, -d, and --force_print flags require serial processing and are "
+            "incompatible with -p. Please re-run without the -p flag."
+        )
+
+    energies, pot_names = output_bonds(
+        traj_info, top_info, inputfile,
+        visualize=visualize,
+        conversion_factor=conversion_factor,
+        ncpus=ncpus,
+        fields=fields,
+        traj_view=traj_view,
+        data_file=data_file,
+        produce_print=produce_print,
+        units=units
+    )
+
+    # -v output: write mean per-nucleotide energies as oxView JSON files
     if visualize:
-        energies = np.zeros((top_info.nbases, len(pot_names)))
-        for frame in all_data:
-            for p, q, l in frame['pairs']:
-                energies[p] += l
-                energies[q] += l
-        energies /= traj_info.nconfs
         for i, potential in enumerate(pot_names):
             if '.json' in outfile:
                 fname = '.'.join(outfile.split('.')[:-1])+"_"+potential+'.json'
@@ -246,44 +401,7 @@ def main():
                 f.write("]\n}")
             log(f"Wrote oxView overlay to: {fname}")
 
-    # -t output: per-frame per-particle energy as oxView trajectory JSON (one file per field)
-    if traj_view:
-        for i, potential in enumerate(pot_names):
-            if '.json' in traj_view:
-                fname = '.'.join(traj_view.split('.')[:-1])+"_"+potential+'.json'
-            else:
-                fname = traj_view+"_"+potential+'.json'
-            with open(fname, 'w+') as f:
-                f.write('{{\n"{} ({})": [\n'.format(potential, units))
-                frame_strs = []
-                for frame in all_data:
-                    frame_e = np.zeros(top_info.nbases)
-                    for p, q, l in frame['pairs']:
-                        frame_e[p] += l[i]
-                        frame_e[q] += l[i]
-                    frame_strs.append('[' + ', '.join([str(x) for x in frame_e]) + ']')
-                f.write(',\n'.join(frame_strs))
-                f.write('\n]\n}')
-            log(f"Wrote oxView trajectory overlay to: {fname}")
-
-    # Data output: pair interactions to file or stdout
-    # Produced when no visualization flag is active, or when -d is explicitly given
-    produce_data = data_file is not None or (not visualize and not traj_view)
-    if produce_data:
-        lines = ['# p1 p2 ' + ' '.join(pot_names) + f' ({units})\n']
-        for frame in all_data:
-            lines.append(frame['header'] + '\n')
-            for comment in frame['comments']:
-                lines.append(comment + '\n')
-            for p, q, l in frame['pairs']:
-                lines.append(f"{p} {q} " + ' '.join([str(v) for v in l]) + '\n')
-        if data_file:
-            with open(data_file, 'w') as f:
-                f.writelines(lines)
-            log(f"Wrote bond data to: {data_file}")
-        else:
-            print(''.join(lines), end='')
-
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     main()
