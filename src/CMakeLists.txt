@@ -336,7 +336,9 @@ ELSE()
 	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
 ENDIF()
 
-target_link_libraries(${lib_name} ${ZSTD_TARGET})
+if(ZSTD_ENABLED)
+	target_link_libraries(${lib_name} ${ZSTD_TARGET})
+endif()
 
 TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
 TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})

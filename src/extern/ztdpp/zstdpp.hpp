@@ -186,7 +186,6 @@ namespace stream{
         Resources res{};
         Context ctx{};
         
-        size_t const toRead = res.getToRead();
         size_t read;
         size_t lastRet = 0;
         int isEmpty = 0;
@@ -282,13 +281,13 @@ inline void stream_decompress(
 
 inline buffer_t compress( buffer_t const& data, compress_level_t compress_level = 3 ){
     buffer_t comp_buffer{};
-    size_t est_compress_size = inplace::compress(data, comp_buffer);
+    inplace::compress(data, comp_buffer, compress_level);
     return comp_buffer;
 }
 
 inline buffer_t decompress(buffer_t &data) {
   buffer_t decomp_buffer{};
-  auto const est_decomp_size = inplace::decompress(data, decomp_buffer);
+  inplace::decompress(data, decomp_buffer);
   return decomp_buffer;
 }
 

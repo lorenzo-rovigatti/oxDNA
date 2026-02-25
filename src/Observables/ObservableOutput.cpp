@@ -7,7 +7,10 @@
 
 #include <sstream>
 #include <iostream>
+
+#ifdef ZSTD_ENABLED
 #include <ztdpp/zstdpp.hpp>
+#endif
 
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
@@ -59,6 +62,9 @@ ObservableOutput::ObservableOutput(std::string &stream_string) :
 	getInputBool(obs_input, "compress", &_use_zstd, 0);
 	getInputInt(obs_input, "zstd_level", &_zstd_level, 0);
 	if(_use_zstd) {
+#ifndef ZSTD_ENABLED
+		throw oxDNAException("zstd compression support is disabled. Please recompile with ZSTD_ENABLED=ON to enable it.");
+#endif
 		_is_binary = true;
 	}
 
@@ -131,6 +137,7 @@ void ObservableOutput::_open_output() {
 
 		_output = &_output_stream;
 
+#ifdef ZSTD_ENABLED
 		if(_use_zstd) {
 			// 8-byte magic header
 			uint8_t header[8];
@@ -146,6 +153,7 @@ void ObservableOutput::_open_output() {
 			_output->write(reinterpret_cast<char*>(header), 8);
 			_output->flush();
 		}
+#endif
 	}
 
 	if(_output->bad() || !_output->good()) {
@@ -235,8 +243,10 @@ void ObservableOutput::print_output(llint step) {
 	_bytes_written += (llint) towrite.length();
 
 	if(_use_zstd) {
+#ifdef ZSTD_ENABLED
 		auto compressed_str = zstdpp::compress(towrite, _zstd_level);
 		_output->write(reinterpret_cast<const char*>(compressed_str.data()), compressed_str.size());
+#endif
 	}
 	else {
 		*_output << towrite;
