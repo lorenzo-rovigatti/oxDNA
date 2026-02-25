@@ -47,6 +47,7 @@ def main():
     with oxpy.Context():
         inp = oxpy.InputFile()
         inp.init_from_filename(inputfile)
+        inp["log_file"] = "/dev/null"
         inp["list_type"] = "cells"
         inp["trajectory_file"] = conf_file
         inp["confs_to_analyse"] = str(1)

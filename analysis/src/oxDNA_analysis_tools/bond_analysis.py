@@ -27,9 +27,10 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarra
     with oxpy.Context():
         inp = oxpy.InputFile()                      # Create an empty input file
         inp.init_from_filename(ctx.input_file)      # Fill in input file with the provided input
+        inp["log_file"] = "/dev/null"
 
         # Modify the input file to analyze the target trajectory and select a chunk to analyze
-        inp["list_type"] = "cells"                   
+        inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
         inp["confs_to_analyse"] = str(chunk_size)

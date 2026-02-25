@@ -7,7 +7,7 @@ from os import path
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
-from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
+from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_input_parameter
 import oxpy
 
@@ -33,6 +33,7 @@ def get_potentials(ctx) -> List[str]:
         inp.init_from_filename(ctx.input_file)
         inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
+        inp["log_file"] = "/dev/null"
         inp["analysis_bytes_to_skip"] = str(0)
         inp["confs_to_analyse"] = str(1)
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = pair_energy \n } \n }'
@@ -94,6 +95,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         inp.init_from_filename(ctx.input_file)
         inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
+        inp["log_file"] = "/dev/null"
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
         inp["confs_to_analyse"] = str(chunk_size)
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = pair_energy \n } \n }'
@@ -239,6 +241,7 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
             inp.init_from_filename(inputfile)
             inp["list_type"] = "cells"
             inp["trajectory_file"] = traj_info.path
+            inp["log_file"] = "/dev/null"
             inp["analysis_bytes_to_skip"] = str(0)
             inp["confs_to_analyse"] = str(traj_info.nconfs)
             inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = pair_energy \n } \n }'
@@ -248,6 +251,9 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
 
             backend = oxpy.analysis.AnalysisBackend(inp)
 
+            chunk_size = get_chunk_size()
+            log(f"Starting up 1 processes for {traj_info.nconfs // chunk_size} chunks")
+            frame_count = 0
             while backend.read_next_configuration():
                 e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(
                     backend.config_info().current_step).strip().split('\n')
@@ -293,6 +299,11 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
                         fh.write(',\n')
                     fh.write('[' + ', '.join([str(x) for x in frame_e]) + ']')
                     entry[2] = False  # mark as no longer the first frame
+
+                frame_count += 1
+                if frame_count % chunk_size == 0:
+                    print(f"finished {frame_count}/{traj_info.nconfs}", end="\r")
+            print()
 
         # Finalize outputs
         if opened_data_file:
