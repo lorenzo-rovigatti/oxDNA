@@ -308,9 +308,9 @@ forces2db.forces2db
 .. autosummary::
     :nosignatures:
 
-    IDconvert.read_strands
+    IDconvert.IDconvert
 
-.. autofunction:: oxDNA_analysis_tools.IDconvert.read_strands
+.. autofunction:: oxDNA_analysis_tools.IDconvert.IDconvert
 ```
 
 ## Mean
