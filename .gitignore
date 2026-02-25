@@ -86,3 +86,6 @@ cmake-build-debug
 .vscode
 oxpy/_version.py
 src/oxpy/_version.py
+
+# Mac Double
+._*
