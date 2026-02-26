@@ -27,7 +27,8 @@
 #include "RepulsiveEllipsoid.h"
 #include "YukawaSphere.h"
 #include "AttractionPlane.h"
-
+#include "RepulsiveSphereMoving.h"
+#include "RepulsiveKeplerPoinsot.h"
 
 // metadynamics-related forces
 #include "Metadynamics/LTCoordination.h"
@@ -93,6 +94,8 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
 	else if(type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
 	else if(type_str.compare("meta_coordination") == 0) extF = std::make_shared<LTCoordination>();
+	else if(type_str.compare("repulsive_sphere_moving") == 0) extF = std::make_shared<RepulsiveSphereMoving>();
+	else if(type_str.compare("repulsive_kepler_poinsot") == 0) extF = std::make_shared<RepulsiveKeplerPoinsot>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
