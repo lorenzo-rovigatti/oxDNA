@@ -297,6 +297,22 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autofunction:: oxDNA_analysis_tools.forces2db.forces2db
 ```
 
+## IDconvert
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    IDconvert.IDconvert
+
+.. autofunction:: oxDNA_analysis_tools.IDconvert.IDconvert
+```
+
 ## Mean
 
 ```{eval-rst}
