@@ -64,6 +64,46 @@ def deletion_tops(tmp_path):
 
 
 @pytest.fixture
+def greedy_steal_tops(tmp_path):
+    """Topologies that expose the greedy set-based strand-matching bug.
+
+    The reference has two *identical* strands (1 and 2) plus a third strand
+    that differs by exactly one base at its 3' end.  The compare topology has
+    only one copy of the all-A strand and one copy of the A+T strand.
+
+    Reference:
+        strand 1 (IDs  0-15): AAAAAAAAAAAAAAAA  ← correct match = cmp strand 1
+        strand 2 (IDs 16-31): AAAAAAAAAAAAAAAA  ← duplicate; should be unmatched (deleted)
+        strand 3 (IDs 32-47): AAAAAAAAAAAAAAAT  ← correct match = cmp strand 2
+
+    Compare:
+        strand 1 (IDs  0-15): AAAAAAAAAAAAAAAA
+        strand 2 (IDs 16-31): AAAAAAAAAAAAAAAT
+
+    The greedy phase-1 loop claims matches in ref-strand order.  After ref
+    strand 1 takes cmp strand 1 (score=1.0), ref strand 2 (the duplicate)
+    finds cmp strand 2 is the best *available* option (score≈0.94 ≥ 0.75) and
+    claims it.  All compare strands are now exhausted before ref strand 3 is
+    evaluated, so its nucleotides receive no match — even though cmp strand 2
+    is a perfect sequence match for it.
+    """
+    ref_top = tmp_path / "ref.top"
+    ref_top.write_text(
+        "48 3 5->3\n"
+        "AAAAAAAAAAAAAAAA id=1 type=DNA circular=false\n"  # IDs  0-15
+        "AAAAAAAAAAAAAAAA id=2 type=DNA circular=false\n"  # IDs 16-31 (duplicate, deleted in cmp)
+        "AAAAAAAAAAAAAAAT id=3 type=DNA circular=false\n"  # IDs 32-47
+    )
+    cmp_top = tmp_path / "cmp.top"
+    cmp_top.write_text(
+        "32 2 5->3\n"
+        "AAAAAAAAAAAAAAAA id=1 type=DNA circular=false\n"  # IDs  0-15
+        "AAAAAAAAAAAAAAAT id=2 type=DNA circular=false\n"  # IDs 16-31
+    )
+    return str(ref_top), str(cmp_top)
+
+
+@pytest.fixture
 def nicking_tops(tmp_path):
     """Reference with one 24-nt strand, comparison where it is nicked into 16+8 nt."""
     # Sequences are chosen so that the 8-nt suffix is unique within the 24-nt ref,
@@ -132,6 +172,32 @@ class TestIDconvertFunction:
         cmp_ids = list(id_map.values())
         assert len(cmp_ids) == len(set(cmp_ids)), \
             "Mapping must be injective — duplicate compare IDs found"
+
+    def test_greedy_set_misses_strand(self, greedy_steal_tops):
+        """Duplicate ref strand steals the only viable cmp match for a distinct strand.
+
+        ref strand 2 is an exact duplicate of ref strand 1 and has been deleted in the
+        compare topology.  The greedy phase-1 loop processes ref strand 2 before ref
+        strand 3 and assigns cmp strand 2 (score≈0.94, best available) to it, exhausting
+        all compare strands.  ref strand 3 (IDs 32-47, sequence AAAAAAAAAAAAAAAT) is
+        therefore left with no match, even though cmp strand 2 is a *perfect* match for
+        it.  Phase 2 cannot recover because all cmp nucleotide IDs are already marked as
+        used by the phase-1 assignments.
+
+        All 16 nucleotides of ref strand 3 should be present in the returned mapping.
+        """
+        ref_top, cmp_top = greedy_steal_tops
+        id_map = IDconvert(ref_top, cmp_top)
+
+        # ref strand 3 (IDs 32-47, AAAAAAAAAAAAAAAT) is a perfect match for
+        # cmp strand 2 (IDs 16-31, AAAAAAAAAAAAAAAT).  Every nucleotide must
+        # appear in the mapping.
+        for i in range(32, 48):
+            assert i in id_map, (
+                f"Nucleotide {i} (ref strand 3, 'AAAAAAAAAAAAAAAT') should map to "
+                f"cmp strand 2 ('AAAAAAAAAAAAAAAT'), but the greedy 'used' set allowed "
+                f"the duplicate ref strand 2 to steal that compare strand first."
+            )
 
     def test_nicking(self, nicking_tops):
         """All nucleotides of a nicked strand are mapped across the nick site."""
