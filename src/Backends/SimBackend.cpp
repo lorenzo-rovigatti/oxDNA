@@ -8,6 +8,10 @@
 #include <sstream>
 #include <fstream>
 
+#ifdef ZSTD_ENABLED
+#include <ztdpp/zstdpp.hpp>
+#endif
+
 #include "SimBackend.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
@@ -51,6 +55,9 @@ SimBackend::SimBackend() {
 	_rcut = -1.;
 	_sqr_rcut = -1.;
 	_T = -1.;
+
+	// Configuration compression support
+	_zstd_configurations = false;
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance().get();
@@ -146,6 +153,14 @@ void SimBackend::get_settings(input_file &inp) {
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
 	if(_initial_conf_is_binary) {
 		OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
+	}
+
+	getInputBool(&inp, "assume_zstd_configurations", &_zstd_configurations, 0);
+	if(_zstd_configurations) {
+#ifndef ZSTD_ENABLED
+		throw oxDNAException("zstd compression support is disabled. Please recompile with ZSTD_ENABLED=ON to enable it.");
+#endif
+		OX_LOG(Logger::LOG_INFO, "Assuming zstd-compressed configurations");
 	}
 
 	getInputBool(&inp, "fix_diffusion", &_enable_fix_diffusion, 0);
@@ -274,6 +289,33 @@ void SimBackend::init() {
 		throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
 	}
 
+	// If we're reading compressed configurations, validate the header and clear any buffered data
+	bool zstd_header_found = false;
+	if(_zstd_configurations) {
+		_zstd_read_buffer.clear();
+#ifdef ZSTD_ENABLED
+		uint8_t header[8];
+		_conf_input.read(reinterpret_cast<char*>(header), 8);
+		if(_conf_input.gcount() != 8) {
+			throw oxDNAException("Could not read zstd compression header from configuration file");
+		}
+
+		// Validate the magic
+		if(header[0] != 'O' || header[1] != 'X' || header[2] != 'D' || header[3] != 0x01) {
+			throw oxDNAException("Invalid zstd compression header: expected 'OXD' magic with compatibility byte 0x01");
+		}
+
+		if(header[4] != 0x01) {
+			throw oxDNAException("Unsupported zstd header version: %d (only version 1 is supported)", header[4]);
+		}
+
+		OX_LOG(Logger::LOG_INFO, "Configuration file uses zstd compression with level %d", header[5]);
+
+		// Initialize the decompression context
+		zstd_header_found = true;
+#endif
+	}
+
 	_interaction->init();
 
 	// check number of particles
@@ -294,6 +336,11 @@ void SimBackend::init() {
 	}
 
 	_conf_input.seekg(0, ios::beg);
+
+	// Skip the zstd header again if it was read
+	if(_zstd_configurations && zstd_header_found) {
+		_conf_input.seekg(8, ios::beg);
+	}
 
 	// we need to skip a certain number of lines, depending on how many
 	// particles we have and how many configurations we want to skip
@@ -378,16 +425,107 @@ LR_vector SimBackend::_read_next_binary_vector() {
 	return res;
 }
 
+std::string SimBackend::_read_zstd_configuration() {
+#ifdef ZSTD_ENABLED
+	const size_t chunk_size = 65536;  // 64 KB read buffer for reading from file
+
+	// Keep reading until we can determine the size of the next compressed frame
+	while(true) {
+		// Try to determine frame size from what we currently have in the buffer
+		if(_zstd_read_buffer.size() > 0) {
+			size_t frame_size = ZSTD_findFrameCompressedSize(
+				_zstd_read_buffer.data(), _zstd_read_buffer.size()
+			);
+
+			// Check if we have enough information to know the frame size
+			if(!ZSTD_isError(frame_size)) {
+				// We know the frame size - make sure we have all the data for it
+				if(_zstd_read_buffer.size() >= frame_size) {
+					// We have a complete frame; first convert it to zstdpp buffer type
+					zstdpp::buffer_t in_buffer(_zstd_read_buffer.begin(), _zstd_read_buffer.begin() + frame_size);
+
+					// Remove processed frame from buffer, keeping any leftover for next call
+					_zstd_read_buffer.erase(_zstd_read_buffer.begin(), _zstd_read_buffer.begin() + frame_size);
+
+					// Decompress using zstdpp
+					zstdpp::buffer_t out_buffer = zstdpp::decompress(in_buffer);
+
+					// Return a string containing the decompressed data
+					return std::string(out_buffer.begin(), out_buffer.end());
+				}
+				// We know the size but don't have all data yet: fall through to read more
+			}
+		}
+
+		// Need to read more data from file
+		size_t current_size = _zstd_read_buffer.size();
+		_zstd_read_buffer.resize(current_size + chunk_size);
+
+		_conf_input.read(_zstd_read_buffer.data() + current_size, chunk_size);
+		size_t bytes_read = _conf_input.gcount();
+		OX_DEBUG("Read %zu bytes from zstd configuration file", bytes_read);
+
+		if(bytes_read == 0) {
+			// EOF reached
+			if(_conf_input.eof()) {
+				return "";
+			}
+			// Read error (should never happen since we check for EOF, but just in case)
+			throw oxDNAException("Error reading ztsd configuration file");
+		}
+
+		_zstd_read_buffer.resize(current_size + bytes_read);
+	}
+
+#else
+	throw oxDNAException("zstd compression support is disabled. Please recompile with ZSTD_ENABLED=ON");
+#endif
+}
+
 // here we cannot use _molecules because it has not been initialised yet
 bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
+	std::stringstream compressed_config_stream;
+
+	// If we're reading compressed configurations, decompress the next frame
+	if(_zstd_configurations) {
+		std::string decompressed = _read_zstd_configuration();
+		if(decompressed.empty()) {
+			return false;
+		}
+		compressed_config_stream.str(decompressed);
+	}
+
+	// Helper lambda to read a line from either the compressed stream or the main input
+	auto read_line = [&](std::string &line) -> bool {
+		if(_zstd_configurations) {
+			return static_cast<bool>(std::getline(compressed_config_stream, line));
+		}
+		else {
+			return static_cast<bool>(std::getline(_conf_input, line));
+		}
+	};
+
+	// Helper lambda to check EOF
+	auto is_eof = [&]() -> bool {
+		if(_zstd_configurations) {
+			return compressed_config_stream.eof();
+		}
+		else {
+			return _conf_input.eof();
+		}
+	};
+
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
 	if(binary) {
-
 		// first bytes: step
 		// if there's nothing to read, _read_conf_step is unchanged and equal to -1
 		_read_conf_step = -1;
+		if(_zstd_configurations) {
+			throw oxDNAException("Binary configurations cannot be compressed. Use 'binary = false' with 'assume_zstd_configurations = true' to read compressed ascii configurations instead.");
+		}
+
 		_conf_input.read((char*) &_read_conf_step, sizeof(llint));
 		if(_read_conf_step == -1) {
 			OX_DEBUG("End of binary configuration file reached.");
@@ -417,10 +555,15 @@ bool SimBackend::read_next_configuration(bool binary) {
 	else {
 		bool malformed_headers = false;
 		std::string line;
-		std::getline(_conf_input, line);
-		if(_conf_input.eof()) {
-			return false;
+		if(!read_line(line)) {
+			if(_zstd_configurations && compressed_config_stream.eof()) {
+				return false;
+			}
+			if(_conf_input.eof()) {
+				return false;
+			}
 		}
+
 		int res = sscanf(line.c_str(), "t = %lld", &_read_conf_step);
 		std::stringstream error_message;
 		// handle the case when t can't be read
@@ -430,7 +573,9 @@ bool SimBackend::read_next_configuration(bool binary) {
 
 		}
 		if(!malformed_headers) {
-			std::getline(_conf_input, line);
+			if(!read_line(line)) {
+				throw oxDNAException("Unexpected EOF while reading configuration header");
+			}
 			// handle the case when the box_size can't be read
 			res += sscanf(line.c_str(), "b = %lf %lf %lf", &Lx, &Ly, &Lz);
 			if(res != 4) {
@@ -447,7 +592,9 @@ bool SimBackend::read_next_configuration(bool binary) {
 			throw oxDNAException(error_message.str().c_str());
 		}
 
-		std::getline(_conf_input, line);
+		if(!read_line(line)) {
+			throw oxDNAException("Unexpected EOF while reading configuration data");
+		}
 	}
 
 	_box->init(Lx, Ly, Lz);
@@ -460,11 +607,13 @@ bool SimBackend::read_next_configuration(bool binary) {
 
 	i = 0;
 	std::string line;
-	while(!_conf_input.eof() && i < N()) {
+	while(!is_eof() && i < N()) {
 		BaseParticle *p = _particles[i];
 
 		if(!binary) {
-			std::getline(_conf_input, line);
+			if(!read_line(line)) {
+				break;
+			}
 			auto spl_line = Utils::split_to_numbers(line, " ");
 
 			p->pos = LR_vector(spl_line[0], spl_line[1], spl_line[2]);

@@ -63,15 +63,18 @@ void AnalysisBackend::get_settings(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
 	}
 
-	int tmp;
-	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
-	if(val == KEY_FOUND) {
-		_external_forces = (tmp != 0);
-		if(_external_forces) {
-			getInputString(&inp, "external_forces_file", _external_filename, 1);
-		}
+	getInputBool(&inp, "assume_zstd_configurations", &_zstd_configurations, 0);
+	if(_zstd_configurations) {
+#ifndef ZSTD_ENABLED
+		throw oxDNAException("zstd compression support is disabled. Please recompile with ZSTD_ENABLED=ON to enable it.");
+#endif
+		OX_LOG(Logger::LOG_INFO, "Assuming zstd-compressed configurations");
 	}
-	else if(val == KEY_INVALID) throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
+
+	getInputBool(&inp, "external_forces", &_external_forces, 0);
+	if(_external_forces) {
+		getInputString(&inp, "external_forces_file", _external_filename, 1);
+	}
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
