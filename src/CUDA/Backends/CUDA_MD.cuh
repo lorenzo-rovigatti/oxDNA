@@ -416,114 +416,106 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
-			case CUDA_REPULSIVE_ELLIPSOID:
-			{
-				const repulsive_ellipsoid &f = extF.repulsiveellipsoid;
-
-				// Centre of the ellipsoid
-				const c_number4 centre = make_c_number4(
-					(c_number)f.centre.x,
-					(c_number)f.centre.y,
-					(c_number)f.centre.z,
-					(c_number)0.0
-				);
-
-				// Base semi-axes at step 0 (input values)
-				const c_number ax0 = (c_number)f.r_2.x;
-				const c_number ay0 = (c_number)f.r_2.y;
-				const c_number az0 = (c_number)f.r_2.z;
-
-				// Uniform growth factor, analogous to Rc = r0 + rate * step
-				c_number growth = (c_number)1.0 + (c_number)f.rate * (c_number)step;
-				if (growth <= (c_number)0.0) {
-					// Degenerate ellipsoid – nothing sensible to do
-					break;
-				}
-
-				// Current semi-axes
-				const c_number ax = ax0 * growth;
-				const c_number ay = ay0 * growth;
-				const c_number az = az0 * growth;
-
-				// -----------------------------------------------------
-				// Debug output: print the real grown ellipsoid size
-				// -----------------------------------------------------
-				if (IND == 0 && (step % 10000 == 0)) {
-					printf("GPU ellipsoid step=%lld rate=%g ax=%g ay=%g az=%g\n",
-						(long long)step,
-						(double)f.rate,
-						(double)ax,
-						(double)ay,
-						(double)az);
-				}
-
-				// Guard against zero axes
-				if (ax <= (c_number)0.0 || ay <= (c_number)0.0 || az <= (c_number)0.0) {
-					break;
-				}
-
-				// Minimum-image displacement from centre to particle
+			case CUDA_REPULSIVE_ELLIPSOID: {
+				c_number4 centre = make_c_number4(extF.repulsiveellipsoid.centre.x, extF.repulsiveellipsoid.centre.y, extF.repulsiveellipsoid.centre.z, 0.);
+				c_number4 r_1 = make_c_number4(extF.repulsiveellipsoid.r_1.x, extF.repulsiveellipsoid.r_1.y, extF.repulsiveellipsoid.r_1.z, 0.);
+				c_number4 r_2 = make_c_number4(extF.repulsiveellipsoid.r_2.x, extF.repulsiveellipsoid.r_2.y, extF.repulsiveellipsoid.r_2.z, 0.);
 				c_number4 dist = box->minimum_image(centre, ppos);
-				const c_number dx = dist.x;
-				const c_number dy = dist.y;
-				const c_number dz = dist.z;
 
-				// Ellipsoidal "radius" r':
-				//   r'^2 = (x/a)^2 + (y/b)^2 + (z/c)^2
-				const c_number inv_ax2 = (c_number)1.0 / (ax * ax);
-				const c_number inv_ay2 = (c_number)1.0 / (ay * ay);
-				const c_number inv_az2 = (c_number)1.0 / (az * az);
+				c_number internal_cut = SQR(dist.x) / SQR(r_2.x) + SQR(dist.y) / SQR(r_2.y) + SQR(dist.z) / SQR(r_2.z);
+				c_number external_cut = SQR(dist.x) / SQR(r_1.x) + SQR(dist.y) / SQR(r_1.y) + SQR(dist.z) / SQR(r_1.z);
 
-				const c_number rp2 = dx*dx*inv_ax2 + dy*dy*inv_ay2 + dz*dz*inv_az2;
+				if(internal_cut >= 1. || external_cut <= 1.) {
+					c_number mdist = _module(dist);
 
-				if (rp2 <= (c_number)0.0) {
-					// At centre; direction undefined
-					break;
+					c_number force_part = extF.repulsiveellipsoid.stiff / mdist;
+
+					F.x += -dist.x * force_part;
+					F.y += -dist.y * force_part;
+					F.z += -dist.z * force_part;
 				}
 
-				const c_number rp = sqrt(rp2);
-
-				// Ellipsoidal WCA cutoff: r' in (0, Rc_d)
-				// We choose Rc_d = 1.0 so the current ellipsoid surface is r' = 1
-				const c_number Rc_d = (c_number)1.0;
-
-				if (rp <= (c_number)0.0 || rp >= Rc_d) {
-					// Outside cutoff in ellipsoidal radius
-					break;
+				c_number mdist = _module(dist);
+				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
+				c_number radius_ext = extF.repulsivesphere.r_ext;
+				if(mdist > radius && mdist < radius_ext) {
+					c_number force_mod = extF.repulsivesphere.stiff*((c_number)1.f - radius/mdist);
+					F.x += -dist.x*force_mod;
+					F.y += -dist.y*force_mod;
+					F.z += -dist.z*force_mod;
 				}
+				break;
+			}
+			case CUDA_COM_FORCE: {
+				c_number4 com = make_c_number4(0., 0., 0., 0.);
+				for(int index = 0; index < extF.comforce.n_com; index++){
+					int p_idx = extF.comforce.com_indexes[index];
+					com += poss[p_idx];
+				}
+				com.x /= extF.comforce.n_com;
+				com.y /= extF.comforce.n_com;
+				com.z /= extF.comforce.n_com;
 
-				// Same WCA mapping as CUDA_REPULSIVE_SPHERE, but in the ellipsoidal metric r'
-				const c_number two_to_1_over_6 = (c_number)1.122462048309373; // 2^(1/6)
-				const c_number sigma = Rc_d / two_to_1_over_6;
+				c_number4 ref = make_c_number4(0., 0., 0., 0.);
+				for(int index = 0; index < extF.comforce.n_ref; index++){
+					int p_idx = extF.comforce.ref_indexes[index];
+					ref += poss[p_idx];
+				}
+				ref.x /= extF.comforce.n_ref;
+				ref.y /= extF.comforce.n_ref;
+				ref.z /= extF.comforce.n_ref;
 
-				const c_number inv_rp    = (c_number)1.0 / rp;
-				const c_number s_over_rp = sigma * inv_rp;
+				c_number4 dr = ref - com;
+				c_number dr_abs = _module(dr);
+				c_number4 force = dr * ((dr_abs - (extF.comforce.r0 + extF.comforce.rate * step)) * extF.comforce.stiff / dr_abs) / extF.comforce.n_com;
 
-				const c_number s2  = s_over_rp * s_over_rp;
-				const c_number s4  = s2 * s2;
-				const c_number s6  = s4 * s2;
-				const c_number s12 = s6 * s6;
-
-				const c_number eps = (c_number)f.stiff;
-
-				// For the sphere, F_vec = 24*eps*(2*s12 - s6) * (r_vec / r^2).
-				// Here we treat the potential as V(r') with the same radial form,
-				// and transform back to unscaled coordinates:
-				//
-				//   x' = x/a,  r' = sqrt(x'^2 + y'^2 + z'^2)
-				//   F_x = 24*eps*(2*s12 - s6) * x / (a^2 * r'^2), etc.
-				//
-				const c_number pref = (c_number)24.0 * eps *
-									((c_number)2.0 * s12 - s6) /
-									rp2;   // rp^2 in the denominator
-
-				F.x += pref * dx * inv_ax2;
-				F.y += pref * dy * inv_ay2;
-				F.z += pref * dz * inv_az2;
+				F.x += force.x;
+				F.y += force.y;
+				F.z += force.z;
 
 				break;
 			}
+			case CUDA_LR_COM_TRAP: {
+				c_number4 p1a_vec({0.f, 0.f, 0.f, 0.f});
+				c_number4 p2a_vec({0.f, 0.f, 0.f, 0.f});
+				for(int will = 0; will < extF.ltcomtrap.p1a_size; will++) {
+					p1a_vec.x += poss[extF.ltcomtrap.p1a[will]].x / extF.ltcomtrap.p1a_size;
+					p1a_vec.y += poss[extF.ltcomtrap.p1a[will]].y / extF.ltcomtrap.p1a_size;
+					p1a_vec.z += poss[extF.ltcomtrap.p1a[will]].z / extF.ltcomtrap.p1a_size;
+				}
 
+				for(int will = 0; will < extF.ltcomtrap.p2a_size; will++) {
+					p2a_vec.x += poss[extF.ltcomtrap.p2a[will]].x / extF.ltcomtrap.p2a_size;
+					p2a_vec.y += poss[extF.ltcomtrap.p2a[will]].y / extF.ltcomtrap.p2a_size;
+					p2a_vec.z += poss[extF.ltcomtrap.p2a[will]].z / extF.ltcomtrap.p2a_size;
+				}
+
+				c_number4 dr = p1a_vec - p2a_vec;
+				c_number dr_mod = _module(dr);
+
+				int ix_left = (int) ((dr_mod - extF.ltcomtrap.xmin) / extF.ltcomtrap.dX);
+				int ix_right = ix_left + 1;
+
+				// make sure that we never get out of boundaries. If we are then we keep the force 0
+				c_number meta_Fx = 0.f;
+				if(ix_left >= 0 && ix_right <= (extF.ltcomtrap.N_grid - 1)) {
+					meta_Fx = -(extF.ltcomtrap.potential_grid[ix_right] - extF.ltcomtrap.potential_grid[ix_left]) / extF.ltcomtrap.dX;
+				}
+
+				c_number4 force = (dr) * (meta_Fx / dr_mod);
+
+				if(extF.ltcomtrap.mode == 1) {
+					F.x += force.x / extF.ltcomtrap.p1a_size;
+					F.y += force.y / extF.ltcomtrap.p1a_size;
+					F.z += force.z / extF.ltcomtrap.p1a_size;
+				}
+				else if(extF.ltcomtrap.mode == 2) {
+					F.x -= force.x / extF.ltcomtrap.p2a_size;
+					F.y -= force.y / extF.ltcomtrap.p2a_size;
+					F.z -= force.z / extF.ltcomtrap.p2a_size;
+				}
+				break;
+			}
 			case CUDA_YUKAWA_SPHERE: {
 				c_number4 centre = make_c_number4(extF.yukawasphere.center.x, extF.yukawasphere.center.y, extF.yukawasphere.center.z, 0.);
 
