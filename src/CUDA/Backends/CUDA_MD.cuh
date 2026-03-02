@@ -204,44 +204,16 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 			case CUDA_REPULSIVE_SPHERE: {
-				c_number4 centre = make_c_number4(
-					extF.repulsivesphere.centre.x,
-					extF.repulsivesphere.centre.y,
-					extF.repulsivesphere.centre.z,
-					0.
-				);
-
-				c_number4 dist  = box->minimum_image(centre, ppos);
-				c_number mdist  = _module(dist);
-
-				// Rc = r0 + rate * step  (same as CPU)
-				c_number Rc = extF.repulsivesphere.r0 +
-							extF.repulsivesphere.rate * (c_number) step;
-
-				// Only apply force for 0 < r < Rc, else zero (same cutoff as CPU)
-				if (mdist > (c_number)0. && mdist < Rc) {
-					// sigma = Rc / 2^(1/6)
-					const c_number two_to_1_over_6 = (c_number)1.122462048309373;
-					c_number sigma = Rc / two_to_1_over_6;
-
-					c_number inv_d    = (c_number)1. / mdist;
-					c_number s_over_d = sigma * inv_d;
-
-					// powers of (sigma / d)
-					c_number s2  = s_over_d * s_over_d;
-					c_number s4  = s2 * s2;
-					c_number s6  = s4 * s2;
-					c_number s12 = s6 * s6;
-
-					c_number eps    = extF.repulsivesphere.stiff;
-					c_number inv_d2 = inv_d * inv_d;
-
-					// F_vec = 24*eps*(2*s12 - s6) * (r_vec / r^2)
-					c_number coeff = (c_number)24. * eps * ((c_number)2. * s12 - s6) * inv_d2;
-
-					F.x += dist.x * coeff;
-					F.y += dist.y * coeff;
-					F.z += dist.z * coeff;
+				c_number4 centre = make_c_number4(extF.repulsivesphere.centre.x, extF.repulsivesphere.centre.y, extF.repulsivesphere.centre.z, 0.);
+				c_number4 dist = box->minimum_image(centre, ppos);
+				c_number mdist = _module(dist);
+				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
+				c_number radius_ext = extF.repulsivesphere.r_ext;
+				if(mdist > radius && mdist < radius_ext) {
+					c_number force_mod = extF.repulsivesphere.stiff*((c_number)1.f - radius/mdist);
+					F.x += -dist.x*force_mod;
+					F.y += -dist.y*force_mod;
+					F.z += -dist.z*force_mod;
 				}
 
 				break;
