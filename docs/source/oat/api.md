@@ -152,7 +152,7 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autosummary::
     :nosignatures:
 
-contact_map.contact_map
+    contact_map.contact_map
     
 .. autofunction:: oxDNA_analysis_tools.contact_map.contact_map
 ```
@@ -168,7 +168,7 @@ contact_map.contact_map
 .. autosummary::
     :nosignatures:
 
-decimate.decimate
+    decimate.decimate
     
 .. autofunction:: oxDNA_analysis_tools.decimate.decimate
 ```
@@ -184,8 +184,8 @@ decimate.decimate
 .. autosummary::
     :nosignatures:
 
-deviations.deviations
-deviations.output
+    deviations.deviations
+    deviations.output
     
 .. autofunction:: oxDNA_analysis_tools.deviations.deviations
 .. autofunction:: oxDNA_analysis_tools.deviations.output
@@ -202,9 +202,9 @@ deviations.output
 .. autosummary::
     :nosignatures:
 
-distance.min_image
-distance.vectorized_min_image
-distance.distance
+    distance.min_image
+    distance.vectorized_min_image
+    distance.distance
     
 .. autofunction:: oxDNA_analysis_tools.distance.min_image
 .. autofunction:: oxDNA_analysis_tools.distance.vectorized_min_image
@@ -222,8 +222,8 @@ distance.distance
 .. autosummary::
     :nosignatures:
 
-db2forces.parse_dot_bracket
-db2forces.db_to_forcelist
+    db2forces.parse_dot_bracket
+    db2forces.db_to_forcelist
     
 .. autofunction:: oxDNA_analysis_tools.db2forces.parse_dot_bracket
 .. autofunction:: oxDNA_analysis_tools.db2forces.db_to_forcelist
@@ -240,7 +240,7 @@ db2forces.db_to_forcelist
 .. autosummary::
     :nosignatures:
 
-duplex_angle_plotter.get_angle_between
+    duplex_angle_plotter.get_angle_between
     
 .. autofunction:: oxDNA_analysis_tools.duplex_angle_plotter.get_angle_between
 ```
@@ -256,9 +256,9 @@ duplex_angle_plotter.get_angle_between
 .. autosummary::
     :nosignatures:
 
-duplex_finder.Duplex
-duplex_finder.find_duplex
-duplex_finder.duplex_finder
+    duplex_finder.Duplex
+    duplex_finder.find_duplex
+    duplex_finder.duplex_finder
     
 .. autoclass:: oxDNA_analysis_tools.duplex_finder.Duplex
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.find_duplex
@@ -276,7 +276,7 @@ duplex_finder.duplex_finder
 .. autosummary::
     :nosignatures:
 
-file_info.file_info
+    file_info.file_info
     
 .. autofunction:: oxDNA_analysis_tools.file_info.file_info
 ```
@@ -292,7 +292,7 @@ file_info.file_info
 .. autosummary::
     :nosignatures:
 
-forces2db.forces2db
+    forces2db.forces2db
     
 .. autofunction:: oxDNA_analysis_tools.forces2db.forces2db
 ```
@@ -308,7 +308,7 @@ forces2db.forces2db
 .. autosummary::
     :nosignatures:
 
-mean.mean
+    mean.mean
     
 .. autofunction:: oxDNA_analysis_tools.mean.mean
 ```
@@ -324,7 +324,7 @@ mean.mean
 .. autosummary::
     :nosignatures:
 
-minify.minify
+    minify.minify
     
 .. autofunction:: oxDNA_analysis_tools.minify.minify
 ```
@@ -340,8 +340,8 @@ minify.minify
 .. autosummary::
     :nosignatures:
 
-multidimensional_scaling_mean.multidimensional_scaling_mean
-multidimensional_scaling_mean.distance_deviations
+    multidimensional_scaling_mean.multidimensional_scaling_mean
+    multidimensional_scaling_mean.distance_deviations
     
 .. autofunction:: oxDNA_analysis_tools.multidimensional_scaling_mean.multidimensional_scaling_mean
 .. autofunction:: oxDNA_analysis_tools.multidimensional_scaling_mean.distance_deviations
@@ -358,7 +358,7 @@ multidimensional_scaling_mean.distance_deviations
 .. autosummary::
     :nosignatures:
 
-output_bonds.output_bonds
+    output_bonds.output_bonds
     
 .. autofunction:: oxDNA_analysis_tools.output_bonds.output_bonds
 ```
@@ -374,8 +374,8 @@ output_bonds.output_bonds
 .. autosummary::
     :nosignatures:
 
-oxDNA_PDB.oxDNA_PDB
-oxDNA_PDB.choose_reference_nucleotides
+    oxDNA_PDB.oxDNA_PDB
+    oxDNA_PDB.choose_reference_nucleotides
     
 .. autofunction:: oxDNA_analysis_tools.oxDNA_PDB.oxDNA_PDB
 .. autofunction:: oxDNA_analysis_tools.oxDNA_PDB.choose_reference_nucleotides
@@ -392,7 +392,7 @@ oxDNA_PDB.choose_reference_nucleotides
 .. autosummary::
     :nosignatures:
 
-pairs2db.pairs2db
+    pairs2db.pairs2db
     
 .. autofunction:: oxDNA_analysis_tools.pairs2db.pairs2db
 ```
@@ -407,7 +407,7 @@ pairs2db.pairs2db
 .. autosummary::
     :nosignatures:
 
-PDB_oxDNA.PDB_oxDNA
+    PDB_oxDNA.PDB_oxDNA
     
 .. autofunction:: oxDNA_analysis_tools.PDB_oxDNA.PDB_oxDNA
 ```
@@ -423,9 +423,9 @@ PDB_oxDNA.PDB_oxDNA
 .. autosummary::
     :nosignatures:
 
-persistence_length.persistence_length
-persistence_length.get_r
-persistence_length.fit_PL
+    persistence_length.persistence_length
+    persistence_length.get_r
+    persistence_length.fit_PL
     
 .. autofunction:: oxDNA_analysis_tools.persistence_length.persistence_length
 .. autofunction:: oxDNA_analysis_tools.persistence_length.get_r
@@ -443,15 +443,30 @@ persistence_length.fit_PL
 .. autosummary::
     :nosignatures:
 
-pca.align_positions
-pca.map_confs_to_pcs
-pca.make_heatmap
-pca.pca
+    pca.align_positions
+    pca.map_confs_to_pcs
+    pca.make_heatmap
+    pca.pca
     
 .. autofunction:: oxDNA_analysis_tools.pca.align_positions
 .. autofunction:: oxDNA_analysis_tools.pca.map_confs_to_pcs
 .. autofunction:: oxDNA_analysis_tools.pca.make_heatmap
 .. autofunction:: oxDNA_analysis_tools.pca.pca
+```
+
+## Skeleton
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    skeleton.skeleton
+    
+.. autofunction:: oxDNA_analysis_tools.skeleton.skeleton
 ```
 
 ## Subset trajectory
@@ -465,7 +480,7 @@ pca.pca
 .. autosummary::
     :nosignatures:
 
-subset_trajectory.subset
+    subset_trajectory.subset
     
 .. autofunction:: oxDNA_analysis_tools.subset_trajectory.subset
 ```
@@ -481,7 +496,7 @@ subset_trajectory.subset
 .. autosummary::
     :nosignatures:
 
-superimpose.superimpose
+    superimpose.superimpose
     
 .. autofunction:: oxDNA_analysis_tools.superimpose.superimpose
 ```

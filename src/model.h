@@ -3,18 +3,41 @@
  * @date    Jun 2, 2011
  * @author  fromano
  *
- * 
  */
 
 #ifndef MODEL_H_
 #define MODEL_H_
 
 /// POSITIONS OF INTERACTION CENTERS
+
+
+// modified by rahul
 #define POS_BACK -0.4f
 #define POS_MM_BACK1 -0.3400f
 #define POS_MM_BACK2 0.3408f
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
+
+#define POS_MM_BACK1_A -0.3400f
+#define POS_MM_BACK2_A 0.3408f
+#define POS_STACK_A 0.37f
+#define POS_BASE_A  0.43f
+
+#define POS_MM_BACK1_G -0.3400f
+#define POS_MM_BACK2_G 0.3408f
+#define POS_STACK_G 0.37f
+#define POS_BASE_G  0.43f
+
+#define POS_MM_BACK1_C -0.3400f
+#define POS_MM_BACK2_C 0.3408f
+#define POS_STACK_C 0.37f
+#define POS_BASE_C  0.37f
+
+#define POS_MM_BACK1_T -0.3400f
+#define POS_MM_BACK2_T 0.3408f
+#define POS_STACK_T 0.37f
+#define POS_BASE_T  0.37f
+
 /// POS_STACK - POS_BACK
 #define GAMMA 0.74f
 
@@ -35,18 +58,30 @@
 #define EXCL_S2 0.33f
 #define EXCL_S3 0.515f
 #define EXCL_S4 0.515f
+#define EXCL_S5 0.33f
+#define EXCL_S6 0.515f
+#define EXCL_S7 0.515f
 #define EXCL_R1 0.675f
 #define EXCL_R2 0.32f
 #define EXCL_R3 0.50f
 #define EXCL_R4 0.50f
+#define EXCL_R5 0.32f
+#define EXCL_R6 0.50f
+#define EXCL_R7 0.50f
 #define EXCL_B1 892.016223343f
 #define EXCL_B2 4119.70450017f
 #define EXCL_B3 1707.30627298f
 #define EXCL_B4 1707.30627298f
+#define EXCL_B5 4119.70450017f
+#define EXCL_B6 1707.30627298f
+#define EXCL_B7 1707.30627298f
 #define EXCL_RC1 0.711879214356f
 #define EXCL_RC2 0.335388426126f
 #define EXCL_RC3 0.52329943261f
 #define EXCL_RC4 0.52329943261f
+#define EXCL_RC5 0.335388426126f
+#define EXCL_RC6 0.52329943261f
+#define EXCL_RC7 0.52329943261f
 
 /**
  * HYDROGEN BONDING
@@ -213,11 +248,116 @@
 #define CRST_THETA8_TC 0.865052f
 
 /**
+ ASYMMETRIC CROSS STACKING (oxdna3)
+*/
+#define CRST_F2_33 2
+#define CRST_F2_55 3
+
+#define CRST_R0_33 0.575f
+#define CRST_RC_33 0.675f
+#define CRST_K_33 47.5f
+#define CRST_BLOW_33 -0.888889f
+#define CRST_RLOW_33 0.495f
+#define CRST_RCLOW_33 0.45f
+#define CRST_BHIGH_33 -0.888889f
+#define CRST_RHIGH_33 0.655f
+#define CRST_RCHIGH_33 0.7f
+
+#define CRST_R0_55 0.575f
+#define CRST_RC_55 0.675f
+#define CRST_K_55 47.5f
+#define CRST_BLOW_55 -0.888889f
+#define CRST_RLOW_55 0.495f
+#define CRST_RCLOW_55 0.45f
+#define CRST_BHIGH_55 -0.888889f
+#define CRST_RHIGH_55 0.655f
+#define CRST_RCHIGH_55 0.7f
+
+/// angular part;
+#define CRST_F4_THETA1_33 13
+#define CRST_F4_THETA2_33 14
+#define CRST_F4_THETA3_33 14
+#define CRST_F4_THETA4_33 15
+#define CRST_F4_THETA7_33 16
+#define CRST_F4_THETA8_33 16
+#define CRST_F4_THETA1_55 17
+#define CRST_F4_THETA2_55 18
+#define CRST_F4_THETA3_55 18
+#define CRST_F4_THETA4_55 19
+#define CRST_F4_THETA7_55 20
+#define CRST_F4_THETA8_55 20
+
+
+#define CRST_THETA1_A_33 2.25f
+#define CRST_THETA1_B_33 7.00545f
+#define CRST_THETA1_T0_33 (PI - 2.35f)
+#define CRST_THETA1_TS_33 0.58f
+#define CRST_THETA1_TC_33 0.766284f
+#define CRST_THETA2_A_33 1.70f
+#define CRST_THETA2_B_33 6.2469f
+#define CRST_THETA2_T0_33 1.f
+#define CRST_THETA2_TS_33 0.68f
+#define CRST_THETA2_TC_33 0.865052f
+#define CRST_THETA3_A_33 1.70f
+#define CRST_THETA3_B_33 6.2469f
+#define CRST_THETA3_T0_33 1.f
+#define CRST_THETA3_TS_33 0.68f
+#define CRST_THETA3_TC_33 0.865052f
+#define CRST_THETA4_A_33 1.50f
+#define CRST_THETA4_B_33 2.59556f
+#define CRST_THETA4_T0_33 PI
+#define CRST_THETA4_TS_33 0.65f
+#define CRST_THETA4_TC_33 1.02564f
+#define CRST_THETA7_A_33 1.70f
+#define CRST_THETA7_B_33 6.2469f
+#define CRST_THETA7_T0_33 0.875f
+#define CRST_THETA7_TS_33 0.68f
+#define CRST_THETA7_TC_33 0.865052f
+#define CRST_THETA8_A_33 1.70f
+#define CRST_THETA8_B_33 6.2469f
+#define CRST_THETA8_T0_33 0.875f
+#define CRST_THETA8_TS_33 0.68f
+#define CRST_THETA8_TC_33 0.865052f
+
+#define CRST_THETA1_A_55 2.25f
+#define CRST_THETA1_B_55 7.00545f
+#define CRST_THETA1_T0_55 (PI - 2.35f)
+#define CRST_THETA1_TS_55 0.58f
+#define CRST_THETA1_TC_55 0.766284f
+#define CRST_THETA2_A_55 1.70f
+#define CRST_THETA2_B_55 6.2469f
+#define CRST_THETA2_T0_55 1.f
+#define CRST_THETA2_TS_55 0.68f
+#define CRST_THETA2_TC_55 0.865052f
+#define CRST_THETA3_A_55 1.70f
+#define CRST_THETA3_B_55 6.2469f
+#define CRST_THETA3_T0_55 1.f
+#define CRST_THETA3_TS_55 0.68f
+#define CRST_THETA3_TC_55 0.865052f
+#define CRST_THETA4_A_55 1.50f
+#define CRST_THETA4_B_55 2.59556f
+#define CRST_THETA4_T0_55 PI
+#define CRST_THETA4_TS_55 0.65f
+#define CRST_THETA4_TC_55 1.02564f
+#define CRST_THETA7_A_55 1.70f
+#define CRST_THETA7_B_55 6.2469f
+#define CRST_THETA7_T0_55 (PI - 0.875f)
+#define CRST_THETA7_TS_55 0.68f
+#define CRST_THETA7_TC_55 0.865052f
+#define CRST_THETA8_A_55 1.70f
+#define CRST_THETA8_B_55 6.2469f
+#define CRST_THETA8_T0_55 (PI - 0.875f)
+#define CRST_THETA8_TS_55 0.68f
+#define CRST_THETA8_TC_55 0.865052f
+
+
+/**
  *  COAXIAL STACKING
  */
 /// radial part
 #define CXST_F2 1
 #define CXST_R0 0.400f
+#define CXST_R0_OXDNA3 0.370011f
 #define CXST_RC 0.6f
 #define CXST_K_OXDNA 46.0f
 #define CXST_K_OXDNA2 58.5f
@@ -230,8 +370,8 @@
 /// angular part;
 #define CXST_F4_THETA1 10
 #define CXST_F4_THETA4 11
-#define CXST_F4_THETA5 12 
-#define CXST_F4_THETA6 12 
+#define CXST_F4_THETA5 12
+#define CXST_F4_THETA6 12
 #define CXST_THETA1_A   2.f
 #define CXST_THETA1_B   10.9032f
 #define CXST_THETA1_T0_OXDNA (PI - 0.60f)
@@ -246,12 +386,12 @@
 #define CXST_THETA4_TS  0.8f
 #define CXST_THETA4_TC  0.961538f
 #define CXST_THETA5_A   0.9f
-#define CXST_THETA5_B 	3.89361f  
+#define CXST_THETA5_B 	3.89361f
 #define CXST_THETA5_T0  0.f
 #define CXST_THETA5_TS  0.95f
 #define CXST_THETA5_TC  1.16959f
 #define CXST_THETA6_A   0.9f
-#define CXST_THETA6_B 	3.89361f  
+#define CXST_THETA6_B 	3.89361f
 #define CXST_THETA6_T0  0.f
 #define CXST_THETA6_TS  0.95f
 #define CXST_THETA6_TC  1.16959f
@@ -270,25 +410,27 @@
 #define HYDR_T1_MESH_POINTS 6   // perfect
 #define HYDR_T2_MESH_POINTS 6   // perfect
 #define HYDR_T3_MESH_POINTS HYDR_T2_MESH_POINTS
-#define HYDR_T4_MESH_POINTS 50  // almost perfect 
+#define HYDR_T4_MESH_POINTS 250  // almost perfect
 #define HYDR_T7_MESH_POINTS 12  // almost perfect
 #define HYDR_T8_MESH_POINTS HYDR_T7_MESH_POINTS
 
-#define STCK_T4_MESH_POINTS 6   // perfect
-#define STCK_T5_MESH_POINTS 6   // perfect 
+#define STCK_T4_MESH_POINTS 250   // perfect
+#define STCK_T5_MESH_POINTS 250   // perfect
 #define STCK_T6_MESH_POINTS STCK_T5_MESH_POINTS
 
 #define CRST_T1_MESH_POINTS 250 // good enough
-#define CRST_T2_MESH_POINTS 80  // almost perfect
+#define CRST_T2_MESH_POINTS 250  // almost perfect
 #define CRST_T3_MESH_POINTS CRST_T2_MESH_POINTS
 #define CRST_T4_MESH_POINTS 6   // perfect
 #define CRST_T7_MESH_POINTS 250 // good enough
 #define CRST_T8_MESH_POINTS CRST_T7_MESH_POINTS
 
+#define CRST_T4_33_MESH_POINTS 250   // Andrea: good enough? //ox2 CRST_T4_MESH_POINTS is not good enough for ox3
+#define CRST_T4_55_MESH_POINTS 250   // Andrea: good enough?
+
 #define CXST_T1_MESH_POINTS 250 // perfetto
 #define CXST_T4_MESH_POINTS 6   // perfetto
 #define CXST_T5_MESH_POINTS 6   // perfetto
 #define CXST_T6_MESH_POINTS CXST_T5_MESH_POINTS
-
 
 #endif /* MODEL_H_ */

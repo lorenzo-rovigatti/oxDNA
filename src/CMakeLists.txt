@@ -16,6 +16,8 @@ SET(observables_SOURCES
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
 	Observables/PotentialEnergy.cpp
+	Observables/StackingPropensity.cpp
+	Observables/CrossStackingPropensity.cpp
 	Observables/KineticEnergy.cpp
 	Observables/TotalEnergy.cpp
 	Observables/BackendInfo.cpp	
@@ -54,6 +56,8 @@ SET(observables_SOURCES
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
 	Observables/ExternalForce.cpp
+	Observables/ParticleForceAndTorque.cpp
+	Observables/Coordination.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
@@ -107,7 +111,8 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
-	Interactions/DNAInteraction_nomesh.cpp
+	Interactions/DNA2SDInteraction.cpp
+	Interactions/DNA3Interaction.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
@@ -165,12 +170,15 @@ SET(forces_SOURCES
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
 	Forces/YukawaSphere.cpp
+	Forces/Metadynamics/LTCoordination.cpp
 	Forces/Metadynamics/LTCOMTrap.cpp
 	Forces/Metadynamics/LTCOMAngleTrap.cpp
 	Forces/Metadynamics/LT2DCOMTrap.cpp
 	Forces/Metadynamics/LTAtanCOMTrap.cpp
 	Forces/Metadynamics/meta_utils.cpp
 	Forces/AttractionPlane.cpp
+	Forces/RepulsiveKeplerPoinsot.cpp
+	Forces/RepulsiveSphereMoving.cpp
 
 )
 
@@ -260,6 +268,7 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDADNA3Interaction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu

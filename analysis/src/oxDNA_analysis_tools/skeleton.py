@@ -26,7 +26,9 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 # This is convention, if you pull-request something into oat, I will ask for this.
 def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpus:int=1) -> np.ndarray:
     """
-    This is the docstring that gets picked up by the api documentation builder.  You need to add this script to oxDNA/docs/source/oat/{api.md,cli.md}
+    An example of an importable function. This is the docstring that gets picked up by the api documentation builder.  
+    
+    You need to add your script to oxDNA/docs/source/oat/{api.md,cli.md}
 
     Parameters:
         top_info (TopInfo): Information about the topology
@@ -62,7 +64,7 @@ def skeleton(top_info:TopInfo, traj_info:TrajInfo, optional_argument:int=0, ncpu
 # This is what gets picked up by the cli documentation builder
 # The function name is not arbitrary, the documentation looks for 'cli_parser' specifically.
 def cli_parser(prog="skeleton"):
-    parser = argparse.ArgumentParser(prog = prog, description="One sentence description of your program")
+    parser = argparse.ArgumentParser(prog = prog, description="Example script showing how to contribute to OAT")
     parser.add_argument('trajectory', type=str, help='The trajectory file you wish to analyze')
     parser.add_argument('-f', '--flag1', type=int, help='An optional flag taking an int from the CLI')
     parser.add_argument('-p', '--parallel', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
@@ -86,7 +88,7 @@ def main():
 
     # Parse the CLI input
     # Here you can set default values and read files
-    # You can also set defaults in cli_parser, but if you want to do anything more complicated, it needs to b ehere.
+    # You can also set defaults in cli_parser, but if you want to do anything more complicated, it needs to be here.
     # After parsing the input, you should have all the variables ready to call the core function
     traj = args.trajectory
     top_info, traj_info = describe(None, traj)
