@@ -381,9 +381,10 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					F.y += dist.y*force_mod;
 					F.z += dist.z*force_mod;
 				}
+				break;
+			}
 
-
-			case CUDA_REPULSIVE_SPHERE_MOVING: {
+				case CUDA_REPULSIVE_SPHERE_MOVING: {
 				// Linear interpolation of centre: origin -> target over extF.repulsivespheremoving.steps
 				c_number t = 1.f;
 				if(extF.repulsivespheremoving.steps > 0) {
@@ -452,8 +453,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				F.x += scale * grad_s.x;
 				F.y += scale * grad_s.y;
 				F.z += scale * grad_s.z;
-				break;
-			}
 				break;
 			}
 			case CUDA_LJ_WALL: {
