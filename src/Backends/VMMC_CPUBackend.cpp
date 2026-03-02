@@ -110,7 +110,7 @@ void VMMC_CPUBackend::init() {
 		// load weights from weight file
 		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
 		if(_reload_hist) {
-			_h.init(_init_hist_file, &_op, _etemps, _netemps);
+			_h.init(_init_hist_file.c_str(), &_op, _etemps, _netemps);
 		}
 		else {
 			_h.init(&_op, _etemps, _netemps);
@@ -193,7 +193,6 @@ void VMMC_CPUBackend::init() {
 void VMMC_CPUBackend::get_settings(input_file & inp) {
 	MC_CPUBackend::get_settings(inp);
 	int is_us, tmpi;
-	bool tmpb;
 
 	CHECK_BOX("VMMC_CPUBackend", inp);
 
@@ -240,34 +239,28 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 			getInputString(&inp, "op_file", _op_file, 1);
 			getInputString(&inp, "weights_file", _weights_file, 1);
 			if(getInputString(&inp, "last_hist_file", _last_hist_file, 0) == KEY_NOT_FOUND) {
-				sprintf(_last_hist_file, "last_hist.dat");
-				OX_LOG(Logger::LOG_INFO, "Using default hist file %s", _last_hist_file);
+				_last_hist_file = "last_hist.dat";
+				OX_LOG(Logger::LOG_INFO, "Using default hist file %s", _last_hist_file.c_str());
 			}
 			// whether to print trajectory histogram
-			if (getInputBool(&inp, "print_traj_hist_file", &tmpb, 0) == KEY_FOUND) {
-				_print_traj_hist_file = tmpb;
-			}
-			else {
-				_print_traj_hist_file = true; // default behavior is to print traj hist
-			}
+			_print_traj_hist_file = true;
+			getInputBool(&inp, "print_traj_hist_file", &_print_traj_hist_file, 0);
+
 			// don't require traj hist file if _print_traj_hist_file flag is set to false
-			if( _print_traj_hist_file && getInputString(&inp, "traj_hist_file", _traj_hist_file, 0) == KEY_NOT_FOUND) {
-				// cannot possibly be optimal way to
-				sprintf(_traj_hist_file, "traj_hist.dat");
-				OX_LOG(Logger::LOG_INFO, "Using default traj hist file %s", _traj_hist_file);
+			if( _print_traj_hist_file) {
+				_traj_hist_file = "traj_hist.dat";
+				getInputString(&inp, "traj_hist_file", _traj_hist_file, 0);
+				FILE *temp_file = fopen(_traj_hist_file.c_str(), "w");
+				fclose(temp_file);
 			}
 
 			// should we reload histograms?
 			if(getInputString(&inp, "init_hist_file", _init_hist_file, 0) == KEY_FOUND) {
-				OX_LOG(Logger::LOG_INFO, "Reloading histogram from %s", _init_hist_file);
+				OX_LOG(Logger::LOG_INFO, "Reloading histogram from %s", _init_hist_file.c_str());
 				_reload_hist = true;
 			}
 			else {
 				_reload_hist = false;
-				if (_print_traj_hist_file) {
-					FILE *temp_file = fopen(_traj_hist_file, "w");
-					fclose(temp_file);
-				}
 			}
 
 			// whether to use unsafe weights
@@ -471,8 +464,6 @@ inline void VMMC_CPUBackend::store_particle(BaseParticle * src) {
 	dst->pos = src->pos;
 	dst->set_positions();
 	dst->ext_potential = src->ext_potential;
-
-	return;
 }
 
 inline void VMMC_CPUBackend::restore_particle(BaseParticle * dst) {
@@ -483,8 +474,6 @@ inline void VMMC_CPUBackend::restore_particle(BaseParticle * dst) {
 	dst->pos = src->pos;
 	dst->set_positions();
 	dst->ext_potential = src->ext_potential;
-
-	return;
 }
 
 inline number VMMC_CPUBackend::build_cluster_small(movestr *moveptr, int maxsize, int *clust, int *size) {
@@ -1676,9 +1665,9 @@ void VMMC_CPUBackend::print_conf(bool reduced, bool only_last) {
 	SimBackend::print_conf(reduced, only_last);
 	if(_have_us) {
 		if(!only_last && _print_traj_hist_file) {
-			_h.print_to_file(_traj_hist_file, current_step(), false, _skip_hist_zeros);
+			_h.print_to_file(_traj_hist_file.c_str(), current_step(), false, _skip_hist_zeros);
 		}
-		_h.print_to_file(_last_hist_file, current_step(), true, _skip_hist_zeros);
+		_h.print_to_file(_last_hist_file.c_str(), current_step(), true, _skip_hist_zeros);
 	}
 }
 

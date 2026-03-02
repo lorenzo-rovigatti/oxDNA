@@ -100,15 +100,15 @@ protected:
 	void _print_pos(int);
 
 	// file name for trajectory histogram
-	char _traj_hist_file[512];
+	std::string _traj_hist_file;
 	// file name for last histogram
-	char _last_hist_file[512];
+	std::string _last_hist_file;
 	// file name for initial histogram??
-	char _init_hist_file[512];
+	std::string _init_hist_file;
+	// ???
 	char _state_str[512];
 
 	// additional options for compressed weights / hists
-
 
 	int _maxclust;
 
