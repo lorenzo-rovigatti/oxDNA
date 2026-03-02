@@ -273,7 +273,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				// For x=2, A = (sigma/r)^x = (1/r)^2
 				const c_number inv_r2 = inv_r * inv_r;
 				const c_number A      = inv_r2;           // (sigma/r)^x
-				const c_number A2     = A * A;            // (sigma/r)^(2x)
 
 				// dU/dr for: U = 4*eps*(A^2 - A) + eps
 				// CPU: dU/dr = 4*eps*(2A - 1)*(-(x/r)*A)
