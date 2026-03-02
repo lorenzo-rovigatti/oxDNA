@@ -6,145 +6,6 @@ __constant__ float MD_dt[1];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-// -----------------------------------------------------------------------------
-// Helpers for RepulsiveKeplerPoinsot (star repulsor)
-// -----------------------------------------------------------------------------
-__device__ inline c_number _dot3(const float3 &a, const float3 &b) {
-	return a.x*b.x + a.y*b.y + a.z*b.z;
-}
-__device__ inline float3 _cross3(const float3 &a, const float3 &b) {
-	return make_float3(
-		a.y*b.z - a.z*b.y,
-		a.z*b.x - a.x*b.z,
-		a.x*b.y - a.y*b.x
-	);
-}
-__device__ inline c_number _norm3(const float3 &a) {
-	return sqrtf(_dot3(a,a));
-}
-__device__ inline float3 _normalize3(const float3 &a) {
-	c_number n = _norm3(a);
-	if(n <= (c_number)0.f) return make_float3(0.f,0.f,0.f);
-	return make_float3(a.x/n, a.y/n, a.z/n);
-}
-
-/**
- * Compute star metric s(p) and grad_s in min-imaged coordinates p (centre->particle).
- * Returns false if no spike is applicable.
- */
-__device__ inline bool star_metric_and_grad_cuda(
-	const float3 &p,
-	c_number base, c_number apex, c_number base_radius,
-	c_number kappa,
-	c_number &s_best,
-	float3 &grad_s_best
-) {
-	const c_number phi = (c_number)((1.0 + sqrtf(5.0)) * 0.5);
-
-	float3 axes[12] = {
-		make_float3(0,  1,  phi), make_float3(0, -1,  phi),
-		make_float3(0,  1, -phi), make_float3(0, -1, -phi),
-
-		make_float3( 1,  phi, 0), make_float3(-1,  phi, 0),
-		make_float3( 1, -phi, 0), make_float3(-1, -phi, 0),
-
-		make_float3( phi, 0,  1), make_float3(-phi, 0,  1),
-		make_float3( phi, 0, -1), make_float3(-phi, 0, -1)
-	};
-
-	const c_number two_pi = (c_number)6.2831853071795864769;
-	c_number cth[5], sth[5];
-	for(int j=0;j<5;j++){
-		const c_number th = two_pi * (c_number)j / (c_number)5.0;
-		cth[j] = cosf(th);
-		sth[j] = sinf(th);
-	}
-
-	bool found = false;
-	s_best = (c_number)1e30;
-	grad_s_best = make_float3(0.f,0.f,0.f);
-
-	for(int i=0;i<12;i++){
-		const float3 n = _normalize3(axes[i]);
-		if(_norm3(n) <= (c_number)0.0) continue;
-
-		const c_number t = _dot3(n, p);
-		if(t < base || t > apex) continue;
-
-		const c_number denom = (apex - base);
-		if(denom <= (c_number)0.0) continue;
-
-		const c_number R = base_radius * (apex - t) / denom;
-		if(R <= (c_number)1e-12) continue;
-
-		// Orthonormal basis (u,v) perpendicular to n
-		float3 a = (fabsf(n.z) < (c_number)0.9) ? make_float3(0,0,1) : make_float3(0,1,0);
-		float3 u = _normalize3(_cross3(n, a));
-		if(_norm3(u) <= (c_number)1e-12) continue;
-		float3 v = _cross3(n, u);
-
-		// q = p - t n
-		const float3 q = make_float3(p.x - t*n.x, p.y - t*n.y, p.z - t*n.z);
-
-		const c_number x = _dot3(q, u);
-		const c_number y = _dot3(q, v);
-
-		c_number proj[5];
-		c_number m = (c_number)-1e30;
-		for(int j=0;j<5;j++){
-			proj[j] = x*cth[j] + y*sth[j];
-			if(proj[j] > m) m = proj[j];
-		}
-
-		c_number sumw = (c_number)0.0;
-		c_number w[5];
-		for(int j=0;j<5;j++){
-			const c_number e = expf(kappa*(proj[j] - m));
-			w[j] = e;
-			sumw += e;
-		}
-		if(sumw <= (c_number)0.0) continue;
-
-		const c_number support = m + (c_number)(1.0/kappa) * logf(sumw);
-
-		c_number dSdx = (c_number)0.0, dSdy = (c_number)0.0;
-		for(int j=0;j<5;j++){
-			const c_number sj = w[j] / sumw;
-			dSdx += sj * cth[j];
-			dSdy += sj * sth[j];
-		}
-
-		const float3 grad_support = make_float3(
-			u.x*dSdx + v.x*dSdy,
-			u.y*dSdx + v.y*dSdy,
-			u.z*dSdx + v.z*dSdy
-		);
-
-		const c_number s = support / R;
-
-		if(s < s_best){
-			// R'(t) = -base_radius/denom
-			const c_number Rp = -base_radius / denom;
-			const c_number dInvRdt = -(Rp) / (R*R);
-
-			const float3 grad_invR = make_float3(dInvRdt*n.x, dInvRdt*n.y, dInvRdt*n.z);
-			const c_number invR = (c_number)1.0 / R;
-
-			const float3 grad_s = make_float3(
-				invR*grad_support.x + support*grad_invR.x,
-				invR*grad_support.y + support*grad_invR.y,
-				invR*grad_support.z + support*grad_invR.z
-			);
-
-			s_best = s;
-			grad_s_best = grad_s;
-			found = true;
-		}
-	}
-
-	return found;
-}
-
 // this function modifies L
 // Conversion of the R matrix in _get_updated_orientation above into a quaternion simplifies into the qR quaternion used in _get_updated_orientation. This is then multiplied by the original orientation quaternion to produce the updated quaternion. Quaternion multiplication is the cross_product - dot_product and is therefore non-commutative
 __device__ GPU_quat _get_updated_orientation(c_number4 &L, GPU_quat &old_o) {
@@ -343,19 +204,125 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 			case CUDA_REPULSIVE_SPHERE: {
-				c_number4 centre = make_c_number4(extF.repulsivesphere.centre.x, extF.repulsivesphere.centre.y, extF.repulsivesphere.centre.z, 0.);
-				c_number4 dist = box->minimum_image(centre, ppos);
-				c_number mdist = _module(dist);
-				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
-				c_number radius_ext = extF.repulsivesphere.r_ext;
-				if(mdist > radius && mdist < radius_ext) {
-					c_number force_mod = extF.repulsivesphere.stiff*((c_number)1.f - radius/mdist);
-					F.x += -dist.x*force_mod;
-					F.y += -dist.y*force_mod;
-					F.z += -dist.z*force_mod;
+				c_number4 centre = make_c_number4(
+					extF.repulsivesphere.centre.x,
+					extF.repulsivesphere.centre.y,
+					extF.repulsivesphere.centre.z,
+					0.
+				);
+
+				c_number4 dist  = box->minimum_image(centre, ppos);
+				c_number mdist  = _module(dist);
+
+				// Rc = r0 + rate * step  (same as CPU)
+				c_number Rc = extF.repulsivesphere.r0 +
+							extF.repulsivesphere.rate * (c_number) step;
+
+				// Only apply force for 0 < r < Rc, else zero (same cutoff as CPU)
+				if (mdist > (c_number)0. && mdist < Rc) {
+					// sigma = Rc / 2^(1/6)
+					const c_number two_to_1_over_6 = (c_number)1.122462048309373;
+					c_number sigma = Rc / two_to_1_over_6;
+
+					c_number inv_d    = (c_number)1. / mdist;
+					c_number s_over_d = sigma * inv_d;
+
+					// powers of (sigma / d)
+					c_number s2  = s_over_d * s_over_d;
+					c_number s4  = s2 * s2;
+					c_number s6  = s4 * s2;
+					c_number s12 = s6 * s6;
+
+					c_number eps    = extF.repulsivesphere.stiff;
+					c_number inv_d2 = inv_d * inv_d;
+
+					// F_vec = 24*eps*(2*s12 - s6) * (r_vec / r^2)
+					c_number coeff = (c_number)24. * eps * ((c_number)2. * s12 - s6) * inv_d2;
+
+					F.x += dist.x * coeff;
+					F.y += dist.y * coeff;
+					F.z += dist.z * coeff;
 				}
+
 				break;
 			}
+			case CUDA_REPULSIVE_SPHERE_MOVING: {
+				// Match RepulsiveSphereMoving.cpp: shifted/truncated LJ (WCA) in terms of the
+				// *surface gap* r = |pos-centre| - radius, using the generalized 2x-x form.
+				// CPU currently hard-codes: x=2, sigma=1, epsilon=stiff, rc=2^(1/x)*sigma.
+				const c_number eps   = extF.repulsivespheremoving.stiff;
+				const c_number r0    = extF.repulsivespheremoving.r0;
+				const c_number rate  = extF.repulsivespheremoving.rate;
+				const c_number r_ext = extF.repulsivespheremoving.r_ext;
+
+				const float3 org_f = extF.repulsivespheremoving.origin;
+				const float3 tgt_f = extF.repulsivespheremoving.target;
+				const llint  steps_mv = extF.repulsivespheremoving.steps;
+
+				c_number t = (c_number)0;
+				if (steps_mv > 0) {
+					t = (c_number)step / (c_number)steps_mv;
+					if (t < (c_number)0) t = (c_number)0;
+					if (t > (c_number)1) t = (c_number)1;
+				}
+
+				const c_number orgx = (c_number)org_f.x, orgy = (c_number)org_f.y, orgz = (c_number)org_f.z;
+				const c_number tgtx = (c_number)tgt_f.x, tgty = (c_number)tgt_f.y, tgtz = (c_number)tgt_f.z;
+
+				c_number4 centre = make_c_number4(
+					orgx + (tgtx - orgx) * t,
+					orgy + (tgty - orgy) * t,
+					orgz + (tgtz - orgz) * t,
+					(c_number)0
+				);
+
+				c_number4 dist  = box->minimum_image(centre, ppos);
+				c_number  mdist = _module(dist);
+
+				const c_number radius = r0 + rate * (c_number)step;
+
+				if (mdist <= (c_number)0) break;
+
+				// Surface gap
+				const c_number r = mdist - radius;
+
+				// Optional extra cutoff on the *gap* (matches CPU: if r >= r_ext => 0)
+				if (r >= r_ext) break;
+
+				// Generalized 2x-x WCA parameters (CPU hard-coded)
+				const c_number x      = (c_number)2;
+				const c_number rc     = (c_number)1.4142135623730951; // 2^(1/2) * sigma
+				if (r >= rc) break;
+
+				// Avoid singularity at r -> 0+
+				const c_number r_safe = (r > (c_number)1e-9) ? r : (c_number)1e-9;
+				const c_number inv_r  = (c_number)1 / r_safe;
+
+				// For x=2, A = (sigma/r)^x = (1/r)^2
+				const c_number inv_r2 = inv_r * inv_r;
+				const c_number A      = inv_r2;           // (sigma/r)^x
+				const c_number A2     = A * A;            // (sigma/r)^(2x)
+
+				// dU/dr for: U = 4*eps*(A^2 - A) + eps
+				// CPU: dU/dr = 4*eps*(2A - 1)*(-(x/r)*A)
+				const c_number dUdr = (c_number)4 * eps * ((c_number)2 * A - (c_number)1) * (-(x * inv_r) * A);
+				const c_number Fmag = -dUdr;
+				const c_number inv_mdist = (c_number)1 / mdist;
+
+				F.x += dist.x * (Fmag * inv_mdist);
+				F.y += dist.y * (Fmag * inv_mdist);
+				F.z += dist.z * (Fmag * inv_mdist);
+
+				// ---- POTENTIAL (CPU-match: shifted WCA) ----
+				// U = 4*eps*(A^2 - A) + eps
+				const c_number U = (c_number)4 * eps * (A2 - A) + eps;
+
+				// TODO: replace U_ext with the actual accumulator in your kernel
+				// U_ext += U;
+
+				break;
+			}
+
 			case CUDA_REPULSIVE_SPHERE_SMOOTH: {
 				c_number4 centre = make_c_number4(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
 				c_number4 dist = box->minimum_image(centre, ppos);
@@ -381,78 +348,7 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					F.y += dist.y*force_mod;
 					F.z += dist.z*force_mod;
 				}
-				break;
-			}
 
-				case CUDA_REPULSIVE_SPHERE_MOVING: {
-				// Linear interpolation of centre: origin -> target over extF.repulsivespheremoving.steps
-				c_number t = 1.f;
-				if(extF.repulsivespheremoving.steps > 0) {
-					t = (c_number)step / (c_number)extF.repulsivespheremoving.steps;
-					if(t < 0.f) t = 0.f;
-					if(t > 1.f) t = 1.f;
-				}
-				const float3 c = make_float3(
-					extF.repulsivespheremoving.origin.x + t*(extF.repulsivespheremoving.target.x - extF.repulsivespheremoving.origin.x),
-					extF.repulsivespheremoving.origin.y + t*(extF.repulsivespheremoving.target.y - extF.repulsivespheremoving.origin.y),
-					extF.repulsivespheremoving.origin.z + t*(extF.repulsivespheremoving.target.z - extF.repulsivespheremoving.origin.z)
-				);
-
-				c_number4 centre = make_c_number4(c.x, c.y, c.z, 0.);
-				c_number4 dist = box->minimum_image(centre, ppos);
-				c_number mdist = _module(dist);
-
-				c_number radius = extF.repulsivespheremoving.r0 + extF.repulsivespheremoving.rate*(c_number) step;
-				c_number radius_ext = extF.repulsivespheremoving.r_ext;
-
-				if(mdist > radius && mdist < radius_ext) {
-					c_number force_mod = extF.repulsivespheremoving.stiff*((c_number)1.f - radius/mdist);
-					F.x += -dist.x*force_mod;
-					F.y += -dist.y*force_mod;
-					F.z += -dist.z*force_mod;
-				}
-				break;
-			}
-			case CUDA_REPULSIVE_KEPLER_POINSOT: {
-				// Growth factor
-				const c_number growth = (c_number)1.0 + extF.repulsivekeplerpoinsot.rate * (c_number)step;
-				if(growth <= (c_number)0.0) break;
-
-				const c_number base        = extF.repulsivekeplerpoinsot.base        * growth;
-				const c_number apex        = extF.repulsivekeplerpoinsot.apex        * growth;
-				const c_number base_radius = extF.repulsivekeplerpoinsot.base_radius * growth;
-				const c_number kappa       = extF.repulsivekeplerpoinsot.kappa;
-
-				if(apex <= base || base_radius <= (c_number)0.0) break;
-
-				// min-image displacement p = centre -> particle
-				c_number4 centre4 = make_c_number4(extF.repulsivekeplerpoinsot.centre.x, extF.repulsivekeplerpoinsot.centre.y, extF.repulsivekeplerpoinsot.centre.z, 0.);
-				c_number4 p4 = box->minimum_image(centre4, ppos);
-				float3 p = make_float3(p4.x, p4.y, p4.z);
-
-				c_number s;
-				float3 grad_s;
-				const bool ok = star_metric_and_grad_cuda(p, base, apex, base_radius, kappa, s, grad_s);
-				if(!ok) break;
-
-				const c_number rc = (c_number)1.0;
-				if(s >= rc) break;
-
-				// WCA-like in s (matches CPU implementation)
-				const c_number xpow = (c_number)4.0;
-				const c_number sigma = (c_number)1.0;
-				const c_number epsilon = extF.repulsivekeplerpoinsot.stiff;
-
-				const c_number s_safe = (s > (c_number)1e-9) ? s : (c_number)1e-9;
-				const c_number A = powf(sigma / s_safe, xpow);
-
-				// dU/ds = 4ε(2A - 1) * dA/ds , dA/ds = -(x/s) A
-				const c_number dUds = (c_number)4.0 * epsilon * ((c_number)2.0 * A - (c_number)1.0) * (-(xpow / s_safe) * A);
-
-				const c_number scale = -dUds;
-				F.x += scale * grad_s.x;
-				F.y += scale * grad_s.y;
-				F.z += scale * grad_s.z;
 				break;
 			}
 			case CUDA_LJ_WALL: {
@@ -548,106 +444,114 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
-			case CUDA_REPULSIVE_ELLIPSOID: {
-				c_number4 centre = make_c_number4(extF.repulsiveellipsoid.centre.x, extF.repulsiveellipsoid.centre.y, extF.repulsiveellipsoid.centre.z, 0.);
-				c_number4 r_1 = make_c_number4(extF.repulsiveellipsoid.r_1.x, extF.repulsiveellipsoid.r_1.y, extF.repulsiveellipsoid.r_1.z, 0.);
-				c_number4 r_2 = make_c_number4(extF.repulsiveellipsoid.r_2.x, extF.repulsiveellipsoid.r_2.y, extF.repulsiveellipsoid.r_2.z, 0.);
+			case CUDA_REPULSIVE_ELLIPSOID:
+			{
+				const repulsive_ellipsoid &f = extF.repulsiveellipsoid;
+
+				// Centre of the ellipsoid
+				const c_number4 centre = make_c_number4(
+					(c_number)f.centre.x,
+					(c_number)f.centre.y,
+					(c_number)f.centre.z,
+					(c_number)0.0
+				);
+
+				// Base semi-axes at step 0 (input values)
+				const c_number ax0 = (c_number)f.r_2.x;
+				const c_number ay0 = (c_number)f.r_2.y;
+				const c_number az0 = (c_number)f.r_2.z;
+
+				// Uniform growth factor, analogous to Rc = r0 + rate * step
+				c_number growth = (c_number)1.0 + (c_number)f.rate * (c_number)step;
+				if (growth <= (c_number)0.0) {
+					// Degenerate ellipsoid – nothing sensible to do
+					break;
+				}
+
+				// Current semi-axes
+				const c_number ax = ax0 * growth;
+				const c_number ay = ay0 * growth;
+				const c_number az = az0 * growth;
+
+				// -----------------------------------------------------
+				// Debug output: print the real grown ellipsoid size
+				// -----------------------------------------------------
+				if (IND == 0 && (step % 10000 == 0)) {
+					printf("GPU ellipsoid step=%lld rate=%g ax=%g ay=%g az=%g\n",
+						(long long)step,
+						(double)f.rate,
+						(double)ax,
+						(double)ay,
+						(double)az);
+				}
+
+				// Guard against zero axes
+				if (ax <= (c_number)0.0 || ay <= (c_number)0.0 || az <= (c_number)0.0) {
+					break;
+				}
+
+				// Minimum-image displacement from centre to particle
 				c_number4 dist = box->minimum_image(centre, ppos);
+				const c_number dx = dist.x;
+				const c_number dy = dist.y;
+				const c_number dz = dist.z;
 
-				c_number internal_cut = SQR(dist.x) / SQR(r_2.x) + SQR(dist.y) / SQR(r_2.y) + SQR(dist.z) / SQR(r_2.z);
-				c_number external_cut = SQR(dist.x) / SQR(r_1.x) + SQR(dist.y) / SQR(r_1.y) + SQR(dist.z) / SQR(r_1.z);
+				// Ellipsoidal "radius" r':
+				//   r'^2 = (x/a)^2 + (y/b)^2 + (z/c)^2
+				const c_number inv_ax2 = (c_number)1.0 / (ax * ax);
+				const c_number inv_ay2 = (c_number)1.0 / (ay * ay);
+				const c_number inv_az2 = (c_number)1.0 / (az * az);
 
-				if(internal_cut >= 1. || external_cut <= 1.) {
-					c_number mdist = _module(dist);
+				const c_number rp2 = dx*dx*inv_ax2 + dy*dy*inv_ay2 + dz*dz*inv_az2;
 
-					c_number force_part = extF.repulsiveellipsoid.stiff / mdist;
-
-					F.x += -dist.x * force_part;
-					F.y += -dist.y * force_part;
-					F.z += -dist.z * force_part;
+				if (rp2 <= (c_number)0.0) {
+					// At centre; direction undefined
+					break;
 				}
 
-				c_number mdist = _module(dist);
-				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
-				c_number radius_ext = extF.repulsivesphere.r_ext;
-				if(mdist > radius && mdist < radius_ext) {
-					c_number force_mod = extF.repulsivesphere.stiff*((c_number)1.f - radius/mdist);
-					F.x += -dist.x*force_mod;
-					F.y += -dist.y*force_mod;
-					F.z += -dist.z*force_mod;
+				const c_number rp = sqrt(rp2);
+
+				// Ellipsoidal WCA cutoff: r' in (0, Rc_d)
+				// We choose Rc_d = 1.0 so the current ellipsoid surface is r' = 1
+				const c_number Rc_d = (c_number)1.0;
+
+				if (rp <= (c_number)0.0 || rp >= Rc_d) {
+					// Outside cutoff in ellipsoidal radius
+					break;
 				}
+
+				// Same WCA mapping as CUDA_REPULSIVE_SPHERE, but in the ellipsoidal metric r'
+				const c_number two_to_1_over_6 = (c_number)1.122462048309373; // 2^(1/6)
+				const c_number sigma = Rc_d / two_to_1_over_6;
+
+				const c_number inv_rp    = (c_number)1.0 / rp;
+				const c_number s_over_rp = sigma * inv_rp;
+
+				const c_number s2  = s_over_rp * s_over_rp;
+				const c_number s4  = s2 * s2;
+				const c_number s6  = s4 * s2;
+				const c_number s12 = s6 * s6;
+
+				const c_number eps = (c_number)f.stiff;
+
+				// For the sphere, F_vec = 24*eps*(2*s12 - s6) * (r_vec / r^2).
+				// Here we treat the potential as V(r') with the same radial form,
+				// and transform back to unscaled coordinates:
+				//
+				//   x' = x/a,  r' = sqrt(x'^2 + y'^2 + z'^2)
+				//   F_x = 24*eps*(2*s12 - s6) * x / (a^2 * r'^2), etc.
+				//
+				const c_number pref = (c_number)24.0 * eps *
+									((c_number)2.0 * s12 - s6) /
+									rp2;   // rp^2 in the denominator
+
+				F.x += pref * dx * inv_ax2;
+				F.y += pref * dy * inv_ay2;
+				F.z += pref * dz * inv_az2;
+
 				break;
 			}
-			case CUDA_COM_FORCE: {
-				c_number4 com = make_c_number4(0., 0., 0., 0.);
-				for(int index = 0; index < extF.comforce.n_com; index++){
-					int p_idx = extF.comforce.com_indexes[index];
-					com += poss[p_idx];
-				}
-				com.x /= extF.comforce.n_com;
-				com.y /= extF.comforce.n_com;
-				com.z /= extF.comforce.n_com;
 
-				c_number4 ref = make_c_number4(0., 0., 0., 0.);
-				for(int index = 0; index < extF.comforce.n_ref; index++){
-					int p_idx = extF.comforce.ref_indexes[index];
-					ref += poss[p_idx];
-				}
-				ref.x /= extF.comforce.n_ref;
-				ref.y /= extF.comforce.n_ref;
-				ref.z /= extF.comforce.n_ref;
-
-				c_number4 dr = ref - com;
-				c_number dr_abs = _module(dr);
-				c_number4 force = dr * ((dr_abs - (extF.comforce.r0 + extF.comforce.rate * step)) * extF.comforce.stiff / dr_abs) / extF.comforce.n_com;
-
-				F.x += force.x;
-				F.y += force.y;
-				F.z += force.z;
-
-				break;
-			}
-			case CUDA_LR_COM_TRAP: {
-				c_number4 p1a_vec({0.f, 0.f, 0.f, 0.f});
-				c_number4 p2a_vec({0.f, 0.f, 0.f, 0.f});
-				for(int will = 0; will < extF.ltcomtrap.p1a_size; will++) {
-					p1a_vec.x += poss[extF.ltcomtrap.p1a[will]].x / extF.ltcomtrap.p1a_size;
-					p1a_vec.y += poss[extF.ltcomtrap.p1a[will]].y / extF.ltcomtrap.p1a_size;
-					p1a_vec.z += poss[extF.ltcomtrap.p1a[will]].z / extF.ltcomtrap.p1a_size;
-				}
-
-				for(int will = 0; will < extF.ltcomtrap.p2a_size; will++) {
-					p2a_vec.x += poss[extF.ltcomtrap.p2a[will]].x / extF.ltcomtrap.p2a_size;
-					p2a_vec.y += poss[extF.ltcomtrap.p2a[will]].y / extF.ltcomtrap.p2a_size;
-					p2a_vec.z += poss[extF.ltcomtrap.p2a[will]].z / extF.ltcomtrap.p2a_size;
-				}
-
-				c_number4 dr = p1a_vec - p2a_vec;
-				c_number dr_mod = _module(dr);
-
-				int ix_left = (int) ((dr_mod - extF.ltcomtrap.xmin) / extF.ltcomtrap.dX);
-				int ix_right = ix_left + 1;
-
-				// make sure that we never get out of boundaries. If we are then we keep the force 0
-				c_number meta_Fx = 0.f;
-				if(ix_left >= 0 && ix_right <= (extF.ltcomtrap.N_grid - 1)) {
-					meta_Fx = -(extF.ltcomtrap.potential_grid[ix_right] - extF.ltcomtrap.potential_grid[ix_left]) / extF.ltcomtrap.dX;
-				}
-
-				c_number4 force = (dr) * (meta_Fx / dr_mod);
-
-				if(extF.ltcomtrap.mode == 1) {
-					F.x += force.x / extF.ltcomtrap.p1a_size;
-					F.y += force.y / extF.ltcomtrap.p1a_size;
-					F.z += force.z / extF.ltcomtrap.p1a_size;
-				}
-				else if(extF.ltcomtrap.mode == 2) {
-					F.x -= force.x / extF.ltcomtrap.p2a_size;
-					F.y -= force.y / extF.ltcomtrap.p2a_size;
-					F.z -= force.z / extF.ltcomtrap.p2a_size;
-				}
-				break;
-			}
 			case CUDA_YUKAWA_SPHERE: {
 				c_number4 centre = make_c_number4(extF.yukawasphere.center.x, extF.yukawasphere.center.y, extF.yukawasphere.center.z, 0.);
 
