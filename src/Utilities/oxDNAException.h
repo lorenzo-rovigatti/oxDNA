@@ -20,7 +20,7 @@ private:
 public:
 	oxDNAException(std::string ss, ...);
 	// no-throw copy constructor to prevent whining from clang-tidy
-	oxDNAException(const oxDNAException& other) throw() = default;
+	oxDNAException(const oxDNAException& other) throw() : oxDNAException(other._error) {};
 	// I'm not sure why, but the throw() bit is needed to avoid a 'looser throw specifier' error
 	virtual ~oxDNAException() throw() {};
 
