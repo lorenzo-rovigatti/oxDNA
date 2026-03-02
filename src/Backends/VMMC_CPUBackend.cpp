@@ -97,31 +97,31 @@ VMMC_CPUBackend::~VMMC_CPUBackend() {
 void VMMC_CPUBackend::init() {
 	MC_CPUBackend::init();
 
-    // fix maxclust if evidently wrong
-  if(_maxclust < 1) {
-          OX_LOG(Logger::LOG_WARNING, "maxclust < 0, setting it to N = %i", N());
-          _maxclust = N();
-  }
-  if(_maxclust > N()) {
-          OX_LOG(Logger::LOG_WARNING, "maxclust > N does not make sense, setting it to N = %i", N());
-          _maxclust = N();
-  }
+	// fix maxclust if evidently wrong
+	if(_maxclust < 1) {
+		  OX_LOG(Logger::LOG_WARNING, "maxclust < 0, setting it to N = %i", N());
+		  _maxclust = N();
+	}
+	if(_maxclust > N()) {
+		OX_LOG(Logger::LOG_WARNING, "maxclust > N does not make sense, setting it to N = %i", N());
+		_maxclust = N();
+	}
 
-  if(_have_us) {
-          _op.init_from_file(_op_file, _particles, N());
-          _w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
-          if(_reload_hist) {
-                  _h.init(_init_hist_file, &_op, _etemps, _netemps);
-          }
-          else {
-                  _h.init(&_op, _etemps, _netemps);
-          }
-          _h.set_simtemp(_T);
-  }
+	if(_have_us) {
+		_op.init_from_file(_op_file, _particles, N());
+		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
+		if(_reload_hist) {
+			_h.init(_init_hist_file.c_str(), &_op, _etemps, _netemps);
+		}
+		else {
+			_h.init(&_op, _etemps, _netemps);
+		}
+		_h.set_simtemp(_T);
+	}
 
 	if(_delta[MC_MOVE_TRANSLATION] * sqrt(3) > _verlet_skin) {
-                throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
-        }
+		throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
+	}
 
 	_vmmc_box_side = _box->box_sides()[0];
 
@@ -191,8 +191,8 @@ void VMMC_CPUBackend::init() {
 	}
 
 	if(_overlap == true) {
-                throw oxDNAException("There is an overlap in the initial configuration. Dying badly");
-        }
+				throw oxDNAException("There is an overlap in the initial configuration. Dying badly");
+		}
 }
 
 void VMMC_CPUBackend::get_settings(input_file & inp) {
@@ -206,13 +206,13 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 	ok_interactions.push_back("DNA");
 	ok_interactions.push_back("DNA2");
 	ok_interactions.push_back("DNA2SD");
-        ok_interactions.push_back("DNA3");
+		ok_interactions.push_back("DNA3");
 	ok_interactions.push_back("DNA2ModInteraction");
 	ok_interactions.push_back("DNA_nomesh");
 	ok_interactions.push_back("DNA2_nomesh");
 	ok_interactions.push_back("RNA");
 	ok_interactions.push_back("RNA2");
-        ok_interactions.push_back("NA");
+		ok_interactions.push_back("NA");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
 		// std::find points is equal to ok_interactions.end() if it can't find inter in ok_interactions.
 		if(std::find(ok_interactions.begin(), ok_interactions.end(), inter) == ok_interactions.end()) {
@@ -296,11 +296,9 @@ IS THIS SOMETHING THAT SHOULD BE ADDED? HOW DOES THE LOGIC BEHAVE DIFFERENTLY?
 			if(getInputBoolAsInt(&inp, "skip_hist_zeros", &tmpi, 0) == KEY_FOUND) {
 				_skip_hist_zeros = tmpi > 0;
 				if(_skip_hist_zeros) {
-                                        OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Skipping zero entries in traj_hist and last_hist files");
-                                }
+					OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Skipping zero entries in traj_hist and last_hist files");
+				}
 			}
-
-
 
 			// should we extrapolate the histogram at different
 			// temperatures?
@@ -467,11 +465,11 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, false);
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
-        // NOTE: We extended these statements to work for oxDNA3, but the comments below are unclear and misleading.
-        //       According to the IF statements DRH is included in both the first and the second clause, while the comments suggest it is not.
-        //       The logic should be reworked to simplify extension and avoid the unnecessary introduction of bugs.
+		// NOTE: We extended these statements to work for oxDNA3, but the comments below are unclear and misleading.
+		//       According to the IF statements DRH is included in both the first and the second clause, while the comments suggest it is not.
+		//       The logic should be reworked to simplify extension and avoid the unnecessary introduction of bugs.
 
-        // the DNA and RNA/RNA2 interactions use the original coaxial stacking term
+		// the DNA and RNA/RNA2 interactions use the original coaxial stacking term
 	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL && dynamic_cast<DNA3Interaction *>(_interaction.get()) == NULL) {
 		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
 	}
@@ -1365,10 +1363,10 @@ void VMMC_CPUBackend::sim_step() {
 	int windex, oldwindex;
 	oldweight = weight = 1.;
 	if(_have_us) {
-                oldweight = _w.get_weight(_op.get_all_states(), &oldwindex);
-        }
+				oldweight = _w.get_weight(_op.get_all_states(), &oldwindex);
+		}
 
-        // set the potential due to external forces
+		// set the potential due to external forces
 	_U_ext = (number) 0.f;
 	for(int k = 0; k < N(); k++) {
 		BaseParticle *p = _particles[k];
@@ -1378,8 +1376,8 @@ void VMMC_CPUBackend::sim_step() {
 
 	for(int i = 0; i < N(); i++) {
 		if(_have_us) {
-                        _op.store();
-                }
+						_op.store();
+				}
 		_dU_stack = 0.;
 
 		// seed particle;
@@ -1404,8 +1402,8 @@ void VMMC_CPUBackend::sim_step() {
 			//move.t = _particles[move.seed]->int_centers[DNANucleotide::BACK] + _particles[move.seed]->pos;
 			move.t = _particles[move.seed]->int_centers[DNANucleotide::BACK];
 			if(fabs((move.t * move.t)) > 0.5) { // CLEAN UP
-                                printf("caca");
-                        }
+								printf("caca");
+						}
 		}
 		_last_move = move.type;
 
@@ -1527,8 +1525,8 @@ void VMMC_CPUBackend::sim_step() {
 			_overlap = false;
 
 			if(_have_us) {
-                                _op.restore();
-                        }
+								_op.restore();
+						}
 		}
 
 		/*
@@ -1549,12 +1547,12 @@ void VMMC_CPUBackend::sim_step() {
 
 		// add to the histogram
 		if(_have_us && current_step() > _equilibration_steps)
-        _h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
+		_h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
 // CAN THIS BE REMOVED?
 		//Andrea: check
 		//if ( _U < -20 || _U > 20 ) {
 		//	
-        //_compute_energy_debug();
+		//_compute_energy_debug();
 		//}
 
 		// reset the inclust property to the particles
@@ -1571,10 +1569,10 @@ void VMMC_CPUBackend::sim_step() {
 		//printf ("checking energy for percolation..\n");
 		number U_from_tally = _U;
 		_compute_energy();
-        //printf ("step %d checking en diff (%g %g)... \n", current_step(), U_from_tally, _U);
+		//printf ("step %d checking en diff (%g %g)... \n", current_step(), U_from_tally, _U);
 		if((_U - U_from_tally) > 1.e-4) {
-                        throw oxDNAException("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, _U);
-                }
+						throw oxDNAException("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, _U);
+				}
 		//printf ("all ok (%g %g)... \n", U_from_tally, _U);
 	}
 
@@ -1584,8 +1582,8 @@ void VMMC_CPUBackend::sim_step() {
 
 void VMMC_CPUBackend::check_ops() {
 	if(!_have_us) {
-                return;
-        }
+				return;
+		}
 	//printf ("checking OP...\n");
 	assert(_have_us);
 
@@ -1707,9 +1705,9 @@ inline void VMMC_CPUBackend::check_overlaps() {
 	}
 	assert(N_overlaps == 0);
 	if(N_overlaps > 0) {
-                throw oxDNAException("VMMC: There is an overlap in the initial configuration.");
-                abort(); // HAVE ONE OR THE OTHER, BUT NOT BOTH?
-        }
+				throw oxDNAException("VMMC: There is an overlap in the initial configuration.");
+				abort(); // HAVE ONE OR THE OTHER, BUT NOT BOTH?
+		}
 }
 
 char * VMMC_CPUBackend::get_op_state_str() {
@@ -1765,16 +1763,16 @@ void VMMC_CPUBackend::_compute_energy() {
 
 	_U = (number) 0;
 
-    //number stck_1, stck_all;
-    //stck_all = 0.;
+	//number stck_1, stck_all;
+	//stck_all = 0.;
 
 	for(int i = 0; i < N(); i++) {
 		p = _particles[i];
 		if(p->n3 != P_VIRTUAL) {
 			q = p->n3;
-            dres = _particle_particle_bonded_interaction_n3_VMMC(p, q);
+			dres = _particle_particle_bonded_interaction_n3_VMMC(p, q);
 			//dres = _particle_particle_bonded_interaction_n3_VMMC(p, q, &stck_1);
-            //stck_all += stck_1;
+			//stck_all += stck_1;
 			res += dres;
 			_U += dres;
 			if(_overlap) {
@@ -1798,11 +1796,11 @@ void VMMC_CPUBackend::_compute_energy() {
 	}
 
    /*
-    DNA3Interaction * d3i = dynamic_cast<DNA3Interaction *>(_interaction.get());
-    if (d3i != NULL) std::cout << "Compute_energy_VMMC " << " T: " << _T << " " << d3i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
+	DNA3Interaction * d3i = dynamic_cast<DNA3Interaction *>(_interaction.get());
+	if (d3i != NULL) std::cout << "Compute_energy_VMMC " << " T: " << _T << " " << d3i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
 
-    DNA2Interaction * d2i = dynamic_cast<DNA2Interaction *>(_interaction.get());
-    if (d2i != NULL) std::cout << " Compute_energy_VMMC " << " T: " << _T << " " << d2i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
+	DNA2Interaction * d2i = dynamic_cast<DNA2Interaction *>(_interaction.get());
+	if (d2i != NULL) std::cout << " Compute_energy_VMMC " << " T: " << _T << " " << d2i->get_T() << " U " << _U << " U_stack " << stck_all <<  std::endl;
    */
 
 	if(_overlap) {
@@ -1841,7 +1839,7 @@ void VMMC_CPUBackend::_compute_energy_debug() {
 			number en_ev = _interaction->pair_interaction_term(DNAInteraction::BONDED_EXCLUDED_VOLUME, p, q, false, false);
 			number en_st = _interaction->pair_interaction_term(DNAInteraction::STACKING, p, q, false, false);
 		
-		        std::cout << "Bonded " << p->index << " " << q->index << " " << dres << " " << en_bb << " " << en_ev << " " << en_st << std::endl; 
+				std::cout << "Bonded " << p->index << " " << q->index << " " << dres << " " << en_bb << " " << en_ev << " " << en_st << std::endl;
 			
 			res += dres;
 			U_local += dres;
