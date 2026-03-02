@@ -285,13 +285,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				F.y += dist.y * (Fmag * inv_mdist);
 				F.z += dist.z * (Fmag * inv_mdist);
 
-				// ---- POTENTIAL (CPU-match: shifted WCA) ----
-				// U = 4*eps*(A^2 - A) + eps
-				const c_number U = (c_number)4 * eps * (A2 - A) + eps;
-
-				// TODO: replace U_ext with the actual accumulator in your kernel
-				// U_ext += U;
-
 				break;
 			}
 
