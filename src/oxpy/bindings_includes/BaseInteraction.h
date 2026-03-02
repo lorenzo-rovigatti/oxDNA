@@ -116,7 +116,8 @@ public:
 
 		// suppress warnings
 		return std::map<int, number>();
-	}
+	}	
+	
 };
 
 void export_BaseInteraction(py::module &m) {
@@ -201,6 +202,7 @@ void export_BaseInteraction(py::module &m) {
 	interaction.def("begin_energy_computation", &BaseInteraction::begin_energy_computation, R"pbdoc(
 		Signals the interaction that an energy (or force) computation is about to begin.
     )pbdoc");
+
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_BASEINTERACTION_H_ */

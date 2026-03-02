@@ -48,6 +48,8 @@ protected:
 
 	bool _pt_common_weights;
 
+    bool _first_step;
+
 	char _replica_info[256];
 
 	/// keep track of who's got which replica

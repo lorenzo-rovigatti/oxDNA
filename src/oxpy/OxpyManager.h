@@ -25,6 +25,7 @@ public:
 	void print_configuration(bool also_last=true);
 	void add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables);
 	void remove_output(std::string filename);
+	void update_observable_data();
 	void update_CPU_data_structures();
 
 	void run_steps(llint steps, bool print_output=true);

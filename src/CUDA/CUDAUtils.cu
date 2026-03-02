@@ -46,12 +46,14 @@ __global__ void check_thresold(T *v, int N, int t) {
 
 template<typename T>
 void GpuUtils::print_device_array(T *v, int N) {
-print_array
+	print_array
 		<<<1,1>>>
 		(v, N);
 		CUT_CHECK_ERROR("print_device_array error");
 	cudaDeviceSynchronize();
 }
+
+template void GpuUtils::print_device_array<float4>(float4 *, int);
 
 template<typename T>
 void GpuUtils::check_device_thresold(T *v, int N, int t) {

@@ -12,9 +12,10 @@
 #include "LJInteraction.h"
 #include "DNAInteraction.h"
 #include "DNA2Interaction.h"
+#include "DNA2SDInteraction.h"
+#include "DNA3Interaction.h"
 #include "RNAInteraction.h"
 #include "RNAInteraction2.h"
-#include "DNAInteraction_nomesh.h"
 #include "PatchyInteraction.h"
 #include "PatchyInteractionDan.h"
 #include "KFInteraction.h"
@@ -52,11 +53,21 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 		if(backend.compare("CUDA") == 0) return std::make_shared<DNA2Interaction_nomesh>();
 		else return std::make_shared<DNA2Interaction>();
 	}
+	else if(inter_type.compare("DNA2SD") == 0) {
+		/*if(backend.compare("CUDA") == 0) return std::make_shared<DNA2Interaction_nomesh>();
+		else*/ return std::make_shared<DNA2SDInteraction>();
+	}
+	else if(inter_type.compare("DNA3") == 0) {
+		if(backend.compare("CUDA") == 0) return std::make_shared<DNA3Interaction_nomesh>();
+		else return std::make_shared<DNA3Interaction>();
+	}
 	else if(inter_type.compare("LJ") == 0) return std::make_shared<LJInteraction>();
 	else if(inter_type.compare("DNA_nomesh") == 0) return std::make_shared<DNAInteraction_nomesh>();
 	else if(inter_type.compare("DNA2_nomesh") == 0) return std::make_shared<DNA2Interaction_nomesh>();
+	else if(inter_type.compare("DNA3_nomesh") == 0) return std::make_shared<DNA3Interaction_nomesh>();
 	else if(inter_type.compare("DNA_relax") == 0) return std::make_shared<DNAInteraction_relax>();
 	else if(inter_type.compare("DNA2") == 0) return std::make_shared<DNA2Interaction>();
+	else if(inter_type.compare("DNA2SD") == 0) return std::make_shared<DNA2SDInteraction>();
 	else if(inter_type.compare("RNA") == 0) return std::make_shared<RNAInteraction>();
 	else if(inter_type.compare("RNA2") == 0) return std::make_shared<RNA2Interaction>();
 	else if(inter_type.compare("RNA_relax") == 0) return std::make_shared<RNAInteraction_relax>();

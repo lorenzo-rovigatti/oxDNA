@@ -19,6 +19,7 @@ void ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputString(&my_inp, "print_group", _group_name, 0);
+	getInputBool(&my_inp, "per_particle", &_per_particle, 0);
 }
 
 std::string ForceEnergy::get_output_string(llint curr_step) {
@@ -31,11 +32,16 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 		else {
 			LR_vector abs_pos = _config_info->box->get_abs_pos(p);
 			for(auto ext_force : p->ext_forces) {
-				if(ext_force->get_group_name() == _group_name) U += ext_force->potential(curr_step, abs_pos);
+				if(ext_force->get_group_name() == _group_name) {
+					ext_force->set_current_particle(p);
+					U += ext_force->potential(curr_step, abs_pos);
+				}
 			}
 		}
 	}
-	U /= _config_info->N();
+	if(_per_particle) {
+		U /= _config_info->N();
+	}
 
 	return Utils::sformat(_number_formatter, U);
 }

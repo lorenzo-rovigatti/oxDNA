@@ -13,6 +13,8 @@
 #include <Backends/AnalysisBackend.h>
 
 std::shared_ptr<AnalysisBackend> backend_builder(input_file &input) {
+	Logger::instance()->get_settings(input);
+	
 	std::shared_ptr<AnalysisBackend> backend = std::make_shared<AnalysisBackend>();
 	backend->get_settings(input);
 	backend->init();
@@ -33,7 +35,7 @@ void export_AnalysisBackend(py::module &m) {
 	backend.def("read_next_configuration", &AnalysisBackend::read_next_configuration, py::arg("binary")=false, R"pbdoc(
 		Load up the next configuration from the trajectory file.
 	)pbdoc");
-
+	
 	backend.def("analyse", &AnalysisBackend::analyse, R"pbdoc(
 		Analyse the current configuration using the observables set through the input file.
 	)pbdoc");
