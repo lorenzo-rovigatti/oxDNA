@@ -91,8 +91,8 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
         Returns:
             Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
             | Number of formed bonds among the specified nucleotides at each step in the simulation
-            | Number of missbonds among specified nucleotides at each step in the simulation
             | Number of correct bonds among specified nucleotides at each step in the simulation
+            | Number of missbonds among specified nucleotides at each step in the simulation
             | Per-nucleotide correct bond occupancy
     '''
     # oat_multiprocessor requires all arguments to compute be passed as a single variable.  We use a namedtuple for this.
