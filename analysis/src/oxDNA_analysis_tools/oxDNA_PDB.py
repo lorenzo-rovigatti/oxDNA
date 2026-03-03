@@ -102,6 +102,8 @@ get_phosphate = lambda nuc: nuc['P'].pos - nuc.get_com() if not '5' in nuc.name 
                 else np.array([np.nan, np.nan, np.nan])
 
 # Empirically computed best reference points for DNA/RNA
+# Voodoo: it works best if you use O3 for generating DNA fragments, but C4 for actual mapping
+#DNA_funcs = {"back" : get_O3s, "base" : get_base_center}
 DNA_funcs = {"back" : get_C4s, "base" : get_base_center}
 RNA_funcs = {"back" : get_C5s, "base" : get_base_edge}
 
