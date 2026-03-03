@@ -12,6 +12,7 @@
 #include "CUDALangevinThermostat.h"
 #include "CUDASRDThermostat.h"
 #include "CUDABussiThermostat.h"
+#include "CUDARefreshThermostat.h"
 #include "../../Utilities/Utils.h"
 
 std::shared_ptr<CUDABaseThermostat> CUDAThermostatFactory::make_thermostat(input_file &inp, BaseBox * box) {
@@ -36,6 +37,9 @@ std::shared_ptr<CUDABaseThermostat> CUDAThermostatFactory::make_thermostat(input
 	}
 	else if(!strncmp(thermostat_type, "no", 512)) {
 		return std::make_shared<CUDANoThermostat>();
+	}
+	else if(!strncmp(thermostat_type, "refresh", 512)) {
+		return std::make_shared<CUDARefreshThermostat>();
 	}
 	else throw oxDNAException("Invalid CUDA thermostat '%s'", thermostat_type);
 }
