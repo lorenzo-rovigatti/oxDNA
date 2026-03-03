@@ -33,7 +33,7 @@ def get_pos_back(cm_pos, a1, a3, type='DNA'):
     # [0, 0, 1]
     # [0, 1, 0]
     # But because the frame is defined by a1, a3, to get a postive a2, that's a left-handed coordinate system.
-    a2 = -1 * np.cross(a1, a3)
+    a2 = np.cross(a3, a1)
     if type=='DNA':
         return cm_pos + a1 * POS_MM_BACK1 + a2 * POS_MM_BACK2
     elif type=='RNA':

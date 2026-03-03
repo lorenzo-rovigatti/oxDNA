@@ -88,22 +88,22 @@ def get_nucs_from_PDB(file:str) -> List[PDB_Nucleotide]:
 
     return nucleotides
 
-# Helper functions for getting specific atoms
-zeroes = lambda _ : np.zeros(3)
+# Helper functions for getting specific atoms relative to COM
 get_base_center = lambda nuc: np.mean([a.pos - nuc.get_com() for a in nuc.base_atoms], axis=0)
 get_base_C2 = lambda nuc: nuc["C2"].pos - nuc.get_com()
 get_base_edge = lambda nuc: nuc['N1'].pos - nuc.get_com() if any((c in nuc.name for c in ['A', 'G'])) else nuc['N3'].pos - nuc.get_com()
 get_base_hex_bottom = lambda nuc: nuc['N3'].pos - nuc.get_com() if any((c in nuc.name for c in ['A', 'G'])) else nuc['C2'].pos - nuc.get_com()
+get_O3s = lambda nuc: nuc["O3'"].pos - nuc.get_com()
 get_C5s = lambda nuc: nuc["C5'"].pos - nuc.get_com()
+get_C4s = lambda nuc: nuc["C4'"].pos - nuc.get_com()
 get_phosphate = lambda nuc: nuc['P'].pos - nuc.get_com() if not '5' in nuc.name \
                 else nuc["HO5'"].pos - nuc.get_com() if "HO5'" in nuc.named_atoms \
                 else nuc["O5'"].pos - nuc.get_com() if "O5'" in nuc.named_atoms \
                 else np.array([np.nan, np.nan, np.nan])
+
 # Empirically computed best reference points for DNA/RNA
-# DNA_funcs = (zeroes, get_base_C2, get_base_hex_bottom, get_C5s)
-# RNA_funcs = (zeroes, get_base_C2, get_base_hex_bottom, get_C5s)
-DNA_funcs = (zeroes, get_base_edge, get_base_center, get_phosphate)
-RNA_funcs = (zeroes, get_base_C2, get_base_hex_bottom, get_phosphate)
+DNA_funcs = {"back" : get_C4s, "base" : get_base_center}
+RNA_funcs = {"back" : get_C5s, "base" : get_base_edge}
 
 # Don't delete this function!
 def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, PDB_Nucleotide]:
@@ -118,91 +118,52 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
         Returns:
             Dict[str, PDB_Nucleotide] : The best nucleotide for each type in the format `{'C' : PDB_Nucleotide}`.
     """
-    # Functions to get the positions of various all-atom components
- 
-    
-    
-    # Equivalent to configuration file 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0
-    # Array rows are CoM, base site, stack site, backbone site.
-    oxDNA2_ref_angstroms = np.array(
-        [[ 0,           0,          0,        ],
-         [ 3.40720018,  0,          0,        ],
-         [ 2.89612003,  0,          0,        ],
-         [-2.89612003,  0,         -2.90293429]]
-         )
-    oxRNA2_ref_angstroms = np.array(
-         [[0.        , 0.         , 0.        ],
-          [3.40720005, 0.         , 0.        ],
-          [2.89612003, 0.         , 0.        ],
-          [-3.40720005, 1.70360003,  0.        ]]
-    )
-
-    # c = np.zeros(3)
-    # a1 = np.array([1, 0, 0])
-    # a3 = np.array([0, 1, 0])
-
-    # print(utils.get_pos_base(c, a1) * FROM_OXDNA_TO_ANGSTROM
-    #       , utils.get_pos_stack(c, a1) * FROM_OXDNA_TO_ANGSTROM
-    #       , utils.get_pos_back(c, a1, a3, type='DNA') * FROM_OXDNA_TO_ANGSTROM)
-    
-    # print(utils.get_pos_base(c, a1) * FROM_OXDNA_TO_ANGSTROM
-    #       , utils.get_pos_stack(c, a1) * FROM_OXDNA_TO_ANGSTROM
-    #       , utils.get_pos_back(c, a1, a3, type='RNA') * FROM_OXDNA_TO_ANGSTROM)
-    
-    # return
-
-    
-    # DNA_funcs = (zeroes, get_base_edge, get_base_center, get_phosphate)
-    # RNA_funcs = (zeroes, get_base_C2, get_base_hex_bottom, get_phosphate)
+    ref_a1 = np.array([1, 0, 0])
+    ref_a3 = np.array([0, 0, 1])
+    ref_a2 = np.array([0, 1, 0])
+    bs = utils.get_pos_base(np.zeros(3), ref_a1, ref_a3) * FROM_OXDNA_TO_ANGSTROM
 
     log("Scoring bases... Lower scores are better.")
     bases = {}
     for n in nucleotides:
         if 'D' in n.name:
-            ref = oxDNA2_ref_angstroms
             funcs = DNA_funcs
-            bbs = np.array([-2.89612, 2.9029344, 0])
+            bbs = utils.get_pos_back(np.zeros(3), ref_a1, ref_a3, type='DNA') * FROM_OXDNA_TO_ANGSTROM
         else:
             # Things that aren't DNA are treated as RNA.
-            ref = oxRNA2_ref_angstroms
             funcs = RNA_funcs
-            bbs = [-3.4072, 0, 1.7036]
+            bbs = utils.get_pos_back(np.zeros(3), ref_a1, ref_a3, type='RNA') * FROM_OXDNA_TO_ANGSTROM
 
         # Get the all-atom proxies for the oxDNA sites
-        #proxies = np.array([funcs[0](n), funcs[1](n), funcs[2](n), funcs[3](n)])
         n.compute_as()
         proxies = np.array([
             n.a1,
             n.a3,
             n.a2,
-            get_C5s(n),
-            get_base_hex_bottom(n)
+            funcs["back"](n),
+            funcs["base"](n)
         ])
         ref = np.array([
-            np.array([1, 0, 0]),
-            np.array([0, 0, 1]),
-            np.array([0, 1, 0]),
+            ref_a1,
+            ref_a3,
+            ref_a2,
             bbs,
-            np.array([3.40720005, 0.         , 0.        ])
-
+            bs
         ])
 
         # Align the all-atom representation to the oxDNA bead
         utils.kabsch_align(proxies, ref, center=False, inplace=True)
 
+        # Score the alignment and keep the best
         diff = np.mean(np.linalg.norm(proxies - ref, axis=1))
         
         if n.base in bases:
             if diff < bases[n.base].pdb_score: # Find the most oxDNA-like nucleotide for each base type
                 bases[n.base] = copy.deepcopy(n)
                 bases[n.base].pdb_score = diff
-                bases[n.base].compute_as()
-                bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(bases[n.base].a1, bases[n.base].a2, bases[n.base].a3)
         else:
             bases[n.base] = copy.deepcopy(n)
             bases[n.base].pdb_score = diff
-            bases[n.base].compute_as()
-            bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(bases[n.base].a1, bases[n.base].a2, bases[n.base].a3)
 
     for k, v in bases.items():
         log(f"Base {k} : best score {v.pdb_score:.3f}")
@@ -464,54 +425,36 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                     else:
                         my_base = copy.deepcopy(RNAbases[nb])
 
-                    # nuc_data = {
-                    #     'pos' : conf.positions[nucleotide.id],
-                    #     'a1' : conf.a1s[nucleotide.id],
-                    #     'a3' : conf.a3s[nucleotide.id] 
-                    # }
-
-                    # Align paragon nucleotide to the oxDNA nucleotide
-                    # my_base.set_com(nuc_data['pos'] * FROM_OXDNA_TO_ANGSTROM)
-                    # align(my_base, nuc_data)
-
-                    # pos = conf.positions[nucleotide.id] * FROM_OXDNA_TO_ANGSTROM
-                    # a1 = conf.a1s[nucleotide.id]
-                    # a3 = conf.a3s[nucleotide.id]
-                    # ox_sites = np.array([
-                    #     np.zeros(3),
-                    #     utils.get_pos_base(pos, a1, a3, type=strand.type) - pos,
-                    #     utils.get_pos_stack(pos, a1, a3, type=strand.type) - pos,
-                    #     utils.get_pos_back(pos, a1, a3, type=strand.type) - pos
-                    # ])
-                    # print(ox_sites)
-
-                    # funcs = DNA_funcs if strand.type == 'DNA' else RNA_funcs
-                    # proxies = np.array([f(my_base) for f in funcs])
-                    # proxies_center = np.mean(proxies, axis=0)
-
+                    # Compute oxDNA reference frame for current all-atom fragment
+                    funcs = DNA_funcs if strand.type == 'DNA' else RNA_funcs
                     my_base.compute_as()
-                    pos = conf.positions[nucleotide.id] * FROM_OXDNA_TO_ANGSTROM
-                    a1 = conf.a1s[nucleotide.id]
-                    a3 = conf.a3s[nucleotide.id]
-                    bbs = utils.get_pos_back(pos, a1, a3, type=strand.type) - pos
-                    bs = utils.get_pos_base(pos, a1, a3, type=strand.type) - pos
                     proxies = np.array([
                         my_base.a1,
                         my_base.a3,
                         my_base.a2,
-                        #get_phosphate(my_base) / np.linalg.norm(get_phosphate(my_base)),
-                        get_C5s(my_base) / np.linalg.norm(get_C5s(my_base)),
-                        get_base_C2(my_base) / np.linalg.norm(get_base_C2(my_base))
+                        funcs["back"](my_base),
+                        funcs["base"](my_base)
                     ])
+
+                    # Prepare oxDNA base for alignment
+                    pos = conf.positions[nucleotide.id] * FROM_OXDNA_TO_ANGSTROM
+                    a1 = conf.a1s[nucleotide.id]
+                    a3 = conf.a3s[nucleotide.id]
+                    a2 = np.cross(a3, a1)
+                    bbs = (utils.get_pos_back(pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
+                    bs = (utils.get_pos_base(pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
                     ox_sites = np.array([
                         a1,
                         a3,
-                        np.cross(a3, a1),
-                        bbs / np.linalg.norm(bbs),
-                        bs / np.linalg.norm(bs)
+                        a2,
+                        bbs,
+                        bs
                     ])
-                    rot = utils.kabsch_align(proxies, ox_sites, inplace=True, return_rot=True)
 
+                    # Compute rotation matrix for all-atom fragment
+                    rot = utils.kabsch_align(proxies, ox_sites, center=False, inplace=True, return_rot=True)
+
+                    # Rotate + translate atom positions
                     atoms_array = np.array([a.pos for a in my_base.get_atoms()])
                     atoms_array -= np.mean(atoms_array, axis=0)
                     np.dot(atoms_array, rot, out=atoms_array)

@@ -121,6 +121,7 @@ class PDB_Nucleotide(object):
 
         return com / len(atoms)
 
+    # a3 is the vector perpendicular to the base plane
     def compute_a3(self):
         base_com = self.get_com(self.base_atoms)
         # the O4' oxygen is always (at least for non pathological configurations, as far as I know) oriented 3' -> 5' with respect to the base's centre of mass
@@ -145,18 +146,18 @@ class PDB_Nucleotide(object):
 
         self.a3 /= np.linalg.norm(self.a3)
 
+    # a1 is the vector from the CoM to the base-pairing edge
     def compute_a1(self):
         if "C" in self.name or "T" in self.name or "U" in self.name:
-            pairs = [ ["N3", "C6"], ["C2", "N1"], ["C4", "C5"] ]
+            hex_edge = ["C4", "N3", "C2"]
         else:
-            pairs = [ ["N1", "C4"], ["C2", "N3"], ["C6", "C5"] ]
-
-        self.a1 = np.array([0., 0., 0.])
-        for pair in pairs:
-            p = self.named_atoms[pair[0]]
-            q = self.named_atoms[pair[1]]
-            diff = p.pos - q.pos
-            self.a1 += diff
+            hex_edge = ["C6", "N1", "C2"]
+        
+        self.a1 = np.zeros(3)
+        c = self.get_com()
+        for a in hex_edge:
+            p = self.named_atoms[a].pos
+            self.a1 += p - c
 
         self.a1 /= np.linalg.norm(self.a1)
 
