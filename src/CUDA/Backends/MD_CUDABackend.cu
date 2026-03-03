@@ -179,6 +179,15 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth *) p->ext_forces[j];
 					init_RepulsiveSphereSmooth_from_CPU(&cuda_force->repulsivespheresmooth, p_force);
 				}
+				
+				else if(force_type == typeid(RepulsiveSphereMoving)) {
+					RepulsiveSphereMoving *p_force = (RepulsiveSphereMoving *) p->ext_forces[j];
+					init_RepulsiveSphereMoving_from_CPU(&cuda_force->repulsivespheremoving, p_force);
+				}
+				else if(force_type == typeid(RepulsiveKeplerPoinsot)) {
+					RepulsiveKeplerPoinsot *p_force = (RepulsiveKeplerPoinsot *) p->ext_forces[j];
+					init_RepulsiveKeplerPoinsot_from_CPU(&cuda_force->repulsivekeplerpoinsot, p_force);
+				}
 				else if(force_type == typeid(LJWall)) {
 					LJWall *p_force = (LJWall *) p->ext_forces[j];
 					init_LJWall_from_CPU(&cuda_force->ljwall, p_force);
