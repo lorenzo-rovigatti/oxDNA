@@ -111,6 +111,7 @@ def main():
     plt.tight_layout()
     log("Saving contact map to '{}'".format(graph_name))
     plt.savefig(graph_name, dpi=FIG_DPI)
+    plt.close(fig)
 
     # Save the contact map as a pickle
     if args.data:

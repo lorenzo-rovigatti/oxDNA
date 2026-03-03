@@ -3,7 +3,7 @@
 import numpy as np
 from sys import exit
 from collections import namedtuple
-from typing import List
+from typing import List, Union
 import argparse
 import os
 import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
         box (float): The size of the box (assumes a cubic box)
 
     Returns:
-        float: The distance between the two particles
+        (float): The distance between the two particles
     """
     p1 = p1 - (np.floor(p1/box) * box)
     p2 = p2 - (np.floor(p2/box) * box)
@@ -42,14 +42,14 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
 def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarray:
     """
     Calculates all mutual distances between two sets of points taking PBC into account
-    
-    Paramters:
+
+    Parameters:
         p1s (np.ndarray) : the first set of points (Nx3 array)
         p2s (np.ndarray) : the second set of points (Mx3 array)
         box (float) : The size of the box (assumes a cubic box)
 
-    returns:
-        np.ndarray : the distances between the points (NxM array)
+    Returns:
+        (np.ndarray) : the distances between the points (NxM array)
     """
 
     p1s = p1s - (np.floor(p1s/box) * box)
@@ -64,11 +64,11 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     distances = np.empty((len(ctx.p1s), len(confs)))
 
     for i, conf in enumerate(confs):
-        distances[:,i] = [min_image(conf.positions[p1], conf.positions[p2], box)* 0.85 for p1, p2 in zip(ctx.p1s, ctx.p2s)]
+        distances[:,i] = [min_image(conf.positions[p1], conf.positions[p2], box[0])* 0.8518 for p1, p2 in zip(ctx.p1s, ctx.p2s)]
     
     return distances
 
-def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[int]], p2ss:List[List[int]], ncpus:int=1) -> List[List[float]]:
+def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[int]], p2ss:List[List[int]], ncpus:int=1) -> List[Union[List[float], np.ndarray]]:
     """
         Compute the distance between two lists of particles
 
@@ -253,7 +253,7 @@ def main():
     if hist == True:
         if lineplt == True:
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.find(".")]+"_hist"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_hist"+outfile[outfile.rfind("."):]
         else:
             out = outfile
         bins = np.linspace(np.floor(lower-(lower*0.1)), np.ceil(upper+(upper*0.1)), 60)
@@ -265,18 +265,16 @@ def main():
         plt.xlabel("Distance (nm)")
         plt.ylabel("Normalized frequency")
         plt.legend()
-        #plt.show()
         plt.tight_layout()
         log("Writing histogram to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)
+        plt.close()
 
     #make a trajectory plot
     if lineplt == True:
         if hist == True:
-            #clear the histogram plot
-            plt.clf()
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.find(".")]+"_traj"+outfile[outfile.find("."):]
+            out = outfile[:outfile.rfind(".")]+"_traj"+outfile[outfile.rfind("."):]
         else:
             out = outfile
         graph_count = 0
@@ -287,10 +285,10 @@ def main():
         plt.xlabel("Simulation Steps")
         plt.ylabel("Distance (nm)")
         plt.legend()
-        #plt.show()
         plt.tight_layout()
         log("Writing trajectory plot to file {}".format(out))
         plt.savefig("{}".format(out), dpi=FIG_DPI)
+        plt.close()
 
     if cluster == True:
         if not all([x == trajectories[0] for x in trajectories]):

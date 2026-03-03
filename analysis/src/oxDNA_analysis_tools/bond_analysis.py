@@ -21,14 +21,16 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "input_file"])
 
 # This is the function which gets parallelized
-def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+# pragma: no cover - coverage.py cannot track execution inside oxpy.Context() if it's in a subprocess
+def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:  # pragma: no cover
     # Create the oxpy context
     with oxpy.Context():
         inp = oxpy.InputFile()                      # Create an empty input file
         inp.init_from_filename(ctx.input_file)      # Fill in input file with the provided input
+        inp["log_file"] = "/dev/null"
 
         # Modify the input file to analyze the target trajectory and select a chunk to analyze
-        inp["list_type"] = "cells"                   
+        inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
         inp["confs_to_analyse"] = str(chunk_size)
@@ -140,6 +142,7 @@ def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, desi
     plt.legend()
     plt.tight_layout()
     plt.savefig(plotname, dpi=FIG_DPI)
+    plt.close(fig)
     return
 
 def cli_parser(prog="bond_analysis.py"):

@@ -30,9 +30,6 @@ def rad2degree(angle:float) -> float:
     """
     return (angle * 180 / np.pi)
 
-def get_internal_coords():
-    pass
-
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     torsions = np.zeros(ctx.top_info.nbases-(2*len(ctx.system.strands)))
     dihedrals = np.zeros(ctx.top_info.nbases-(3*len(ctx.system.strands)))
@@ -155,11 +152,13 @@ def main():
         out = "ramachandran.png"
         log("No output file specified, writing to {}".format(out))
 
-    plt.scatter(torsions[len(system.strands):], dihedrals)
-    plt.xlabel("torsion_angle")
-    plt.ylabel("dihedral_angle")
-    plt.tight_layout()
-    plt.savefig(out, dpi=FIG_DPI)
+    fig, ax = plt.subplots()
+    ax.scatter(torsions[len(system.strands):], dihedrals)
+    ax.set_xlabel("torsion_angle")
+    ax.set_ylabel("dihedral_angle")
+    fig.tight_layout()
+    fig.savefig(out, dpi=FIG_DPI)
+    plt.close(fig)
     log("Wrote plot to {}".format(out))
 
     if args.data:

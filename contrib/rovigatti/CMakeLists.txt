@@ -59,12 +59,16 @@ add_library_no_prefix(DetailedPolymerSwapInteraction src/Interactions/DetailedPo
 
 IF(CUDA)
 	set(CMAKE_MODULE_LINKER_FLAGS  "${CMAKE_MODULE_LINKER_FLAGS} -rdynamic")
-	find_package("CUDA")
 	
 	# same thing but for CUDA libs
 	function(cuda_add_library_no_prefix target source)
-		cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
-		target_link_libraries(${target} ${CUDA_LIBRARIES})
+		if(CMAKE_VERSION VERSION_LESS 3.18)
+			cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+			target_link_libraries(${target} ${CUDA_LIBRARIES})
+		else()
+			add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+			target_link_libraries(${target} ${CUDA_LIBRARIES} CUDA::cudart)
+		endif()
 		set_target_properties(${target} PROPERTIES PREFIX "")
 	endfunction()
 

@@ -1,0 +1,59 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CUDA
+backend_precision = mixed
+CUDA_list = verlet
+CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+max_density_multiplier = 100
+debug = 1
+#seed = 1
+interaction_type = DNANM
+salt_concentration = 1.
+max_io = 8
+##############################
+####    SIM PARAMETERS    ####
+##############################
+### Universal Params ###
+T = 300K
+verlet_skin = 0.25
+sim_type = MD
+steps = 2
+
+### MD PARAMS ###
+dt = 0.002
+newtonian_steps=51
+diff_coeff=1
+thermostat=john
+refresh_vel=1
+
+### MC PARAMS ###
+delta_translation = 0.01
+delta_rotation = 0.25
+check_energy_every = 10
+check_energy_threshold = 1.e-4
+ensemble = NVT
+
+##############################
+####     INTERACTIONS     ####
+##############################
+bending_k = 15.0
+torsion_k = 15.0
+
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+parfile = kdpg_anm.par
+topology = generated.top
+conf_file = s1.dat
+trajectory_file = trajectory.dat
+log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1
+print_energy_every = 1
+time_scale = linear

@@ -82,6 +82,7 @@ public:
 		if(ext_forces.size() > 0) {
 			LR_vector abs_pos = box->get_abs_pos(this);
 			for(auto ext_force : ext_forces) {
+				ext_force->set_current_particle(this);
 				force += ext_force->value(step, abs_pos);
 			}
 		}
@@ -99,6 +100,7 @@ public:
 			LR_vector abs_pos = box->get_abs_pos(this);
 			ext_potential = (number) 0.;
 			for(auto ext_force : ext_forces) {
+				ext_force->set_current_particle(this);
 				ext_potential += ext_force->potential(step, abs_pos);
 			}
 		}

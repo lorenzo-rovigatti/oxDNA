@@ -1,8 +1,43 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61.0",
     "wheel",
     "numpy",
     "Cython"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = ">= 3.11"
+dynamic = ["version"]
+name = "oxDNA_analysis_tools"
+
+authors = [
+  { name = "Erik Poppleton", email = "epopplet@asu.edu" }
+]
+
+description = "Python scripts and libraries for structural analysis of oxDNA simulations."
+
+readme = { file = "README.md", content-type = "text/markdown" }
+
+dependencies = [
+  "numpy>=1.24.1",
+  "scikit-learn>=1.8.0",
+  "matplotlib>=3.6.1"
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent"
+]
+
+urls = { Homepage = "https://github.com/sulcgroup/oxdna_analysis_tools", Bug-Tracker = "https://github.com/sulcgroup/oxdna_analysis_tools/issues" }
+
+[project.scripts]
+oat = "oxDNA_analysis_tools.entry:main"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+concurrency = ["multiprocessing"]

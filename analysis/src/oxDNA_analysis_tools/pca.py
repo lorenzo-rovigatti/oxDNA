@@ -73,14 +73,16 @@ def make_heatmap(covariance:np.ndarray):
     b.set_label("covariance", rotation = 270)
     plt.tight_layout()
     plt.savefig("heatmap.png", dpi=FIG_DPI)
+    plt.close(fig)
 
 
 def compute_cov(ctx:ComputeContext_cov, chunk_size:int, chunk_id:int):
+    center = np.mean(ctx.centered_ref_coords, axis=0)
     # get a chunk of confs and convert the positions to numpy arrays
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     covariation_matrix = np.zeros((ctx.top_info.nbases*3, ctx.top_info.nbases*3))
     for c in confs:
-        c = inbox(c, center=True)
+        c = inbox(c, center=True, centerpoint=center)
         c.positions = align_positions(ctx.centered_ref_coords, c.positions)
         difference_matrix = (c.positions - ctx.centered_ref_coords).flatten()
         covariation_matrix += np.einsum('i,j -> ij', difference_matrix, difference_matrix)
@@ -99,10 +101,11 @@ def map_confs_to_pcs(ctx:ComputeContext_map, chunk_size:int, chunk_id:int):
         np.ndarray: The positions of each frame of the trajectory in principal component space.
     """
 
+    center = np.mean(ctx.centered_ref_coords, axis=0)
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     coordinates = np.zeros((len(confs), ctx.top_info.nbases*3))
     for i, c in enumerate(confs):
-        c = inbox(c, center=True)
+        c = inbox(c, center=True, centerpoint=center)
         c.positions = align_positions(ctx.centered_ref_coords, c.positions)
         coordinates[i] = np.dot(ctx.components, c.positions.flatten())
     
@@ -138,10 +141,12 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
 
     #now that we have the covatiation matrix we're going to use eigendecomposition to get the principal components.
     #make_heatmap(covariance)
-    log("calculating eigenvectors")
-    evalues, evectors = np.linalg.eig(covariation_matrix) #these eigenvalues are already sorted
+    log("Calculating eigenvectors")
+    evalues, evectors = np.linalg.eigh(covariation_matrix) #these eigenvalues are already sorted
+    evalues = evalues[::-1] #reverse the order so they're descending
+    evectors = evectors[:, ::-1]
     evectors = evectors.T #vectors come out as the columns of the array
-    log("eigenvectors calculated")
+    log("Eigenvectors calculated")
 
     log("Saving scree plot to scree.png")
     plt.scatter(range(0, len(evalues)), evalues, s=25)
@@ -149,6 +154,7 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
     plt.ylabel("eigenvalue")
     plt.tight_layout()
     plt.savefig("scree.png", dpi=FIG_DPI)
+    plt.close()
 
     total = sum(evalues)
     running = 0
@@ -219,7 +225,8 @@ def main():
     ax = fig.add_subplot(projection='3d')
     ax.scatter(coordinates[:,0], coordinates[:,1], coordinates[:,2], c='g', s=25)
     plt.tight_layout()
-    plt.savefig("coordinates2.png", dpi=FIG_DPI)
+    plt.savefig("coordinates.png", dpi=FIG_DPI)
+    plt.close(fig)
 
     #Create an oxView overlays for the first N components
     if args.N:
@@ -229,7 +236,7 @@ def main():
     prep_pos_for_json = lambda conf: list(
                         list(p) for p in conf
                         )
-    log("Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N))
+    log("Printing oxView overlays for the first {} components.".format(N))
     for i in range(0, N): #how many eigenvalues do you want?
         f = outfile.removesuffix(".json")+str(i)+".json"
         out = np.sqrt(evalues[i])*evectors[i]
@@ -242,6 +249,7 @@ def main():
             file.write(dumps({
                 "pca" : prep_pos_for_json(output_vectors)
             }))
+        log("Wrote component {} to {}".format(i, f))
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

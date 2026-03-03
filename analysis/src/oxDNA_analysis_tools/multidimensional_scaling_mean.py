@@ -15,6 +15,7 @@ from typing import Tuple
 from sklearn.manifold import MDS
 from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.contact_map import contact_map
+from oxDNA_analysis_tools.UTILS.constants import FIG_DPI
 from oxDNA_analysis_tools.distance import vectorized_min_image
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
@@ -49,7 +50,8 @@ def make_heatmap(contact_map:np.ndarray):
        xlabel="nucleotide id")
     b = fig.colorbar(a, ax=ax)
     b.set_label("distance", rotation = 270)
-    plt.show()
+    plt.savefig("contact_map.png", dpi=FIG_DPI)
+    plt.close(fig)
 
 def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ): 
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
@@ -92,7 +94,15 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
     masked_mean = np.ma.masked_array(mean_distances, ~(mean_distances < CUTOFF))
 
     log("fitting local distance data")
-    mds = MDS(n_components=3, metric=True, max_iter=3000, eps=1e-12, dissimilarity="precomputed", n_jobs=1, n_init=1)
+    mds = MDS(n_components=3, 
+              metric="precomputed", 
+              metric_mds=True,
+              max_iter=3000, 
+              eps=1e-12,
+              n_jobs=1, 
+              n_init=1,
+              init='random' #TODO: See if 'classical_mds' improves scaling without taking too long.
+              ) 
     out_coords = mds.fit_transform(masked_mean, init=example_conf.positions) #without the init you can get a left-handed structure.
     a1s = np.zeros((top_info.nbases, 3))
     a3s = np.zeros((top_info.nbases, 3))
@@ -171,7 +181,7 @@ def main():
 
     #-d names the deviations file
     if args.dev_file:
-        devfile = args.dev_file[0].split(".")[0] + ".json"
+        devfile = args.dev_file[0].rsplit(".", 1)[0] + ".json"
     else:
         devfile = "devs_mds.json"
         log("No deviations file name provided, defaulting to \"{}\"".format(devfile))

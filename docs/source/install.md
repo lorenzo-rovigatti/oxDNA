@@ -10,7 +10,7 @@ Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If y
 
 ### Python bindings
 
-Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.9 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.9 and woud like to use `oxpy`
+Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.11 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.11 and woud like to use `oxpy`
 
 ## Compiling oxDNA
 
@@ -56,10 +56,19 @@ If you also want to update `oxpy` and `OAT` don't forget to run `make install` a
 * `-DNATIVE_COMPILATION=ON` Set to `OFF` to compile without the `-march=native` flag. This may be required when compiling binaries to be used elsewhere
 * `-DJSON_ENABLED=On` Set to `OFF` to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers.
 
+When compiling with CUDA with newer CMake versions (> 3.18), you may have to specify the location of `nvcc` by hand with `-DCMAKE_CUDA_COMPILER=/path/to/nvcc`. If doing so results in CMake errors, you may also have to manually specify a C/C++ compiler compatible with the current CUDA install, which can be done by exporting the following environment variables prior to calling CMake:
+
+```bash
+export CC=gcc-9
+export CXX=g++-9
+export CUDAHOSTCXX=g++-9
+```
+
 The following options pertain to `oxpy`:
 
 * `-DPython=ON` Enables Python bindings
 * `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges (unless using Conda environments. See below.).
+* `-DOxpyVersionOverride=On` The `Python` option installs both `oxpy` and `oat`. `Oat`, however has more stringent Python version requirements than `oxpy` (3.11 vs 3.8). This flag skips the Python version check and the `oat` installation, allowing `oxpy` installation in older Python versions. See also [Using oxpy with old Python versions](#using-oxpy-with-old-python-versions).
 
 If you are on your own machine or you installed Python via Anaconda, the `-DOxpySystemInstall=On` option should be set to install `oxpy` and `oxDNA_analysis_tools` on your `$PATH`.  If you are on a shared system (for example and HPC cluster which isn't using Conda), perform the `cmake` command without this option.  `make install` will probably (depends on `pip` settings) install the two libraries in `$HOME/.local/bin/`, which is not on the `$PATH` by default and you will have to add it (if you have not already for another program).  In our testing, Conda-managed versions of Python correctly installed the libraries in the current environment's `site-packages` folder if `-DOxpySystemInstall=On` was set, even on shared systems.
 
@@ -111,12 +120,19 @@ cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUD
 
 ## Using `oxpy` with old Python versions
 
-`oxpy` interfaces with oxDNA using [Pybind11](https://github.com/pybind/pybind11). In September 2023 we updated the version of pybind11 included with oxDNA from 2.2 to 2.11 due to changes to the Python C API which made older versions of Pybind11 incompatible with the current Python 3.11. This new version of pybind11 is only compatible with Python > 3.8. If, for some reason, you need to use an older version of Python 3 and cannot install a newer version in a virtual environment via, for example, [Conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), this can be done by using an older version of pybind11:
+`oxpy` interfaces with oxDNA using [Pybind11](https://github.com/pybind/pybind11). In September 2023 we updated the version of pybind11 included with oxDNA from 2.2 to 2.11 due to changes to the Python C API which made older versions of Pybind11 incompatible with the current Python 3.11. This new version of pybind11 is only compatible with Python > 3.8. If, for some reason, you need to use an older version of Python 3 and cannot install a newer version in a virtual environment via, for example, [Conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), this can be done by using an older version of pybind11. 
+
+After a change to the oxpy `pypoject_cmake.toml` in December 2025, installing oxpy now requires `setuptools` v61 or newer, which requires at least Python 3.7. To install oxpy with Python 3.7:
 
 1. Get an old version of Pybind11 from the [releases page](https://github.com/pybind/pybind11/releases?page=1) of their GitHub, or use the `pybind11_2.2.4.tgz` file that can be found in the `oxDNA/legacy/` folder.
-2. Remove `oxDNA/oxpy/pybind11/` and replace it with the unzipped folder you just downloaded or copied, making sure you rename the folder to `pybind11`
-3. Edit `oxDNA/setup.py` and `oxDNA/oxpy/make_install_setup.py` to remove the `install_requires = [ ...` lines which also install `oat` (OAT requires 3.9+ due to typing and data structures so cannot be installed with older Python versions)
-4. Compile as normal (`cmake -DPython=1 .. && make -j4 && make install`)
+2. Remove `oxDNA/src/oxpy/pybind11/` and replace it with the unzipped folder you just downloaded or copied, making sure you rename the folder to `pybind11`.
+3. Make sure your version of `setuptools` version is >=61.0.0 
+4. Compile with `-DOxpyVersionOverride`: 
+```shell
+cmake -DPython=1 -DOxpyVersionOverride=1 .. 
+make -j4 
+make install
+```
 
 **Note: Tested on a MacOS system with Python 3.6 in a Conda environment**
  

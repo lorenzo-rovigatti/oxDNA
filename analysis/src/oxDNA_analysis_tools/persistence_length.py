@@ -54,6 +54,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     with oxpy.Context():
         inp = oxpy.InputFile()
         inp.init_from_filename(ctx.input_file)
+        inp["log_file"] = "/dev/null"
         inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
@@ -166,6 +167,7 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
     plt.legend()
     plt.tight_layout()
     plt.savefig(plt_name, dpi=FIG_DPI)
+    plt.close(fig)
     log(f"Saving figure to {plt_name}")
 
     return pl

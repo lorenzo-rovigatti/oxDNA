@@ -237,7 +237,13 @@ class Strand:
         """
         Returns the sequence of the Strand as a string.
         """
-        return ''.join([str(m.btype) for m in self])
+        seq_str = []
+        for m in self:
+            if isinstance(m.btype, str):
+                seq_str.append(m.btype)
+            elif isinstance(m.btype, int):
+                seq_str.append(f"({m.btype})")
+        return ''.join(seq_str)
     
     def set_sequence(self, new_seq:str) -> None:
         """
