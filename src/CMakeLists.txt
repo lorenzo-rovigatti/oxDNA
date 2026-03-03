@@ -286,7 +286,6 @@ IF(CUDA)
 		CUDA/Thermostats/CUDASRDThermostat.cu
 		CUDA/Thermostats/CUDALangevinThermostat.cu
 		CUDA/Thermostats/CUDABussiThermostat.cu
-		CUDA/Thermostats/CUDABussiThermostat.cu
 		CUDA/Thermostats/CUDARefreshThermostat.cu
 		Utilities/Timings.cpp
 	)
