@@ -34,7 +34,7 @@
 # Build directories
 build/
 pybuild/
-cuda/
+# cuda/
 docs/oxpy/doctrees
 venv/
 
