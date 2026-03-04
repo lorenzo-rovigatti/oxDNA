@@ -48,16 +48,28 @@ class VMMC_CPUBackend: public MC_CPUBackend {
 	};
 
 protected:
+	// whether the system has umbrella sampling
 	bool _have_us;
 	bool _reload_hist;
+	// order parameters
 	OrderParameters _op;
 	char _op_file[512];
+	// weights matrix
 	Weights _w;
+	// file name for weights file
 	char _weights_file[512];
+	// histogram of state sampling
 	Histogram _h;
 
+	// flag to print trajectory histograms to file. default to true
+	bool _print_traj_hist_file;
+
+
+	// whether to demand all weights be explicitly stated in the weights file
 	bool _safe_weights;
+	// whether to skip states with zero sampling
 	bool _skip_hist_zeros;
+	// default value for weights not explicitly stated in weights file, if _safe_weights = False. if safe_weights = True, will ignore
 	number _default_weight;
 
 	int _last_move;
@@ -87,10 +99,16 @@ protected:
 
 	void _print_pos(int);
 
-	char _traj_hist_file[512];
-	char _last_hist_file[512];
-	char _init_hist_file[512];
+	// file name for trajectory histogram
+	std::string _traj_hist_file;
+	// file name for last histogram
+	std::string _last_hist_file;
+	// file name for initial histogram??
+	std::string _init_hist_file;
+	// ???
 	char _state_str[512];
+
+	// additional options for compressed weights / hists
 
 	int _maxclust;
 

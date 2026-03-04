@@ -142,6 +142,7 @@ The following options control the behaviour of MC simulations.
     file and weight file. Used if `umbrella_sampling = true`, defaults to `true`.
 * `[default_weight = <float>]`: default weight for states that have no specified weight assigned from the weights file. Mandatory if `safe_weights = true`.
 * `[skip_hist_zeros = <bool>]`: whether to skip zero entries in the `traj_hist` file. Mandatory if `umbrella_sampling = true`, defaults to `false`.
+* `[print_traj_hist_file = <bool>]`: whether to print the trajectory histogram. if `false`, only the last histogram will be written (to the file specified in `last_hist_file`). Defaults to `true`.
 
 ## Common options for `DNA`, `DNA2`, `RNA` and `RNA2` simulations
 
