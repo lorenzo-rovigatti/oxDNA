@@ -399,6 +399,13 @@ std::string Histogram::print_to_string(bool skip_zeros) {
 	return my_stream.str();
 }
 
+/**
+ *
+ * @param filename file to which to print the histogram
+ * @param time simulation time
+ * @param only_last whether to only print hte last histogram
+ * @param skip_zeros whether to skip states with zero sampling
+ */
 void Histogram::print_to_file(const char * filename, long long int time, bool only_last, bool skip_zeros) {
 	FILE * outfile;
 

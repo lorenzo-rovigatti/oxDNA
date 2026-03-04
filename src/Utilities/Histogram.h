@@ -54,6 +54,7 @@ class Histogram {
 		void add(int index, double w, double e); // to implement...
 		void print();
 		void print_to_file (const char * filename, long long int time, bool only_last, bool skip_zeros);
+		void print_to_file(const std::string& filename,  long long int time, bool only_last, bool skip_zeroes) {print_to_file(filename.c_str(), time, only_last, skip_zeroes);};
 		std::string print_to_string (bool skip_zeros=false);
 		void load_from_file (const char * filename);
 		void read_interaction(input_file &);
