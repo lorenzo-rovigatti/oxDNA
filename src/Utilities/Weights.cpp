@@ -58,8 +58,6 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
     while (inp.good()) {
         getline (inp, line);
 
-        if (line.length() > 1000) throw oxDNAException ("(Weights.cpp) weight parser: error parsing line %d in %s. Lines cannot exceed 1000 characters.", lineno, filename);
-
         if (line.empty()) continue;
 
         // Strip leading whitespace
@@ -85,10 +83,10 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
             if (tmp[i] < 0 || tmp[i] > (_sizes[i] + 2)) {
                 throw oxDNAException ("(Weights.cpp) parser: error parsing line %d of `%s`': index %d out of OrderParameters bounds. Aborting\n", lineno, filename, tmp[i]);
             }
-            if (tmpf < -DBL_EPSILON) {
-                throw oxDNAException ("(Weights.cpp) parser: error parsing line %d of `%s`': weight %lf < 0. Cowardly refusing to proceed. Aborting\n", lineno, filename, tmpf);
-            }
         }
+    	if (tmpf < -DBL_EPSILON) {
+    		throw oxDNAException ("(Weights.cpp) parser: error parsing line %d of `%s`': weight %lf < 0. Cowardly refusing to proceed. Aborting\n", lineno, filename, tmpf);
+    	}
 
         int index = 0;
         for (int i = 0; i < _ndim; i ++) {
