@@ -159,6 +159,15 @@
     :prog: oat generate_forces
 ```
 
+## IDconvert
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/IDconvert.py
+    :func: cli_parser
+    :prog: oat IDconvert
+```
+
 ## Mean
 
 ```{eval-rst}
