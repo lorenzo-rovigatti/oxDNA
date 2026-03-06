@@ -251,6 +251,25 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
 
     return(reading_position, amino_acids)
 
+_HY36_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+_HY36_OFFSET = 16696160  # int('A0000', 36) - 100000
+
+def _format_atom_serial(n: int) -> str:
+    """Format a PDB atom serial number using the hybrid36 convention beyond 99999.
+
+    Values 1-99999 are written as standard decimal.  Values >= 100000 are encoded
+    as 5-character base-36 strings (0-9 then A-Z per digit) with an offset chosen
+    so that A0000 == 100000 (e.g. 100010 -> A000A, 100036 -> A0010).
+    """
+    if n < 100000:
+        return f"{n:5d}"
+    n += _HY36_OFFSET
+    chars = []
+    for _ in range(5):
+        chars.append(_HY36_DIGITS[n % 36])
+        n //= 36
+    return ''.join(reversed(chars))
+
 def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper) -> int:
     """
         Write a list of nucleotide property dictionaries as a new chain to an open PDB file
@@ -267,26 +286,26 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
     #re-index and create PDB string
     for nid, n in enumerate(strand_pdb, 1):
         for a in n:
-            print("{:6s}{:5d} {:^4s}{:1s}{:>3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
+            print("{:6s}{:5s} {:^4s}{:1s}{:>3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
                 .format(
-                    "ATOM",            #record
-                    atom_counter,      #atom_id
-                    a['name'],         #atom_name
-                    " ",               #alt_loc
-                    a['residue_name'], #res_name
-                    chain_id,          #chain_id
-                    nid,               #res_id
-                    " ",               #ins_code
-                    a['pos'][0],       #coord_x
-                    a['pos'][1],       #coord_y
-                    a['pos'][2],       #coord_z
-                    1.00,              #residency
-                    a['bfactor'],      #b-factor
-                    " ", " "           #element,charge
+                    "ATOM",                         #record
+                    _format_atom_serial(atom_counter), #atom_id
+                    a['name'],                      #atom_name
+                    " ",                            #alt_loc
+                    a['residue_name'],              #res_name
+                    chain_id,                       #chain_id
+                    nid,                            #res_id
+                    " ",                            #ins_code
+                    a['pos'][0],                    #coord_x
+                    a['pos'][1],                    #coord_y
+                    a['pos'][2],                    #coord_z
+                    1.00,                           #residency
+                    a['bfactor'],                   #b-factor
+                    " ", " "                        #element,charge
                 ),
                 file=out
             )
-            atom_counter = (atom_counter+1) % 9999
+            atom_counter = (atom_counter + 1) % 43770016  # hybrid36 max: ZZZZZ
     print("TER", file=out)
 
     return(atom_counter)
