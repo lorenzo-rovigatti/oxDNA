@@ -6,6 +6,7 @@ Tests cover:
 - Old-format topology support
 - CLI argument parsing
 - main() CLI entry point
+- Circular strand handling
 """
 import sys
 from pathlib import Path
@@ -315,3 +316,177 @@ class TestMain:
             main()
         tokens = capsys.readouterr().out.strip().split()
         assert tokens == ["0", "1", "2", "3", "4"]
+
+    def test_min_score_flag(self, two_strands_top, capsys):
+        """--min-score flag is accepted and forwarded to IDconvert()."""
+        with patch.object(sys, 'argv', [
+            "IDconvert.py", two_strands_top, two_strands_top, "-q",
+            "--min-score", "0.5"
+        ]):
+            main()
+        tokens = capsys.readouterr().out.strip().split()
+        assert len(tokens) == 16
+
+    def test_min_block_flag(self, two_strands_top, capsys):
+        """--min-block flag is accepted and forwarded to IDconvert()."""
+        with patch.object(sys, 'argv', [
+            "IDconvert.py", two_strands_top, two_strands_top, "-q",
+            "--min-block", "4"
+        ]):
+            main()
+        tokens = capsys.readouterr().out.strip().split()
+        assert len(tokens) == 16
+
+
+# =============================================================================
+# Circular Strand Tests
+# =============================================================================
+
+@pytest.fixture
+def circular_tops(tmp_path):
+    """New-format topology with one circular strand (IDs 0-11, 12 nt)."""
+    top = tmp_path / "circular.top"
+    top.write_text(
+        "12 1 5->3\n"
+        "ACGTACGTACGT id=1 type=DNA circular=true\n"   # IDs 0-11
+    )
+    return str(top)
+
+
+@pytest.fixture
+def circular_nicked_tops(tmp_path):
+    """
+    Reference has a single 12-nt circular strand; comparison has it nicked
+    into two 6-nt linear strands (simulating a nick introduced at position 6).
+    """
+    ref_top = tmp_path / "ref_circ.top"
+    ref_top.write_text(
+        "12 1 5->3\n"
+        "ACGTACGTACGT id=1 type=DNA circular=true\n"   # IDs 0-11
+    )
+    cmp_top = tmp_path / "cmp_nicked.top"
+    cmp_top.write_text(
+        "12 2 5->3\n"
+        "ACGTAC id=1 type=DNA circular=false\n"   # IDs 0-5  (5' half)
+        "GTACGT id=2 type=DNA circular=false\n"   # IDs 6-11 (3' half)
+    )
+    return str(ref_top), str(cmp_top)
+
+
+@pytest.fixture
+def circular_rotated_tops(tmp_path):
+    """
+    Reference has a 12-nt circular strand; comparison has the same sequence
+    rotated by 4 positions (simulating a different linearisation point).
+    This documents the known limitation that a rotated circular strand may
+    not achieve a full mapping via sequence similarity alone.
+    """
+    ref_top = tmp_path / "ref_rot.top"
+    ref_top.write_text(
+        "12 1 5->3\n"
+        "ACGTACGTACGT id=1 type=DNA circular=true\n"    # IDs 0-11
+    )
+    cmp_top = tmp_path / "cmp_rot.top"
+    cmp_top.write_text(
+        "12 1 5->3\n"
+        "ACGTACGTACGT id=1 type=DNA circular=false\n"   # IDs 0-11, same seq, linear
+    )
+    return str(ref_top), str(cmp_top)
+
+
+@pytest.fixture
+def circular_nicked_same_strand_tops(tmp_path):
+    """
+    Ref: 32-nt circular strand (IDs 0-31).
+    Cmp: same strand nicked at position 8, stored as linear starting from ID 8
+         (sequence rotated by 8 positions, IDs 0-31).
+    Phase 1 score = 2*24/64 = 0.75 (exactly meets threshold).
+    Wrap-around = 8 nt = min_block_size → phase 2 must recover them.
+    """
+    ref_top = tmp_path / "ref_circ32.top"
+    ref_top.write_text(
+        "32 1 5->3\n"
+        "ACGTGAATCGAAATCCTGATACGTACGTGAAT id=1 type=DNA circular=true\n"
+    )
+    cmp_top = tmp_path / "cmp_nicked32.top"
+    cmp_top.write_text(
+        "32 1 5->3\n"
+        "CGAAATCCTGATACGTACGTGAATACGTGAAT id=1 type=DNA circular=false\n"
+    )
+    return str(ref_top), str(cmp_top)
+
+
+class TestCircularStrands:
+    """Tests for circular-strand handling in IDconvert."""
+
+    def test_circular_identity(self, circular_tops):
+        """A circular strand mapped against itself gives a complete identity mapping."""
+        id_map = IDconvert(circular_tops, circular_tops)
+        assert len(id_map) == 12
+        for ref_id, cmp_id in id_map.items():
+            assert ref_id == cmp_id, f"ID {ref_id} should map to itself, got {cmp_id}"
+
+    def test_circular_identity_bijection(self, circular_tops):
+        """Identity mapping of a circular strand is injective (no duplicate targets)."""
+        id_map = IDconvert(circular_tops, circular_tops)
+        cmp_ids = list(id_map.values())
+        assert len(cmp_ids) == len(set(cmp_ids))
+
+    def test_nicked_circular_strand_recovered(self, circular_nicked_tops):
+        """
+        Phase 2 partially recovers nucleotides from a nicked circular strand.
+
+        The reference has a 12-nt circular strand (ACGTACGTACGT); the
+        comparison splits it into two 6-nt linear fragments (ACGTAC + GTACGT).
+        Because the sequence is a repeating ACGT motif and the fragments are
+        only 6 nt, SequenceMatcher cannot unambiguously resolve all 12
+        positions — this is a known limitation for short circular strands with
+        repetitive sequences.  The test documents the current behavior: at
+        least 6 nucleotides are mapped, the result is injective, and all
+        mapped targets lie within the 12-nt comparison topology.
+        """
+        ref_top, cmp_top = circular_nicked_tops
+        id_map = IDconvert(ref_top, cmp_top, min_phase1_score=0.4, min_block_size=3)
+        # At least the phase-1 matched fragment should appear in the mapping
+        assert len(id_map) >= 6, (
+            f"Expected at least 6 mapped nucleotides, got {len(id_map)}"
+        )
+        # Mapping must remain injective
+        cmp_ids = list(id_map.values())
+        assert len(cmp_ids) == len(set(cmp_ids)), "Mapping must be injective"
+        # All mapped target IDs are within the 12-nt comparison topology
+        assert all(0 <= cid < 12 for cid in cmp_ids), "All target IDs must be in range 0-11"
+
+    def test_circular_nicked_same_strand(self, circular_nicked_same_strand_tops):
+        """
+        A circular strand nicked at a position other than its stored 5' end becomes a
+        rotated linear strand.  Phase 2 must recover the wrap-around nucleotides that
+        phase 1 misses due to SequenceMatcher's monotonicity constraint.
+        All 32 nucleotides should be mapped, and the mapping must be injective.
+        """
+        ref_top, cmp_top = circular_nicked_same_strand_tops
+        id_map = IDconvert(ref_top, cmp_top)
+        assert len(id_map) == 32, (
+            f"All 32 nucleotides should be mapped; got {len(id_map)}"
+        )
+        cmp_ids = list(id_map.values())
+        assert len(cmp_ids) == len(set(cmp_ids)), "Mapping must be injective"
+
+    def test_circular_vs_linear_rotation_documents_behavior(self, circular_rotated_tops):
+        """
+        Document current behavior when a circular strand is compared against a
+        linear strand with the same sequence.
+
+        A circular strand (ref) vs the same sequence as a linear strand (cmp)
+        should achieve a high-scoring phase-1 match because the sequences are
+        identical.  This test asserts that *at least* the overlapping bases are
+        mapped, and records the known limitation that a purely rotated circular
+        comparison may not map every base.
+        """
+        ref_top, cmp_top = circular_rotated_tops
+        id_map = IDconvert(ref_top, cmp_top)
+        # At minimum we expect some mapping — not an empty result
+        assert len(id_map) > 0, "Expected at least some nucleotides to be mapped"
+        # Mapping must be injective
+        cmp_ids = list(id_map.values())
+        assert len(cmp_ids) == len(set(cmp_ids)), "Mapping must be injective"

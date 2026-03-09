@@ -17,7 +17,9 @@ from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.RyeReader import strand_describe
 
 
-def IDconvert(ref_top: str, cmp_top: str) -> Dict[int, int]:
+def IDconvert(ref_top: str, cmp_top: str,
+              min_phase1_score: float = 0.75,
+              min_block_size: int = 8) -> Dict[int, int]:
     """
     Translate nucleotide IDs between two oxDNA topology files.
 
@@ -29,6 +31,12 @@ def IDconvert(ref_top: str, cmp_top: str) -> Dict[int, int]:
     Parameters:
         ref_top (str): Path to the reference ``.top`` topology file.
         cmp_top (str): Path to the comparison ``.top`` topology file.
+        min_phase1_score (float): Minimum similarity score (0–1) required to
+            accept a strand match in phase 1.  Strands whose best match falls
+            below this threshold are left for phase 2.  Default: 0.75.
+        min_block_size (int): Minimum consecutive-base block length required
+            in phase 2 (nicking, ligation, and circular wrap-around) matching.
+            Shorter blocks are treated as spurious.  Default: 8.
 
     Returns:
         Dict[int, int]: Maps each matched reference nucleotide ID to the
@@ -39,27 +47,9 @@ def IDconvert(ref_top: str, cmp_top: str) -> Dict[int, int]:
     ref_system, _ = strand_describe(ref_top)
     cmp_system, _ = strand_describe(cmp_top)
 
-    # Build chain representations in 5'→3' order.
-    # New-format strands store monomers in 5'→3' order already.
-    # Old-format strands store monomers in file order (typically 3'→5'), so we
-    # must traverse connectivity from the 5' end (n5 is None) following n3 links.
-    def _build_chain(strand):
-        if not strand.is_old():
-            return [(m.id, str(m.btype)) for m in strand.monomers]
-        m_by_id = {m.id: m for m in strand.monomers}
-        start = next((m for m in strand.monomers if m.n5 is None), strand.monomers[0])
-        chain, cur, seen = [], start, set()
-        while cur is not None and cur.id not in seen:
-            chain.append((cur.id, str(cur.btype)))
-            seen.add(cur.id)
-            cur = m_by_id.get(cur.n3)
-        return chain
-
-    def _chains(system):
-        return {s.id: _build_chain(s) for s in system}
-
-    ref_strands = _chains(ref_system)
-    cmp_strands = _chains(cmp_system)
+    # Build chain representations in 5'→3' order using Strand.get_5_3().
+    ref_strands = {s.id: s.get_5_3() for s in ref_system}
+    cmp_strands = {s.id: s.get_5_3() for s in cmp_system}
 
     ref_total = sum(len(c) for c in ref_strands.values())
     cmp_total = sum(len(c) for c in cmp_strands.values())
@@ -67,29 +57,32 @@ def IDconvert(ref_top: str, cmp_top: str) -> Dict[int, int]:
     log(f"Structure 2 (compare):   {cmp_total} nucleotides in {len(cmp_strands)} strands")
 
     # Phase 1: match each reference strand to the most similar strand in the compare file.
-    # Only accept a match if the similarity score meets the minimum threshold; this prevents
-    # deleted or substantially-changed ref strands from spuriously "stealing" cmp strands
-    # that should belong to other ref strands.
-    _MIN_PHASE1_SCORE = 0.75
-    used = set()
-    strand_map = {}
-    strand_scores = {}
+    # All pairwise scores are computed upfront and then greedily assigned from highest to
+    # lowest, ensuring globally best pairs are matched first rather than letting an
+    # earlier ref strand steal a match that belongs to a later one.
+    all_scores = []
     for ref_id, ref_chain in ref_strands.items():
         ref_seq = ''.join(b for _, b in ref_chain)
-        best_id, best_score = None, 0.0
         for cmp_id, cmp_chain in cmp_strands.items():
-            if cmp_id in used:
-                continue
             score = SequenceMatcher(None, ref_seq, ''.join(b for _, b in cmp_chain)).ratio()
-            if score > best_score:
-                best_score, best_id = score, cmp_id
-        if best_score >= _MIN_PHASE1_SCORE:
-            strand_map[ref_id] = best_id
-            strand_scores[ref_id] = best_score
-            used.add(best_id)
-        else:
-            strand_map[ref_id] = None   # below threshold — likely deleted/substantially changed
-            strand_scores[ref_id] = best_score
+            all_scores.append((score, ref_id, cmp_id))
+
+    all_scores.sort(reverse=True)
+    used_ref, used_cmp = set(), set()
+    strand_map, strand_scores = {}, {}
+    for score, ref_id, cmp_id in all_scores:
+        if ref_id in used_ref or cmp_id in used_cmp:
+            continue
+        if score >= min_phase1_score:
+            strand_map[ref_id] = cmp_id
+            strand_scores[ref_id] = score
+            used_ref.add(ref_id)
+            used_cmp.add(cmp_id)
+    # Unmatched ref strands: no compare strand scored above threshold
+    for ref_id in ref_strands:
+        if ref_id not in strand_map:
+            strand_map[ref_id] = None
+            strand_scores[ref_id] = 0.0
 
     # Align matched strand pairs base-by-base to build the ref_id → cmp_id mapping
     id_map: Dict[int, int] = {}
@@ -113,43 +106,46 @@ def IDconvert(ref_top: str, cmp_top: str) -> Dict[int, int]:
         score   = strand_scores[ref_sid]
         log(f"  ref strand {ref_sid} ({ref_len} nt) -> cmp strand {cmp_sid} ({cmp_len} nt), similarity {score:.3f}")
     if n_skipped:
-        log(f"  ({n_skipped} ref strands below score threshold {_MIN_PHASE1_SCORE:.2f},"
+        log(f"  ({n_skipped} ref strands below score threshold {min_phase1_score:.2f},"
             f" leaving their nucleotides for phase 2)")
 
-    # Phase 2: resolve nicking and ligation.
+    # Phase 2: resolve nicking, ligation, and circular strand wrap-around.
     # After 1-to-1 matching some nucleotides may be unmatched because:
     #   - Nicking:   one ref strand was split into several cmp strands.
     #   - Ligation:  several ref strands were joined into one cmp strand.
-    #   - Score threshold: a ref strand scored below the phase-1 threshold because it
-    #     was heavily nicked (phase 2 maps its nucleotides to the correct fragments).
-    # Two constraints are enforced to prevent spurious mappings:
-    #   1. Only matching blocks of at least _MIN_BLOCK_SIZE consecutive bases are accepted.
-    #      Shorter blocks are likely spurious commonality between deleted strands and
-    #      unrelated compare strands, not genuine nicking/ligation matches.
+    #   - Circular:  a circular ref strand was nicked into a single linear cmp strand at a
+    #                different position, rotating the sequence; the wrap-around portion
+    #                appears at the start of the ref chain and end of the cmp chain.
+    #   - Score threshold: a ref strand scored below the phase-1 threshold.
+    # SequenceMatcher is run on only the unmatched ref nucleotides (unmatched_sub) against
+    # only the unassigned cmp nucleotides (avail), which:
+    #   (a) avoids monotonicity conflicts that arise when aligning full rotated chains, and
+    #   (b) eliminates the need for a separate skip-already-matched guard.
+    # Two constraints prevent spurious mappings:
+    #   1. Only matching blocks of ≥ min_block_size consecutive bases are accepted.
     #   2. Each cmp nucleotide ID can be assigned to at most one ref nucleotide (bijection).
-    #      This prevents deleted-strand nucleotides from double-booking cmp slots that are
-    #      already taken by legitimate phase-1 assignments.
-    _MIN_BLOCK_SIZE = 8
-    used_cmp_ids = set(id_map.values())   # cmp nucleotide IDs already assigned in phase 1
+    used_cmp_ids = set(id_map.values())
     unmatched = ({nid for chain in ref_strands.values() for nid, _ in chain}
                  - set(id_map.keys()))
     if unmatched:
         n_before = len(unmatched)
         log(f"Phase 2 (nicking/ligation): resolving {n_before} unmatched nucleotides...")
         for ref_id, ref_chain in ref_strands.items():
-            if not any(nid in unmatched for nid, _ in ref_chain):
+            unmatched_sub = [(nid, b) for nid, b in ref_chain if nid in unmatched]
+            if not unmatched_sub:
                 continue
             for cmp_id, cmp_chain in cmp_strands.items():
-                if strand_map.get(ref_id) == cmp_id:
-                    continue  # already aligned in phase 1
-                matcher = SequenceMatcher(None, [b for _, b in ref_chain],
-                                                [b for _, b in cmp_chain], autojunk=False)
-                for a, b, size in matcher.get_matching_blocks():
-                    if size < _MIN_BLOCK_SIZE:
-                        continue  # skip short spurious blocks
+                avail = [(nid, b) for nid, b in cmp_chain if nid not in used_cmp_ids]
+                if not avail:
+                    continue
+                matcher = SequenceMatcher(None, [b for _, b in unmatched_sub],
+                                               [b for _, b in avail], autojunk=False)
+                for a, b_off, size in matcher.get_matching_blocks():
+                    if size < min_block_size:
+                        continue
                     for i in range(size):
-                        ref_nid = ref_chain[a + i][0]
-                        cmp_nid = cmp_chain[b + i][0]
+                        ref_nid = unmatched_sub[a + i][0]
+                        cmp_nid = avail[b_off + i][0]
                         if ref_nid in unmatched and cmp_nid not in used_cmp_ids:
                             id_map[ref_nid] = cmp_nid
                             unmatched.discard(ref_nid)
@@ -174,6 +170,12 @@ def cli_parser(prog="IDconvert") -> argparse.ArgumentParser:
     parser.add_argument('-i', '--index', metavar='index_file', dest='index_file', nargs=1,
         help='File containing a space- or comma-separated list of nucleotide IDs from the '
              'reference topology to translate.  If omitted, all nucleotides in the reference are used.')
+    parser.add_argument('--min-score', type=float, default=0.75, dest='min_score',
+        help='Minimum similarity score (0–1) required to accept a strand match in phase 1 '
+             '(default: 0.75).')
+    parser.add_argument('--min-block', type=int, default=8, dest='min_block',
+        help='Minimum consecutive-base block length for phase 2 nicking/ligation matching '
+             '(default: 8).')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_const',
         const=True, default=False, help='Silence non-essential output.')
     return parser
@@ -195,7 +197,9 @@ def main():
         ref_system, _ = strand_describe(args.reference)
         query_ids = [m.id for s in ref_system for m in s.monomers]
 
-    id_map = IDconvert(args.reference, args.compare)
+    id_map = IDconvert(args.reference, args.compare,
+                       min_phase1_score=args.min_score,
+                       min_block_size=args.min_block)
     new_ids = [str(id_map.get(old_id, 'DELETED')) for old_id in query_ids]
     print(' '.join(new_ids))
 
