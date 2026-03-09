@@ -106,9 +106,24 @@ class Residue():
         p, a1, a3 = self.calc_ox_properties()
         return Monomer(self.resi, self.resn, strand, None, None, None, p, a1, a3)
 
+def _parse_atom_serial(s: str) -> int:
+    """Parse a PDB atom serial number, handling the hybrid36 convention beyond 99999.
+
+    Values 1-99999 are standard decimal.  Values >= 100000 are encoded as a
+    5-character base-36 string (0-9 then A-Z per digit) with an offset chosen so
+    that A0000 == 100000.  This is the hybrid36 scheme used by VMD, NAMD, Chimera,
+    and others (e.g. A0009 -> A000A -> A000B ...).
+    """
+    s = s.strip()
+    try:
+        return int(s)
+    except ValueError:
+        # hybrid36 offset: int('A0000', 36) - 100000 = 16796160 - 100000 = 16696160
+        return int(s, 36) - 16696160
+
 def parse_atom(l:str):
     return Atom(
-        int(l[6:11].strip()),                                          # atom index
+        _parse_atom_serial(l[6:11]),                                   # atom index
         l[12:16].strip(),                                              # atom name
         l[16].strip(),                                                 # alternate location
         l[17:20].strip(),                                              # resname
