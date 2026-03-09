@@ -1,345 +1,343 @@
+
 # VTJ1 Trajectory Compression Format
 
 ## UltraEncode / UltraDecode
 
-This repository contains a **high‑performance trajectory compression
-system** designed for large molecular or particle simulations such as
-oxDNA.\
-The system converts large plaintext trajectory files into a compact
-binary representation while preserving extremely high numerical
-precision.
+This repository provides a **high‑performance trajectory compression system** designed for large molecular or particle simulations such as **oxDNA**. The system converts large plaintext trajectory files (`.dat`) into a compact binary representation (`.bin`) while preserving extremely high numerical precision.
 
 The compression pipeline consists of two programs:
 
--   **encode_trj.c** --- converts plaintext trajectories (`.dat`) to
-    compressed binary (`.bin`)
--   **decode_trj.c** --- reconstructs the original trajectory text from
-    the binary format
+- **encode_trj** — converts plaintext trajectories (`.dat`) into compressed binary (`.bin`)
+- **decode_trj** — reconstructs the original trajectory text from the binary format
 
-The format used is called **VTJ1 (Trajectory v1)**.
+The binary format used by this system is called **VTJ1 (Trajectory v1)**.
 
-------------------------------------------------------------------------
+---
 
 # Overview
 
-Simulation trajectory files can be extremely large because they contain:
+Simulation trajectory files often become extremely large because they store:
 
--   floating point coordinates
--   time values
--   box vectors
--   energies
--   particle state values
--   repeated structure across frames
+- floating‑point particle coordinates
+- simulation time values
+- simulation box vectors
+- energy values
+- particle state values
+- repeated structural data across frames
 
-Typical plaintext trajectory files store numbers as ASCII text, which is
-inefficient.
+Standard trajectory formats store numbers as **ASCII text**, which is inefficient both in storage and parsing performance.
 
-The VTJ1 format reduces file size by combining:
+The **VTJ1 format** significantly reduces file size by combining several compression techniques specifically designed for simulation trajectories:
 
-1.  **Fixed‑point quantization**
-2.  **Delta compression**
-3.  **Predictive coding**
-4.  **Variable length integer encoding**
-5.  **Global metadata storage**
+1. Fixed‑point quantization
+2. Delta compression
+3. Predictive coding
+4. Variable‑length integer encoding
+5. Global metadata storage
 
-The result is a compact binary format optimized for trajectories where
-particle motion between frames is small.
+Because molecular simulations typically produce **smooth particle motion between frames**, these techniques achieve very high compression ratios while maintaining precise numerical reconstruction.
 
-------------------------------------------------------------------------
+---
 
 # Compression Pipeline
 
-The encoder performs the following steps:
+The encoder performs the following steps when converting a trajectory:
 
-1.  Parse the plaintext trajectory file.
-2.  Convert floating‑point values to fixed‑point integers.
-3.  Predict the next frame using previous frames.
-4.  Store only the difference from the prediction.
-5.  Encode the integers using variable‑length encoding.
-6.  Store global metadata in a compact header.
+1. Parse the plaintext trajectory file.
+2. Convert floating‑point values to fixed‑point integers.
+3. Predict the next frame using previous frames.
+4. Store only the difference from the prediction.
+5. Encode integers using variable‑length encoding.
+6. Store global metadata once in a compact header.
 
-The decoder reverses these steps exactly.
+The decoder performs the exact inverse operations to reconstruct the trajectory.
 
-------------------------------------------------------------------------
+---
 
 # Fixed‑Point Quantization
 
-All floating point values are converted to integers using a fixed
-decimal precision.
+All floating‑point values are converted into integers using a fixed decimal precision.
 
-    q = round(value × 10^scale_digits)
+q = round(value × 10^scale_digits)
 
 Example:
 
-  Original           scale_digits   Stored integer
-  ------------------ -------------- ----------------
-  0.123456           6              123456
-  0.12345678901234   14             12345678901234
+| Original Value | scale_digits | Stored Integer |
+|---------------|-------------|---------------|
+| 0.123456 | 6 | 123456 |
+| 0.12345678901234 | 14 | 12345678901234 |
 
-This allows floating point values to be stored as integers while
-preserving controlled precision.
+This transformation allows floating‑point values to be stored as integers while maintaining controlled numerical precision.
 
-Typical settings:
+Typical precision settings:
 
-  scale_digits   Precision
-  -------------- -----------
-  6              1e‑6
-  10             1e‑10
-  14             1e‑14
+| scale_digits | Precision |
+|--------------|----------|
+| 6 | 1e‑6 |
+| 10 | 1e‑10 |
+| 14 | 1e‑14 |
 
-Higher values increase accuracy but also increase encoded size slightly.
+Higher precision slightly increases the encoded size but improves reconstruction accuracy.
 
-------------------------------------------------------------------------
+---
 
 # Frame Prediction
 
-Particle values change slowly between simulation frames.
-
-To exploit this, the encoder predicts values using previous frames.
+Particle values typically change slowly between frames. The encoder exploits this by predicting each frame from previous frames and storing only the residual difference.
 
 ## Frame 0
 
-The first frame is stored directly.
+The first frame is stored directly:
 
-    stored = q
+stored = q
 
 ## Frame 1
 
-The second frame stores the difference from frame 0.
+The second frame stores the difference from frame 0:
 
-    delta = q1 − q0
+delta = q₁ − q₀
 
-## Frame ≥2
+## Frame ≥ 2
 
-Later frames use **second‑order prediction**.
+Later frames use **second‑order prediction**:
 
-    prediction = 2*q_prev − q_prev2
-    delta = q − prediction
+prediction = 2 × q_prev − q_prev2
 
-This captures constant velocity motion and reduces the magnitude of
-stored values.
+delta = q − prediction
 
-------------------------------------------------------------------------
+This captures constant‑velocity motion and dramatically reduces the magnitude of stored values.
+
+---
 
 # Energy Compression
 
-Energy values are also delta encoded.
+Energy values are also delta‑encoded.
 
 Frame 0 stores absolute values:
 
-    E0
+E₀
 
 Subsequent frames store differences:
 
-    delta = Ek − Ek−1
+delta = E_k − E_{k−1}
 
-Because energies change slowly, these deltas are small integers.
+Because energies change slowly between frames, these differences remain small integers and compress efficiently.
 
-------------------------------------------------------------------------
+---
 
 # Variable‑Length Integer Encoding
 
-All integers are written using **signed LEB128 variable length
-encoding**.
+All integer values are encoded using **signed LEB128 variable‑length encoding**.
 
-Small integers require fewer bytes.
+This encoding allows small integers to occupy fewer bytes.
 
-Typical sizes:
+Typical storage sizes:
 
-  Value Range     Storage
-  --------------- ------------
-  -64..63         1 byte
-  -8192..8191     2 bytes
-  larger values   more bytes
+| Value Range | Storage |
+|-------------|---------|
+| -64..63 | 1 byte |
+| -8192..8191 | 2 bytes |
+| larger values | more bytes |
 
-Because prediction keeps values small, most stored numbers occupy **1--2
-bytes**.
+Since prediction keeps most deltas small, the majority of stored values require only **1–2 bytes**.
 
-------------------------------------------------------------------------
+---
 
 # Global Metadata
 
-Information that does not change between frames is stored once in the
-header.
+Information that remains constant across frames is stored once in the header instead of being repeated.
 
-These values include:
+The metadata includes:
 
--   simulation box vectors
--   timestep spacing
--   number of rows
--   number of columns
--   energy dimension
--   quantization scale
+- simulation box vectors
+- timestep spacing
+- number of particle rows
+- number of columns per row
+- number of energy values
+- quantization precision
 
-This avoids repeating identical information in every frame.
+This greatly reduces redundant data storage.
 
-------------------------------------------------------------------------
+---
 
 # VTJ1 Binary Layout
 
-The file begins with a fixed‑size header.
+Each VTJ1 file begins with a fixed‑size header.
 
-    magic:        4 bytes   "VTJ1"
-    version:      uint32
-    scale_digits: uint32
-    n_rows:       uint32
-    n_cols:       uint32
-    n_b:          uint32
-    box_values:   MAX_BVALS × int64
-    t0_q:         int64
-    dt_q:         int64
-    n_E:          uint32
+Header structure:
+
+magic:        4 bytes   "VTJ1"
+version:      uint32
+scale_digits: uint32
+n_rows:       uint32
+n_cols:       uint32
+n_b:          uint32
+box_values:   MAX_BVALS × int64
+t0_q:         int64
+dt_q:         int64
+n_E:          uint32
 
 After the header, the compressed frames follow.
 
 Each frame contains:
 
-    energy_deltas
-    body_deltas (column by column)
+- energy deltas
+- body deltas (stored column‑wise)
 
-All values are stored as variable‑length integers.
+All values are encoded using variable‑length integers.
 
-------------------------------------------------------------------------
+---
 
 # Decoding Pipeline
 
-The decoder performs the inverse process:
+The decoder reconstructs the trajectory by performing the inverse operations:
 
-1.  Read the VTJ1 header
-2.  Allocate memory buffers
-3.  Read varints
-4.  Reconstruct energies using cumulative deltas
-5.  Reconstruct body values using predictor
-6.  Convert fixed‑point integers back to floating point
+1. Read the VTJ1 header
+2. Allocate memory buffers
+3. Read variable‑length integers
+4. Reconstruct energies using cumulative deltas
+5. Reconstruct body values using the predictor
+6. Convert fixed‑point integers back to floating‑point values
 
-```{=html}
-<!-- -->
-```
-    value = integer / 10^scale_digits
+value = integer / 10^scale_digits
 
-Frames are then written back to plaintext format.
+The decoded frames are then written back to plaintext trajectory format.
 
-------------------------------------------------------------------------
+---
 
 # Building the Programs
 
-Compile using GCC or Clang.
+The repository includes a **Makefile** that simplifies compilation of the encoder and decoder.
 
-## Encoder
+To build both programs:
 
-    gcc -O3 -march=native -ffast-math -funroll-loops -std=c11 encode_trj.c -o encode_trj
+make
 
-## Decoder
+This compiles:
 
-    gcc -O3 -march=native -std=c11 decode_trj.c -o decode_trj
+- encode_trj
+- decode_trj
 
-------------------------------------------------------------------------
+Compilation uses the following optimization flags:
+
+- `-O3`
+- `-march=native`
+- `-ffast-math`
+- `-funroll-loops`
+- `-std=c11`
+
+These flags maximize performance for trajectory processing workloads.
+
+To remove compiled binaries:
+
+make clean
+
+---
 
 # Usage
 
-## Encode
+## Encode a Trajectory
 
-    ./encode_trj input.dat output.bin n_cols scale_digits
+./encode_trj input.dat output.bin n_cols scale_digits
 
-Arguments:
+Parameters:
 
-  Parameter      Description
-  -------------- --------------------------
-  input.dat      plaintext trajectory
-  output.bin     compressed binary
-  n_cols         columns per particle row
-  scale_digits   decimal precision
-
-Example:
-
-    ./encode_trj traj.dat traj.bin 15 14
-
-------------------------------------------------------------------------
-
-## Decode
-
-    ./decode_trj input.bin output.dat
+| Parameter | Description |
+|----------|-------------|
+| input.dat | plaintext trajectory |
+| output.bin | compressed binary output |
+| n_cols | number of columns per particle row |
+| scale_digits | decimal precision retained |
 
 Example:
 
-    ./decode_trj traj.bin traj_reconstructed.dat
+./encode_trj traj.dat traj.bin 15 14
 
-------------------------------------------------------------------------
+---
+
+## Decode a Trajectory
+
+./decode_trj input.bin output.dat
+
+Example:
+
+./decode_trj traj.bin traj_reconstructed.dat
+
+---
 
 # Precision and Losslessness
 
-The codec is **lossless with respect to the quantized integer
-representation**.
+The compression scheme is **lossless with respect to the quantized integer representation**.
 
-If the original data contains at most `scale_digits` decimal digits,
-reconstruction will match the original values exactly.
+If the original trajectory values contain no more than `scale_digits` decimal places, reconstruction will match the original values exactly.
 
-Otherwise the error is bounded by:
+Otherwise the maximum numerical error is bounded by:
 
-    ±0.5 × 10^(-scale_digits)
+±0.5 × 10^(−scale_digits)
 
-With `scale_digits = 14`, this error is extremely small.
+For example, with `scale_digits = 14`, the error is extremely small and typically negligible for simulation analysis.
 
-------------------------------------------------------------------------
+---
 
 # Advantages
 
--   very high compression ratio for trajectory data
--   fast encoding and decoding
--   minimal memory overhead
--   simple binary format
--   deterministic reconstruction
--   scalable to extremely large simulations
+- Very high compression ratio for trajectory data
+- Fast encoding and decoding
+- Minimal memory overhead
+- Simple and deterministic binary format
+- Scales to extremely large simulations
 
-------------------------------------------------------------------------
+---
 
 # Limitations
 
--   box vectors must remain constant
--   column count must remain constant
--   number of energies must remain constant
--   precision limited by chosen scale_digits
+The current VTJ1 format assumes:
 
-------------------------------------------------------------------------
+- simulation box vectors remain constant
+- number of columns per row is fixed
+- number of energy values is constant
+- precision is limited by the chosen `scale_digits`
+
+---
 
 # Intended Use
 
-The VTJ1 format is optimized for:
+The VTJ1 compression format is designed for:
 
--   molecular dynamics trajectories
--   oxDNA simulations
--   particle systems with smooth motion
--   extremely large datasets
+- molecular dynamics trajectories
+- oxDNA simulations
+- particle systems with smooth motion
+- extremely large simulation datasets
 
-------------------------------------------------------------------------
+It is particularly effective when trajectories contain many frames with small incremental motion.
 
+---
 
 # Benchmarks
 
 ## Encoding Benchmark
 
-The figure below summarizes the performance of the trajectory encoder across several datasets of different sizes.
+The benchmark figure included in this repository summarizes encoder performance across several trajectory sizes.
 
 ![Encoding Benchmark](figures/encoding.png)
 
-The benchmarks were generated by encoding multiple oxDNA trajectory files with varying system sizes and trajectory lengths.
+The datasets used in the benchmark are summarized below.
 
-The table below summarizes the datasets used in the benchmark. The **Original Size (MB)** corresponds to the true size of the input trajectory before compression.
+| Original Size (MB) | Frames | Particles |
+|--------------------|--------|-----------|
+| 2 | 1200 | 3 |
+| 809 | 200 | 15449 |
+| 1553 | 300 | 19499 |
+| 5103 | 1000 | 19499 |
+| 40643 | 7175 | 21649 |
 
-| Dataset | CSV File | Original Size (MB) | Frames | Particles |
-|--------|----------|--------------------|--------|-----------|
-| 2 MB file | compression_2mb.csv | 2 | 1200 | 3 |
-| 800 MB file | compression_800mb.csv | 809 | 200 | 15449 |
-| 1500 MB file | compression_1500mb.csv | 1553 | 300 | 19499 |
-| 5.1 GB file | compression.csv | 5103 | 1000 | 19499 |
-| 40.6 GB file | compression_40g.csv | 40643 | 7175 | 21649 |
+The benchmark compares:
 
-The figure contains two subplots:
+**Compression Ratio vs Precision**  
+Lower precision (fewer digits) increases compression efficiency, while higher precision preserves more numerical detail.
 
-**Left subplot — Compression Ratio**  
-Shows the compression ratio achieved for each dataset as a function of the number of digits retained during encoding. Lower precision (fewer digits) results in stronger compression, while higher precision preserves more numerical accuracy.
+**Encoding Time per Frame**  
+Encoding time is normalized by frame count, allowing fair comparison between datasets with different trajectory lengths.
 
-**Right subplot — Encoding Time per Frame**  
-Shows the encoding time normalized by the number of frames in the trajectory. This normalization allows a fair comparison between datasets of different trajectory lengths and highlights how the computational cost scales with system size.
+These results demonstrate the tradeoff between precision, compression efficiency, and computational cost across a wide range of simulation sizes.
 
-Together, these benchmarks illustrate the tradeoff between retained numerical precision, compression efficiency, and encoding cost across a range of trajectory sizes.
