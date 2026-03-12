@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as numpy
 from cpython.bytes cimport PyBytes_Size 
 from libc.stdio cimport fopen, fclose, fread, fseek, FILE
-from libc.string cimport strtok, strcpy, strlen
+from libc.string cimport strtok, strcpy, strlen, memcpy
 from libc.stdlib cimport atoi, atof, atol, malloc, free
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 
@@ -70,6 +70,48 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint
     free(conf_starts)
 
     return confs
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.cdivision(True)
+def cget_confs_zst(list decompressed_bufs, int nbases, bint incl_vel=1):
+    """
+    Parse pre-decompressed configuration byte buffers (for zstd-compressed trajectories).
+
+    Parameters:
+        decompressed_bufs (list) : List of bytes objects, one per decompressed configuration
+        nbases (int) : Number of bases per configuration
+        incl_vel (bool) : Whether velocities are included in the trajectory
+
+    Returns:
+        list[Configuration] : Parsed configurations
+    """
+    cdef int n = len(decompressed_bufs)
+    cdef list confs = [None] * n
+    cdef char *buf = NULL
+    cdef bytes data
+    cdef int data_len
+
+    for i in range(n):
+        data = decompressed_bufs[i]
+        data_len = len(data)
+
+        # strtok modifies the buffer in-place, so we need a mutable copy
+        buf = <char *>malloc(data_len + 1)
+        if not buf:
+            raise MemoryError(f"Could not allocate buffer for configuration {i}")
+        memcpy(buf, <const char *>data, data_len)
+        buf[data_len] = b'\0'
+
+        c = parse_conf(buf, 0, nbases, incl_vel)
+        free(buf)
+
+        if c == 1:
+            raise RuntimeError(f"Trajectory parsing failed on compressed configuration {i}")
+        confs[i] = c
+
+    return confs
+
 
 @cython.wraparound(False)
 @cython.boundscheck(False)

@@ -1,23 +1,28 @@
 import argparse
 from typing import Union
 from os import remove, path
+import zstandard as zstd
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from numpy import round, zeros_like
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
-from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, conf_to_str
+from oxDNA_analysis_tools.UTILS.RyeReader import (
+    get_confs, describe, conf_to_str, _is_zstd_traj,
+    _make_zstd_file_header
+)
 import time
 start_time = time.time()
 
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
                                               "d",
-                                              "a"])
+                                              "a",
+                                              "compress"])
 
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
-    
+
     for conf in confs:
         if ctx.d is not None: #round positions
             conf.positions = round(conf.positions, ctx.d)
@@ -27,10 +32,14 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
             conf.a1s = zeros_like(conf.a1s, dtype=int)
             conf.a3s = zeros_like(conf.a1s, dtype=int)
 
-    out = ''.join([conf_to_str(c,  include_vel=False) for c in confs])
-    return out
+    if ctx.compress:
+        cctx = zstd.ZstdCompressor(level=3)
+        return b''.join(cctx.compress(conf_to_str(c, include_vel=False).encode('utf-8')) for c in confs)
+    else:
+        return ''.join(conf_to_str(c, include_vel=False) for c in confs).encode('utf-8')
 
-def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:Union[int,None]=None, a:bool=False, ncpus=1):
+def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:Union[int,None]=None,
+           a:bool=False, ncpus=1, compress:bool=False):
     """
         Make a trajectory smaller by discarding some precision.
 
@@ -40,7 +49,8 @@ def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:Union[int,None]=None
             out (str): Path to the output file
             d (int): Number of digits to round to
             a (bool): Discard the a vectors
-        
+            compress (bool): Write a zstd-compressed trajectory
+
         The output will be written to out.
     """
     try:
@@ -48,16 +58,19 @@ def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:Union[int,None]=None
     except:
         pass
 
-    ctx = ComputeContext(traj_info, top_info, d, a)
+    ctx = ComputeContext(traj_info, top_info, d, a, compress)
 
-    with open(out, 'w+') as f:
+    with open(out, 'wb') as f:
+        if compress:
+            f.write(_make_zstd_file_header(level=3))
+
         def callback(i, r):
             nonlocal f
             f.write(r)
 
         oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
 
-    log(f"Wrote aligned trajectory to {out}")
+    log(f"Wrote minified trajectory to {out}")
 
     return
 
@@ -68,6 +81,7 @@ def cli_parser(prog="minify.py"):
     parser.add_argument('-p', '--parallel', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-a', '--no_a', action = 'store_true', help='Discard a vectors.')
     parser.add_argument('-d', '--decimals', type=int, help='Round positions and orientations to the specified number of digits.')
+    parser.add_argument('-z', '--compress', action='store_true', default=False, help='Write a zstd-compressed trajectory. If not set, the output format matches the input.')
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
@@ -94,13 +108,13 @@ def main():
         d = None
 
     # -a sets the a vectors to 0
-    if args.no_a:
-        a = True
-    else:
-        a = False
+    a = args.no_a
 
-    minify(traj_info, top_info, out, d, a, ncpus)
-    
+    # -z forces compressed output; otherwise match the input format
+    compress = args.compress or _is_zstd_traj(traj_file)
+
+    minify(traj_info, top_info, out, d, a, ncpus, compress)
+
     print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':

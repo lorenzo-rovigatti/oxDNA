@@ -3,17 +3,22 @@ import os
 import time
 from typing import List, Tuple, Union
 import numpy as np
+import zstandard as zstd
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
-from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox, conf_to_str
+from oxDNA_analysis_tools.UTILS.RyeReader import (
+    get_confs, describe, inbox, conf_to_str,
+    _is_zstd_traj, _make_zstd_file_header
+)
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
                                               "centered_ref_coords",
                                               "indexes",
-                                              "no_center"])
+                                              "no_center",
+                                              "compress"])
 
 def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:np.ndarray, ref_center:np.ndarray=np.array([])) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -77,11 +82,13 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
         for i, c in enumerate(confs):
             c.positions += centers[i]
     
-    #return confs
-    out = ''.join([conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs])
-    return out
+    if ctx.compress:
+        cctx = zstd.ZstdCompressor(level=3)
+        return b''.join(cctx.compress(conf_to_str(c, include_vel=ctx.traj_info.incl_v).encode('utf-8')) for c in confs)
+    else:
+        return ''.join(conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs).encode('utf-8')
 
-def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None, ref_conf:Union[Configuration,None]=None, no_center:bool=False):
+def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None, ref_conf:Union[Configuration,None]=None, no_center:bool=False, compress:bool=False):
     """
         Align a trajectory to a ref_conf and print the result to a file.
 
@@ -92,10 +99,11 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None
             indexes (List[int]) : (optional) IDs of a subset of particles to consider for the alignment. default=all
             ref_conf (Configuration) : (optional) The configuration to align to. default=first conf
             no_center (bool) : (optional) Don't center the output configurations. default=False
+            compress (bool) : (optional) Write a zstd-compressed trajectory. default=False
 
         Writes the aligned configuration to outfile
     """
-    
+
     top_info, traj_info = describe(None, traj)
 
     if ref_conf == None:
@@ -112,24 +120,27 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:Union[List[int],None]=None
     # What OAT lacks is a strand-aware inboxing, (like -pbc mol in GROMACS) (probably a good to-do)
     ref_conf = inbox(ref_conf, center=not no_center)
 
-    # alignment requires the ref to be centered at 0.  
+    # alignment requires the ref to be centered at 0.
     # Inboxing did not take the indexing into account, so here we center the indexed particles at (0, 0, 0)
     reference_coords = ref_conf.positions[indexes]
     ref_cms = np.mean(reference_coords, axis=0)
     reference_coords = reference_coords - ref_cms
 
-    # Create a ComputeContext which defines the problem to pass to the worker processes 
+    # Create a ComputeContext which defines the problem to pass to the worker processes
     ctx = ComputeContext(
-        traj_info, top_info, reference_coords, indexes, no_center
+        traj_info, top_info, reference_coords, indexes, no_center, compress
     )
 
-    with open(outfile, 'w+') as f:
+    with open(outfile, 'wb') as f:
+        if compress:
+            f.write(_make_zstd_file_header(level=3))
+
         def callback(i, r):
             nonlocal f
             f.write(r)
 
         oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
-    
+
     log(f"Wrote aligned trajectory to {outfile}")
     return
 
@@ -142,6 +153,7 @@ def cli_parser(prog="align.py"):
     parser.add_argument('-i', '--index', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-r', '--ref', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
     parser.add_argument('-c', '--nocenter', metavar='no_center', dest='no_center', action='store_const', const=True, default=False, help="Don't center the output.  Can avoid errors caused by small boxes.")
+    parser.add_argument('-z', '--compress', action='store_true', default=False, help='Write a zstd-compressed trajectory. If not set, the output format matches the input.')
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
@@ -186,7 +198,10 @@ def main():
     else:
         ncpus = 1
 
-    align(traj=traj_file, outfile=outfile, ncpus=ncpus, indexes=indexes, ref_conf=ref_conf, no_center=no_center)
+    # -z forces compressed output; otherwise match the input format
+    compress = args.compress or _is_zstd_traj(traj_file)
+
+    align(traj=traj_file, outfile=outfile, ncpus=ncpus, indexes=indexes, ref_conf=ref_conf, no_center=no_center, compress=compress)
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

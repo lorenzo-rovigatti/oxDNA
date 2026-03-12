@@ -226,8 +226,8 @@ endif(JSON_ENABLED)
 # so we try to find it first, if the user enabled it. If it's not found, we fetch it via 
 # FetchContent and build it as part of our build process.
 if(ZSTD_ENABLED)
-	find_package(Zstd QUIET)
-	if(NOT Zstd_FOUND)
+	find_package(zstd CONFIG QUIET)
+	if(NOT zstd_FOUND)
 		message(STATUS "Zstd not found: fetching zstd via FetchContent")
 		include(FetchContent)
 
@@ -252,7 +252,7 @@ if(ZSTD_ENABLED)
 
 		set(ZSTD_TARGET libzstd_static)
 	else()
-		set(ZSTD_TARGET Zstd::Zstd)
+		set(ZSTD_TARGET zstd::libzstd_shared)
 	endif()
 
 	message(STATUS "Zstd support enabled")

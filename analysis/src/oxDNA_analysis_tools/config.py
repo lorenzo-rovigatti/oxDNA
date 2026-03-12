@@ -8,7 +8,7 @@ import fileinput
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 #checking dependencies to make sure everything is correct
-def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"]):
+def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy", "zstandard"]):
     """
         Checks if the dependencies are installed.
 
@@ -21,18 +21,21 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"
         "matplotlib": 3.0,
         "sklearn": 0.21,
         "oxpy": 3.2,
+        "zstandard": 0.15,
     }
     real_names = {
         "numpy": "Numpy",
         "matplotlib": "MatPlotLib",
         "sklearn": "SciKit-Learn",
-        "oxpy": "oxpy"
+        "oxpy": "oxpy",
+        "zstandard": "zstandard"
     }
     websites = {
-        "numpy": "numpy.org", 
+        "numpy": "numpy.org",
         "matplotlib": "matplotlib.org",
         "sklearn": "scikit-learn.org",
-        "oxpy": "https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options"
+        "oxpy": "https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options",
+        "zstandard": "https://facebook.github.io/zstd/"
     }
 
     #get version of this package
@@ -162,7 +165,7 @@ def main():
         set_fig_dpi(args.fig_dpi)
         log(f"Future figures will be saved at {args.fig_dpi} dpi")
 
-    check(["python", "numpy", "matplotlib", "sklearn", "oxpy"])
+    check(["python", "numpy", "matplotlib", "sklearn", "oxpy", "zstandard"])
 
     print()
     get_chunk_size()
