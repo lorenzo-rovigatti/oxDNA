@@ -89,3 +89,7 @@ src/oxpy/_version.py
 
 # AppleDouble Files
 ._*
+
+# Encoder/Decoder 
+utils/PostSimulationCompression/encode_trj
+utils/PostSimulationCompression/decode_trj
