@@ -23,7 +23,8 @@ readme = { file = "README.md", content-type = "text/markdown" }
 dependencies = [
   "numpy>=1.24.1",
   "scikit-learn>=1.8.0",
-  "matplotlib>=3.6.1"
+  "matplotlib>=3.6.1",
+  "zstandard>=0.15.0"
 ]
 
 classifiers = [

@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from oxDNA_analysis_tools.align import svd_align, compute, align, cli_parser, ComputeContext, main
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, inbox
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, inbox, _is_zstd_traj
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 
 
@@ -124,16 +124,17 @@ class TestCompute:
             top_info=top_info,
             centered_ref_coords=centered_ref_coords,
             indexes=indexes,
-            no_center=False
+            no_center=False,
+            compress=False
         )
 
         # Process first two chunks
         result0 = compute(ctx, chunk_size=1, chunk_id=0)
         result1 = compute(ctx, chunk_size=1, chunk_id=1)
 
-        assert isinstance(result0, str), "compute() should return string"
-        assert len(result0) > 0, "Output string should not be empty"
-        assert isinstance(result1, str), "Second chunk should return string"
+        assert isinstance(result0, bytes), "compute() should return bytes"
+        assert len(result0) > 0, "Output should not be empty"
+        assert isinstance(result1, bytes), "Second chunk should return bytes"
 
 
 # =============================================================================
@@ -599,3 +600,78 @@ class TestAlignmentQuality:
                 rtol=1e-10, atol=1e-10,
                 err_msg=f"Conf {conf_idx}: Serial and parallel a3s differ"
             )
+
+
+# =============================================================================
+# Compressed output Tests
+# =============================================================================
+
+class TestCompressedOutput:
+    """Tests for compressed trajectory output via align(-z)."""
+
+    def test_compressed_matches_uncompressed(self, mini_traj_path, temp_output_dir, trajectory_info):
+        """
+        Align the test trajectory both with and without -z, then verify the
+        compressed output is a valid zstd trajectory and that all positions and
+        orientation vectors are numerically identical to the uncompressed output.
+
+        Validation is progressive:
+          1. The compressed output is a valid zstd trajectory with the right shape.
+          2. Every configuration in the compressed output has the correct shape and
+             no NaN values.
+          3. Positions, a1s, and a3s are numerically identical between the
+             uncompressed and compressed outputs (no rounding is applied).
+        """
+        top_info, traj_info = trajectory_info
+
+        ref_conf = inbox(get_confs(top_info, traj_info, 0, 1)[0], center=True)
+
+        # --- Step 1: align without compression ---
+        outfile_plain = str(temp_output_dir / "aligned_plain.dat")
+        align(str(mini_traj_path), outfile_plain, ncpus=1, ref_conf=ref_conf)
+
+        # --- Step 2: align with compression ---
+        outfile_compressed = str(temp_output_dir / "aligned_compressed.dat")
+        align(str(mini_traj_path), outfile_compressed, ncpus=1, ref_conf=ref_conf, compress=True)
+
+        assert _is_zstd_traj(outfile_compressed), "Compressed output should be a zstd trajectory"
+
+        plain_top, plain_traj = describe(None, outfile_plain)
+        comp_top, comp_traj = describe(None, outfile_compressed)
+
+        assert comp_traj.nconfs == plain_traj.nconfs, \
+            "Compressed and plain trajectories should have the same number of configurations"
+        assert comp_top.nbases == plain_top.nbases, \
+            "Compressed and plain trajectories should have the same number of particles"
+
+        # --- Step 3: load all configurations and compare ---
+        plain_confs = get_confs(plain_top, plain_traj, 0, plain_traj.nconfs)
+        comp_confs = get_confs(comp_top, comp_traj, 0, comp_traj.nconfs)
+
+        for i, (pc, cc) in enumerate(zip(plain_confs, comp_confs)):
+            assert cc.positions.shape == (top_info.nbases, 3), \
+                f"Conf {i}: wrong positions shape in compressed output"
+            assert not np.any(np.isnan(cc.positions)), \
+                f"Conf {i}: NaN in compressed positions"
+
+            np.testing.assert_allclose(cc.positions, pc.positions, rtol=1e-5,
+                err_msg=f"Conf {i}: positions differ between plain and compressed")
+            np.testing.assert_allclose(cc.a1s, pc.a1s, rtol=1e-5,
+                err_msg=f"Conf {i}: a1s differ between plain and compressed")
+            np.testing.assert_allclose(cc.a3s, pc.a3s, rtol=1e-5,
+                err_msg=f"Conf {i}: a3s differ between plain and compressed")
+
+    def test_main_z_flag(self, mini_traj_path, temp_output_dir, monkeypatch):
+        """Test that main() with -z flag produces a valid zstd-compressed trajectory."""
+        monkeypatch.chdir(temp_output_dir)
+
+        traj_copy = temp_output_dir / "traj.dat"
+        copy(mini_traj_path, traj_copy)
+
+        output_z = temp_output_dir / "aligned_z.dat"
+        test_args = ["align.py", "-z", str(traj_copy), str(output_z)]
+        with patch.object(sys, 'argv', test_args):
+            main()
+
+        assert output_z.exists(), "Output file should be created with -z flag"
+        assert _is_zstd_traj(str(output_z)), "Output should be zstd-compressed with -z flag"

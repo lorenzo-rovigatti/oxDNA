@@ -5,9 +5,14 @@ import re
 from os.path import exists, abspath
 from typing import List, Tuple, Iterator, Union
 import os
+import zstandard as zstd
 from .data_structures import *
 from .oat_multiprocesser import get_chunk_size
-from oxDNA_analysis_tools.UTILS.get_confs import cget_confs
+from oxDNA_analysis_tools.UTILS.get_confs import cget_confs, cget_confs_zst
+
+# Magic bytes identifying an oxDNA zstd-compressed trajectory block
+_ZSTD_MAGIC = b'OXD\x01'
+_ZSTD_HEADER_SIZE = 8
 
 ####################################################################################
 ##########                             FILE READERS                       ##########
@@ -98,6 +103,205 @@ def _index(traj_file) -> List[ConfInfo]:
         raise out_e from e
     return idxs
 
+def _is_zstd_traj(path: str) -> bool:
+    """
+        Check whether a trajectory file is zstd-compressed (oxDNA per-conf format).
+
+        Parameters:
+            path (str) : Path to the trajectory file
+
+        Returns:
+            bool : True if the file starts with the oxDNA zstd magic bytes
+    """
+    with open(path, 'rb') as f:
+        return f.read(4) == _ZSTD_MAGIC
+
+
+def _make_zstd_file_header(level: int = 3) -> bytes:
+    """
+    Build the 8-byte OXD file header for a zstd-compressed trajectory.
+
+    Parameters:
+        level (int) : zstd compression level (default 3)
+
+    Returns:
+        bytes : 8-byte header: magic (4) + version (1) + level (1) + reserved (2)
+    """
+    header = bytearray(_ZSTD_HEADER_SIZE)
+    header[0:4] = _ZSTD_MAGIC
+    header[4] = 0x01
+    header[5] = level & 0xFF
+    header[6] = 0x00
+    header[7] = 0x00
+    return bytes(header)
+
+
+def _zstd_frame_size_from_file(f, frame_start: int) -> int:
+    """
+        Return the compressed size (in bytes) of the zstd frame that starts at
+        byte offset *frame_start* in an already-open binary file *f*, without
+        reading the frame payload into memory.
+
+        The function parses the frame header to find the total header length,
+        then iterates the data-block headers (3 bytes each) to locate the
+        last block and its payload size.  Only the header bytes are read; the
+        actual compressed payload bytes are skipped via seek.
+
+        Parameters:
+            f       : open binary file object, seekable
+            frame_start (int) : byte offset of the first byte of the zstd frame
+
+        Returns:
+            int : Total compressed size of the frame in bytes (header + blocks
+                  + optional checksum)
+
+        Raises:
+            ValueError : If the magic number is wrong or the frame is malformed
+    """
+    import struct
+    ZSTD_MAGIC = 0xFD2FB528
+
+    f.seek(frame_start)
+    # Read enough bytes to cover the largest possible frame header:
+    # 4 (magic) + 1 (FHD) + 1 (window) + 4 (dict_id) + 8 (FCS) = 18 bytes max
+    header_buf = f.read(18)
+    pos = 0  # position within header_buf
+
+    magic = struct.unpack_from('<I', header_buf, pos)[0]
+    if magic != ZSTD_MAGIC:
+        raise ValueError(
+            f"Expected zstd frame magic at file offset {frame_start}, "
+            f"got {magic:#010x}"
+        )
+    pos += 4
+
+    fhd = header_buf[pos]; pos += 1
+    fcs_flag = (fhd >> 6) & 0x3   # bits [7:6]
+    ssf       = (fhd >> 5) & 0x1  # bit  5  (Single_Segment_Flag)
+    checksum  = (fhd >> 2) & 0x1  # bit  2  (Content_Checksum_Flag)
+    dict_flag = fhd & 0x3         # bits [1:0]
+
+    if not ssf:
+        pos += 1                               # Window_Descriptor
+    pos += [0, 1, 2, 4][dict_flag]            # Dict_ID
+    if ssf and fcs_flag == 0:
+        pos += 1                               # 1-byte FCS when SSF=1, FCS_flag=0
+    else:
+        pos += [0, 2, 4, 8][fcs_flag]         # FCS field
+
+    # file_pos is now at the first data-block header inside the file
+    file_pos = frame_start + pos
+
+    # Walk block headers (3 bytes each) without reading payloads
+    while True:
+        f.seek(file_pos)
+        bh_bytes = f.read(3)
+        bh = bh_bytes[0] | (bh_bytes[1] << 8) | (bh_bytes[2] << 16)
+        last  = bh & 0x1
+        btype = (bh >> 1) & 0x3
+        bsize = bh >> 3
+        file_pos += 3
+
+        if btype == 0:    # Raw_Block: bsize payload bytes
+            file_pos += bsize
+        elif btype == 1:  # RLE_Block: 1-byte payload
+            file_pos += 1
+        elif btype == 2:  # Compressed_Block: bsize payload bytes
+            file_pos += bsize
+        else:
+            raise ValueError(f"Reserved zstd block type at file offset {file_pos - 3}")
+
+        if last:
+            break
+
+    if checksum:
+        file_pos += 4  # 32-bit content checksum
+
+    return file_pos - frame_start
+
+
+def _index_compressed(traj_file: str) -> List[ConfInfo]:
+    """
+        Find the byte offset and size of each compressed configuration in a
+        zstd-compressed trajectory file.
+
+        The file format is:
+            [8-byte OXD file header][zstd frame 0][zstd frame 1] ... [zstd frame N-1]
+
+        Each zstd frame is a complete, independently decompressable frame that
+        contains one oxDNA configuration in plain text.  Frame boundaries are
+        determined by parsing the zstd frame header format directly.  Only frame
+        header bytes and block-header bytes are read during indexing; the
+        compressed payload of each frame is skipped via seek so that the entire
+        file is never loaded into memory.
+
+        Parameters:
+            traj_file (str) : Path to the compressed trajectory file
+
+        Returns:
+            List[ConfInfo] : One entry per configuration with (frame_offset, frame_size, id)
+    """
+    fsize = os.stat(traj_file).st_size
+
+    with open(traj_file, 'rb') as f:
+        file_header = f.read(_ZSTD_HEADER_SIZE)
+        if len(file_header) < _ZSTD_HEADER_SIZE or file_header[:4] != _ZSTD_MAGIC:
+            raise RuntimeError(
+                f"Not a valid oxDNA compressed trajectory: {traj_file!r} "
+                f"(expected magic {_ZSTD_MAGIC!r}, got {file_header[:4]!r})"
+            )
+
+        idxs = []
+        conf_id = 0
+        pos = _ZSTD_HEADER_SIZE  # first frame starts right after the file header
+
+        while pos < fsize:
+            frame_size = _zstd_frame_size_from_file(f, pos)
+            idxs.append(ConfInfo(pos, frame_size, conf_id))
+            pos += frame_size
+            conf_id += 1
+
+    if not idxs:
+        raise RuntimeError(
+            f"Cannot find any configurations in compressed trajectory file {traj_file}"
+        )
+    return idxs
+
+
+def _get_confs_compressed(top_info: TopInfo, traj_info: TrajInfo,
+                          start_conf: int, n_confs: int) -> List[Configuration]:
+    """
+        Read a chunk of configurations from a zstd-compressed trajectory file.
+
+        Parameters:
+            top_info (TopInfo) : Contains the number of bases per configuration
+            traj_info (TrajInfo) : Contains metadata about the trajectory file
+            start_conf (int) : Index of the first configuration to read
+            n_confs (int) : Number of configurations to read
+
+        Returns:
+            List[Configuration] : Parsed configurations
+    """
+    indexes = traj_info.idxs
+    conf_count = len(indexes)
+    if start_conf + n_confs > conf_count:
+        n_confs = conf_count - start_conf
+
+    dctx = zstd.ZstdDecompressor()
+    decompressed_bufs = []
+
+    with open(traj_info.path, 'rb') as f:
+        for i in range(n_confs):
+            idx = indexes[start_conf + i]
+            # idx.offset points directly to the start of the zstd frame;
+            # the one-time 8-byte file header is not part of any ConfInfo entry.
+            f.seek(idx.offset)
+            compressed_data = f.read(idx.size)
+            decompressed_bufs.append(dctx.decompress(compressed_data))
+
+    return cget_confs_zst(decompressed_bufs, top_info.nbases, incl_vel=traj_info.incl_v)
+
+
 def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
     """
         Read a chunk of configurations from a trajectory file.
@@ -112,6 +316,9 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
             List[Configuration] : A list of n_confs configurations starting from <start_conf>
 
     """
+    if _is_zstd_traj(traj_info.path):
+        return _get_confs_compressed(top_info, traj_info, start_conf, n_confs)
+
     indexes = traj_info.idxs
     traj_file = traj_info.path
     n_bases = top_info.nbases
@@ -153,7 +360,7 @@ def get_top_info(top:str) -> TopInfo:
 
 def get_top_info_from_traj(traj : str) -> TopInfo:
     """
-        Retrieve top and traj info without providing a topology. 
+        Retrieve top and traj info without providing a topology.
 
         Note its not implemented, but if it were, this would not return the number of strands.
 
@@ -163,6 +370,17 @@ def get_top_info_from_traj(traj : str) -> TopInfo:
         Returns:
             TopInfo : topology info
     """
+    if _is_zstd_traj(traj):
+        dctx = zstd.ZstdDecompressor()
+        with open(traj, 'rb') as f:
+            frame_size = _zstd_frame_size_from_file(f, _ZSTD_HEADER_SIZE)
+            f.seek(_ZSTD_HEADER_SIZE)
+            first_conf = dctx.decompress(f.read(frame_size)).decode('utf-8')
+        lines = first_conf.split('\n')
+        # Count non-empty particle lines (skip t=, b=, E= header lines)
+        n_bases = sum(1 for l in lines[3:] if l.strip())
+        return TopInfo("", n_bases)
+
     with open(traj) as f:
         l = ''
         # dump the header
@@ -188,34 +406,53 @@ def get_traj_info(traj : str) -> TrajInfo:
             TrajInfo : trajectory info object
 
     """
-    #if idxs is None: # handle case when we have no indexes provided
+    is_compressed = _is_zstd_traj(traj)
+    index_func = _index_compressed if is_compressed else _index
+
     if not(exists(traj+".pyidx")):
-        idxs = _index(traj) # no index created yet
+        idxs = index_func(traj)
         with open(traj+".pyidx","wb") as file:
             file.write(pickle.dumps(idxs)) # save it
     else:
         #we can load the index file
         with open(traj+".pyidx","rb") as file:
             idxs = pickle.loads(file.read())
-        
+
         #check if index file matches the trajectory, if not, regenerate.
         if idxs[-1].offset+idxs[-1].size != os.stat(traj).st_size:
-            idxs = _index(traj)
+            idxs = index_func(traj)
             with open(traj+".pyidx","wb") as file:
                 file.write(pickle.dumps(idxs))
 
     # Check if velocities are present in the trajectory
-    with open(traj) as f:
-        for _ in range(3):
-            f.readline()
-        line = f.readline()
-        nline = line.split()
-        if len(nline) == 15:
+    if is_compressed:
+        dctx = zstd.ZstdDecompressor()
+        idx0 = idxs[0]
+        with open(traj, 'rb') as f:
+            f.seek(idx0.offset)
+            first_conf = dctx.decompress(f.read(idx0.size)).decode('utf-8')
+        lines = first_conf.split('\n')
+        # lines[0]=t=, lines[1]=b=, lines[2]=E=, lines[3]=first particle
+        particle_line = lines[3] if len(lines) > 3 else ''
+        nvals = len(particle_line.split())
+        if nvals == 15:
             incl_v = True
-        elif len(nline) == 9:
+        elif nvals == 9:
             incl_v = False
         else:
-            raise RuntimeError(f"Invalid first particle line: {line}")
+            raise RuntimeError(f"Invalid first particle line in compressed trajectory: {particle_line!r}")
+    else:
+        with open(traj) as f:
+            for _ in range(3):
+                f.readline()
+            line = f.readline()
+            nline = line.split()
+            if len(nline) == 15:
+                incl_v = True
+            elif len(nline) == 9:
+                incl_v = False
+            else:
+                raise RuntimeError(f"Invalid first particle line: {line}")
 
     return TrajInfo(abspath(traj),len(idxs),idxs, incl_v)
 
@@ -492,30 +729,31 @@ def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray
 ##########                             FILE WRITERS                       ##########
 ####################################################################################
 
-def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool=True) -> None:
+def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool=True,
+               compress:bool=False, level:int=3) -> None:
     """
-        write the conf to a file
+        Write a configuration to a file, optionally zstd-compressed.
 
         Parameters:
-            path (str) : path to the file
+            path (str)           : path to the file
             conf (Configuration) : the configuration to write
-            append (bool) : if True, append to the file, if False, overwrite
-            include_vel (bool) : Include velocities in the output trajectory?  Defaults to True.
+            append (bool)        : if True, append to the file, if False, overwrite
+            include_vel (bool)   : Include velocities in the output.  Defaults to True.
+            compress (bool)      : Write a zstd-compressed frame.  Defaults to False.
+            level (int)          : zstd compression level 1-22 (default 3).  Ignored when compress=False.
     """
-    out = []
-    out.append('t = {}'.format(int(conf.time)))
-    out.append('b = {}'.format(' '.join(conf.box.astype(str))))
-    out.append('E = {}'.format(' '.join(conf.energy.astype(str))))
-    for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s):
-        if include_vel:
-            out.append('{} {} {} 0 0 0 0 0 0'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
-        else:
-            out.append('{} {} {}'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
-    
-    mode = 'a' if append else 'w'
-    with open(path,mode) as f:
-        f.write("\n".join(out))
-        f.write("\n")
+    data = conf_to_str(conf, include_vel=include_vel).encode('utf-8')
+    if compress:
+        cctx = zstd.ZstdCompressor(level=level)
+        data = cctx.compress(data)
+        needs_header = (not append) or (not exists(path)) or os.stat(path).st_size == 0
+    else:
+        needs_header = False
+    mode = 'ab' if append else 'wb'
+    with open(path, mode) as f:
+        if needs_header:
+            f.write(_make_zstd_file_header(level))
+        f.write(data)
 
 def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     """
