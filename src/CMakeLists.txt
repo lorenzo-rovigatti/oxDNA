@@ -30,6 +30,8 @@ SET(observables_SOURCES
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
 	Observables/PotentialEnergy.cpp
+	Observables/StackingPropensity.cpp
+	Observables/CrossStackingPropensity.cpp
 	Observables/KineticEnergy.cpp
 	Observables/TotalEnergy.cpp
 	Observables/BackendInfo.cpp	
@@ -67,6 +69,8 @@ SET(observables_SOURCES
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
 	Observables/ExternalForce.cpp
+	Observables/ParticleForceAndTorque.cpp
+	Observables/Coordination.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TEPtclOutput.cpp
@@ -116,7 +120,8 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
-	Interactions/DNAInteraction_nomesh.cpp
+	Interactions/DNA2SDInteraction.cpp
+	Interactions/DNA3Interaction.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
@@ -130,6 +135,9 @@ SET(interactions_SOURCES
 	Interactions/KFInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
+	Interactions/ANMInteraction.cpp
+	Interactions/DNANMInteraction.cpp
+	Interactions/RNANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -166,12 +174,15 @@ SET(forces_SOURCES
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
 	Forces/YukawaSphere.cpp
+	Forces/Metadynamics/LTCoordination.cpp
 	Forces/Metadynamics/LTCOMTrap.cpp
 	Forces/Metadynamics/LTCOMAngleTrap.cpp
 	Forces/Metadynamics/LT2DCOMTrap.cpp
 	Forces/Metadynamics/LTAtanCOMTrap.cpp
 	Forces/Metadynamics/meta_utils.cpp
 	Forces/AttractionPlane.cpp
+	Forces/RepulsiveKeplerPoinsot.cpp
+	Forces/RepulsiveSphereMoving.cpp
 
 )
 
@@ -191,6 +202,7 @@ SET(common_SOURCES
 	Particles/PatchyParticle.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/Molecule.cpp
+	Particles/ANMParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
@@ -251,35 +263,9 @@ ENDIF()
 	
 IF(CUDA)
 	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-	FIND_PACKAGE("CUDA" REQUIRED)
 	
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
-
-	INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
-	LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
 	
-	INCLUDE(../select_compute_arch.cmake)
-	
-	IF(CUDA_COMMON_ARCH)
-		CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Common)
-	ELSE(CUDA_COMMON_ARCH)
-		CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
-	ENDIF(CUDA_COMMON_ARCH)
-	
-	MESSAGE(STATUS "Generating code for the following CUDA architectures: ${ARCH_FLAGS_readable}")
-	LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-	MESSAGE(STATUS "${CUDA_NVCC_FLAGS}")
-   
-	IF(G)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo)
-	ENDIF(G)
-
-	IF(DEBUG)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo -G)
-	ENDIF(DEBUG)
-	
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
-
 	LIST(APPEND common_SOURCES
 		CUDA/CUDA_sort.cu
 		CUDA/CUDAUtils.cu
@@ -288,11 +274,13 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDADNA3Interaction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
+		CUDA/Interactions/CUDADNANMInteraction.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
@@ -304,6 +292,7 @@ IF(CUDA)
 		CUDA/Thermostats/CUDASRDThermostat.cu
 		CUDA/Thermostats/CUDALangevinThermostat.cu
 		CUDA/Thermostats/CUDABussiThermostat.cu
+		CUDA/Thermostats/CUDARefreshThermostat.cu
 		Utilities/Timings.cpp
 	)
 	
@@ -316,12 +305,42 @@ IF(CUDA)
 		)
 	ENDIF()
 	
-	# we need the library to be shared or the oxpy compilation fails
-	CUDA_ADD_LIBRARY(${lib_name} SHARED ${common_SOURCES})
-	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
-	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
-	
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
+
+	set(CUDA_COMMON_FLAGS
+		-use_fast_math
+		--compiler-options=-ffast-math
+		--compiler-options=-O3
+		-Xcudafe=--diag_suppress=unrecognized_gcc_pragma
+	)
+	if(G)
+		list(APPEND CUDA_COMMON_FLAGS -lineinfo)
+	endif()
+
+	if(DEBUG)
+		list(APPEND CUDA_COMMON_FLAGS -lineinfo -G)
+	endif()
+
+	if(CMAKE_VERSION VERSION_LESS 3.18)
+		# we need the library to be shared or the oxpy compilation fails
+		CUDA_ADD_LIBRARY(${lib_name} SHARED ${common_SOURCES})
+		CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
+		CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
+	else()
+		add_library(${lib_name} SHARED ${common_SOURCES})
+		target_link_libraries(${lib_name} PRIVATE CUDA::cudart)
+		target_compile_options(${lib_name} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_COMMON_FLAGS}>)
+
+		add_executable(${exe_name} ${oxDNA_SOURCES})
+		target_link_libraries(${exe_name} PRIVATE CUDA::cudart)
+		target_compile_options(${exe_name} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_COMMON_FLAGS}>)
+
+		add_executable(DNAnalysis ${DNAnalysis_SOURCES}	Utilities/Timings.cpp)
+		target_link_libraries(DNAnalysis PRIVATE CUDA::cudart)
+		target_compile_options(DNAnalysis PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_COMMON_FLAGS}>)
+	endif()
+
+	MESSAGE(STATUS "${CUDA_COMMON_FLAGS}")
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 	SET(common_SOURCES
@@ -337,17 +356,20 @@ ENDIF(CUDA)
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
 
 IF(MPI)
-	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS} ${MPI_LIBRARIES})
+	target_link_libraries(${lib_name} PRIVATE ${CMAKE_DL_LIBS} ${MPI_LIBRARIES})
 ELSE()
-	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+	target_link_libraries(${lib_name} PRIVATE ${CMAKE_DL_LIBS})
 ENDIF()
 
 add_library(tinyexpr extern/tinyexpr/tinyexpr.c)
 target_include_directories(tinyexpr PUBLIC extern/tinyexpr)
 
-TARGET_LINK_LIBRARIES(${exe_name} ${lib_name} tinyexpr)
-TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name} tinyexpr)
-TARGET_LINK_LIBRARIES(confGenerator ${lib_name} tinyexpr)
+if(ZSTD_ENABLED)
+	target_link_libraries(${lib_name} PRIVATE ${ZSTD_TARGET})
+endif()
+target_link_libraries(${exe_name} PRIVATE ${lib_name} tinyexpr)
+target_link_libraries(DNAnalysis PRIVATE ${lib_name} tinyexpr)
+target_link_libraries(confGenerator PRIVATE ${lib_name} tinyexpr)
 
 # we add these executable as dependencies for the test targets
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)

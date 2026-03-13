@@ -2,6 +2,15 @@
 
 The current state of a system, as specified by oxDNA, is described by two files: a configuration file and a topology file. The configuration file contains all the general information (timestep, energy and box size) and the orientations and positions of each nucleotide. The topology file, on the other hand, keeps track of the backbone-backbone bonds between nucleotides in the same strand. Working configuration and topology files can be found in the `examples` directory.
 
+```{important}
+The layout of oxDNA configurations was designed for simpler times, when the size of an average system was rather small (no more than hundreds of nucleotides) and simulation times were rather short. Now that GPUs make it possible to run large-scale simulations of big nanostructures (*i.e.* origami), trajectories can easily take GBs (or even more) of disk space. oxDNA features a few ways of addressing this issue, depending on your needs:
+
+* If compiled with `-DZSTD_ENABLED=On`, oxDNA supports on-the-fly compression of trajectory files, which in many cases can decrease their size by up to {math}`\approx 50\%`. Trajectory compression is enabled by setting `trajectory_compression = true` in the input file. Compressed trajectories can be natively read by `oat`, or decompressed by using external tools such as [the one provided in the `utils` folder](./utils.md#decompress_zstdpy).
+* If you don't need velocities and angular velocities, you can set `trajectory_print_momenta = false` in the input file to print six fewer fields per nucleotide. This will reduce the size of the trajectory by {math}`\approx 40\%`.
+* Compress/decompress trajectories using the custom VTJ1 format with the utility programs bundled with oxDNA, as detailed [here](./utils.md#compressing-trajectory-files).
+* `oat` contains a script, `oat minify` which can be used to drop velocities from, compress, and change the precision of oxDNA trajectory files. For geometric analyses, reducing the precision to 3 decimal points will have minimal impact on analysis outcomes while decreasing the file size by more than 85% when paired with compression and dropped velocities. However, do not reduce precision of files used for computing oxDNA energies as the potentials are highly sensitive to small changes in distance.
+```
+
 ## Configuration file
 
 ```{warning}
@@ -36,9 +45,9 @@ $\vec{a}_1$, $\vec{a}_2 = \vec{a}_3 \times \vec{a}_1$ and $\vec{a}_3$ define the
 ```{warning}
 The position of the centre of mass of the nucleotides in oxDNA1 (0.4 length units away from the backbone site) is different from what the PhD thesis of T. E. Ouldridge specifies (0.24 length units away from the backbone site). This change has no effect on the thermodynamics, and the extent to which it changes the dynamics is arguably very small.
 ```
-  
-```{note}
-When simulating very large structures the size of the trajectory files stored on disk may become very large. In this case it may be convenient to avoid printing the last six columns by setting `trajectory_print_momenta = false` in the input file, thus decreasing the size of the trajectory by $\approx 40\%$. 
+
+```{important}
+One oxDNA length unit is equal to 0.8518 nm.
 ```
 
 ## Topology file

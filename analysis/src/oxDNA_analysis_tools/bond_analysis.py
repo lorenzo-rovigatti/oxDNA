@@ -27,9 +27,10 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarra
     with oxpy.Context():
         inp = oxpy.InputFile()                      # Create an empty input file
         inp.init_from_filename(ctx.input_file)      # Fill in input file with the provided input
+        inp["log_file"] = "/dev/null"
 
         # Modify the input file to analyze the target trajectory and select a chunk to analyze
-        inp["list_type"] = "cells"                   
+        inp["list_type"] = "cells"
         inp["trajectory_file"] = ctx.traj_info.path
         inp["analysis_bytes_to_skip"] = str(ctx.traj_info.idxs[chunk_id*chunk_size].offset)
         inp["confs_to_analyse"] = str(chunk_size)
@@ -92,8 +93,8 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
         Returns:
             Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
             | Number of formed bonds among the specified nucleotides at each step in the simulation
-            | Number of missbonds among specified nucleotides at each step in the simulation
             | Number of correct bonds among specified nucleotides at each step in the simulation
+            | Number of missbonds among specified nucleotides at each step in the simulation
             | Per-nucleotide correct bond occupancy
     '''
     # oat_multiprocessor requires all arguments to compute be passed as a single variable.  We use a namedtuple for this.

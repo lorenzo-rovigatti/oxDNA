@@ -32,6 +32,7 @@ These are the options that control the overall behaviour of the simulation and o
 * `conf_file = <path>`: path to the starting configuration.
 * `topology = <path>`: path to the file containing the system's topology.
 * `trajectory_file = <path>`: path to the file which will contain the output trajectory of the simulation.
+* `[trajectory_compression = <bool>]`: compress the trajectory using [zstd](https://github.com/facebook/zstd), reducing its size by up to {math}`\approx 50\%`. Requires compiling the code with `-DZSTD_ENABLED=On`.
 * `[trajectory_print_momenta = <bool>]`: print the linear and angular momenta of the particles to the trajectory. Set it to `false` to decrease the size of the trajectory by {math}`\approx 40\%`. Defaults to `true`.
 * `time_scale = linear/log_lin`: a linear time_scale will make oxDNA print linearly-spaced configurations. a log_lin will make it print linearly-spaced cycles of logarithmically-spaced configurations.
 * `print_conf_interval = <int>`: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.
@@ -142,6 +143,7 @@ The following options control the behaviour of MC simulations.
     file and weight file. Used if `umbrella_sampling = true`, defaults to `true`.
 * `[default_weight = <float>]`: default weight for states that have no specified weight assigned from the weights file. Mandatory if `safe_weights = true`.
 * `[skip_hist_zeros = <bool>]`: whether to skip zero entries in the `traj_hist` file. Mandatory if `umbrella_sampling = true`, defaults to `false`.
+* `[print_traj_hist_file = <bool>]`: whether to print the trajectory histogram. if `false`, only the last histogram will be written (to the file specified in `last_hist_file`). Defaults to `true`.
 
 ## Common options for `DNA`, `DNA2`, `RNA` and `RNA2` simulations
 

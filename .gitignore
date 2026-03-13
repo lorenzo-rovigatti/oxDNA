@@ -66,9 +66,13 @@ wheels/
 *.egg
 MANIFEST
 
+# Compiled Cython reader
+analysis/src/oxDNA_analysis_tools/cython_utils/get_confs.c
+
 # Vim/gvim/vscode swp files
 .*.swp
 .vscode/
+.cache
 
 # MacOS desktop servies
 .DS_Store
@@ -76,8 +80,16 @@ MANIFEST
 # Pytest and coverage.py stuff
 **/.coverage*
 
+# oxpy/CUDA build stuff
 select_compute_arch_laptop.cmake
 cmake-build-debug
 .vscode
 oxpy/_version.py
 src/oxpy/_version.py
+
+# AppleDouble Files
+._*
+
+# Encoder/Decoder 
+utils/PostSimulationCompression/encode_trj
+utils/PostSimulationCompression/decode_trj

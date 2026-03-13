@@ -21,6 +21,8 @@ The following options are supported:
 * `stop_at`: the number of steps beyond which the output will stop being written. Defaults to -1 ("never").
 * `only_last`: overwrite the content of the output with the current one.
 * `update_name_with_time`: change the name of the output file every time the output is printed by appending the current simulation time step to `name`.
+* `compress`: compress the output using [zstd](https://github.com/facebook/zstd). Requires compiling the code with `-DZSTD_ENABLED=On`. Compressed files can be decompressed with external tools such as [the one provided in the `utils` folder](./utils.md#decompress_zstdpy). Defaults to `false`.
+* `zstd_level`: zstd compression level. Only used if `compress = true`. Defaults to 3.
 
 An example is:
 
@@ -136,6 +138,14 @@ Print forces and torques due to nucleotide-nucleotide interactions. By default, 
 
 * `type = pair_force`: the observable type.
 * `[particle_id = <int>]`: if set, only pairs in which one of the particles has the given id will be considered.
+
+## Forces and torques on individual particles
+
+Print forces and torques of individual particles. 
+
+* `type = force_and_torque`: the observable type.
+* `particle = <string>`: index of the first particle or comma-separated list of particle indexes composing the first set. Use `all` or `-1` to print information about all particles.
+* `[lab_frame = <bool>]`: print torques in the laboratory reference frame. Defaults to `true`.
 
 ## Distance between two (sets of) particles
 

@@ -507,56 +507,6 @@ static const char *_cudaGetErrorEnum(cusparseStatus_t error)
 }
 #endif
 
-#ifdef CURAND_H_
-// cuRAND API errors
-static const char *_cudaGetErrorEnum(curandStatus_t error)
-{
-    switch (error)
-    {
-        case CURAND_STATUS_SUCCESS:
-            return "CURAND_STATUS_SUCCESS";
-
-        case CURAND_STATUS_VERSION_MISMATCH:
-            return "CURAND_STATUS_VERSION_MISMATCH";
-
-        case CURAND_STATUS_NOT_INITIALIZED:
-            return "CURAND_STATUS_NOT_INITIALIZED";
-
-        case CURAND_STATUS_ALLOCATION_FAILED:
-            return "CURAND_STATUS_ALLOCATION_FAILED";
-
-        case CURAND_STATUS_TYPE_ERROR:
-            return "CURAND_STATUS_TYPE_ERROR";
-
-        case CURAND_STATUS_OUT_OF_RANGE:
-            return "CURAND_STATUS_OUT_OF_RANGE";
-
-        case CURAND_STATUS_LENGTH_NOT_MULTIPLE:
-            return "CURAND_STATUS_LENGTH_NOT_MULTIPLE";
-
-        case CURAND_STATUS_DOUBLE_PRECISION_REQUIRED:
-            return "CURAND_STATUS_DOUBLE_PRECISION_REQUIRED";
-
-        case CURAND_STATUS_LAUNCH_FAILURE:
-            return "CURAND_STATUS_LAUNCH_FAILURE";
-
-        case CURAND_STATUS_PREEXISTING_FAILURE:
-            return "CURAND_STATUS_PREEXISTING_FAILURE";
-
-        case CURAND_STATUS_INITIALIZATION_FAILED:
-            return "CURAND_STATUS_INITIALIZATION_FAILED";
-
-        case CURAND_STATUS_ARCH_MISMATCH:
-            return "CURAND_STATUS_ARCH_MISMATCH";
-
-        case CURAND_STATUS_INTERNAL_ERROR:
-            return "CURAND_STATUS_INTERNAL_ERROR";
-    }
-
-    return "<unknown>";
-}
-#endif
-
 #ifdef NV_NPPIDEFS_H
 // NPP API errors
 static const char *_cudaGetErrorEnum(NppStatus error)
@@ -719,55 +669,6 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 #ifndef MAX
 #define MAX(a,b) (a > b ? a : b)
-#endif
-
-#ifdef __CUDA_RUNTIME_H__
-// General GPU Device CUDA Initialization
-inline int gpuDeviceInit(int devID)
-{
-    int deviceCount;
-    checkCudaErrors(cudaGetDeviceCount(&deviceCount));
-
-    if (deviceCount == 0)
-    {
-        fprintf(stderr, "gpuDeviceInit() CUDA error: no devices supporting CUDA.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (devID < 0)
-    {
-        devID = 0;
-    }
-
-    if (devID > deviceCount-1)
-    {
-        fprintf(stderr, "\n");
-        fprintf(stderr, ">> %d CUDA capable GPU device(s) detected. <<\n", deviceCount);
-        fprintf(stderr, ">> gpuDeviceInit (-device=%d) is not a valid GPU device. <<\n", devID);
-        fprintf(stderr, "\n");
-        return -devID;
-    }
-
-    cudaDeviceProp deviceProp;
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-
-    if (deviceProp.computeMode == cudaComputeModeProhibited)
-    {
-        fprintf(stderr, "Error: device is running in <Compute Mode Prohibited>, no threads can use ::cudaSetDevice().\n");
-        return -1;
-    }
-
-    if (deviceProp.major < 1)
-    {
-        fprintf(stderr, "gpuDeviceInit(): GPU device does not support CUDA.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    checkCudaErrors(cudaSetDevice(devID));
-    printf("gpuDeviceInit() CUDA Device [%d]: \"%s\n", devID, deviceProp.name);
-
-    return devID;
-}
 #endif
 
 // end of CUDA Helper Functions

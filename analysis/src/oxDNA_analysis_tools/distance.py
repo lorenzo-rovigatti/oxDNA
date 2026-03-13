@@ -201,11 +201,12 @@ def main():
     # -d will dump the distances as json files for loading with the trajectories in oxView
     if args.data:
         from json import dump
+        base = args.data[0][:-5] if args.data[0].endswith('.json') else args.data[0]
         if len(trajectories) > 1:
             log("distance lists from separate trajectories are printed to separate files for oxView compatibility.  Trajectory numbers will be appended to your provided data file name.")
-            file_names = ["{}_{}.json".format(args.data[0].strip('.json'), i) for i,_ in enumerate(trajectories)]
+            file_names = ["{}_{}.json".format(base, i) for i,_ in enumerate(trajectories)]
         else:
-            file_names = [args.data[0].strip('.json')+'.json']
+            file_names = [base+'.json']
         names_by_traj = [['{}-{}'.format(p1, p2) for p1, p2 in zip(p1l, p2l)] for p1l, p2l in zip(p1ss, p2ss)]
         
         for file_name, ns, dist_list in zip(file_names, names_by_traj, distances):
@@ -249,11 +250,16 @@ def main():
     [print("{:.2f}\t".format(m), end='') for m in [i for sl in medians for i in sl]]
     print("")
 
+    base, ext = os.path.splitext(outfile)
+    if not ext:
+        ext = '.png'
+        outfile = base + ext
+
     #make a histogram
     if hist == True:
         if lineplt == True:
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.rfind(".")]+"_hist"+outfile[outfile.rfind("."):]
+            out = base+"_hist"+ext
         else:
             out = outfile
         bins = np.linspace(np.floor(lower-(lower*0.1)), np.ceil(upper+(upper*0.1)), 60)
@@ -274,7 +280,7 @@ def main():
     if lineplt == True:
         if hist == True:
             #if making two plots, automatically append the plot type to the output file name
-            out = outfile[:outfile.rfind(".")]+"_traj"+outfile[outfile.rfind("."):]
+            out = base+"_traj"+ext
         else:
             out = outfile
         graph_count = 0

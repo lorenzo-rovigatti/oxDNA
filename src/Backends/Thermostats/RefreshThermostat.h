@@ -16,7 +16,7 @@
  */
 
 class RefreshThermostat: public BaseThermostat {
-private:
+protected:
 	int _newtonian_steps;
 	number _rescale_factor;
 public:

@@ -34,6 +34,8 @@ namespace Utils {
 int decode_base(char c);
 char encode_base(int b);
 std::vector<int> btypes_from_sequence(const std::string &sequence);
+int decode_aa(char c); // Subho 
+char encode_aa(int b); // Subho
 
 number gaussian();
 
@@ -207,6 +209,17 @@ void assert_is_valid_particle(int n, int N, std::string identifier);
  *	@param s string to be checked.
  */
 bool is_integer(std::string s);
+
+inline number safe_acos(number x) {
+    // branchless clamp into [–1,1]
+    number y = std::fmax(-1.0, std::fmin(1.0, x));
+    return std::acos(y);
+}
+
+template <typename T>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+    return (v < lo) ? lo : (hi < v) ? hi : v;
+}
 
 }
 

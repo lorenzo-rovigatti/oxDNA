@@ -1,14 +1,19 @@
 # oxDNA Analysis Tools
 
 ```{eval-rst}
-oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools and importable modules for performing structural analyses of oxDNA simulations. oxDNA Analysis Tools has been updated to use the :doc:`new topology</configurations>`.
+oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools and importable modules for performing structural analyses of oxDNA simulations. oxDNA Analysis Tools can handle both old-style and new-style topologies, as well as compressed trajectories. See the :doc:`Configurations page</configurations>` for more details
 ```
 
 ## Command Line Interface
 
 The scripts can be run via the command line with:
-```
+```shell
 oat <script name> <script arguments>
+```
+
+For example:
+```shell
+oat mean -p 10 -o mean.dat trajectory.dat
 ```
 
 There are Bash and Zsh autocompletes avilable for the script names, which can be activated by copying the file `/oxDNA/analysis/oat-completion.sh` to your autocompletes file (in Bash: `~/.bash_completion`) or adding `source /path/to/oxDNA/analysis/oat-completion.sh` to your rc file and restarting your command line session.  Note that for Zsh, you must be using the modern completion engine by adding 
@@ -18,7 +23,60 @@ compinit
 ```
 to your `.zshrc` file.
 
-Documentation for individual scripts:
+## Scripting interface
+
+The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
+
+```python
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
+from oxDNA_analysis_tools.mean import mean
+
+top = 'topology.top'
+traj = 'trajectory.dat'
+
+top_info, traj_info = describe(top, traj)
+
+# Compute a mean configuration
+mean_conf = mean(traj_info, top_info)
+
+confs = get_confs(top_info, traj_info, start_conf, n_confs)
+# Do something with the trajectory
+```
+
+The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
+
+## Writing your own `oat` scripts
+The scripts in this library are organized in a specific way to facilitate composability and allow use both as command-line tools and as an importable Python library. When contributing to the package, please first take a look at [skeleton.py](https://github.com/lorenzo-rovigatti/oxDNA/blob/master/analysis/src/oxDNA_analysis_tools/skeleton.py), which is a 'skeleton' of a trajectory analysis script. You might also want to look at the [RyeReader](utils.md#rye-reader), which contains file-reading utilities and the built-in [data structures](utils.md#data-structures)
+
+If you make changes to the Cython file reader, the pre-transpiled .c file is in the .gitignore because of random strings that change every time its built. If you make changes to the file reader, you must copy the transpiled .c file to  `oxDNA/analysis/src/oxDNA_analysis_tools/cython_utils/get_confs_fallback.c` to allow Cython-independent installation.
+
+## Unit tests
+
+For development purposes, `oat` has comprehensive unit tests implemented in [Pytest](https://docs.pytest.org/en/stable/) which can be found in `oxDNA/analysis/tests/`. To run all tests, first install `oat` either via `make install` as described in the [installation instructions](../install.md#compiling-oxdna), or with `python -m pip install oxDNA/analysis/`, then run:
+```shell
+pytest oxDNA/analysis/tests/test_cli/`
+```
+Or run a specific test:
+```shell
+pytest oxDNA/analysis/tests/test_cli/test_mean.py
+```
+
+Test coverage can be checked using [Coverage.py](https://coverage.readthedocs.io/en/latest/):
+```shell
+coverage run --source=oxDNA_analysis_tools -m pytest tests/test_cli/ && coverage combine && coverage html && open htmlcov/index.html 
+```
+
+If a test fails on your machine, please open an issue on GitHub to let us know!
+
+## Constants
+There are a couple global constants which `oat` uses across scripts. These can be found in `oxDNA/analysis/src/oxDNA_analysis_tools/UTILS/constants.py`. They can be set persistently on an installed copy of `oat` using `oat config` with a flag, where the following options are available:
+```shell
+oat config -n 100 # Load configurations in chunks of 100 per process while reading trajectories
+oat config -f 300 # Set output figure DPI to 300
+```
+
+## Documentation for individual scripts
+Full CLI documentation:
 
 ```{eval-rst}
 .. toctree::
@@ -26,21 +84,6 @@ Documentation for individual scripts:
 
    cli.md
 ```
-
-## Scripting interface
-
-The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
-
-```python
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
-
-# get the top and traj names from the command line or hardcode them
-
-top_info, traj_info = describe(top, traj)
-confs = get_confs(top_info, traj_info, start_conf, n_confs)
-```
-
-The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
 
 Full API documentation:
 
@@ -67,13 +110,6 @@ Full API documentation:
    :maxdepth: 2
 
    forces.md
-```
-
-## Constants
-There are a couple global constants which `oat` uses across scripts. These can be found in `oxDNA/analysis/src/oxDNA_analysis_tools/UTILS/constants.py`. They can be set persistently on an installed copy of `oat` using `oat config` with a flag, where the following options are available:
-```shell
-oat config -n 100 # Load configurations in chunks of 100 per process while reading trajectories
-oat config -f 300 # Set output figure DPI to 300
 ```
 
 ## Analysis notebooks

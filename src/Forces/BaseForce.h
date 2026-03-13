@@ -54,6 +54,7 @@ public:
 	LR_vector _direction = LR_vector(1., 0., 0.);
 	LR_vector _pos0 = LR_vector(0., 0., 0.);
 	number _stiff;
+	BaseParticle *_current_particle = nullptr; // particle on which the force is currently acting
 	BaseParticle *_p_ptr;
 
 	BaseForce();
@@ -86,6 +87,10 @@ public:
 
 	std::string get_type() {
 		return _type;
+	}
+
+	virtual void set_current_particle(BaseParticle *p) {
+		_current_particle = p;
 	}
 
 	/**

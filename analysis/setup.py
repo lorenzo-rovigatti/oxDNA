@@ -15,11 +15,15 @@ except ImportError:
 
 OAT_DIR = os.path.dirname(__file__)
 
-ext = 'pyx' if USING_CYTHON else 'c'
-sources = glob('src/oxDNA_analysis_tools/cython_utils/*.{}'.format(ext))
-extensions = [
-    Extension('oxDNA_analysis_tools.UTILS.'+source.split(os.path.sep)[-1].split('.')[0],
-              sources=[source]) for source in sources]
+if USING_CYTHON:
+    sources = glob('src/oxDNA_analysis_tools/cython_utils/*.pyx')
+    extensions = [
+        Extension('oxDNA_analysis_tools.UTILS.'+source.split(os.path.sep)[-1].split('.')[0],
+                  sources=[source]) for source in sources]
+else:
+    extensions = [
+        Extension('oxDNA_analysis_tools.UTILS.get_confs',
+                  sources=['src/oxDNA_analysis_tools/cython_utils/get_confs_fallback.c'])]
 
 if USING_CYTHON:
     extensions = cythonize(extensions, compiler_directives={'language_level' : "3"})

@@ -12,9 +12,10 @@
 #include "LJInteraction.h"
 #include "DNAInteraction.h"
 #include "DNA2Interaction.h"
+#include "DNA2SDInteraction.h"
+#include "DNA3Interaction.h"
 #include "RNAInteraction.h"
 #include "RNAInteraction2.h"
-#include "DNAInteraction_nomesh.h"
 #include "PatchyInteraction.h"
 #include "KFInteraction.h"
 #include "DNAInteraction_relax.h"
@@ -26,6 +27,9 @@
 #include "TEPInteraction.h"
 #include "DRHInteraction.h"
 #include "DRHInteraction_relax.h"
+#include "ANMInteraction.h"
+#include "DNANMInteraction.h"
+#include "RNANMInteraction.h"
 
 #ifdef LEGACY_CODE
 #include "DHSInteraction.h"
@@ -50,11 +54,21 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 		if(backend.compare("CUDA") == 0) return std::make_shared<DNA2Interaction_nomesh>();
 		else return std::make_shared<DNA2Interaction>();
 	}
+	else if(inter_type.compare("DNA2SD") == 0) {
+		/*if(backend.compare("CUDA") == 0) return std::make_shared<DNA2Interaction_nomesh>();
+		else*/ return std::make_shared<DNA2SDInteraction>();
+	}
+	else if(inter_type.compare("DNA3") == 0) {
+		if(backend.compare("CUDA") == 0) return std::make_shared<DNA3Interaction_nomesh>();
+		else return std::make_shared<DNA3Interaction>();
+	}
 	else if(inter_type.compare("LJ") == 0) return std::make_shared<LJInteraction>();
 	else if(inter_type.compare("DNA_nomesh") == 0) return std::make_shared<DNAInteraction_nomesh>();
 	else if(inter_type.compare("DNA2_nomesh") == 0) return std::make_shared<DNA2Interaction_nomesh>();
+	else if(inter_type.compare("DNA3_nomesh") == 0) return std::make_shared<DNA3Interaction_nomesh>();
 	else if(inter_type.compare("DNA_relax") == 0) return std::make_shared<DNAInteraction_relax>();
 	else if(inter_type.compare("DNA2") == 0) return std::make_shared<DNA2Interaction>();
+	else if(inter_type.compare("DNA2SD") == 0) return std::make_shared<DNA2SDInteraction>();
 	else if(inter_type.compare("RNA") == 0) return std::make_shared<RNAInteraction>();
 	else if(inter_type.compare("RNA2") == 0) return std::make_shared<RNA2Interaction>();
 	else if(inter_type.compare("RNA_relax") == 0) return std::make_shared<RNAInteraction_relax>();
@@ -67,6 +81,11 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<TEPInteraction>();
 	else if(inter_type.compare("NA") == 0) return std::make_shared<DRHInteraction>();
 	else if(inter_type.compare("NA_relax") == 0) return std::make_shared<DRHInteraction_relax>();
+	else if(inter_type.compare("AC") == 0) return std::make_shared<ANMInteraction>();
+	else if(inter_type.compare("DNANM") == 0) return std::make_shared<DNANMInteraction>(false);
+	else if(inter_type.compare("DNACT") == 0) return std::make_shared<DNANMInteraction>(true);
+	else if(inter_type.compare("RNANM") == 0) return std::make_shared<RNANMInteraction>(false);
+	else if(inter_type.compare("RNACT") == 0) return std::make_shared<RNANMInteraction>(true);
 #ifdef LEGACY_CODE
 	else if(inter_type.compare("DHS") == 0) return std::make_shared<DHSInteraction>();
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();

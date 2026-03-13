@@ -30,6 +30,8 @@ private:
 	bool _debug;
 	/// If false, the logger won't print anything
 	bool _allow_log;
+	/// The entity that disabled logging, used to control who can re-allow logging
+	std::string _disabler;
 
 	/// Output stream
 	FILE *_log_stream;
@@ -89,12 +91,19 @@ public:
 	/**
 	 * @brief Disables logging.
 	 */
-	void disable_log();
-
+	void disable_log(std::string disabler="");
+	
 	/**
 	 * @brief Enabled logging.
 	 */
-	void enable_log();
+	void enable_log(std::string disabler="");
+
+	/**
+	 * @brief Returns the pointer to the log stream used by this Logger
+	 *
+	 * @return pointer to the log stream (it can be stdout, stderr or an open file)
+	 */
+	FILE *get_log_stream() { return _log_stream; }
 
 	/**
 	 * @brief Returns the actual logger. Static method to enforce the singleton pattern.

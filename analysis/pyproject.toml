@@ -23,7 +23,8 @@ readme = { file = "README.md", content-type = "text/markdown" }
 dependencies = [
   "numpy>=1.24.1",
   "scikit-learn>=1.8.0",
-  "matplotlib>=3.6.1"
+  "matplotlib>=3.6.1",
+  "zstandard>=0.15.0"
 ]
 
 classifiers = [
@@ -33,3 +34,11 @@ classifiers = [
 ]
 
 urls = { Homepage = "https://github.com/sulcgroup/oxdna_analysis_tools", Bug-Tracker = "https://github.com/sulcgroup/oxdna_analysis_tools/issues" }
+
+[project.scripts]
+oat = "oxDNA_analysis_tools.entry:main"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+concurrency = ["multiprocessing"]

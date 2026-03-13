@@ -15,7 +15,8 @@ import numpy as np
 import pytest
 
 from oxDNA_analysis_tools.minify import minify, cli_parser, main, compute, ComputeContext
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, _is_zstd_traj, inbox
+from oxDNA_analysis_tools.mean import mean
 
 
 # =============================================================================
@@ -93,12 +94,12 @@ class TestMinifyFunction:
         assert np.allclose(no_a_conf.a1s, 0), "a1 vectors should be zero"
         assert np.allclose(no_a_conf.a3s, 0), "a3 vectors should be zero"
 
-        # Directly test the compute function
-        ctx = ComputeContext(traj_info, top_info, d=2, a=True)
+        # Directly test the compute function (uncompressed path)
+        ctx = ComputeContext(traj_info, top_info, d=2, a=True, compress=False)
         min_conf_str = compute(ctx, chunk_size=1, chunk_id=0)
 
-        # Check that compute returns a string
-        assert isinstance(min_conf_str, str), "compute() should return a string"
+        # Check that compute returns bytes
+        assert isinstance(min_conf_str, bytes), "compute() should return bytes"
 
 # =============================================================================
 # CLI Parser Tests
@@ -174,3 +175,73 @@ class TestMain:
         with patch.object(sys, 'argv', test_args_no_a):
             main()
         assert output_no_a.exists(), "Output file should be created with -a flag"
+
+        # With -z flag
+        output_z = temp_output_dir / "minified_z.dat"
+        test_args_z = ["minify.py", "-z", str(traj_copy), str(output_z)]
+        with patch.object(sys, 'argv', test_args_z):
+            main()
+        assert output_z.exists(), "Output file should be created with -z flag"
+        assert _is_zstd_traj(str(output_z)), "Output should be zstd-compressed with -z flag"
+
+
+# =============================================================================
+# Compressed output / mean consistency Tests
+# =============================================================================
+
+class TestCompressedMeanConsistency:
+    """Test that mean() produces equivalent results on a minify-compressed trajectory."""
+
+    def test_mean_compressed_matches_original(self, trajectory_info, temp_output_dir):
+        """
+        Compress the test trajectory with minify(-z), run mean() on both the
+        original and the compressed copy, and verify the results are identical.
+
+        Validation is progressive:
+          1. The compressed output is a valid zstd trajectory with the right shape.
+          2. mean() on the compressed trajectory returns a Configuration with
+             the correct shape and normalized orientation vectors.
+          3. Positions, a1s, and a3s from both mean() calls are numerically
+             identical (no rounding is applied, so values should be bit-exact
+             up to floating-point round-trip through text).
+        """
+        top_info, traj_info = trajectory_info
+
+        # --- Step 1: compress the trajectory with minify ---
+        compressed_path = str(temp_output_dir / "compressed.dat")
+        minify(traj_info, top_info, compressed_path, compress=True, ncpus=1)
+
+        assert _is_zstd_traj(compressed_path), "minify output should be zstd-compressed"
+        compressed_top, compressed_traj = describe(None, compressed_path)
+        assert compressed_traj.nconfs == traj_info.nconfs, \
+            "Compressed trajectory should have the same number of configurations"
+        assert compressed_top.nbases == top_info.nbases, \
+            "Compressed trajectory should have the same number of particles"
+
+        # --- Step 2: run mean() on both trajectories with the same reference ---
+        ref_conf = inbox(get_confs(top_info, traj_info, 0, 1)[0], center=True)
+
+        mean_orig = mean(traj_info, top_info, ref_conf=ref_conf, ncpus=1)
+        mean_comp = mean(compressed_traj, compressed_top, ref_conf=ref_conf, ncpus=1)
+
+        assert mean_comp.positions.shape == (top_info.nbases, 3), \
+            "Mean of compressed trajectory has wrong positions shape"
+        assert mean_comp.a1s.shape == (top_info.nbases, 3), \
+            "Mean of compressed trajectory has wrong a1s shape"
+        assert mean_comp.a3s.shape == (top_info.nbases, 3), \
+            "Mean of compressed trajectory has wrong a3s shape"
+
+        a1_norms = np.linalg.norm(mean_comp.a1s, axis=1)
+        a3_norms = np.linalg.norm(mean_comp.a3s, axis=1)
+        np.testing.assert_allclose(a1_norms, np.ones(top_info.nbases), rtol=1e-5,
+                                   err_msg="a1 vectors from compressed mean should be normalized")
+        np.testing.assert_allclose(a3_norms, np.ones(top_info.nbases), rtol=1e-5,
+                                   err_msg="a3 vectors from compressed mean should be normalized")
+
+        # --- Step 3: positions and orientations should be numerically identical ---
+        np.testing.assert_allclose(mean_comp.positions, mean_orig.positions, rtol=1e-5,
+                                   err_msg="Mean positions differ between original and compressed")
+        np.testing.assert_allclose(mean_comp.a1s, mean_orig.a1s, rtol=1e-5,
+                                   err_msg="Mean a1 vectors differ between original and compressed")
+        np.testing.assert_allclose(mean_comp.a3s, mean_orig.a3s, rtol=1e-5,
+                                   err_msg="Mean a3 vectors differ between original and compressed")
