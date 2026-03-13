@@ -62,7 +62,12 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="index.html#command-line-interface">Command Line Interface</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#writing-your-own-oat-scripts">Writing your own <code class="docutils literal notranslate"><span class="pre">oat</span></code> scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#unit-tests">Unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#constants">Constants</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#documentation-for-individual-scripts">Documentation for individual scripts</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">OAT command line documentation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#align">Align</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#anm-parameterize">ANM parameterize</a></li>
@@ -97,12 +102,11 @@
 <li class="toctree-l4"><a class="reference internal" href="#superimpose">Superimpose</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#top-level-api">Top-level API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#utility-api">Utility API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#forces-api">Forces API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#writing-your-own-oat-scripts">Writing your own <code class="docutils literal notranslate"><span class="pre">oat</span></code> scripts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#unit-tests">Unit tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#constants">Constants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#analysis-notebooks">Analysis notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#citation">Citation</a></li>
 </ul>
@@ -144,7 +148,7 @@
 <p><p>Aligns each frame in a trajectory to the first frame</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">align</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">reference_structure</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">z</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                  <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -173,6 +177,10 @@
 </dd>
 <dt><kbd>-c, --nocenter</kbd></dt>
 <dd><p>Don’t center the output.  Can avoid errors caused by small boxes.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-z, --compress</kbd></dt>
+<dd><p>Write a zstd-compressed trajectory. If not set, the output format matches the input.</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
@@ -826,7 +834,7 @@
 <h2>Minify<a class="headerlink" href="#minify" title="Permalink to this heading"></a></h2>
 <p><p>Compress given configuration.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DECIMALS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DECIMALS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">z</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                   <span class="n">trajectory</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -853,6 +861,10 @@
 </dd>
 <dt><kbd>-d, --decimals</kbd></dt>
 <dd><p>Round positions and orientations to the specified number of digits.</p>
+</dd>
+<dt><kbd>-z, --compress</kbd></dt>
+<dd><p>Write a zstd-compressed trajectory. If not set, the output format matches the input.</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>

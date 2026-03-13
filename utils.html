@@ -59,6 +59,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#id1">Usage</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#decompress-zstd-py">decompress_zstd.py</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Usage</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#compressing-trajectory-files">Compressing trajectory files</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#benchmarks">Benchmarks</a></li>
@@ -150,6 +154,21 @@
 <p>The script automatically detects the format of the input files and converts them accordingly.</p>
 </section>
 </section>
+<section id="decompress-zstd-py">
+<h2>decompress_zstd.py<a class="headerlink" href="#decompress-zstd-py" title="Permalink to this heading"></a></h2>
+<p>This script decompresses oxDNA files that have been compressed using Zstandard compression, which is done by either setting <code class="docutils literal notranslate"><span class="pre">trajectory_compression</span> <span class="pre">=</span> <span class="pre">true</span></code> in the main input file (for trajectories), or by setting <code class="docutils literal notranslate"><span class="pre">compress</span> <span class="pre">=</span> <span class="pre">true</span></code> in <code class="docutils literal notranslate"><span class="pre">data_output_*</span></code> observable sections. It requires the <code class="docutils literal notranslate"><span class="pre">zstandard</span></code> library.</p>
+<section id="id2">
+<h3>Usage<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>decompress_zstd.py<span class="w"> </span>&lt;compressed_file&gt;<span class="w"> </span><span class="o">[</span>output_file<span class="o">]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;compressed_file&gt;</span></code>: The compressed oxDNA file to decompress.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[output_file]</span></code>: Optional output file name. If not provided, the output will be written to <code class="docutils literal notranslate"><span class="pre">&lt;compressed_file&gt;.decompressed</span></code>.</p></li>
+</ul>
+<p>The script reads the custom header (magic bytes ‘OXD\x01’, version, compression level) and decompresses the Zstandard-compressed data stream.</p>
+</section>
+</section>
 <section id="compressing-trajectory-files">
 <h2>Compressing trajectory files<a class="headerlink" href="#compressing-trajectory-files" title="Permalink to this heading"></a></h2>
 <section id="overview">
@@ -234,7 +253,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">-std=c11</span></code></p></li>
 </ul>
 <p>These flags maximize performance for trajectory processing workloads. Edit the <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> to customise compilation. To remove the compiled binaries run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code></p>
-<h3 class="rubric" id="id2">Usage</h3>
+<h3 class="rubric" id="id3">Usage</h3>
 <h4 class="rubric" id="encode-a-trajectory">Encode a Trajectory</h4>
 <p><code class="docutils literal notranslate"><span class="pre">./encode_trj</span> <span class="pre">input.dat</span> <span class="pre">output.bin</span> <span class="pre">n_cols</span> <span class="pre">scale_digits</span></code></p>
 <p>Parameters:</p>
