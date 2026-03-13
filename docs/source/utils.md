@@ -42,6 +42,21 @@ python convert.py <topology> <configuration> [-p prefix] [-i]
 
 The script automatically detects the format of the input files and converts them accordingly.
 
+## decompress_zstd.py
+
+This script decompresses oxDNA files that have been compressed using Zstandard compression, which is done by either setting `trajectory_compression = true` in the main input file (for trajectories), or by setting `compress = true` in `data_output_*` observable sections. It requires the `zstandard` library.
+
+### Usage
+
+```bash
+python decompress_zstd.py <compressed_file> [output_file]
+```
+
+- `<compressed_file>`: The compressed oxDNA file to decompress.
+- `[output_file]`: Optional output file name. If not provided, the output will be written to `<compressed_file>.decompressed`.
+
+The script reads the custom header (magic bytes 'OXD\x01', version, compression level) and decompresses the Zstandard-compressed data stream.
+
 ## Compressing trajectory files
 
 ### Overview
