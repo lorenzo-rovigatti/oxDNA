@@ -5,11 +5,9 @@
 
 #include "CUDADNANMInteraction.h"
 #include "CUDA_DNANM.cuh"
-//#include "CUDA_DNA.cuh"
-//#include "../Lists/CUDASimpleVerletList.h"
-//#include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNANMInteraction.h"
 
+#include <fstream>
 
 CUDADNANMInteraction::CUDADNANMInteraction(bool btp) : DNANMInteraction(btp), CUDABaseInteraction() {
     

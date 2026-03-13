@@ -11,6 +11,7 @@
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNA2Interaction.h"
+#include "../../Utilities/ConfigInfo.h"
 
 #include "../CUDAUtils.h"
 
