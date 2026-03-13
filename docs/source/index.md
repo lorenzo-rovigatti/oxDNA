@@ -25,7 +25,7 @@ Please cite these publications for any work that uses the oxDNA simulation packa
   * [E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023)](https://doi.org/10.21105/joss.04693)
 - for the CUDA-powered code:
   * [L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)](https://doi.org/10.1002/jcc.23763)
-- for oxDNA analysis tools:
+- for `oxDNA_analysis_tools`:
   * [E. Poppleton et al., Nucleic Acids Research e72 (2020)](https://doi.org/10.1093/nar/gkab324)
 
 ```{eval-rst}
@@ -37,6 +37,7 @@ Please cite these publications for any work that uses the oxDNA simulation packa
    usage.md
    input.md
    configurations.md
+   utils.md
    relaxation.md
    performance.md
    scaling.md

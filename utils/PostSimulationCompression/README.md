@@ -333,11 +333,8 @@ The datasets used in the benchmark are summarized below.
 
 The benchmark compares:
 
-**Compression Ratio vs Precision**  
-Lower precision (fewer digits) increases compression efficiency, while higher precision preserves more numerical detail.
-
-**Encoding Time per Frame**  
-Encoding time is normalized by frame count, allowing fair comparison between datasets with different trajectory lengths.
+* Compression Ratio vs Precision: Lower precision (fewer digits) increases compression efficiency, while higher precision preserves more numerical detail.
+* Encoding Time per Frame: Encoding time is normalized by frame count, allowing fair comparison between datasets with different trajectory lengths.
 
 These results demonstrate the tradeoff between precision, compression efficiency, and computational cost across a wide range of simulation sizes.
 

@@ -136,12 +136,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="A utility to convert oxDNA topology and configuration files from the old to the new format (and viceversa).")
     parser.add_argument("topology", help="The source topology file")
     parser.add_argument("configuration", help="The source configuration file")
-    parser.add_argument("-p", "--prefix", default="", required=False, help="A string that will prepended to the output filenames")
+    parser.add_argument("-p", "--prefix", default="converted_", required=False, help="A string that will be prepended to the output filenames")
     parser.add_argument("-i", "--input-dir", default=False, action="store_true", required=False, help="Output files will be written to the directory containing the input files instead of the current working directory")
     
     args = parser.parse_args()
-    if args.prefix == "":
-        args.prefix = "converted_"
 
     with open(args.topology) as top:
         spl = top.readline().split()
