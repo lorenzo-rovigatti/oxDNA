@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relaxation.html">Relaxing initial configurations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Improving performance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scaling.html">Efficient GPU usage</a></li>
@@ -70,6 +71,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-hard-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-sphere-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_sphere_moving</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-kepler-poinsot"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_kepler_poinsot</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
@@ -496,6 +499,64 @@ particle = &lt;int&gt;
 [sigma = &lt;float&gt;]
     &quot;Diameter&quot; of the wall. It effectively rescales the distance between
     particle and wall. Defaults to 1.
+</pre></div>
+</div>
+</section>
+<section id="type-repulsive-sphere-moving">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_sphere_moving</span></code><a class="headerlink" href="#type-repulsive-sphere-moving" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
+    index(es) of the particle(s) on which the force shall be applied. Can
+    be a list of comma-separated indexes / ranges. If -1 or all, the force
+    will be exerted on all the particles.
+stiff = &lt;float&gt;
+    energy scale (used as ε) for the repulsive WCA-style interaction.
+r0 = &lt;float&gt;
+    sphere radius at step 0 (in simulation units).
+rate = &lt;float&gt;
+    radius growth per step: radius(step) = r0 + rate * step.
+[center = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
+    sphere center (used as default origin if origin is not provided).
+    Defaults to 0,0,0.
+[origin = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
+    starting center position of the sphere. If omitted, defaults to center.
+[target = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
+    target center position of the sphere. Defaults to 0,0,0.
+[steps = &lt;int&gt;]
+    number of MD steps over which the center linearly interpolates from
+    origin -&gt; target. If 0 (default), the sphere is static at origin.
+[move_steps = &lt;int&gt;]
+    alias for steps.
+[r_ext = &lt;float&gt;]
+    additional cutoff on the surface gap r = |pos-center| - radius.
+    If r &gt;= r_ext, no force is applied. Defaults to 1e10 (effectively off).
+</pre></div>
+</div>
+</section>
+<section id="type-repulsive-kepler-poinsot">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_kepler_poinsot</span></code><a class="headerlink" href="#type-repulsive-kepler-poinsot" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
+    index(es) of the particle(s) on which the force shall be applied. Can
+    be a list of comma-separated indexes / ranges. If -1 or all, the force
+    will be exerted on all the particles.
+stiff = &lt;float&gt;
+    energy/force scale for the repulsor (required).
+rate = &lt;float&gt;
+    linear growth rate per step. A scale factor (1 + rate * step) is applied
+    to apex/base/base_radius. Defaults to 0.
+[center = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
+    center of the star repulsor. Defaults to 0,0,0.
+[apex = &lt;float&gt;]
+    spike tip distance along each icosahedral axis (from center).
+    Defaults to 1.2. Must satisfy apex &gt; base.
+[base = &lt;float&gt;]
+    spike base plane distance along each axis (from center).
+    Defaults to 0.7. Must satisfy base &lt; apex.
+[base_radius = &lt;float&gt;]
+    circumradius of the pentagon at the base plane. Defaults to 0.45.
+    Must be &gt; 0.
+[kappa = &lt;float&gt;]
+    soft-max sharpness used to smoothly approximate the pentagon support
+    function (bigger = sharper). Defaults to 25. If &lt;= 0, it is reset to 25.
 </pre></div>
 </div>
 </section>

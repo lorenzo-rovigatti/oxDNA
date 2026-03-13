@@ -87,7 +87,7 @@
 
     UTILS.logger.log
 
-.. autoclass:: oxDNA_analysis_tools.UTILS.logger.LoggerSetting
+.. autoclass:: oxDNA_analysis_tools.UTILS.logger.LoggerSettings
 .. autofunction:: oxDNA_analysis_tools.UTILS.logger.log
 ```
 

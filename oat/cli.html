@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../input.html">Input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../relaxation.html">Relaxing initial configurations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../performance.html">Improving performance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../scaling.html">Efficient GPU usage</a></li>
@@ -900,7 +901,9 @@
 <h2>Output bonds<a class="headerlink" href="#output-bonds" title="Permalink to this heading"></a></h2>
 <p><p>List all the interactions between nucleotides</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">output_bonds</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">OUTFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">UNITS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">output_bonds</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">OUTFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TRAJ_VIEW</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FIELDS</span> <span class="p">[</span><span class="n">FIELDS</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DATA_FILE</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">force_print</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">UNITS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                         <span class="n">inputfile</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -920,6 +923,19 @@
 <dl class="option-list">
 <dt><kbd>-v, --view</kbd></dt>
 <dd><p>if you want instead average per-particle energy as an oxView JSON</p>
+</dd>
+<dt><kbd>-t, --traj_view</kbd></dt>
+<dd><p>Write an oxView trajectory json overlay.</p>
+</dd>
+<dt><kbd>-f, --fields</kbd></dt>
+<dd><p>(optional) The fields to print out // save to files.  If not specified, all fields are printed.  Recognized options are: all, fene, bexc, stck, nexc, hb, cr_stack, cx_stack, dh, total</p>
+</dd>
+<dt><kbd>-d, --data_file</kbd></dt>
+<dd><p>(optional) If specified, the output will be written to this file instead of printed to the screen. Default if n_confs &gt; 10</p>
+</dd>
+<dt><kbd>--force_print</kbd></dt>
+<dd><p>(optional) If specified, the output will be printed to the screen even if n_confs &gt; 10</p>
+<p>Default: False</p>
 </dd>
 <dt><kbd>-p, --parallel</kbd></dt>
 <dd><p>(optional) How many cores to use</p>

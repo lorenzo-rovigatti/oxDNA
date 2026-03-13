@@ -77,6 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relaxation.html">Relaxing initial configurations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Improving performance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scaling.html">Efficient GPU usage</a></li>
@@ -267,6 +268,7 @@ statistics. Used if <code class="docutils literal notranslate"><span class="pre"
 file and weight file. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[default_weight</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: default weight for states that have no specified weight assigned from the weights file. Mandatory if <code class="docutils literal notranslate"><span class="pre">safe_weights</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[skip_hist_zeros</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to skip zero entries in the <code class="docutils literal notranslate"><span class="pre">traj_hist</span></code> file. Mandatory if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[print_traj_hist_file</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to print the trajectory histogram. if <code class="docutils literal notranslate"><span class="pre">false</span></code>, only the last histogram will be written (to the file specified in <code class="docutils literal notranslate"><span class="pre">last_hist_file</span></code>). Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
 </ul>
 </section>
 <section id="common-options-for-dna-dna2-rna-and-rna2-simulations">
