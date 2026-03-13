@@ -56,6 +56,7 @@ If you also want to update `oxpy` and `OAT` don't forget to run `make install` a
 * `-DNATIVE_COMPILATION=ON` Set to `OFF` to compile without the `-march=native` flag. This may be required when compiling binaries to be used elsewhere
 * `-DJSON_ENABLED=On` Set to `OFF` to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers
 * `-DZSTD_ENABLED=Off` Set to `ON` to enable on-the-fly [zstd](https://github.com/facebook/zstd) compression of any oxDNA output (configurations and trajectories included). If set to `ON`, if CMake cannot find a working zstd installation will attempt to download and compile a local version against which oxDNA will be linked. More details about trajectory compression can be found [here](./configurations.md).
+* `-DLEGACY_CODE=Off` Set to `On` to compile legacy code, which comprises features and classes that are very rarely used.
 
 ````{important}
 When compiling with CUDA with newer CMake versions (> 3.18), you may have to specify the location of `nvcc` by hand with `-DCMAKE_CUDA_COMPILER=/path/to/nvcc`. If doing so results in CMake errors, you may also have to manually specify a C/C++ compiler compatible with the current CUDA install, which can be done by exporting the following environment variables prior to calling CMake:
