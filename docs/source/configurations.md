@@ -2,6 +2,13 @@
 
 The current state of a system, as specified by oxDNA, is described by two files: a configuration file and a topology file. The configuration file contains all the general information (timestep, energy and box size) and the orientations and positions of each nucleotide. The topology file, on the other hand, keeps track of the backbone-backbone bonds between nucleotides in the same strand. Working configuration and topology files can be found in the `examples` directory.
 
+```{important}
+The layout of oxDNA configurations was designed for simpler times, when the size of an average system was rather small (no more than hundreds of nucleotides) and simulation times were rather short. Now that GPUs make it possible to run large-scale simulations of big nanostructures (*i.e.* origami), trajectories can easily take GBs (or even more) of disk space. oxDNA features a few ways of addressing this issue, depending on your needs:
+
+* If you don't need velocities and angular velocities, you can set `trajectory_print_momenta = false` in the input file to print only the coordinates and orientations of each nucleotide, thereby reducing the size of the trajectory by {math}`\approx 40\%`.
+* Compress/decompress trajectories using the custom VTJ1 format with the utility programs bundled with oxDNA, as detailed [here](./utils.md#compressing-trajectory-files).
+```
+
 ## Configuration file
 
 ```{warning}
