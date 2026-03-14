@@ -6,6 +6,9 @@
  */
 
 #include "MC_CPUBackend2.h"
+
+#include "../Utilities/Utils.h"
+
 #include <sstream>
 
 MC_CPUBackend2::MC_CPUBackend2() :

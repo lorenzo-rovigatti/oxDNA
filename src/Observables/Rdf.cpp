@@ -7,6 +7,8 @@
 
 #include "Rdf.h"
 
+#include <cstring>
+
 Rdf::Rdf() {
 	_n_pairs = 0;
 	_nbins = -1;

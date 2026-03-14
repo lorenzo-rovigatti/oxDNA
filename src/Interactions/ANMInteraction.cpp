@@ -13,6 +13,8 @@
 
 #include "../Particles/ANMParticle.h"
 
+#include "../Utilities/Utils.h"
+
 #include <sstream>
 #include <unistd.h>
 #include <fstream>

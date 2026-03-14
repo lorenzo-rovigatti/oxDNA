@@ -9,7 +9,6 @@
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"
-#include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Lists/Cells.h"
 

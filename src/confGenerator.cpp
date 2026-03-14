@@ -8,6 +8,8 @@
 #include "Managers/GeneratorManager.h"
 #include "Utilities/SignalManager.h"
 
+#include <cstring>
+
 /**
  * confGenerator is a tool to generate initial configurations for oxDNA
  *

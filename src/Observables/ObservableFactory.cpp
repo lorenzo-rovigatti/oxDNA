@@ -9,6 +9,8 @@
 
 #include "../PluginManagement/PluginManager.h"
 
+#include "ObservableOutput.h"
+
 #include "Step.h"
 #include "PotentialEnergy.h"
 #include "StackingPropensity.h"

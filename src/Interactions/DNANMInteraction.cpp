@@ -9,12 +9,13 @@
 
 
 #include "DNANMInteraction.h"
-#include <sstream>
-#include <fstream>
 
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/ANMParticle.h"
+#include "../Utilities/Utils.h"
 
+#include <sstream>
+#include <fstream>
 
 DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
 

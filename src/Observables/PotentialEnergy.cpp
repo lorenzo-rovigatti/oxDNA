@@ -7,6 +7,8 @@
 
 #include "PotentialEnergy.h"
 
+#include "../Utilities/Utils.h"
+
 PotentialEnergy::PotentialEnergy() :
 				_split(false) {
 

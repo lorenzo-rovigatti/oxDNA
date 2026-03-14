@@ -7,6 +7,8 @@
 
 #include "Weights.h"
 
+#include "OrderParameters.h"
+
 #include <fstream>
 #include <sstream>
 

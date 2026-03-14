@@ -5,10 +5,12 @@
  *      Author: Ben Snodin
  */
 
-#include <fstream>
-
 #include "DNAInteraction_relax.h"
+
+#include "../Utilities/Utils.h"
 #include "../Particles/DNANucleotide.h"
+
+#include <fstream>
 
 DNAInteraction_relax::DNAInteraction_relax() :
 				DNAInteraction() {

@@ -8,6 +8,8 @@
 #include "MCBackend.h"
 
 #include "../Observables/ObservableOutput.h"
+#include "../Utilities/Utils.h"
+
 #include <sstream>
 
 MCBackend::MCBackend() :

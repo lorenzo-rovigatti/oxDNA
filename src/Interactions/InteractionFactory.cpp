@@ -9,6 +9,8 @@
 
 #include "../PluginManagement/PluginManager.h"
 
+#include "BaseInteraction.h"
+
 #include "LJInteraction.h"
 #include "DNAInteraction.h"
 #include "DNA2Interaction.h"

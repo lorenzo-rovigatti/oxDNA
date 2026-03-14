@@ -17,6 +17,8 @@
 #include "Utilities/Timings.h"
 #include "Utilities/parse_input/parse_input.h"
 
+#include <cstring>
+
 using namespace std;
 
 void print_version() {

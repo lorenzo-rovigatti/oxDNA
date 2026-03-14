@@ -10,8 +10,6 @@
 
 #include "BaseObservable.h"
 
-#include "../Utilities/OrderParameters.h"
-
 class Coordination: public BaseObservable {
 public:
     Coordination();

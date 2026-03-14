@@ -1,13 +1,13 @@
-#include <fstream>
-#include <iostream>
 #include "DNAInteraction.h"
 
 #include "../Particles/DNANucleotide.h"
 #include "../Utilities/TopologyParser.h"
 #include "../Utilities/ConfigInfo.h"
+#include "../Utilities/Utils.h"
 
 #include <fstream>
 #include <cfloat>
+#include <iostream>
 
 DNAInteraction::DNAInteraction() :
 				BaseInteraction(),
