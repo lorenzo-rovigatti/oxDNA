@@ -3,7 +3,9 @@
  * author: flavio
  */
 #include "Histogram.h"
+
 #include "OrderParameters.h"
+#include "../model.h"
 
 #include <sstream>
 #include <fstream>

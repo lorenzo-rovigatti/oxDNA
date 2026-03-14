@@ -6,7 +6,9 @@
  */
 
 #include "CoaxVariables.h"
+
 #include "../Particles/DNANucleotide.h"
+#include "../model.h"
 
 #include <sstream>
 

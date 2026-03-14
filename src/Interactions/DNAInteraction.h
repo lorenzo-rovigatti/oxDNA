@@ -5,6 +5,8 @@
 #include "BaseInteraction.h"
 #include "Mesh.h"
 
+#include "../model.h"
+
 /**
  * @brief Handles interactions between DNA nucleotides.
  *

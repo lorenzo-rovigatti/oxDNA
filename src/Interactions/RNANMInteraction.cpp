@@ -15,6 +15,7 @@
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/ANMParticle.h"
 #include "../Utilities/Utils.h"
+#include "../model.h"
 
 #include <sstream>
 #include <fstream>

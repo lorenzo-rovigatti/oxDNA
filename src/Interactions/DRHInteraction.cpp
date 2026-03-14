@@ -1,5 +1,6 @@
 #include "DRHInteraction.h"
 
+#include "../model.h"
 #include "rna_model.h"
 #include "drh_model.h"
 #include "../Utilities/TopologyParser.h"
