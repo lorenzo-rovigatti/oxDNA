@@ -81,6 +81,10 @@ IF(NOT DOUBLE)
 	ADD_DEFINITIONS(-DFLOAT_PRECISION)
 ENDIF()
 
+if(CUDA_DOUBLE)
+	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
+endif()
+
 include_directories(src/extern)
 
 ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)

@@ -290,9 +290,7 @@ IF(CUDA)
 		Utilities/Timings.cpp
 	)
 	
-	IF(CUDA_DOUBLE)
-		ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
-	ELSE()
+	IF(NOT CUDA_DOUBLE)
 		LIST(APPEND common_SOURCES
 			CUDA/Backends/MD_CUDAMixedBackend.cu 
 			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
