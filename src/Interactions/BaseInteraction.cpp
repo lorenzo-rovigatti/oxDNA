@@ -23,6 +23,14 @@ BaseInteraction::~BaseInteraction() {
 
 }
 
+const BaseInteraction::energy_function& BaseInteraction::get_interaction_function(int name) {
+	typename interaction_map::iterator interaction = _interaction_map.find(name);
+	if(interaction == _interaction_map.end()) {
+		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
+	}
+	return interaction->second;
+}
+
 number BaseInteraction::pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
 		_computed_r = _box->min_image(p->pos, q->pos);

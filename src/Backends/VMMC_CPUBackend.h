@@ -61,9 +61,17 @@ protected:
 	// histogram of state sampling
 	Histogram _h;
 
+	enum COAXIAL_STACKING {
+		OXDNA1 = 1,
+		OXDNA2 = 2
+	};
+	COAXIAL_STACKING _coaxial_stacking_type;
+	bool _has_debye_huckel;
+	bool _is_oxDNA3 = false;
+	bool _is_oxDNA2 = false;
+
 	// flag to print trajectory histograms to file. default to true
 	bool _print_traj_hist_file;
-
 
 	// whether to demand all weights be explicitly stated in the weights file
 	bool _safe_weights;
@@ -117,8 +125,7 @@ protected:
 
 	bool _just_updated_lists;
 	bool _reject_prelinks;
-	int _netemps;
-	double * _etemps;
+	std::vector<double> _etemps;
 
 	number ** eijm, **eijm_old;
 	bool ** hbijm, **hbijm_old;
@@ -134,8 +141,8 @@ protected:
 	 * If the third argument (default null) / is set not to be the NULL pointer, the
 	 * address it points to is filled with the stacking energy.
 	 */
-	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en = 0);
-	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy = 0);
+	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en=nullptr);
+	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy=nullptr);
 
 	number build_cluster(movestr *moveptr, int maxsize, int *clust, int *size);
 	number build_cluster_cells(movestr *moveptr, int maxsize, int *clust, int *size);
@@ -171,6 +178,17 @@ protected:
 
 	llint _equilibration_steps;
 
+	// Cached interaction function pointers to avoid repeated map lookups in hot paths
+	BaseInteraction::energy_function _f_backbone;
+	BaseInteraction::energy_function _f_bonded_excluded_volume;
+	BaseInteraction::energy_function _f_stacking;
+	BaseInteraction::energy_function _f_hydrogen_bonding;
+	BaseInteraction::energy_function _f_nonbonded_excluded_volume;
+	BaseInteraction::energy_function _f_cross_stacking;
+	BaseInteraction::energy_function _f_coaxial_stacking_dna1;
+	BaseInteraction::energy_function _f_coaxial_stacking_dna2;
+	BaseInteraction::energy_function _f_debye_huckel;
+
 public:
 	VMMC_CPUBackend();
 	virtual ~VMMC_CPUBackend();
@@ -190,4 +208,4 @@ public:
 	char * get_op_state_str();
 };
 
-#endif /* CMMC_CPUBACKEND_H_ */
+#endif /* VMMC_CPUBACKEND_H_ */
