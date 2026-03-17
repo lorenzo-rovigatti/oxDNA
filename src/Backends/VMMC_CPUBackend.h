@@ -65,8 +65,8 @@ protected:
 		OXDNA1 = 1,
 		OXDNA2 = 2
 	};
-	COAXIAL_STACKING _coaxial_stacking_type;
-	bool _has_debye_huckel;
+	COAXIAL_STACKING _coaxial_stacking_type = COAXIAL_STACKING::OXDNA1;
+	bool _has_debye_huckel = false;
 	bool _is_oxDNA3 = false;
 	bool _is_oxDNA2 = false;
 

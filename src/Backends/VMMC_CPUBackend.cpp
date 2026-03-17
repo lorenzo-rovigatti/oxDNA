@@ -108,7 +108,9 @@ void VMMC_CPUBackend::init() {
 	_f_cross_stacking = _interaction->get_interaction_function(DNAInteraction::CROSS_STACKING);
 	_f_coaxial_stacking_dna1 = _interaction->get_interaction_function(DNAInteraction::COAXIAL_STACKING);
 	_f_coaxial_stacking_dna2 = _interaction->get_interaction_function(DNA2Interaction::COAXIAL_STACKING);
-	_f_debye_huckel = _interaction->get_interaction_function(DNA2Interaction::DEBYE_HUCKEL);
+	if(_has_debye_huckel) {
+		_f_debye_huckel = _interaction->get_interaction_function(DNA2Interaction::DEBYE_HUCKEL);
+	}
 
 	// fix maxclust if evidently wrong
 	if(_maxclust < 1) {
@@ -374,7 +376,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 
 // this function is just a wrapper that inverts p and q
 number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en) {
-	BaseParticle * tmp1, *tmp2, *tmp3, *tmp4;
+	BaseParticle *tmp1, *tmp2, *tmp3, *tmp4;
 	tmp1 = p->n3;
 	tmp2 = p->n5;
 	tmp3 = q->n3;
@@ -485,7 +487,8 @@ inline void VMMC_CPUBackend::store_particle(BaseParticle *src) {
 	dst->orientation = src->orientation;
 	dst->orientationT = src->orientationT;
 	dst->pos = src->pos;
-	dst->int_centers = src->int_centers;
+	dst->set_positions();
+	// dst->int_centers = src->int_centers;
 	dst->ext_potential = src->ext_potential;
 }
 
@@ -495,7 +498,8 @@ inline void VMMC_CPUBackend::restore_particle(BaseParticle *dst) {
 	dst->orientation = src->orientation;
 	dst->orientationT = src->orientationT;
 	dst->pos = src->pos;
-	dst->int_centers = src->int_centers;
+	dst->set_positions();
+	// dst->int_centers = src->int_centers;
 	dst->ext_potential = src->ext_potential;
 }
 
