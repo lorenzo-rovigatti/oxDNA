@@ -309,7 +309,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
 
 ````
 
-## `type = com`
+## COM
 
     stiff = <float>
         stiffness of the spring
@@ -323,7 +323,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
         centre of mass is the reference point for the force acting on the
         other group of particles
 
-## `type = LJ_wall`
+## LJ_wall
 
     dir = <float>,<float>,<float>
         the vector normal to the plane: it should point towards the half-plane
@@ -350,7 +350,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
         negative distances. Useful when generating the starting configuration.
         Defaults to false
 
-## `type = sawtooth`
+## Sawtooth
 
     particle = <int>
         particle to apply the force to. -1 applies it to all particles.
@@ -362,7 +362,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
     increment = <float>
         amount by which to increment the force every wait_time steps.
 
-## `type = repulsion_plane_moving`
+## repulsion_plane_moving
 
     stiff = <float>
         stiffness of the repulsion.
@@ -378,7 +378,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
         used to define the repulsive plane(s). Can be a list of comma-
         separated indexes.
 
-## `type = hard_wall`
+## hard_wall
 
     dir = <float>,<float>,<float>
         the vector normal to the plane: it should point towards the half-plane
@@ -393,7 +393,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
         "Diameter" of the wall. It effectively rescales the distance between
         particle and wall. Defaults to 1.
 
-## `type = repulsive_sphere_moving`
+## repulsive_sphere_moving
 
     particle = <int>
         index(es) of the particle(s) on which the force shall be applied. Can
@@ -421,7 +421,7 @@ The following snippet defines a Yukawa sphere that acts on all nucleotides, conf
         additional cutoff on the surface gap r = |pos-center| - radius.
         If r >= r_ext, no force is applied. Defaults to 1e10 (effectively off).
 
-## `type = repulsive_kepler_poinsot`
+## repulsive_kepler_poinsot
 
     particle = <int>
         index(es) of the particle(s) on which the force shall be applied. Can
