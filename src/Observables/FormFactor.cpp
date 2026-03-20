@@ -7,6 +7,8 @@
 
 #include "FormFactor.h"
 
+#include "../Utilities/Utils.h"
+
 #include <algorithm>
 
 FormFactor::FormFactor() {

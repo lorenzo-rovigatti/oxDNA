@@ -9,17 +9,14 @@
 #ifndef BASEPARTICLE_H_
 #define BASEPARTICLE_H_
 
-#include <cstring>
-#include <cstdlib>
+#include "../defs.h"
+#include "../Utilities/oxDNAException.h"
+
 #include <cassert>
 
-#include <stdio.h>
-
-#include "../defs.h"
-#include "../Boxes/BaseBox.h"
-#include "../Forces/BaseForce.h"
-
 class ParticlePair;
+class BaseBox;
+class BaseForce;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
@@ -38,32 +35,19 @@ public:
 
 	std::vector<ParticlePair> affected;
 
-	virtual void set_positions() {
-
-	}
+	virtual void set_positions();
 
 	/// number of boxes the particle has diffused in each direction
 	int _pos_shift[3];
 
 	virtual void copy_from(const BaseParticle &);
-	inline void soft_copy_from(const BaseParticle * p) {
-		pos = p->pos;
-		orientation = p->orientation;
-		orientationT = p->orientationT;
-		en3 = p->en3;
-		en5 = p->en5;
-		esn3 = p->esn3;
-		esn5 = p->esn5;
-	}
 
 	number en3, en5, esn3, esn5;
 	bool inclust;
 
 	void init();
 
-	int get_index() const {
-		return index;
-	}
+	int get_index() const;
 
 	/**
 	 * @brief Add an external force.
@@ -73,20 +57,7 @@ public:
 	 */
 	bool add_ext_force(BaseForce *f);
 
-	inline void set_initial_forces(llint step, BaseBox *box) {
-		if(is_rigid_body()) {
-			torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-		}
-		force = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-
-		if(ext_forces.size() > 0) {
-			LR_vector abs_pos = box->get_abs_pos(this);
-			for(auto ext_force : ext_forces) {
-				ext_force->set_current_particle(this);
-				force += ext_force->value(step, abs_pos);
-			}
-		}
-	}
+	void set_initial_forces(llint step, BaseBox *box);
 
 	/**
 	 * @brief Computes the interaction resulting from all the external forces acting on the particle. Stores the result in the ext_potential member.
@@ -95,16 +66,7 @@ public:
 	 * @param box pointer to the box object
 	 * @return true if the external potential was added, false otherwise
 	 */
-	inline void set_ext_potential(llint step, BaseBox *box) {
-		if(ext_forces.size() > 0) {
-			LR_vector abs_pos = box->get_abs_pos(this);
-			ext_potential = (number) 0.;
-			for(auto ext_force : ext_forces) {
-				ext_force->set_current_particle(this);
-				ext_potential += ext_force->potential(step, abs_pos);
-			}
-		}
-	}
+	void set_ext_potential(llint step, BaseBox *box);
 
 	/**
 	 * @brief Checks whether q and the current particle are bonded neighbours (such as neighbouring particles on a DNA strand).
@@ -112,18 +74,14 @@ public:
 	 * @param q candidate bonded neighbour
 	 * @return true if the current particle and q are bonded neighbours, false otherwise
 	 */
-	virtual bool is_bonded(BaseParticle *q) {
-		return false;
-	}
+	virtual bool is_bonded(BaseParticle *q);
 
 	/**
 	 * @brief Defaults to false.
 	 *
 	 * @return true if the particle is a rigid body (i.e. orientational degrees of freedom are to be taken into account), false otherwise
 	 */
-	virtual bool is_rigid_body() {
-		return false;
-	}
+	virtual bool is_rigid_body() const;
 
 	inline void set_pos_shift(int x, int y, int z) {
 		_pos_shift[0] = x;
@@ -131,15 +89,9 @@ public:
 		_pos_shift[2] = z;
 	}
 
-	void get_pos_shift(int *arg) {
-		arg[0] = _pos_shift[0];
-		arg[1] = _pos_shift[1];
-		arg[2] = _pos_shift[2];
-	}
+	void get_pos_shift(int *arg);
 
-	virtual uint N_int_centers() {
-		return int_centers.size();
-	}
+	virtual uint N_int_centers() const;
 
 	/// Index of the particle. Usually it is a useful way of accessing arrays of particles
 	int index;
@@ -191,8 +143,9 @@ public:
 	BaseParticle *second;
 
 	ParticlePair(BaseParticle *p, BaseParticle *q) {
-		if(p == q)
+		if(p == q) {
 			throw oxDNAException("ParticlePair: p == q (%d) is not allowed", p->index);
+		}
 		if(p->index < q->index) {
 			first = p;
 			second = q;

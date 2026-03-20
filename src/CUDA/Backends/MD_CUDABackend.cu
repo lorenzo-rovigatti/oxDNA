@@ -9,7 +9,6 @@
 
 #include "../CUDAForces.h"
 #include "CUDA_MD.cuh"
-#include "../CUDA_base_interactions.h"
 #include "../../Interactions/DNAInteraction.h"
 #include "../../Observables/ObservableOutput.h"
 #include "../Thermostats/CUDAThermostatFactory.h"

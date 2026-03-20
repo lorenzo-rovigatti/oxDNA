@@ -8,6 +8,7 @@
 #include "BaseParticle.h"
 
 #include "../Boxes/BaseBox.h"
+#include "../Forces/BaseForce.h"
 
 BaseParticle::BaseParticle() :
 				index(-1),
@@ -62,13 +63,63 @@ bool BaseParticle::add_ext_force(BaseForce *f) {
 	return true;
 }
 
-void BaseParticle::init() {
-	force = LR_vector(0., 0., 0.);
-	torque = LR_vector(0., 0., 0.);
-	_check();
+void BaseParticle::set_initial_forces(llint step, BaseBox *box) {
+	if(is_rigid_body()) {
+		torque = LR_vector();
+	}
+	force = LR_vector();
+
+	if(ext_forces.size() > 0) {
+		LR_vector abs_pos = box->get_abs_pos(this);
+		for(auto ext_force : ext_forces) {
+			force += ext_force->value(step, abs_pos);
+		}
+	}
+}
+
+void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
+	if(ext_forces.size() > 0) {
+		LR_vector abs_pos = box->get_abs_pos(this);
+		ext_potential = (number) 0.;
+		for(auto ext_force : ext_forces) {
+			ext_potential += ext_force->potential(step, abs_pos);
+		}
+	}
+}
+
+uint BaseParticle::N_int_centers() const {
+	return int_centers.size();
+}
+
+void BaseParticle::set_positions() {
+	return;
+}
+
+int BaseParticle::get_index() const {
+	return index;
 }
 
 void BaseParticle::_check() {
 	assert(index >= 0);
 	assert(type != P_INVALID);
+}
+
+bool BaseParticle::is_bonded(BaseParticle *q) {
+	return false;
+}
+
+bool BaseParticle::is_rigid_body() const {
+	return false;
+}
+
+void BaseParticle::get_pos_shift(int *arg) {
+	arg[0] = _pos_shift[0];
+	arg[1] = _pos_shift[1];
+	arg[2] = _pos_shift[2];
+}
+
+void BaseParticle::init() {
+	force = LR_vector(0., 0., 0.);
+	torque = LR_vector(0., 0., 0.);
+	_check();
 }

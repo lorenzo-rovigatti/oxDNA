@@ -5,9 +5,9 @@
  *      Author: rovigatti
  */
 
-#include <sstream>
-
 #include "TotalEnergy.h"
+
+#include "../Utilities/Utils.h"
 
 TotalEnergy::TotalEnergy() {
 

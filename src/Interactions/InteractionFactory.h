@@ -8,8 +8,11 @@
 #ifndef INTERACTIONFACTORY_H_
 #define INTERACTIONFACTORY_H_
 
-#include "BaseInteraction.h"
 #include "../Utilities/parse_input/parse_input.h"
+
+#include <memory>
+
+class BaseInteraction;
 
 /**
  * @brief Static factory class. Its only public method builds an {@link IBaseInteraction interaction}.
@@ -29,7 +32,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly built interaction
 	 */
-	static InteractionPtr make_interaction(input_file &inp);
+	static std::shared_ptr<BaseInteraction> make_interaction(input_file &inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */

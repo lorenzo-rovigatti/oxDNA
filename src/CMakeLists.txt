@@ -10,6 +10,20 @@ ELSE()
 	SET(exe_name oxDNA)
 ENDIF()
 
+set(legacy_SOURCES
+	Observables/SaltExtrapolation.cpp
+	Observables/Configurations/JordanOutput.cpp
+	Observables/Configurations/TclOutput.cpp
+	Observables/Configurations/PdbOutput.cpp
+	Observables/Configurations/ChimeraOutput.cpp
+	Interactions/DHSInteraction.cpp
+	Interactions/JordanInteraction.cpp
+	Interactions/PatchyInteractionDan.cpp
+	Particles/JordanParticle.cpp
+	Particles/PatchyParticleDan.cpp
+	Backends/MCMoves/RotateSite.cpp
+)
+
 SET(observables_SOURCES
 	Observables/BaseObservable.cpp
 	Observables/ObservableFactory.cpp
@@ -37,7 +51,6 @@ SET(observables_SOURCES
 	Observables/ParticlePosition.cpp
 	Observables/CoaxVariables.cpp
 	Observables/Pitch.cpp
-	Observables/SaltExtrapolation.cpp
 	Observables/ExternalTorque.cpp
 	Observables/MeanVectorCosine.cpp
 	Observables/VectorAngle.cpp
@@ -60,12 +73,8 @@ SET(observables_SOURCES
 	Observables/Coordination.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
-	Observables/Configurations/TclOutput.cpp
-	Observables/Configurations/PdbOutput.cpp
-	Observables/Configurations/ChimeraOutput.cpp
 	Observables/Configurations/TEPtclOutput.cpp
 	Observables/Configurations/TEPxyzOutput.cpp
-	Observables/Configurations/JordanOutput.cpp
 )
 
 SET(backends_SOURCES
@@ -117,17 +126,13 @@ SET(interactions_SOURCES
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
 	Interactions/RNAInteraction_relax.cpp
-	Interactions/JordanInteraction.cpp
 	Interactions/TEPInteraction.cpp
 	Interactions/HSInteraction.cpp
-	Interactions/DHSInteraction.cpp
 	Interactions/HardCylinderInteraction.cpp
 	Interactions/HardSpheroCylinderInteraction.cpp
 	Interactions/BoxInteraction.cpp
 	Interactions/PatchyInteraction.cpp
-	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
-	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
 	Interactions/ANMInteraction.cpp
@@ -145,7 +150,6 @@ SET(move_SOURCES
 	Backends/MCMoves/VolumeMove.cpp
 	Backends/MCMoves/MoleculeVolumeMove.cpp
 	Backends/MCMoves/ShapeMove.cpp
-	Backends/MCMoves/RotateSite.cpp
 )
 
 SET(forces_SOURCES
@@ -191,15 +195,12 @@ SET(box_SOURCES
 )
 
 SET(common_SOURCES
-	Particles/JordanParticle.cpp
 	Particles/TEPParticle.cpp
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
 	Particles/PatchyParticle.cpp
-	Particles/PatchyParticleDan.cpp
 	Particles/SpheroCylinder.cpp
-	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
 	Particles/ANMParticle.cpp
 	Managers/SimManager.cpp
@@ -236,6 +237,11 @@ SET(confGenerator_SOURCES
 	confGenerator.cpp
 	Managers/GeneratorManager.cpp
 )
+
+if(LEGACY_CODE)
+	add_compile_definitions(LEGACY_CODE)
+	SET(common_SOURCES ${common_SOURCES} ${legacy_SOURCES})
+ENDIF()
 
 IF(MPI)
 	FIND_PACKAGE(MPI REQUIRED)
@@ -353,12 +359,15 @@ ELSE()
 	target_link_libraries(${lib_name} PRIVATE ${CMAKE_DL_LIBS})
 ENDIF()
 
+add_library(tinyexpr extern/tinyexpr/tinyexpr.c)
+target_include_directories(tinyexpr PUBLIC extern/tinyexpr)
+
 if(ZSTD_ENABLED)
 	target_link_libraries(${lib_name} PRIVATE ${ZSTD_TARGET})
 endif()
-target_link_libraries(${exe_name} PRIVATE ${lib_name})
-target_link_libraries(DNAnalysis PRIVATE ${lib_name})
-target_link_libraries(confGenerator PRIVATE ${lib_name})
+target_link_libraries(${exe_name} PRIVATE ${lib_name} tinyexpr)
+target_link_libraries(DNAnalysis PRIVATE ${lib_name} tinyexpr)
+target_link_libraries(confGenerator PRIVATE ${lib_name} tinyexpr)
 
 # we add these executable as dependencies for the test targets
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)

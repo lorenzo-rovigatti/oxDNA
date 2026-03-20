@@ -7,11 +7,13 @@
  * For relaxing initial configurations of systems containing DNA and RNA.
  */
 
-#include <fstream>
-
 #include "DRHInteraction_relax.h"
+
+#include "../Utilities/Utils.h"
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/DNANucleotide.h"
+
+#include <fstream>
 
 DRHInteraction_relax::DRHInteraction_relax() :
 				DRHInteraction() {

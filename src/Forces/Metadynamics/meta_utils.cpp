@@ -6,6 +6,7 @@
  */
 
 #include "meta_utils.h"
+#include "../../Boxes/BaseBox.h"
 
 #include <fast_double_parser/fast_double_parser.h>
 

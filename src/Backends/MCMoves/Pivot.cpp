@@ -7,6 +7,8 @@
 
 #include "Pivot.h"
 
+#include "../../Utilities/Utils.h"
+
 Pivot::Pivot() :
 				BaseMove() {
 

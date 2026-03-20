@@ -2,6 +2,7 @@
 
 #include "meta_utils.h"
 #include "../../Particles/BaseParticle.h"
+#include "../../Boxes/BaseBox.h"
 
 #include <string>
 #include <iostream>

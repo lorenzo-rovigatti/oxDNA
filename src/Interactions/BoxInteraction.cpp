@@ -8,6 +8,8 @@
 #include "BoxInteraction.h"
 #include "InteractionUtils.h"
 
+#include <cstring>
+
 BoxInteraction::BoxInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(Box, _box_pot);

@@ -2,6 +2,9 @@
 
 #include "../Particles/RNANucleotide.h"
 #include "../Utilities/TopologyParser.h"
+#include "../Utilities/ConfigInfo.h"
+#include "../Utilities/Utils.h"
+#include "../model.h"
 
 #include <fstream>
 #include <cfloat>

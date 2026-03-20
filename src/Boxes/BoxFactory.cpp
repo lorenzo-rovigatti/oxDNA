@@ -10,8 +10,9 @@
 #include "CubicBox.h"
 #include "OrthogonalBox.h"
 #include "LeesEdwardsCubicBox.h"
-
 #include "../Utilities/oxDNAException.h"
+
+#include <cstring>
 
 BoxPtr BoxFactory::make_box(input_file &inp) {
 	// the default box is the cubic one

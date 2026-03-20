@@ -5,12 +5,13 @@
  *      Author: lorenzo
  */
 
+#include "Configuration.h"
+#include "../../Particles/BaseParticle.h"
+#include "../../Utilities/Utils.h"
+
 #include <sstream>
 #include <typeinfo>
 #include <map>
-
-#include "Configuration.h"
-#include "../../Particles/BaseParticle.h"
 
 using namespace std;
 

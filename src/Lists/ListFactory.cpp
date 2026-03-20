@@ -13,6 +13,8 @@
 #include "BinVerletList.h"
 #include "RodCells.h"
 
+#include <cstring>
+
 ListPtr ListFactory::make_list(input_file &inp, std::vector<BaseParticle *> &ps, BaseBox *box) {
 	// the default list is verlet
 	char list_type[512] = "verlet";

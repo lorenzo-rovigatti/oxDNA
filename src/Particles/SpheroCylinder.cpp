@@ -8,6 +8,7 @@
 #include "SpheroCylinder.h"
 
 #include "../Boxes/BaseBox.h"
+#include "../Forces/BaseForce.h"
 
 SpheroCylinder::SpheroCylinder(number l) :
 				BaseParticle() {

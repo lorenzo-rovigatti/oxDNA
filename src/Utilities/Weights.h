@@ -8,7 +8,7 @@
 #ifndef WEIGHTS_H_
 #define WEIGHTS_H_
 
-#include "OrderParameters.h"
+class OrderParameters;
 
 /// Weight class
 class Weights {

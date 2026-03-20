@@ -11,12 +11,14 @@
 
 
 #include "RNANMInteraction.h"
-#include <sstream>
-#include <fstream>
 
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/ANMParticle.h"
+#include "../Utilities/Utils.h"
+#include "../model.h"
 
+#include <sstream>
+#include <fstream>
 
 RNANMInteraction::RNANMInteraction(bool btp) : RNA2Interaction() { // @suppress("Class members should be properly initialized")
 

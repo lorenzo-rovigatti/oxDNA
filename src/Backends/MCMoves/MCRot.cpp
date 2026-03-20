@@ -8,6 +8,7 @@
 
 #include "MCRot.h"
 
+#include "../../Utilities/Utils.h"
 
 MCRot::MCRot() : BaseMove() {
 	_orientation_old = LR_matrix (1., 0., 0., 0., 1., 0., 0., 0., 1.);

@@ -8,10 +8,10 @@
 #ifndef OBSERVABLEOUTPUT_H_
 #define OBSERVABLEOUTPUT_H_
 
+#include "BaseObservable.h"
+
 #include <vector>
 #include <fstream>
-
-#include "BaseObservable.h"
 
 /**
  * @brief Manages a single output stream.

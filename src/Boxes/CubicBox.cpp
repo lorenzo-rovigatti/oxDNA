@@ -8,10 +8,10 @@
 #include "CubicBox.h"
 
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
 #include "../Particles/BaseParticle.h"
 
 #include <limits>
-
 
 using namespace std;
 

@@ -7,6 +7,8 @@
 
 #include "ParticleForceAndTorque.h"
 
+#include "../Utilities/Utils.h"
+
 ParticleForceAndTorque::ParticleForceAndTorque() {
 
 }

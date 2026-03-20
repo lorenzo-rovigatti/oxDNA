@@ -61,7 +61,6 @@
 // possible to set it from input file and not hard coded
 #define HB_CUTOFF (-0.1f)
 
-#include "model.h"
 #include "Utilities/LR_vector.h"
 #include "Utilities/LR_matrix.h"
 #include "Utilities/Logger.h"

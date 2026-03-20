@@ -2,23 +2,16 @@
  * @file    SimBackend.h
  * @date    03/set/2010
  * @author  lorenzo
- *
- *
  */
 
 #ifndef SIMBACKEND_H_
 #define SIMBACKEND_H_
 
-#define SIM_MD 0
-#define SIM_MC 1
-
 #include "../defs.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Particles/Molecule.h"
 
-#include <cmath>
-#include <fstream>
-#include <cfloat>
+#include <iosfwd>
 #include <vector>
 #include <map>
 
