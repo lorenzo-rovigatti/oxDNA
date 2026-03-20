@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import inspect
 import numpy as np
 from typing import Union
@@ -265,6 +265,31 @@ class Strand:
                 monomer (Monomer) : The monomer to append
         """
         self.monomers.append(monomer)
+
+    def get_5_3(self) -> List[Tuple[int, str]]:
+        """
+        Return a list of ``(id, btype_str)`` tuples for this strand in 5'→3' order.
+
+        Handles both new-format and old-format strands, including circular strands.
+
+        * **New-format** strands store monomers in 5'→3' order already, so
+          ``self.monomers`` is returned directly.
+        * **Old-format** strands store monomers in file order (typically 3'→5'),
+          so connectivity is traversed from the 5' end (the monomer whose ``n5``
+          is ``None``) following ``n3`` links.  For circular old-format strands
+          there is no monomer with ``n5 is None``, so traversal starts at
+          ``monomers[0]`` and stops when a monomer id is revisited.
+        """
+        if not self._from_old:
+            return [(m.id, str(m.btype)) for m in self.monomers]
+        m_by_id = {m.id: m for m in self.monomers}
+        start = next((m for m in self.monomers if m.n5 is None), self.monomers[0])
+        chain, cur, seen = [], start, set()
+        while cur is not None and cur.id not in seen:
+            chain.append((cur.id, str(cur.btype)))
+            seen.add(cur.id)
+            cur = m_by_id.get(cur.n3)
+        return chain
 
 #No, you cannot make n3, n5 and pair refs to other Monomers
 #Scaffold strands are long enough that it would stack overflow while pickling for Pool processing
