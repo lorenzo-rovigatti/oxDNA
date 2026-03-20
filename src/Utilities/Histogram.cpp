@@ -308,28 +308,6 @@ void Histogram::reset() {
 	return;
 }
 
-/*
- void Histogram::add (int i, double w, double e_state, double e_stack) {
-
- double e0, et;
- // etot = e0 + T * et;
- et = e_stack * STCK_FACT_EPS / (STCK_BASE_EPS + _simtemp * STCK_FACT_EPS);
- e0 = e_state - _simtemp * et;
-
- _data[i] += 1.;
- if (w > 0) {
- _rdata[i] += 1./w;
- for (int k = 0; k < _ntemps; k ++)
- _erdata[k][i] += exp (- (e0 + _etemps[k] * et) / _etemps[k] + (e0 + _simtemp * et) / _simtemp) / w;
- }
- else {
- _rdata[i] += 1.;
- for (int k = 0; k < _ntemps; k ++)
- _erdata[k][i] += exp (- (e0 + _etemps[k] * et) / _etemps[k] + (e0 + _simtemp * et) / _simtemp);
- }
- }
- */
-
 void Histogram::add(int i, double w, double e_state, double e_stack, double e_ext) {
 
 	double e0, et;
