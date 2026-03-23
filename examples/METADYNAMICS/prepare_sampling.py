@@ -2,10 +2,14 @@
 
 import os, shutil
 import toml
+import oxpy
+
+BASE_RUNNER_DIR = "run-meta_0"
+RUNNER_INPUT_FILE = "input-meta"
+METAD_CONFIG_FILENAME = "original_metad_config.toml"
 
 FILES = {
-    "input-meta" : "input",
-    "topology.dat" : "topology.dat",
+    RUNNER_INPUT_FILE : "input",
     "last_conf.dat" : "init_conf.dat",
     "ext_meta.txt" : "ext_meta.txt"
 }
@@ -15,11 +19,8 @@ LINES = {
     "log_file" : ["oxDNA_log.txt", ""],
     "no_stdout_energy" : ["true", ""],
     "print_conf_interval" : ["1e11", "1e5"],
-    "restart_step_counter" : ["false", "true"]
+    "restart_step_counter" : ["", "true"]
 }
-
-BASE_RUNNER_DIR = "run-meta_0"
-METAD_CONFIG_FILENAME = "original_metad_config.toml"
 
 def build_parser():
     import argparse
@@ -56,6 +57,13 @@ if __name__ == "__main__":
     # Copy also the metadynamics configuration file
     shutil.copy(args.config, os.path.join(args.sampling_dir, METAD_CONFIG_FILENAME))
 
+    # Read the name of the topology file from the input file
+    with oxpy.Context(print_coda=False):
+        input_file = oxpy.InputFile()
+        input_file.init_from_filename(os.path.join(BASE_RUNNER_DIR, RUNNER_INPUT_FILE))
+        topology_file = input_file["topology"]
+        FILES[topology_file] = topology_file # add it to FILES so that it is copied over to the sampling dir
+
     # Copy the base simulation files
     for f_old, f_new in FILES.items():
         src = os.path.join(BASE_RUNNER_DIR, f_old)
@@ -72,7 +80,7 @@ if __name__ == "__main__":
             if len(spl) == 2:
                 key, option = spl
                 if key in LINES:
-                    if option != LINES[key][0]:
+                    if LINES[key][0] != "" and option != LINES[key][0]:
                         print(f"Warning: the value of {key} in the input file is not {LINES[key][0]} as expected, but {option}. The line will be replaced anyway, but make sure that we are working with the correct input file.")
                     if LINES[key][1] == "":
                         lines_to_delete.append(i)

@@ -7,6 +7,7 @@ import oxpy
 
 FORCE_FILE = "ext_meta.txt"
 OP_FILE = "op.dat"
+INPUT_FILE = "input"
 
 def build_parser():
     import argparse
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     # Get the temperature from the input file
     with oxpy.Context(print_coda=False):
         input_file = oxpy.InputFile()
-        input_file.init_from_filename("input")
+        input_file.init_from_filename(INPUT_FILE)
         k_BT = oxpy.get_temperature(input_file["T"])
 
     weights = np.exp(bias_values / k_BT)
