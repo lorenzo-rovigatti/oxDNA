@@ -102,6 +102,10 @@ class Residue():
 
         return (pos, a1, a3)
     
+    def has_backbone_atoms(self) -> bool:
+        atom_names = {a.type for a in self.atoms}
+        return "C3'" in atom_names and "C5'" in atom_names
+
     def to_monomer(self, strand:Strand) -> Monomer:
         p, a1, a3 = self.calc_ox_properties()
         return Monomer(self.resi, self.resn, strand, None, None, None, p, a1, a3)
@@ -124,7 +128,7 @@ def _parse_atom_serial(s: str) -> int:
 def parse_atom(l:str):
     return Atom(
         _parse_atom_serial(l[6:11]),                                   # atom index
-        l[12:16].strip(),                                              # atom name
+        l[12:16].strip().replace('*', "'"),                            # atom name (normalize * to ' for sugar atoms)
         l[16].strip(),                                                 # alternate location
         l[17:20].strip(),                                              # resname
         l[21],                                                         # chain
@@ -147,10 +151,13 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
     # Cleanup function to run whenever we end a strand
     def end_strand():
         nonlocal a, r, strand, sys, prev_chain, prev_resi
-        monomer = r.to_monomer(strand)
-        if "O2'" in r.atom_lookup.keys(): # Check for the 2' hydroxyl 
+        if any(atom.type == "O2'" for atom in r.atoms): # Check for the 2' hydroxyl
             strand.type='RNA'
-        strand.append(monomer)
+        if not r.has_backbone_atoms():
+            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
+        else:
+            monomer = r.to_monomer(strand)
+            strand.append(monomer)
         sys.append(strand)
         strand = Strand(strand.id+1)
         prev_chain = a.chain
@@ -198,8 +205,11 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
             # We're in a new residue
             if a.resi != prev_resi:
                 if prev_resi != -1:
-                    monomer = r.to_monomer(strand)
-                    strand.append(monomer)
+                    if not r.has_backbone_atoms():
+                        log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
+                    else:
+                        monomer = r.to_monomer(strand)
+                        strand.append(monomer)
                 r = Residue(a.resn, a.resi)
 
             r.atoms.append(a)
