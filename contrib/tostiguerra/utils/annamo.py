@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""ANNaMo simulation preparation and run tool."""
+
+import argparse
+import json
+import os
+import random
+import shutil
+import subprocess
+import sys
+
+# Ensure sibling modules (generate_annamo, DNA_SL, …) are importable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import generate_annamo
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _find_executable(name):
+    """Return the path to *name*, searching PATH then ../../build/bin/."""
+    found = shutil.which(name)
+    if found:
+        return found
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidate = os.path.normpath(
+        os.path.join(script_dir, "..", "..", "build", "bin", name)
+    )
+    if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+        return candidate
+    return None
+
+
+def _plugin_search_path():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.normpath(os.path.join(script_dir, ".."))
+
+
+# ---------------------------------------------------------------------------
+# input.dat generation
+# ---------------------------------------------------------------------------
+
+def _write_input_dat(cfg):
+    """Write input.dat to the current directory from the JSON config *cfg*."""
+    swap = cfg.get("swap", True)
+    lambda_val = 0 if swap else 10
+    seed = cfg.get("seed", random.randint(0, 2 ** 31 - 1))
+    steps = int(cfg.get("steps", 2_000_000_000))
+    temperature = cfg.get("temperature", 30)
+    print_conf_interval = int(cfg.get("print_conf_interval", 1_000_000))
+    print_energy_every = int(cfg.get("print_energy_every", 1_000))
+    overrides = cfg.get("oxdna_overrides", {})
+
+    lines = [
+        "backend = CPU",
+        "sim_type = MD",
+        "thermostat = brownian",
+        "newtonian_steps = 53",
+        "diff_coeff = 0.5",
+        f"steps = {steps}",
+        "T = 1.0",
+        "dt = 0.002",
+        "verlet_skin = 0.2",
+        "generate_consider_bonded_interactions = true",
+        "energy_threshold = 30",
+        "reset_com_momentum = true",
+        "reset_initial_com_momentum = true",
+        "back_in_box = true",
+        "restart_step_counter = true",
+        "time_scale = linear",
+        "",
+        "interaction_type = ANNaMoInteraction",
+        f"plugin_search_path = {_plugin_search_path()}",
+        "",
+        "ANNAMO_annamo_version = 1",
+        f"ANNAMO_tC = {temperature}",
+        "ANNAMO_interaction_matrix_file = dHdS_matrix.dat",
+        f"DPS_3b_lambda = {lambda_val}",
+        "",
+        "topology = topology.top",
+        "conf_file = init_conf.dat",
+        "trajectory_file = trajectory.dat",
+        "energy_file = energy.dat",
+        f"print_conf_interval = {print_conf_interval}",
+        f"print_energy_every = {print_energy_every}",
+        f"seed = {seed}",
+        "",
+        "data_output_1 = {",
+        "name = bonds.dat",
+        f"print_every = {print_conf_interval}",
+        "col_1 = {",
+        "type = pair_energy",
+        "}",
+        "}",
+        "",
+        "data_output_2 = {",
+        "name = last_backup.dat",
+        "only_last = true",
+        f"print_every = {print_conf_interval}",
+        "col_1 = {",
+        "type = configuration",
+        "}",
+        "}",
+    ]
+
+    if overrides:
+        lines.append("")
+        lines.append("# oxdna_overrides")
+        for k, v in overrides.items():
+            lines.append(f"{k} = {v}")
+
+    with open("input.dat", "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print("Input file written to: input.dat")
+
+
+# ---------------------------------------------------------------------------
+# prepare subcommand
+# ---------------------------------------------------------------------------
+
+def cmd_prepare(args):
+    json_path = os.path.abspath(args.system_json)
+    if not os.path.isfile(json_path):
+        sys.exit(f"Error: file not found: {args.system_json}")
+
+    with open(json_path) as f:
+        cfg = json.load(f)
+
+    # topology.top and dHdS_matrix.dat (written to cwd by generate_annamo)
+    generate_annamo.main(json_path)
+
+    # input.dat (written to cwd)
+    _write_input_dat(cfg)
+
+    # init_conf.dat via confGenerator
+    conf_gen = _find_executable("confGenerator")
+    if conf_gen is None:
+        sys.exit(
+            "Error: 'confGenerator' not found.\n"
+            "Add the oxDNA build/bin directory to your PATH, e.g.:\n"
+            "  export PATH=/path/to/oxDNA/build/bin:$PATH"
+        )
+    box_size = cfg.get("box_size", 30)
+    subprocess.run([conf_gen, "input.dat", str(box_size)], check=True)
+    print("Initial configuration written to: init_conf.dat")
+
+    print("\nDone. You can now edit input.dat and run:\n  oxDNA input.dat")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="annamo",
+        description="ANNaMo simulation preparation and run tool.",
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_prepare = sub.add_parser(
+        "prepare",
+        help="Generate all input files without launching the simulation.",
+    )
+    p_prepare.add_argument("system_json", help="Path to the system JSON file.")
+    p_prepare.set_defaults(func=cmd_prepare)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
