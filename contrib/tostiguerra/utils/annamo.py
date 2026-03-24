@@ -226,7 +226,6 @@ System JSON fields (required fields marked with *):
     "material":             "DNA",   (* "DNA" or "RNA")
     "strands":              [...],   (* list of strands, each a list of bead types)
     "temperature":          30,      (degrees C, default: 30)
-    "salt_concentration":   0.5,     (molar, default: 0.5)
     "steps":                2e9,     (default: 2000000000)
     "box_size":             30,      (internal units, default: 30)
     "swap":                 true,    (true → λ=0 bond-swapping; false → λ=10, default: true)
