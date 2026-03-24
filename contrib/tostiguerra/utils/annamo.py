@@ -149,6 +149,25 @@ def cmd_prepare(args):
 
 
 # ---------------------------------------------------------------------------
+# run subcommand
+# ---------------------------------------------------------------------------
+
+def cmd_run(args):
+    cmd_prepare(args)
+
+    oxdna = _find_executable("oxDNA")
+    if oxdna is None:
+        sys.exit(
+            "Error: 'oxDNA' not found.\n"
+            "Add the oxDNA build/bin directory to your PATH, e.g.:\n"
+            "  export PATH=/path/to/oxDNA/build/bin:$PATH"
+        )
+
+    print(f"\nLaunching: {oxdna} input.dat")
+    subprocess.run([oxdna, "input.dat"], check=True)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -165,6 +184,13 @@ def main():
     )
     p_prepare.add_argument("system_json", help="Path to the system JSON file.")
     p_prepare.set_defaults(func=cmd_prepare)
+
+    p_run = sub.add_parser(
+        "run",
+        help="Generate all input files and launch the oxDNA simulation.",
+    )
+    p_run.add_argument("system_json", help="Path to the system JSON file.")
+    p_run.set_defaults(func=cmd_run)
 
     args = parser.parse_args()
     args.func(args)
