@@ -139,6 +139,7 @@ def _validate_config(cfg, json_path):
             if not isinstance(s, list) or len(s) == 0:
                 errors.append(f'"strands[{i}]" must be a non-empty list of beads')
 
+    # salt_concentration is validated but not yet used (salt correction not implemented)
     for key in ("temperature", "salt_concentration", "box_size",
                 "print_conf_interval", "print_energy_every", "steps"):
         val = cfg.get(key)
