@@ -219,6 +219,25 @@ def cmd_run(args):
 # CLI
 # ---------------------------------------------------------------------------
 
+_JSON_EXAMPLE = """\
+System JSON fields (required fields marked with *):
+
+  {
+    "material":             "DNA",   (* "DNA" or "RNA")
+    "strands":              [...],   (* list of strands, each a list of bead types)
+    "temperature":          30,      (degrees C, default: 30)
+    "salt_concentration":   0.5,     (molar, default: 0.5)
+    "steps":                2e9,     (default: 2000000000)
+    "box_size":             30,      (internal units, default: 30)
+    "swap":                 true,    (true → λ=0 bond-swapping; false → λ=10, default: true)
+    "seed":                 104123,  (RNG seed, default: random)
+    "print_conf_interval":  1e6,     (default: 1000000)
+    "print_energy_every":   1e3,     (default: 1000)
+    "oxdna_overrides":      {}       (raw key=value pairs appended to input.dat)
+  }
+"""
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="annamo",
@@ -229,6 +248,8 @@ def main():
     p_prepare = sub.add_parser(
         "prepare",
         help="Generate all input files without launching the simulation.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_JSON_EXAMPLE,
     )
     p_prepare.add_argument("system_json", help="Path to the system JSON file.")
     p_prepare.set_defaults(func=cmd_prepare)
@@ -236,6 +257,8 @@ def main():
     p_run = sub.add_parser(
         "run",
         help="Generate all input files and launch the oxDNA simulation.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_JSON_EXAMPLE,
     )
     p_run.add_argument("system_json", help="Path to the system JSON file.")
     p_run.set_defaults(func=cmd_run)
