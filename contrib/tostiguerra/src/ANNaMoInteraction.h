@@ -2,7 +2,7 @@
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
-#include "ParticleFTG.h"
+#include "ANNaMoParticle.h"
 
 #include <vector>
 #include <array>
@@ -39,6 +39,8 @@ struct PSBondCompare {
 
 class CGNucleicAcidsInteraction: public BaseInteraction {
 protected:
+	int _annamo_version = 1;
+
 	number _Kfene = 15.;
 	number _rfene = 1.5;
 	number _sqr_rfene;

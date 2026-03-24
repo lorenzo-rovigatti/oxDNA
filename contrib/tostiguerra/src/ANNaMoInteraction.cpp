@@ -1,4 +1,4 @@
-#include "CGNucleicAcidsInteraction.h"
+#include "ANNaMoInteraction.h"
 
 #include <Particles/Molecule.h>
 #include <fstream>
@@ -20,6 +20,26 @@ CGNucleicAcidsInteraction::~CGNucleicAcidsInteraction() {
 void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
+	getInputInt(&inp, "ANNAMO_annamo_version", &_annamo_version, 0);
+
+	if(_annamo_version == 1) {
+		_3b_sigma              = 0.21875;
+		_deltaPatchMon         = 0.65;
+		_nn_dS_offset          = -7.5;
+		_nn_alpha              = 0.89397;
+		bdG_threshold          = 0.0;
+		_enable_semiflexibility    = false;
+		_semiflexibility_k         = 11.0;
+		_semiflexibility_a1        = 1.0;
+		_enable_semiflexibility_3b = true;
+		_semiflex_gauss_k          = 4.0;
+		_enable_patch_stacking     = true;
+		_stacking_eta              = 6.0;
+		_bead_size                 = 3;
+		_semiflex_gauss_xi         = 0.07;
+		_3b_range                  = 1.6;
+	}
+
 	getInputInt(&inp, "DPS_n", &_PS_n, 0);
 
 	getInputNumber(&inp, "DPS_alpha", &_PS_alpha, 0);
@@ -31,25 +51,48 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "DPS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
-	getInputNumber(&inp, "DPS_tC", &_tC, 37.0);
-	getInputNumber(&inp, "DPS_dS_mod", &_nn_dS_offset, 1.0);
-	getInputNumber(&inp, "DPS_alpha_mod", &_nn_alpha, 1.0);
-	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
 
+	if(getInputNumber(&inp, "ANNAMO_tC", &_tC, 0) == KEY_NOT_FOUND) {
+		getInputNumber(&inp, "DPS_tC", &_tC, 0);
+	}
+
+	if(getInputNumber(&inp, "ANNAMO_nn_dS_offset", &_nn_dS_offset, 0) == KEY_NOT_FOUND) {
+		if(getInputNumber(&inp, "DPS_dS_mod", &_nn_dS_offset, 0) == KEY_FOUND) {
+			OX_LOG(Logger::LOG_WARNING, "ANNAMO: DPS_dS_mod is deprecated, use ANNAMO_nn_dS_offset instead");
+		}
+	}
+
+	if(getInputNumber(&inp, "ANNAMO_nn_alpha", &_nn_alpha, 0) == KEY_NOT_FOUND) {
+		if(getInputNumber(&inp, "DPS_alpha_mod", &_nn_alpha, 0) == KEY_FOUND) {
+			OX_LOG(Logger::LOG_WARNING, "ANNAMO: DPS_alpha_mod is deprecated, use ANNAMO_nn_alpha instead");
+		}
+	}
+
+	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 0);
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
 
-	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
+	if(getInputString(&inp, "ANNAMO_interaction_matrix_file", _interaction_matrix_file, 0) == KEY_NOT_FOUND) {
+		getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
+	}
 
 	getInputBool(&inp, "DPS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
-		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 0);
+		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 0);
 	}
 	getInputBool(&inp, "DPS_semiflexibility_3b", &_enable_semiflexibility_3b, 0);
 
 	if(_enable_semiflexibility_3b) {
-		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflex_gauss_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflex_gauss_xi, 0);
+		if(getInputNumber(&inp, "ANNAMO_semiflex_gauss_k", &_semiflex_gauss_k, 0) == KEY_NOT_FOUND) {
+			if(getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflex_gauss_k, 0) == KEY_FOUND) {
+				OX_LOG(Logger::LOG_WARNING, "ANNAMO: DPS_semiflexibility_3b_k is deprecated, use ANNAMO_semiflex_gauss_k instead");
+			}
+		}
+		if(getInputNumber(&inp, "ANNAMO_semiflex_gauss_xi", &_semiflex_gauss_xi, 0) == KEY_NOT_FOUND) {
+			if(getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflex_gauss_xi, 0) == KEY_FOUND) {
+				OX_LOG(Logger::LOG_WARNING, "ANNAMO: DPS_semiflexibility_3b_exp_sigma is deprecated, use ANNAMO_semiflex_gauss_xi instead");
+			}
+		}
 		if(_semiflex_gauss_xi > 0.0) {
 			OX_LOG(Logger::LOG_INFO, "CGNA: Using the exponential potential to model semiflexibility");
 		}
@@ -60,7 +103,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "DPS_stacking", &_enable_patch_stacking, 0);
 	if(_enable_patch_stacking) {
-		getInputNumber(&inp, "DPS_stacking_eta", &_stacking_eta, 1);
+		getInputNumber(&inp, "DPS_stacking_eta", &_stacking_eta, 0);
 	}
 
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
@@ -76,7 +119,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 		}
 	}
 
-	getInputInt(&inp, "DPS_bead_size", &_bead_size, 1);
+	getInputInt(&inp, "DPS_bead_size", &_bead_size, 0);
 }
 
 void CGNucleicAcidsInteraction::init() {
