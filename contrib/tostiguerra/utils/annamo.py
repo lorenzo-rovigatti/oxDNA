@@ -116,6 +116,48 @@ def _write_input_dat(cfg):
 
 
 # ---------------------------------------------------------------------------
+# input validation
+# ---------------------------------------------------------------------------
+
+def _validate_config(cfg, json_path):
+    errors = []
+
+    material = cfg.get("material")
+    if material is None:
+        errors.append('missing required field: "material" ("DNA" or "RNA")')
+    elif material not in ("DNA", "RNA"):
+        errors.append(f'"material" must be "DNA" or "RNA", got: {material!r}')
+
+    strands = cfg.get("strands")
+    if strands is None:
+        errors.append('missing required field: "strands"')
+    elif not isinstance(strands, list) or len(strands) == 0:
+        errors.append('"strands" must be a non-empty list')
+    else:
+        for i, s in enumerate(strands):
+            if not isinstance(s, list) or len(s) == 0:
+                errors.append(f'"strands[{i}]" must be a non-empty list of beads')
+
+    for key in ("temperature", "salt_concentration", "box_size",
+                "print_conf_interval", "print_energy_every", "steps"):
+        val = cfg.get(key)
+        if val is not None and not isinstance(val, (int, float)):
+            errors.append(f'"{key}" must be a number, got: {val!r}')
+
+    if cfg.get("swap") is not None and not isinstance(cfg["swap"], bool):
+        errors.append(f'"swap" must be true or false, got: {cfg["swap"]!r}')
+
+    if cfg.get("oxdna_overrides") is not None and not isinstance(cfg["oxdna_overrides"], dict):
+        errors.append('"oxdna_overrides" must be a JSON object')
+
+    if errors:
+        sys.exit(
+            f"Error: invalid configuration in {json_path}:\n"
+            + "\n".join(f"  - {e}" for e in errors)
+        )
+
+
+# ---------------------------------------------------------------------------
 # prepare subcommand
 # ---------------------------------------------------------------------------
 
@@ -125,7 +167,12 @@ def cmd_prepare(args):
         sys.exit(f"Error: file not found: {args.system_json}")
 
     with open(json_path) as f:
-        cfg = json.load(f)
+        try:
+            cfg = json.load(f)
+        except json.JSONDecodeError as e:
+            sys.exit(f"Error: could not parse {args.system_json}: {e}")
+
+    _validate_config(cfg, json_path)
 
     # topology.top and dHdS_matrix.dat (written to cwd by generate_annamo)
     generate_annamo.main(json_path)
