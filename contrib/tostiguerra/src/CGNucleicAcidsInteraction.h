@@ -32,13 +32,8 @@ struct PSBond {
 };
 
 struct PSBondCompare {
-	bool operator()(const PSBond &lhs, const PSBond &rhs) {
-		if(lhs.other->index == rhs.other->index) {
-			return false;
-		}
-		else {
-			return true;
-		}
+	bool operator()(const PSBond &lhs, const PSBond &rhs) const {
+		return lhs.other->index < rhs.other->index;
 	}
 };
 
