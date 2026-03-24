@@ -32,8 +32,8 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
 	getInputNumber(&inp, "DPS_tC", &_tC, 37.0);
-	getInputNumber(&inp, "DPS_dS_mod", &dS_mod, 1.0);
-	getInputNumber(&inp, "DPS_alpha_mod", &alpha_mod, 1.0);
+	getInputNumber(&inp, "DPS_dS_mod", &_nn_dS_offset, 1.0);
+	getInputNumber(&inp, "DPS_alpha_mod", &_nn_alpha, 1.0);
 	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
 
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
@@ -48,9 +48,9 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputBool(&inp, "DPS_semiflexibility_3b", &_enable_semiflexibility_3b, 0);
 
 	if(_enable_semiflexibility_3b) {
-		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflexibility_3b_exp_sigma, 0);
-		if(_semiflexibility_3b_exp_sigma > 0.0) {
+		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflex_gauss_k, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflex_gauss_xi, 0);
+		if(_semiflex_gauss_xi > 0.0) {
 			OX_LOG(Logger::LOG_INFO, "CGNA: Using the exponential potential to model semiflexibility");
 		}
 		else {
@@ -469,14 +469,14 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 
 	number energy, force_factor;
 
-	if(_semiflexibility_3b_exp_sigma > 0.0) {
-		number arg = (1.0 - cost) / _semiflexibility_3b_exp_sigma;
+	if(_semiflex_gauss_xi > 0.0) {
+		number arg = (1.0 - cost) / _semiflex_gauss_xi;
 		number exp_factor = exp(-SQR(arg));
-		energy = -_semiflexibility_3b_k * (exp_factor - 1.0);
-		force_factor = 2 * exp_factor * arg / _semiflexibility_3b_exp_sigma;
+		energy = -_semiflex_gauss_k * (exp_factor - 1.0);
+		force_factor = 2 * exp_factor * arg / _semiflex_gauss_xi;
 	}
 	else {
-		energy = _semiflexibility_3b_k * (1.0 - cost);
+		energy = _semiflex_gauss_k * (1.0 - cost);
 		force_factor = 1.0;
 	}
 
@@ -486,9 +486,9 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 		number force_mod_n1 = i_pn1_pn2 + cost_n1;
 		number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
-		middle->force += force_factor * (dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k));
-		n1->force -= force_factor * (dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k));
-		n2->force -= force_factor * (dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k));
+		middle->force += force_factor * (dist_pn1 * (force_mod_n1 * _semiflex_gauss_k) - dist_pn2 * (force_mod_n2 * _semiflex_gauss_k));
+		n1->force -= force_factor * (dist_pn1 * (cost_n1 * _semiflex_gauss_k) - dist_pn2 * (i_pn1_pn2 * _semiflex_gauss_k));
+		n2->force -= force_factor * (dist_pn1 * (i_pn1_pn2 * _semiflex_gauss_k) - dist_pn2 * (cost_n2 * _semiflex_gauss_k));
 	}
 
 	return energy;
@@ -644,7 +644,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
 			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
 				number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
-				number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
+				number beta_eps = -(beta_dG + _nn_dS_offset) / _nn_alpha;
 				if(beta_dG<bdG_threshold && abs(i - j) > 1) {
 					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
 					myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
