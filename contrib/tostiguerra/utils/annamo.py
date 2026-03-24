@@ -69,6 +69,7 @@ def _write_input_dat(cfg):
         "back_in_box = true",
         "restart_step_counter = true",
         "time_scale = linear",
+        "refresh_vel = true",
         "",
         "interaction_type = ANNaMoInteraction",
         f"plugin_search_path = {_plugin_search_path()}",
