@@ -5,7 +5,7 @@
  *      Author: lorenzo
  */
 
-#include "CUDACGNucleicAcidsInteraction.h"
+#include "CUDANNaMoInteraction.h"
 
 #include "Particles/CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
