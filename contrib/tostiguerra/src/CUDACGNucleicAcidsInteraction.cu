@@ -42,8 +42,8 @@ __constant__ float MD_3b_A_part[1];
 __constant__ float MD_3b_B_part[1];
 
 __constant__ bool MD_enable_semiflexibility_3b[1];
-__constant__ float MD_semiflexibility_3b_k[1];
-__constant__ float MD_semiflexibility_3b_exp_sigma[1];
+__constant__ float MD_semiflex_gauss_k[1];
+__constant__ float MD_semiflex_gauss_xi[1];
 
 __constant__ bool MD_enable_patch_stacking[1];
 __constant__ float MD_stacking_eta[1];
@@ -255,24 +255,24 @@ __device__ void _flexibility_three_body(c_number4 &ppos, c_number4 &n1_pos, c_nu
 	c_number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
 	c_number energy, force_factor;
-	if(MD_semiflexibility_3b_exp_sigma[0] > 0.0f) {
-		c_number arg = (1.f - cost) / MD_semiflexibility_3b_exp_sigma[0];
+	if(MD_semiflex_gauss_xi[0] > 0.0f) {
+		c_number arg = (1.f - cost) / MD_semiflex_gauss_xi[0];
 		c_number exp_factor = expf(-SQR(arg));
-		energy = -MD_semiflexibility_3b_k[0] * (exp_factor - 1.f);
-		force_factor = 2 * exp_factor * arg / MD_semiflexibility_3b_exp_sigma[0];
+		energy = -MD_semiflex_gauss_k[0] * (exp_factor - 1.f);
+		force_factor = 2 * exp_factor * arg / MD_semiflex_gauss_xi[0];
 	}
 	else {
-		energy = MD_semiflexibility_3b_k[0] * (1.f - cost);
+		energy = MD_semiflex_gauss_k[0] * (1.f - cost);
 		force_factor = 1.f;
 	}
 
-	c_number4 tmp_force = force_factor * (dist_pn1 * (force_mod_n1 * MD_semiflexibility_3b_k[0]) - dist_pn2 * (force_mod_n2 * MD_semiflexibility_3b_k[0]));
+	c_number4 tmp_force = force_factor * (dist_pn1 * (force_mod_n1 * MD_semiflex_gauss_k[0]) - dist_pn2 * (force_mod_n2 * MD_semiflex_gauss_k[0]));
 	// the factor 2 takes into account the fact that the pair energy is always counted twice
 	tmp_force.w = 2.f * energy;
 	F += tmp_force;
 
-	c_number4 n1_force = force_factor * (dist_pn2 * (i_pn1_pn2 * MD_semiflexibility_3b_k[0]) - dist_pn1 * (cost_n1 * MD_semiflexibility_3b_k[0]));
-	c_number4 n2_force = force_factor * (dist_pn2 * (cost_n2 * MD_semiflexibility_3b_k[0]) - dist_pn1 * (i_pn1_pn2 * MD_semiflexibility_3b_k[0]));
+	c_number4 n1_force = force_factor * (dist_pn2 * (i_pn1_pn2 * MD_semiflex_gauss_k[0]) - dist_pn1 * (cost_n1 * MD_semiflex_gauss_k[0]));
+	c_number4 n2_force = force_factor * (dist_pn2 * (cost_n2 * MD_semiflex_gauss_k[0]) - dist_pn1 * (i_pn1_pn2 * MD_semiflex_gauss_k[0]));
 	LR_atomicAddXYZ(three_body_forces + n1_idx, n1_force);
 	LR_atomicAddXYZ(three_body_forces + n2_idx, n2_force);
 }
@@ -455,8 +455,8 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_semiflexibility_3b, &_enable_semiflexibility_3b, sizeof(bool)));
-	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_3b_k, _semiflexibility_3b_k);
-	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_3b_exp_sigma, _semiflexibility_3b_exp_sigma);
+	COPY_NUMBER_TO_FLOAT(MD_semiflex_gauss_k, _semiflex_gauss_k);
+	COPY_NUMBER_TO_FLOAT(MD_semiflex_gauss_xi, _semiflex_gauss_xi);
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_patch_stacking, &_enable_patch_stacking, sizeof(bool)));
 	COPY_NUMBER_TO_FLOAT(MD_stacking_eta, _stacking_eta);
