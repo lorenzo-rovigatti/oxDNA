@@ -242,6 +242,8 @@ def main():
     parser = argparse.ArgumentParser(
         prog="annamo",
         description="ANNaMo simulation preparation and run tool.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_JSON_EXAMPLE,
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
