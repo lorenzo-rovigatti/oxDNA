@@ -46,7 +46,7 @@ def _plugin_search_path():
 def _write_input_dat(cfg):
     """Write input.dat to the current directory from the JSON config *cfg*."""
     swap = cfg.get("swap", True)
-    lambda_val = 0 if swap else 10
+    lambda_val = 1 if swap else 10
     seed = cfg.get("seed", random.randint(0, 2**31 - 1))
     steps = int(cfg.get("steps", 2_000_000_000))
     temperature = cfg.get("temperature", 30)
@@ -242,7 +242,7 @@ System JSON fields (required fields marked with *):
     "temperature":          30,      (degrees C, default: 30)
     "steps":                2e9,     (default: 2000000000)
     "box_size":             30,      (internal units, default: 30)
-    "swap":                 true,    (true → λ=0 bond-swapping; false → λ=10, default: true)
+    "swap":                 true,    (true → λ=1 bond-swapping; false → λ=10, default: true)
     "seed":                 104123,  (RNG seed, default: random)
     "print_conf_interval":  1e6,     (default: 1000000)
     "print_energy_every":   1e3,     (default: 1000)
