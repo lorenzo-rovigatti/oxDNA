@@ -18,6 +18,7 @@ import generate_annamo
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _find_executable(name):
     """Return the path to *name*, searching PATH then ../../build/bin/."""
     found = shutil.which(name)
@@ -41,11 +42,12 @@ def _plugin_search_path():
 # input.dat generation
 # ---------------------------------------------------------------------------
 
+
 def _write_input_dat(cfg):
     """Write input.dat to the current directory from the JSON config *cfg*."""
     swap = cfg.get("swap", True)
     lambda_val = 0 if swap else 10
-    seed = cfg.get("seed", random.randint(0, 2 ** 31 - 1))
+    seed = cfg.get("seed", random.randint(0, 2**31 - 1))
     steps = int(cfg.get("steps", 2_000_000_000))
     temperature = cfg.get("temperature", 30)
     print_conf_interval = int(cfg.get("print_conf_interval", 1_000_000))
@@ -120,6 +122,7 @@ def _write_input_dat(cfg):
 # input validation
 # ---------------------------------------------------------------------------
 
+
 def _validate_config(cfg, json_path):
     errors = []
 
@@ -140,8 +143,14 @@ def _validate_config(cfg, json_path):
                 errors.append(f'"strands[{i}]" must be a non-empty list of beads')
 
     # salt_concentration is validated but not yet used (salt correction not implemented)
-    for key in ("temperature", "salt_concentration", "box_size",
-                "print_conf_interval", "print_energy_every", "steps"):
+    for key in (
+        "temperature",
+        "salt_concentration",
+        "box_size",
+        "print_conf_interval",
+        "print_energy_every",
+        "steps",
+    ):
         val = cfg.get(key)
         if val is not None and not isinstance(val, (int, float)):
             errors.append(f'"{key}" must be a number, got: {val!r}')
@@ -149,7 +158,9 @@ def _validate_config(cfg, json_path):
     if cfg.get("swap") is not None and not isinstance(cfg["swap"], bool):
         errors.append(f'"swap" must be true or false, got: {cfg["swap"]!r}')
 
-    if cfg.get("oxdna_overrides") is not None and not isinstance(cfg["oxdna_overrides"], dict):
+    if cfg.get("oxdna_overrides") is not None and not isinstance(
+        cfg["oxdna_overrides"], dict
+    ):
         errors.append('"oxdna_overrides" must be a JSON object')
 
     if errors:
@@ -162,6 +173,7 @@ def _validate_config(cfg, json_path):
 # ---------------------------------------------------------------------------
 # prepare subcommand
 # ---------------------------------------------------------------------------
+
 
 def cmd_prepare(args):
     json_path = os.path.abspath(args.system_json)
@@ -201,6 +213,7 @@ def cmd_prepare(args):
 # run subcommand
 # ---------------------------------------------------------------------------
 
+
 def cmd_run(args):
     cmd_prepare(args)
 
@@ -225,7 +238,7 @@ System JSON fields (required fields marked with *):
 
   {
     "material":             "DNA",   (* "DNA" or "RNA")
-    "strands":              [...],   (* list of strands, each a list of bead types)
+    "strands":              [...],   (* list of strands, each a list of bead sequences)
     "temperature":          30,      (degrees C, default: 30)
     "steps":                2e9,     (default: 2000000000)
     "box_size":             30,      (internal units, default: 30)
@@ -235,6 +248,17 @@ System JSON fields (required fields marked with *):
     "print_energy_every":   1e3,     (default: 1000)
     "oxdna_overrides":      {}       (raw key=value pairs appended to input.dat)
   }
+
+Bead design: each bead represents a nucleotide sequence of ideally 3 nt (range 2-4).
+Strand division should follow native contacts as described in the ANNaMo paper
+(Tosti Guerra et al., J. Chem. Phys. 2024): beads are chosen so that native base pairs
+fall at bead boundaries rather than within a single bead.
+
+Example:
+  "strands": [
+    ["GAA", "GTG", "ACA", "TGG"],
+    ["CCA", "TGT", "CAC", "TTC"]
+  ]
 """
 
 
