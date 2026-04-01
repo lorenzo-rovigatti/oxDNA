@@ -14,7 +14,9 @@ from unittest.mock import patch
 import pytest
 
 from oxDNA_analysis_tools.decimate import decimate, cli_parser, main
-from oxDNA_analysis_tools.UTILS.RyeReader import describe
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, _is_zstd_traj
+from oxDNA_analysis_tools.minify import minify
+from oxDNA_analysis_tools.file_info import file_info
 
 
 # =============================================================================
@@ -191,3 +193,46 @@ class TestMain:
             main()
 
         assert output_file.exists(), "Output file should be created with options"
+
+
+# =============================================================================
+# Compressed trajectory Tests
+# =============================================================================
+
+class TestDecimateCompressed:
+    """Test decimation of zstd-compressed trajectories."""
+
+    def test_decimate_compressed(self, mini_traj_path, temp_output_dir):
+        """
+        Compress the test trajectory with minify, decimate it with stride=2,
+        then verify the output with file_info.
+
+        Validation is progressive:
+          1. The decimated output is a valid zstd trajectory.
+          2. file_info() successfully reads the decimated file without error.
+          3. The reported particle count matches the original.
+          4. The reported configuration count matches the expected stride result.
+        """
+        orig_top, orig_traj = describe(None, str(mini_traj_path))
+
+        # --- Step 1: create a compressed copy of the trajectory ---
+        compressed_path = str(temp_output_dir / "compressed.dat")
+        minify(orig_traj, orig_top, compressed_path, compress=True, ncpus=1)
+
+        # --- Step 2: decimate the compressed trajectory with stride=2 ---
+        stride = 2
+        decimated_path = str(temp_output_dir / "decimated_compressed.dat")
+        decimate(traj=compressed_path, outfile=decimated_path, start=0, stop=-1, stride=stride)
+
+        assert _is_zstd_traj(decimated_path), \
+            "Decimated output of a compressed trajectory should be zstd-compressed"
+
+        # --- Step 3: verify with file_info ---
+        info = file_info([decimated_path])
+
+        assert info['particles'][0] == orig_top.nbases, \
+            "Decimated compressed trajectory should have the same number of particles"
+
+        expected_nconfs = (orig_traj.nconfs + stride - 1) // stride
+        assert info['n_confs'][0] == expected_nconfs, \
+            f"Expected {expected_nconfs} confs after stride={stride}, got {info['n_confs'][0]}"

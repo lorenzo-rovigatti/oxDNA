@@ -215,8 +215,78 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					F.y += -dist.y*force_mod;
 					F.z += -dist.z*force_mod;
 				}
+
 				break;
 			}
+			case CUDA_REPULSIVE_SPHERE_MOVING: {
+				// Match RepulsiveSphereMoving.cpp: shifted/truncated LJ (WCA) in terms of the
+				// *surface gap* r = |pos-centre| - radius, using the generalized 2x-x form.
+				// CPU currently hard-codes: x=2, sigma=1, epsilon=stiff, rc=2^(1/x)*sigma.
+				const c_number eps   = extF.repulsivespheremoving.stiff;
+				const c_number r0    = extF.repulsivespheremoving.r0;
+				const c_number rate  = extF.repulsivespheremoving.rate;
+				const c_number r_ext = extF.repulsivespheremoving.r_ext;
+
+				const float3 org_f = extF.repulsivespheremoving.origin;
+				const float3 tgt_f = extF.repulsivespheremoving.target;
+				const llint  steps_mv = extF.repulsivespheremoving.steps;
+
+				c_number t = (c_number)0;
+				if (steps_mv > 0) {
+					t = (c_number)step / (c_number)steps_mv;
+					if (t < (c_number)0) t = (c_number)0;
+					if (t > (c_number)1) t = (c_number)1;
+				}
+
+				const c_number orgx = (c_number)org_f.x, orgy = (c_number)org_f.y, orgz = (c_number)org_f.z;
+				const c_number tgtx = (c_number)tgt_f.x, tgty = (c_number)tgt_f.y, tgtz = (c_number)tgt_f.z;
+
+				c_number4 centre = make_c_number4(
+					orgx + (tgtx - orgx) * t,
+					orgy + (tgty - orgy) * t,
+					orgz + (tgtz - orgz) * t,
+					(c_number)0
+				);
+
+				c_number4 dist  = box->minimum_image(centre, ppos);
+				c_number  mdist = _module(dist);
+
+				const c_number radius = r0 + rate * (c_number)step;
+
+				if (mdist <= (c_number)0) break;
+
+				// Surface gap
+				const c_number r = mdist - radius;
+
+				// Optional extra cutoff on the *gap* (matches CPU: if r >= r_ext => 0)
+				if (r >= r_ext) break;
+
+				// Generalized 2x-x WCA parameters (CPU hard-coded)
+				const c_number x      = (c_number)2;
+				const c_number rc     = (c_number)1.4142135623730951; // 2^(1/2) * sigma
+				if (r >= rc) break;
+
+				// Avoid singularity at r -> 0+
+				const c_number r_safe = (r > (c_number)1e-9) ? r : (c_number)1e-9;
+				const c_number inv_r  = (c_number)1 / r_safe;
+
+				// For x=2, A = (sigma/r)^x = (1/r)^2
+				const c_number inv_r2 = inv_r * inv_r;
+				const c_number A      = inv_r2;           // (sigma/r)^x
+
+				// dU/dr for: U = 4*eps*(A^2 - A) + eps
+				// CPU: dU/dr = 4*eps*(2A - 1)*(-(x/r)*A)
+				const c_number dUdr = (c_number)4 * eps * ((c_number)2 * A - (c_number)1) * (-(x * inv_r) * A);
+				const c_number Fmag = -dUdr;
+				const c_number inv_mdist = (c_number)1 / mdist;
+
+				F.x += dist.x * (Fmag * inv_mdist);
+				F.y += dist.y * (Fmag * inv_mdist);
+				F.z += dist.z * (Fmag * inv_mdist);
+
+				break;
+			}
+
 			case CUDA_REPULSIVE_SPHERE_SMOOTH: {
 				c_number4 centre = make_c_number4(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
 				c_number4 dist = box->minimum_image(centre, ppos);

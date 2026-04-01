@@ -54,8 +54,10 @@ If you also want to update `oxpy` and `OAT` don't forget to run `make install` a
 * `-DDOUBLE=OFF` Set the numerical precision of the CPU backends to `float`
 * `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backends to `double`, which is not compatible with the `mixed` precision.
 * `-DNATIVE_COMPILATION=ON` Set to `OFF` to compile without the `-march=native` flag. This may be required when compiling binaries to be used elsewhere
-* `-DJSON_ENABLED=On` Set to `OFF` to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers.
+* `-DJSON_ENABLED=On` Set to `OFF` to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers
+* `-DZSTD_ENABLED=Off` Set to `ON` to enable on-the-fly [zstd](https://github.com/facebook/zstd) compression of any oxDNA output (configurations and trajectories included). If set to `ON`, if CMake cannot find a working zstd installation will attempt to download and compile a local version against which oxDNA will be linked. More details about trajectory compression can be found [here](./configurations.md).
 
+````{important}
 When compiling with CUDA with newer CMake versions (> 3.18), you may have to specify the location of `nvcc` by hand with `-DCMAKE_CUDA_COMPILER=/path/to/nvcc`. If doing so results in CMake errors, you may also have to manually specify a C/C++ compiler compatible with the current CUDA install, which can be done by exporting the following environment variables prior to calling CMake:
 
 ```bash
@@ -63,6 +65,7 @@ export CC=gcc-9
 export CXX=g++-9
 export CUDAHOSTCXX=g++-9
 ```
+````
 
 The following options pertain to `oxpy`:
 

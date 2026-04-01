@@ -53,8 +53,11 @@ class IForceHandler:
 
 
 class CoordinationHandler(IForceHandler):
-    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float, d0: float = 1.2, r0: float = 0.5, n: int = 6):
         super().__init__(pfile, xmin, xmax, dx)
+        self.d0 = d0
+        self.r0 = r0
+        self.n = n
 
     def parse_pfile(self, pfile: str):
         self.pairs = []
@@ -87,9 +90,9 @@ class CoordinationHandler(IForceHandler):
     col_1 = {{
         type = coordination
         op_file = op_coordination.dat
-        d0 = 1.2
-        r0 = 0.5
-        n = 6
+        d0 = {self.d0}
+        r0 = {self.r0}
+        n = {self.n}
     }}
     col_2 = {{
         type = force_energy
@@ -112,9 +115,9 @@ class CoordinationHandler(IForceHandler):
     N_grid = {self.N_grid}
     potential_grid = {grid_string}
     op_file = op_coordination.dat
-    d0 = 1.2
-    r0 = 0.5
-    n = 6
+    d0 = {self.d0}
+    r0 = {self.r0}
+    n = {self.n}
 }}
 '''
 
@@ -364,14 +367,18 @@ class Estimator():
     def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5), N_walkers=1, 
                 use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, coordination=False,
                 xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, T=None, 
-                op_interval: int=1000):
+                op_interval: int=1000, **kw_args):
 
         if ratio:
             self.handler = AtanCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
         elif angle:
             self.handler = AngleCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
         elif coordination:
-            self.handler = CoordinationHandler(args.p_fname, args.xmin, args.xmax, args.dX)
+            additional_args = {}
+            for key in "d0", "r0", "n": # optional arguments for the coordination CV
+                if key in kw_args:
+                    additional_args[key] = kw_args[key]
+            self.handler = CoordinationHandler(args.p_fname, args.xmin, args.xmax, args.dX, **additional_args)
         else:
             if dim == 1:
                 self.handler = COMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
@@ -438,6 +445,10 @@ class Estimator():
             # next we try to avoid issues with strands diffusing through boundaries and being brought back by fix_diffusion, which would be disastrous for the forces, which do not take into account PBC by construction
             input_file["fix_diffusion"] = "false"
             input_file["reset_initial_com_momentum"] = "true"
+            if self.continue_run:
+                input_file["restart_step_counter"] = "false"
+            else:
+                input_file["restart_step_counter"] = "true"
             
             if T == None:
                 self.T = oxpy.get_temperature(input_file["T"])
@@ -699,7 +710,7 @@ def build_parser():
     parser.add_argument("--config", type=str, help="Path to TOML configuration file")
 
     # Positional
-    parser.add_argument("base_dir", help="Directory storing the base simulation files")
+    parser.add_argument("base_dir", nargs="?", help="Directory storing the base simulation files")
 
     # Scalar parameters
     parser.add_argument("--A", type=float, default=0.1, help="Initial bias-height increment")
@@ -741,8 +752,11 @@ def validate_args(args):
     if args.op_interval > args.tau:
         print("WARNING: op_interval > tau: OP will never be printed!", file=sys.stderr)
 
+    if args.base_dir == None:
+        sys.exit(f'CRITICAL: base_dir is a mandatory argument: either pass it as a positional argument to the script or set it in the TOML input file')
+
     if os.path.exists(args.base_dir) and not os.path.isdir(args.base_dir):
-        sys.exit(f'CRITICAL: base_dir "{args.base_dir}" exists and is not a directory.')
+        sys.exit(f'CRITICAL: base_dir "{args.base_dir}" exists but is not a directory.')
 
     if not os.path.exists(args.base_dir):
         sys.exit(f'CRITICAL: base_dir "{args.base_dir}" does not exist.')

@@ -19,6 +19,8 @@
 #include "../Forces/RepulsionPlaneMoving.h"
 #include "../Forces/RepulsiveSphere.h"
 #include "../Forces/RepulsiveSphereSmooth.h"
+#include "../Forces/RepulsiveSphereMoving.h"
+#include "../Forces/RepulsiveKeplerPoinsot.h"
 #include "../Forces/LJWall.h"
 #include "../Forces/GenericCentralForce.h"
 #include "../Forces/LJCone.h"
@@ -47,6 +49,8 @@
 #define CUDA_LR_COM_TRAP 14
 #define CUDA_YUKAWA_SPHERE 15
 #define CUDA_ATTRACTION_PLANE 16
+#define CUDA_REPULSIVE_SPHERE_MOVING 17
+#define CUDA_REPULSIVE_KEPLER_POINSOT 18
 
 
 /**
@@ -477,6 +481,69 @@ void init_YukawaSphere_from_CPU(Yukawa_sphere *cuda_force, YukawaSphere *cpu_for
 	cuda_force->cutoff = cpu_force->_cutoff;
 }
 
+
+
+/**
+ * @brief CUDA version of a RepulsiveSphereMoving.
+ *
+ * Repulsive sphere whose centre moves linearly from origin -> target over a given number of steps,
+ * while its radius grows as r(step) = r0 + rate * step.
+ */
+struct repulsive_sphere_moving {
+	int type;
+	c_number stiff;
+	c_number r0;
+	c_number rate;
+	c_number r_ext;
+
+	float3 origin;
+	float3 target;
+	llint  steps; // number of MD steps to go from origin -> target
+};
+
+inline void init_RepulsiveSphereMoving_from_CPU(repulsive_sphere_moving *cuda_force, RepulsiveSphereMoving *cpu_force) {
+	cuda_force->type  = CUDA_REPULSIVE_SPHERE_MOVING;
+	cuda_force->stiff = cpu_force->stiff();
+	cuda_force->r0    = cpu_force->r0();
+	cuda_force->rate  = cpu_force->rate();
+	cuda_force->r_ext = cpu_force->r_ext();
+
+	LR_vector o = cpu_force->origin();
+	LR_vector t = cpu_force->target();
+	cuda_force->origin = make_float3(o.x, o.y, o.z);
+	cuda_force->target = make_float3(t.x, t.y, t.z);
+	cuda_force->steps  = cpu_force->steps();
+}
+
+/**
+ * @brief CUDA version of a RepulsiveKeplerPoinsot (star repulsor).
+ */
+struct repulsive_kepler_poinsot {
+	int type;
+
+	c_number stiff;
+	c_number rate;
+
+	c_number apex;
+	c_number base;
+	c_number base_radius;
+	c_number kappa;
+
+	float3 centre;
+};
+
+inline void init_RepulsiveKeplerPoinsot_from_CPU(repulsive_kepler_poinsot *cuda_force, RepulsiveKeplerPoinsot *cpu_force) {
+	cuda_force->type        = CUDA_REPULSIVE_KEPLER_POINSOT;
+	cuda_force->stiff       = cpu_force->_stiff;
+	cuda_force->rate        = cpu_force->_rate;
+	cuda_force->apex        = cpu_force->_apex;
+	cuda_force->base        = cpu_force->_base;
+	cuda_force->base_radius = cpu_force->_base_radius;
+	cuda_force->kappa       = cpu_force->_kappa;
+
+	cuda_force->centre = make_float3(cpu_force->_centre.x, cpu_force->_centre.y, cpu_force->_centre.z);
+}
+
 /**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
@@ -499,6 +566,8 @@ union CUDA_trap {
 	lt_com_trap ltcomtrap;
 	Yukawa_sphere yukawasphere;
 	attraction_plane attractionplane;
+	repulsive_sphere_moving repulsivespheremoving;
+	repulsive_kepler_poinsot repulsivekeplerpoinsot;
 };
 
 #endif /* CUDAFORCES_H_ */

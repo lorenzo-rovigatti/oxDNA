@@ -22,6 +22,7 @@ OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" 
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
 OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers" ON)
+OPTION(ZSTD_ENABLED "Set to ON to enable zstd compression support" OFF)
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
@@ -79,6 +80,10 @@ ENDIF(SIGNAL)
 IF(NOT DOUBLE)
 	ADD_DEFINITIONS(-DFLOAT_PRECISION)
 ENDIF()
+
+if(CUDA_DOUBLE)
+	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
+endif()
 
 include_directories(src/extern)
 
@@ -220,6 +225,45 @@ if(JSON_ENABLED)
 else()
 	message(STATUS "Disabling JSON support")
 endif(JSON_ENABLED)
+
+# zstd can be optionally used for compressing output files, and it's a very common library, 
+# so we try to find it first, if the user enabled it. If it's not found, we fetch it via 
+# FetchContent and build it as part of our build process.
+if(ZSTD_ENABLED)
+	find_package(zstd CONFIG QUIET)
+	if(NOT zstd_FOUND)
+		message(STATUS "Zstd not found: fetching zstd via FetchContent")
+		include(FetchContent)
+
+		FetchContent_Declare(
+			zstd
+			GIT_REPOSITORY https://github.com/facebook/zstd.git
+			GIT_TAG v1.5.6
+		)
+
+		FetchContent_GetProperties(zstd)
+		if(NOT zstd_POPULATED)
+			FetchContent_Populate(zstd)
+
+			# zstd build options
+			set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+			set(ZSTD_BUILD_STATIC ON  CACHE BOOL "" FORCE)
+			set(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+
+			# IMPORTANT: add zstd CMake subdirectory with actual libs
+			add_subdirectory(${zstd_SOURCE_DIR}/build/cmake ${zstd_BINARY_DIR})
+		endif()
+
+		set(ZSTD_TARGET libzstd_static)
+	else()
+		set(ZSTD_TARGET zstd::libzstd_shared)
+	endif()
+
+	message(STATUS "Zstd support enabled")
+	add_definitions(-DZSTD_ENABLED)
+else()
+	message(STATUS "Zstd support disabled")
+endif()
 
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)

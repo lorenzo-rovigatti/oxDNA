@@ -286,12 +286,11 @@ IF(CUDA)
 		CUDA/Thermostats/CUDASRDThermostat.cu
 		CUDA/Thermostats/CUDALangevinThermostat.cu
 		CUDA/Thermostats/CUDABussiThermostat.cu
+		CUDA/Thermostats/CUDARefreshThermostat.cu
 		Utilities/Timings.cpp
 	)
 	
-	IF(CUDA_DOUBLE)
-		ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
-	ELSE()
+	IF(NOT CUDA_DOUBLE)
 		LIST(APPEND common_SOURCES
 			CUDA/Backends/MD_CUDAMixedBackend.cu 
 			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
@@ -354,6 +353,9 @@ ELSE()
 	target_link_libraries(${lib_name} PRIVATE ${CMAKE_DL_LIBS})
 ENDIF()
 
+if(ZSTD_ENABLED)
+	target_link_libraries(${lib_name} PRIVATE ${ZSTD_TARGET})
+endif()
 target_link_libraries(${exe_name} PRIVATE ${lib_name})
 target_link_libraries(DNAnalysis PRIVATE ${lib_name})
 target_link_libraries(confGenerator PRIVATE ${lib_name})

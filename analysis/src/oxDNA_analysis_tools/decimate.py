@@ -6,20 +6,8 @@ from copy import deepcopy
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from typing import Union
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, conf_to_str
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, conf_to_str, _is_zstd_traj, _ZSTD_HEADER_SIZE
 import mmap
-ComputeContext = namedtuple("ComputeContext", [
-    "traj_info",
-    "top_info"
-])
-
-def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
-        
-    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_size*chunk_id, chunk_size)
-
-    out = ''.join([conf_to_str(c,  include_vel=ctx.traj_info.incl_v) for c in confs])
-    return out
-
 
 def decimate(traj: str, outfile: str, start: int, stop: int, stride: int):
     """
@@ -44,6 +32,8 @@ def decimate(traj: str, outfile: str, start: int, stop: int, stride: int):
     with open(traj, 'rb') as infile, open(outfile, 'wb') as out_file:
         # Memory-map the input file for faster random access
         with mmap.mmap(infile.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            if _is_zstd_traj(traj):
+                out_file.write(mm[0:_ZSTD_HEADER_SIZE])
             for offset, size in selected_data:
                 out_file.write(mm[offset : offset + size])
     log(f"Wrote decimated trajectory to {outfile}")

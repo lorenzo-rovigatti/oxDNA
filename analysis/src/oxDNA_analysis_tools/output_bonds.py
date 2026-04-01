@@ -166,6 +166,7 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str,
                 active_names: list of energy field names included in the output.
     """
 
+
     ctx = ComputeContext(traj_info, top_info, inputfile, visualize, conversion_factor, 0, None)
 
     # Discover available potential names from a single configuration

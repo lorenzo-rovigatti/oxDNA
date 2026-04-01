@@ -21,6 +21,8 @@ The following options are supported:
 * `stop_at`: the number of steps beyond which the output will stop being written. Defaults to -1 ("never").
 * `only_last`: overwrite the content of the output with the current one.
 * `update_name_with_time`: change the name of the output file every time the output is printed by appending the current simulation time step to `name`.
+* `compress`: compress the output using [zstd](https://github.com/facebook/zstd). Requires compiling the code with `-DZSTD_ENABLED=On`. Compressed files can be decompressed with external tools such as [the one provided in the `utils` folder](./utils.md#decompress_zstdpy). Defaults to `false`.
+* `zstd_level`: zstd compression level. Only used if `compress = true`. Defaults to 3.
 
 An example is:
 
