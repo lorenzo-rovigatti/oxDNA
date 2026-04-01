@@ -10,7 +10,6 @@
 DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     OX_LOG(Logger::LOG_INFO, "Using the experimental DNA3Interaction");
     _grooving = 2;
-
     _fene_eps = FENE_EPS;
 
     MESH_F4_SD_POINTS[HYDR_F4_THETA1] = HYDR_T1_MESH_POINTS;
@@ -245,6 +244,11 @@ DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     F2_SD_K[1].fill(CXST_K_OXDNA2);
     F2_SD_K[2].fill(CRST_K_33);
     F2_SD_K[3].fill(CRST_K_55);
+    
+    F2_SD_K_SYMM[0].fill(CRST_K);
+    F2_SD_K_SYMM[1].fill(CXST_K_OXDNA2);
+    F2_SD_K_SYMM[2].fill(CRST_K_33);
+    F2_SD_K_SYMM[3].fill(CRST_K_55);
 
     F2_SD_RC[0].fill(CRST_RC);
     F2_SD_RC[1].fill(CXST_RC);
@@ -750,10 +754,10 @@ void DNA3Interaction::init() {
 
                         // COAXIAL_STACKING
                         // this is pair type dependent
-                        sprintf(key, "CXST_K_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](k, i, j, l) = tmp_value;
-                        sprintf(key, "CXST_K_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](k, i, j, l) = tmp_value;
+                        //sprintf(key, "CXST_K_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+                        //if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](k, i, j, l) = tmp_value;
+                        sprintf(key, "CXST_K_%c_%c", Utils::encode_base(j), Utils::encode_base(k));
+                        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CXST_F2](i, j, k, l) = tmp_value;
                         
                         // F5 -- TODO, eventually
 
@@ -774,6 +778,10 @@ void DNA3Interaction::init() {
 
                     F2_SD_K[CRST_F2_55](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
                     F2_SD_K[CRST_F2_55](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                    
+                    F2_SD_K[CXST_F2](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CXST_F2](0, j, k, 0);
+                    F2_SD_K[CXST_F2](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CXST_F2](0, j, k, 0);
+
 
                     // fene
                     _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
@@ -848,7 +856,21 @@ void DNA3Interaction::init() {
                 }
             }
         }
-
+        
+        //build symmetric tensors (just F2_K, currently)
+        for(int i = 0; i < TETRAMER_DIM_A; i++) {
+            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                    for(int l = 0; l < TETRAMER_DIM_A; l++) {
+                        for(int m = 0; m < 4; m++) {
+                            F2_SD_K_SYMM[m](i,j,k,l) = 0.5*(F2_SD_K[m](i,j,k,l)+F2_SD_K[m](l,k,j,i));
+                        }
+                    }
+                }
+            }
+        }
+        
+        
         // Set enslaved parameters
         // Enslaved = set by continuity and differentiability
         for(int i = 0; i < TETRAMER_DIM_A; i++) {
@@ -1737,16 +1759,17 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
     return energy;
 }
 
+
 number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->is_bonded(q)) {
         return (number) 0.f;
     }
-
+    
     LR_vector rstack = _computed_r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
     number rstackmod = rstack.module();
     number energy = (number) 0.f;
 
-    if(CXST_RCLOW < rstackmod && rstackmod < CXST_RCHIGH) {
+    if(F2_SD_RCLOW[CXST_F2](0, q->type, p->type, 0)< rstackmod && rstackmod < F2_SD_RCHIGH[CXST_F2](0, q->type, p->type, 0)) {
         LR_vector rstackdir = rstack / rstackmod;
 
         // particle axes according to Allen's paper
@@ -1767,24 +1790,40 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
 
         if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
         if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+        
 
         // functions called at their relevant arguments
-        number f2 = _f2_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+        
+        number f2;
+        
+        if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) f2 = _f2_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+        else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) f2 = _f2_SD(rstackmod, CXST_F2, type_n5_2, p->type, q->type, type_n3_2);
+        else f2 = _f2_SD_SYMM(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
         number f4t1 = _custom_f4(cost1, CXST_F4_THETA1);
         number f4t4 = _custom_f4(cost4, CXST_F4_THETA4);
         number f4t5 = _custom_f4(cost5, CXST_F4_THETA5) + _custom_f4(-cost5, CXST_F4_THETA5);
         number f4t6 = _custom_f4(cost6, CXST_F4_THETA6) + _custom_f4(-cost6, CXST_F4_THETA6);
 
         energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
-        
+   
+        /*
+        if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K[CXST_F2]( type_n3_2, q->type, p->type, type_n5_2) << " " << f2 << " " << energy << std::endl;
+        else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K[CXST_F2]( type_n5_2, p->type, q->type, type_n3_2) << " " << f2 << " " << energy << std::endl;
+        else std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K_SYMM[CXST_F2]( type_n3_2, q->type, p->type, type_n5_2) << " " << f2 << " " << energy << std::endl;
+        */
+         
         // makes sense since the above f? can return exacly 0.
         if(update_forces && energy != 0.) {
             LR_vector force(0, 0, 0);
             LR_vector torquep(0, 0, 0);
             LR_vector torqueq(0, 0, 0);
 
+            
+            number f2D;
             // derivatives called at the relevant arguments
-            number f2D = _f2D_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+            if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) f2D = _f2D_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+            else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) f2D = _f2D_SD(rstackmod, CXST_F2, type_n5_2, p->type, q->type, type_n3_2);
+            else f2D = _f2D_SD_SYMM(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
             number f4t1Dsin = _custom_f4D(cost1, CXST_F4_THETA1);
             number f4t4Dsin = -_custom_f4D(cost4, CXST_F4_THETA4);
             number f4t5Dsin = -_custom_f4D(cost5, CXST_F4_THETA5) + _custom_f4D(-cost5, CXST_F4_THETA5);
@@ -1837,6 +1876,11 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
 
     return energy;
 }
+
+
+
+
+
 
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
@@ -1897,6 +1941,36 @@ number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1
     }
     return val;
 }
+
+number DNA3Interaction::_f2_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+    number val = (number)0.;
+    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = (F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
+        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+        }
+    }
+    return val;
+}
+
+number DNA3Interaction::_f2D_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+    number val = (number)0.;
+    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = 2. * F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
+        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
+            val = 2. * F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+        }
+    }
+    return val;
+}
+
+
 
 number DNA3Interaction::_fakef4_SD(number cost, void *par) {
     if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1.0001))
