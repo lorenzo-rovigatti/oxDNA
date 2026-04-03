@@ -96,7 +96,7 @@ LR_vector LT2DCOMTrap::_distance(LR_vector u, LR_vector v) {
 		return v - u;
 }
 
-LR_vector LT2DCOMTrap::value(llint step, LR_vector &pos) {
+LR_vector LT2DCOMTrap::force(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);

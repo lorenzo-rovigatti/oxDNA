@@ -179,7 +179,7 @@ __global__ void NS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
+	c_number4 T = torques[IND];
 	c_number4 ppos = poss[IND];
 	GPU_quat po = orientations[IND];
 	c_number4 a1, a2, a3, b1, b2, b3;
@@ -213,7 +213,7 @@ __global__ void NS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
+	c_number4 T = torques[IND];
 	c_number4 ppos = poss[IND];
 	GPU_quat po = orientations[IND];
 	c_number4 a1, a2, a3, b1, b2, b3;

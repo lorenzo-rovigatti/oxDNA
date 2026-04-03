@@ -96,7 +96,7 @@ number ConstantRateTorque::potential(llint step, LR_vector &pos) {
 	return (number) (0.5 * _stiff * (dr * dr));
 }
 
-LR_vector ConstantRateTorque::value(llint step, LR_vector &pos) {
+LR_vector ConstantRateTorque::force(llint step, LR_vector &pos) {
 	//
 	// dobbiamo ruotare pos0 di (base + rate * t) radianti
 	// intorno all'asse passante per il centro.

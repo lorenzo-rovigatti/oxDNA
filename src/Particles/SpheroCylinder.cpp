@@ -52,8 +52,8 @@ void SpheroCylinder::set_initial_forces(llint step, BaseBox * box) {
 	for(auto ext_force : this->ext_forces) {
 		ext_force->set_current_particle(this);
 		LR_vector my_abs_pos = abs_pos + this->int_centers[TOP];
-		this->force += ext_force->value(step, my_abs_pos);
+		this->force += ext_force->force(step, my_abs_pos);
 		my_abs_pos = abs_pos + this->int_centers[BOT];
-		this->force += ext_force->value(step, my_abs_pos);
+		this->force += ext_force->force(step, my_abs_pos);
 	}
 }

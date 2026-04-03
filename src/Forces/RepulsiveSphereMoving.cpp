@@ -102,7 +102,7 @@ LR_vector RepulsiveSphereMoving::center_for_step(llint step) const {
     return _origin + (_target - _origin) * t;
 }
 
-LR_vector RepulsiveSphereMoving::value(llint step, LR_vector &pos) {
+LR_vector RepulsiveSphereMoving::force(llint step, LR_vector &pos) {
     LR_vector c     = center_for_step(step);
     LR_vector dist  = CONFIG_INFO->box->min_image(c, pos); // vector from center -> pos (minimum image)
     number mdist    = dist.module();

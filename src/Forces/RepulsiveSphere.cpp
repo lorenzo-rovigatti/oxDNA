@@ -43,7 +43,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp)
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector RepulsiveSphere::value(llint step, LR_vector &pos) {
+LR_vector RepulsiveSphere::force(llint step, LR_vector &pos) {
 	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;

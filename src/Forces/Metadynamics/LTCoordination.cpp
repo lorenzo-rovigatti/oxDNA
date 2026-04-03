@@ -99,7 +99,7 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
     return std::make_tuple(p_indices, msg);
 }
 
-LR_vector LTCoordination::value(llint step, LR_vector &pos) {
+LR_vector LTCoordination::force(llint step, LR_vector &pos) {
     auto pair = all_pairs[particle_to_pair_index[_current_particle]];
     int sign = (pair.first == _current_particle) ? -1 : 1;
 

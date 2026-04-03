@@ -29,3 +29,11 @@ std::tuple<std::vector<int>, std::string> BaseForce::init(input_file &inp) {
 
 	return std::make_tuple(std::vector<int>(), "BaseForce");
 }
+
+LR_vector BaseForce::force(llint step, LR_vector &pos) {
+	return LR_vector(0., 0., 0.);
+}
+
+LR_vector BaseForce::torque(llint step, LR_vector &pos) {
+	return LR_vector(0., 0., 0.);
+}

@@ -66,7 +66,7 @@ std::tuple<std::vector<int>, std::string> LJCone::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector LJCone::value(llint step, LR_vector &pos) {
+LR_vector LJCone::force(llint step, LR_vector &pos) {
 	LR_vector v_from_apex = pos - _pos0;
 
 	number d_along_axis = v_from_apex * _direction;
