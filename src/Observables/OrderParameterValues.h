@@ -9,8 +9,8 @@
 #define ORDERPARAMETERVALUES_H_
 
 #include "BaseObservable.h"
+
 #include "../Utilities/OrderParameters.h"
-#include "../Interactions/DNAInteraction.h"
 
 /**
  * @brief Prints out the value of the order parameters supplied in the order
@@ -18,7 +18,6 @@
  *
  * name = stream name (name of the output stream. stdout or stderr are accepted values)
  */
-
 class OrderParameterValues: public BaseObservable {
 	char _order_parameters_file[512];
 	OrderParameters _op;

@@ -1,9 +1,12 @@
 #include "DRHInteraction.h"
+
+#include "../model.h"
+#include "rna_model.h"
+#include "drh_model.h"
 #include "../Utilities/TopologyParser.h"
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/RNANucleotide.h"
-#include "rna_model.h"
-#include "drh_model.h"
+#include "../Utilities/Utils.h"
 
 #include <fstream>
 #include <cfloat>

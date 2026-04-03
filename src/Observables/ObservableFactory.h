@@ -9,8 +9,8 @@
 #define OBSERVABLEFACTORY_H_
 
 #include "BaseObservable.h"
-#include "../Utilities/parse_input/parse_input.h"
-#include "ObservableOutput.h"
+
+class ObservableOutput;
 
 /**
  * @brief Static factory class. It produces observables.
@@ -34,7 +34,7 @@ public:
 
 	static ObservablePtr make_observable(input_file &obs_inp);
 
-	static std::vector<ObservableOutputPtr> make_observables(std::string prefix="");
+	static std::vector<std::shared_ptr<ObservableOutput>> make_observables(std::string prefix="");
 };
 
 #endif /* OBSERVABLEFACTORY_H_ */

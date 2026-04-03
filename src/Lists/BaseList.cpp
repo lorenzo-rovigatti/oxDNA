@@ -7,6 +7,8 @@
 
 #include "BaseList.h"
 
+#include <cstring>
+
 void BaseList::get_settings(input_file &inp) {
 	char sim_type[512] = "MD";
 	getInputString(&inp, "sim_type", sim_type, 0);

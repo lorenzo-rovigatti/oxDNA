@@ -7,6 +7,11 @@
 
 #include "BaseInteraction.h"
 
+#include "../Utilities/ConfigInfo.h"
+#include "../Utilities/Utils.h"
+
+#include <fstream>
+
 BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
@@ -68,6 +73,10 @@ std::map<int, number> BaseInteraction::get_system_energy_split(std::vector<BaseP
 	return energy_map;
 }
 
+void BaseInteraction::set_box(BaseBox *box) {
+	_box = box;
+}
+
 void BaseInteraction::get_settings(input_file &inp) {
 	getInputString(&inp, "topology", _topology_filename, 1);
 	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
@@ -79,6 +88,10 @@ void BaseInteraction::get_settings(input_file &inp) {
 	}
 }
 
+number BaseInteraction::get_rcut() const {
+	return _rcut;
+}
+
 int BaseInteraction::get_N_from_topology() {
 	std::ifstream topology;
 	topology.open(_topology_filename, std::ios::in);
@@ -87,6 +100,14 @@ int BaseInteraction::get_N_from_topology() {
 	topology >> ret;
 	topology.close();
 	return ret;
+}
+
+bool BaseInteraction::get_is_infinite() const {
+	return _is_infinite;
+}
+
+void BaseInteraction::set_is_infinite(bool arg) {
+	_is_infinite = arg;
 }
 
 void BaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
@@ -190,6 +211,10 @@ void BaseInteraction::compute_standard_stress_tensor() {
 	_stress_tensor = stress_tensor;
 }
 
+bool BaseInteraction::has_custom_stress_tensor() const {
+	return false;
+}
+
 void BaseInteraction::reset_stress_tensor() {
 	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
 	for(auto p : CONFIG_INFO->particles()) {
@@ -200,6 +225,10 @@ void BaseInteraction::reset_stress_tensor() {
 		_stress_tensor[4] += p->vel.x * p->vel.z;
 		_stress_tensor[5] += p->vel.y * p->vel.z;
 	}
+}
+
+void BaseInteraction::set_stress_tensor(StressTensor st) {
+	_stress_tensor = st;
 }
 
 StressTensor BaseInteraction::stress_tensor() const {

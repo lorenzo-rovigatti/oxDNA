@@ -7,6 +7,8 @@
 
 #include "ForceEnergy.h"
 
+#include "../Forces/BaseForce.h"
+
 ForceEnergy::ForceEnergy() {
 
 }

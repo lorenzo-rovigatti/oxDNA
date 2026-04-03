@@ -26,6 +26,7 @@
 
 #include "BaseInteraction.h"
 #include "rna_model.h"
+#include "Mesh.h"
 
 class RNAInteraction : virtual public BaseInteraction {
 protected:

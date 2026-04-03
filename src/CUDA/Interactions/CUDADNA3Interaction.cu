@@ -7,12 +7,16 @@
 
 #include "CUDADNA3Interaction.h"
 
+#include "../../model.h"
 #include "CUDA_DNA3.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNA2Interaction.h"
+#include "../../Utilities/ConfigInfo.h"
 
 #include "../CUDAUtils.h"
+
+#include <algorithm>
 
 CUDADNA3Interaction::CUDADNA3Interaction() {
     _edge_compatible = true;

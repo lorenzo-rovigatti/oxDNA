@@ -1,5 +1,7 @@
 #include "TEPInteraction.h"
 
+#include "../Utilities/Utils.h"
+
 #include <fstream>
 #include <sstream>
 #include <cfloat>

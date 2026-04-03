@@ -5,14 +5,16 @@
  *      Author: rovigatti
  */
 
-#include <sstream>
-
 #include "AnalysisBackend.h"
+
 #include "../Interactions/InteractionFactory.h"
 #include "../Observables/ObservableFactory.h"
 #include "../Lists/ListFactory.h"
 #include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
+#include "../Utilities/Utils.h"
+
+#include <sstream>
 
 AnalysisBackend::AnalysisBackend() :
 				SimBackend() {

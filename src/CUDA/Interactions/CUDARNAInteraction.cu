@@ -7,6 +7,7 @@
 
 #include "CUDARNAInteraction.h"
 
+#include "../../model.h"
 #include "CUDA_RNA.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"

@@ -7,6 +7,8 @@
 
 #include "HSInteraction.h"
 
+#include <cstring>
+
 HSInteraction::HSInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(HS, _hs_pot);

@@ -7,6 +7,8 @@
 
 #include <sstream>
 
+#include "../../Utilities/Utils.h"
+
 #include "BinaryConfiguration.h"
 
 BinaryConfiguration::BinaryConfiguration() :

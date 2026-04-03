@@ -7,6 +7,8 @@
 
 #include "BaseObservable.h"
 
+#include "../Utilities/Utils.h"
+
 BaseObservable::BaseObservable() :
 				_config_info(ConfigInfo::instance().get()) {
 }

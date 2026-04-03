@@ -9,6 +9,8 @@
 #include "../Particles/JordanParticle.h"
 #include "../Utilities/Utils.h"
 
+#include <fstream>
+
 JordanInteraction::JordanInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(JORDAN, _jordan_interaction);

@@ -10,6 +10,7 @@
 #include "../Particles/BaseParticle.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Managers/SimManager.h"
+#include "../Utilities/Utils.h"
 
 MC_CPUBackend::MC_CPUBackend() :
 				MCBackend() {

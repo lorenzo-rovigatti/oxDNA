@@ -10,7 +10,9 @@
  */
 
 #include "VMMC.h"
+
 #include "../../Lists/Cells.h"
+#include "../../Utilities/Utils.h"
 
 #define VMMC_ROTATION (1)
 #define VMMC_TRANSLATION (2)

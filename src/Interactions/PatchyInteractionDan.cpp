@@ -5,10 +5,11 @@
  *      Author: lorenzo -> dan
  */
 
-//<iostream> is only included to allow cout, so I can print certain things more easily
-#include <iostream>
 #include "PatchyInteractionDan.h"
 #include "../Utilities/Utils.h"
+
+#include <iostream>
+#include <fstream>
 
 //Constructor
 

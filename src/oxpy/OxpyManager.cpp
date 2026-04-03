@@ -7,6 +7,8 @@
 
 #include "OxpyManager.h"
 
+#include <Utilities/Utils.h>
+
 /**
  * First converts the argument to an array of char * and then builds the input_file with it. The first element of the new array is
  * initialised to "oxpy" because SimManager expectes an argv-like vector, with the first element containing the name of the program.

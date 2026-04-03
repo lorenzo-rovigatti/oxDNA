@@ -1,11 +1,12 @@
 #include "DNA3Interaction.h"
 
+#include "../Utilities/Utils.h"
+#include "../Particles/DNANucleotide.h"
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
-#include "../Particles/DNANucleotide.h"
 
 DNA3Interaction::DNA3Interaction() : DNA2Interaction() {
     OX_LOG(Logger::LOG_INFO, "Using the experimental DNA3Interaction");

@@ -10,7 +10,6 @@
 
 #include "../defs.h"
 #include "../Interactions/BaseInteraction.h"
-#include "../Lists/BaseList.h"
 #include "../Utilities/ConfigInfo.h"
 
 /**

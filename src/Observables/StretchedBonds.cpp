@@ -6,6 +6,8 @@
  */
 
 #include "StretchedBonds.h"
+
+#include "../Utilities/Utils.h"
 #include "../Interactions/DNAInteraction.h"
 
 StretchedBonds::StretchedBonds() {
