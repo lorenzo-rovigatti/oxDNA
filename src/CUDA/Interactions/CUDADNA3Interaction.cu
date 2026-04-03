@@ -99,6 +99,8 @@ void CUDADNA3Interaction::cuda_init(int N) {
 
     params = _convert_param_array(F2_SD_K, 4);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K, params.data(), params.size() * sizeof(float)));
+    params = _convert_param_array(F2_SD_K_SYMM, 4);
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K_SYMM, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F2_SD_RC, 4);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RC, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F2_SD_R0, 4);

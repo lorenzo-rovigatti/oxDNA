@@ -322,22 +322,22 @@ void DNA3Interaction::init() {
     // keeps the default value)
     // the epsilons (Stacking and HB) are overwritten in DNAInteraction,
     // here we overwrite all the other parameters
-
-    input_file seq_file;
-    seq_file.init_from_filename(_seq_filename.c_str());
-    char key[256];
-    float tmp_value;
-
-    float stck_fact_eps;
-    getInputFloat(&seq_file, "STCK_FACT_EPS", &stck_fact_eps, 1);
-
-    sprintf(key, "FENE_EPS");
-    if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_eps = tmp_value;
-
     if(!_average) {
+        input_file seq_file;
+        seq_file.init_from_filename(_seq_filename.c_str());
+
         if(seq_file.state == ERROR) {
             throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
         }
+
+        char key[256];
+        float tmp_value;
+
+        float stck_fact_eps;
+        getInputFloat(&seq_file, "STCK_FACT_EPS", &stck_fact_eps, 1);
+
+        sprintf(key, "FENE_EPS");
+        if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) _fene_eps = tmp_value;
 
         // read independent parameters from SD file
         // independent = not set by continuity and differentiability
@@ -766,288 +766,286 @@ void DNA3Interaction::init() {
                 }
             }
         }
+    }
 
-        // Set parameters for ends junctions
-        for(int i = 0; i < TETRAMER_DIM_A; i++) {
-            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
-                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
-                    // For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
+    // Set parameters for ends junctions
+    for(int i = 0; i < TETRAMER_DIM_A; i++) {
+        for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+            for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                // For 2d parameters we just copy the value for 0ij0 (par_kijl is the same for every k,l)
 
-                    F2_SD_K[CRST_F2_33](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
-                    F2_SD_K[CRST_F2_33](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_33](0, j, k, 0);
+                F2_SD_K[CRST_F2_33](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_33](0, j, k, 0);
+                F2_SD_K[CRST_F2_33](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_33](0, j, k, 0);
 
-                    F2_SD_K[CRST_F2_55](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
-                    F2_SD_K[CRST_F2_55](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
-                    
-                    F2_SD_K[CXST_F2](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CXST_F2](0, j, k, 0);
-                    F2_SD_K[CXST_F2](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CXST_F2](0, j, k, 0);
+                F2_SD_K[CRST_F2_55](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                F2_SD_K[CRST_F2_55](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CRST_F2_55](0, j, k, 0);
+                
+                F2_SD_K[CXST_F2](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_K[CXST_F2](0, j, k, 0);
+                F2_SD_K[CXST_F2](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_K[CXST_F2](0, j, k, 0);
 
 
-                    // fene
-                    _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                    // if(i==0 && j ==0 && k == 0) std::cout << "Fene delta ends: " << _fene_delta_SD[i][j][k][5] << std::endl;
-                    _fene_delta_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                    _fene_r0_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_r0_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                    // if(i==0 && j ==0 && k == 0) std::cout << "Fene r0 ends: " << _fene_r0_SD[i][j][k][5] << std::endl;
-                    _fene_r0_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                // fene
+                _fene_delta_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_delta_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                _fene_delta_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_delta_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                _fene_r0_SD(i, j, k, TETRAMER_DIM_A - 1) = _fene_r0_SD.get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                _fene_r0_SD(TETRAMER_DIM_A - 1, j, k, i) = _fene_r0_SD.get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+
+                // f1
+                for(int m = 0; m < 2; m++) {
+                    F1_SD_EPS[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_EPS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F1_SD_A[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F1_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F1_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F1_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F1_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+
+                    F1_SD_EPS[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_EPS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F1_SD_A[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F1_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F1_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F1_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F1_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                }
+
+                // f2
+                for(int m = 0; m < 4; m++) {
+                    F2_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F2_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F2_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F2_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+
+                    F2_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F2_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F2_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F2_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                }
+
+                // f3
+                for(int m = 0; m < 7; m++) {
+                    _excl_s[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_s[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    _excl_r[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_r[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+
+                    _excl_s[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_s[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    _excl_r[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_r[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                }
+
+                // f4
+                for(int m = 0; m < 21; m++) {
+                    // these ifs skip the parameters we haven't changed; saves a few operations, but it is a bit dangerous when developing the model.
+                    // if(m == 2 || m == 3 || m == 4 || m == 5) continue;
+                    // if(m == 10 || m == 11 || m == 12) continue;
+                    // if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
+                    F4_SD_THETA_A[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F4_SD_THETA_T0[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_T0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F4_SD_THETA_TS[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_TS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+
+                    F4_SD_THETA_A[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F4_SD_THETA_T0[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F4_SD_THETA_TS[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                }
+
+                // f5
+                for(int m = 0; m < 4; m++) {
+                    F5_SD_PHI_A[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                    F5_SD_PHI_XS[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_XS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+
+                    F5_SD_PHI_A[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                    F5_SD_PHI_XS[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                }
+            }
+        }
+    }
+    
+    //build symmetric tensors (just F2_K, currently)
+    for(int i = 0; i < TETRAMER_DIM_A; i++) {
+        for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+            for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                for(int l = 0; l < TETRAMER_DIM_A; l++) {
+                    for(int m = 0; m < 4; m++) {
+                        F2_SD_K_SYMM[m](i,j,k,l) = 0.5*(F2_SD_K[m](i,j,k,l)+F2_SD_K[m](l,k,j,i));
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // Set enslaved parameters
+    // Enslaved = set by continuity and differentiability
+    for(int i = 0; i < TETRAMER_DIM_A; i++) {
+        for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
+            for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+                for(int l = 0; l < TETRAMER_DIM_A; l++) {
+                    // delta2
+                    _fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
 
                     // f1
+                    F1_SD_RLOW[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)-0.06;
+                    F1_SD_RHIGH[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.3;
+                    F1_SD_RC[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.35;
+
+                    F1_SD_RLOW[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)-0.08;
+                    F1_SD_RHIGH[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.35;
+                    F1_SD_RC[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.5;
+
+                    number term1, term2, term3;
                     for(int m = 0; m < 2; m++) {
-                        F1_SD_EPS[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_EPS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F1_SD_A[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F1_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F1_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F1_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F1_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F1_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F1_SD_EPS[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_EPS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F1_SD_A[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F1_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F1_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F1_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F1_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F1_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        term1 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RLOW[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
+                        term2 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
+                        term3 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RHIGH[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
+
+                        F1_SD_BLOW[m](i, j, k, l) = SQR(F1_SD_A[m](i, j, k, l) * term1 * (1 - term1)) / (SQR(1 - term1) - SQR(1 - term2));
+                        F1_SD_BHIGH[m](i, j, k, l) = SQR(F1_SD_A[m](i, j, k, l) * term3 * (1 - term3)) / (SQR(1 - term3) - SQR(1 - term2));
+
+                        F1_SD_RCLOW[m](i, j, k, l) = F1_SD_RLOW[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BLOW[m](i, j, k, l) * (term1 * (1 - term1));
+                        F1_SD_RCHIGH[m](i, j, k, l) = F1_SD_RHIGH[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BHIGH[m](i, j, k, l) * (term3 * (1 - term3));
+
+                        F1_SD_SHIFT[m](i, j, k, l) = F1_SD_EPS[m](i, j, k, l) * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
                     }
-
                     // f2
                     for(int m = 0; m < 4; m++) {
-                        F2_SD_R0[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_R0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F2_SD_RC[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RC[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F2_SD_RLOW[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RLOW[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F2_SD_RHIGH[m](i, j, k, TETRAMER_DIM_A - 1) = F2_SD_RHIGH[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
 
-                        F2_SD_R0[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_R0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F2_SD_RC[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RC[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F2_SD_RLOW[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RLOW[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F2_SD_RHIGH[m](TETRAMER_DIM_A - 1, j, k, i) = F2_SD_RHIGH[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        if(m == 1) {  //for coaxial
+                            F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.18;
+                            F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.18;
+                            F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.2;
+                        }
+                        else {  //for cross-stacking
+                            F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.08;
+                            F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.08;
+                            F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.1;
+                        }
+                            
+                        term1 = F2_SD_RLOW[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
+                        term2 = F2_SD_RHIGH[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
+                        term3 = F2_SD_RC[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
+
+                        F2_SD_RCLOW[m](i, j, k, l) = F2_SD_RLOW[m](i, j, k, l) - term1 + SQR(term3) / term1;
+                        F2_SD_RCHIGH[m](i, j, k, l) = F2_SD_RHIGH[m](i, j, k, l) - term2 + SQR(term3) / term2;
+
+                        F2_SD_BLOW[m](i, j, k, l) = -0.5 * term1 / (F2_SD_RCLOW[m](i, j, k, l) - F2_SD_RLOW[m](i, j, k, l));
+                        F2_SD_BHIGH[m](i, j, k, l) = -0.5 * term2 / (F2_SD_RCHIGH[m](i, j, k, l) - F2_SD_RHIGH[m](i, j, k, l));
                     }
 
                     // f3
                     for(int m = 0; m < 7; m++) {
-                        _excl_s[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_s[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        _excl_r[m](i, j, k, TETRAMER_DIM_A - 1) = _excl_r[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        number tmp = SQR(_excl_s[m](i, j, k, l) / _excl_r[m](i, j, k, l));
+                        term1 = tmp * tmp * tmp;
+                        term2 = 4. * (SQR(term1) - term1);
+                        term3 = 12. / _excl_r[m](i, j, k, l) * (2. * SQR(term1) - term1);
 
-                        _excl_s[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_s[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        _excl_r[m](TETRAMER_DIM_A - 1, j, k, i) = _excl_r[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        _excl_rc[m](i, j, k, l) = term2 / term3 + _excl_r[m](i, j, k, l);
+                        _excl_b[m](i, j, k, l) = SQR(term3) / term2;
                     }
 
                     // f4
                     for(int m = 0; m < 21; m++) {
-                        // these ifs skip the parameters we haven't changed; saves a few operations, but it is a bit dangerous when developing the model.
-                        // if(m == 2 || m == 3 || m == 4 || m == 5) continue;
-                        // if(m == 10 || m == 11 || m == 12) continue;
-                        // if(m == 13 || m == 14 || m == 16 || m == 17 || m == 18 || m == 19 || m == 20) continue;
-                        F4_SD_THETA_A[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F4_SD_THETA_T0[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_T0[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F4_SD_THETA_TS[m](i, j, k, TETRAMER_DIM_A - 1) = F4_SD_THETA_TS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-
-                        F4_SD_THETA_A[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F4_SD_THETA_T0[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_T0[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F4_SD_THETA_TS[m](TETRAMER_DIM_A - 1, j, k, i) = F4_SD_THETA_TS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F4_SD_THETA_TS[m](i, j, k, l) = sqrt(0.81225/F4_SD_THETA_A[m](i, j, k, l));
+                        F4_SD_THETA_TC[m](i, j, k, l) = 1. / F4_SD_THETA_A[m](i, j, k, l) / F4_SD_THETA_TS[m](i, j, k, l);
+                        F4_SD_THETA_B[m](i, j, k, l) = F4_SD_THETA_A[m](i, j, k, l) * F4_SD_THETA_TS[m](i, j, k, l) / (F4_SD_THETA_TC[m](i, j, k, l) - F4_SD_THETA_TS[m](i, j, k, l));
                     }
-
                     // f5
                     for(int m = 0; m < 4; m++) {
-                        F5_SD_PHI_A[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_A[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
-                        F5_SD_PHI_XS[m](i, j, k, TETRAMER_DIM_A - 1) = F5_SD_PHI_XS[m].get_average_par(i, j, k, TETRAMER_DIM_A - 1);
+                        term1 = 1. - F5_SD_PHI_A[m](i, j, k, l) * SQR(F5_SD_PHI_XS[m](i, j, k, l));
+                        term2 = F5_SD_PHI_A[m](i, j, k, l) * F5_SD_PHI_XS[m](i, j, k, l);
 
-                        F5_SD_PHI_A[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_A[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
-                        F5_SD_PHI_XS[m](TETRAMER_DIM_A - 1, j, k, i) = F5_SD_PHI_XS[m].get_average_par(TETRAMER_DIM_A - 1, j, k ,i);
+                        F5_SD_PHI_XC[m](i, j, k, l) = term1 / term2 + F5_SD_PHI_XS[m](i, j, k, l);
+                        F5_SD_PHI_B[m](i, j, k, l) = SQR(term2) / term1;
                     }
                 }
             }
         }
-        
-        //build symmetric tensors (just F2_K, currently)
+    }
+
+    // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
+
+    if(_use_mbf) {
         for(int i = 0; i < TETRAMER_DIM_A; i++) {
-            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
-                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
+            for(int j = 0; j < TETRAMER_DIM_B; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B; k++) {
                     for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                        for(int m = 0; m < 4; m++) {
-                            F2_SD_K_SYMM[m](i,j,k,l) = 0.5*(F2_SD_K[m](i,j,k,l)+F2_SD_K[m](l,k,j,i));
+                        _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
+                        // if we use mbf, we should tell the user
+                        OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
+                    }
+                }
+            }
+        }
+    }
+
+    // We don't have to change this, since we are not touching the unbonded excluded volume.
+    // Fixing rcut (cut distance for nonbonded interaction computation)
+    // We loop through all bases combinations, and pick the largest cutoff distance possible.
+    // Can be made more efficient if we define an SD version and use the right rcut depending on the types of interacting particles,
+    // But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would we gain?).
+    number rcutbase;
+    number rcutback;
+    number rcutbase_max = 0.;
+    number rcutback_max = 0.;
+    // QUESTION: these three arrays are identical... can we avoid the duplication?
+    number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+    number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+    number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
+    for(int i = 0; i < 6; i++) {
+        for(int j = 0; j < 4; j++) {
+            for(int k = 0; k < 4; k++) {
+                for(int l = 0; l < 6; l++) {
+                    for(int m = 0; m < 4; m++) {
+                        for(int n = 0; n < 4; n++) {
+                            rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
+                            if(rcutback > rcutback_max) rcutback_max = rcutback;
+                            rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, l);
+                            if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
                         }
                     }
                 }
             }
         }
-        
-        
-        // Set enslaved parameters
-        // Enslaved = set by continuity and differentiability
-        for(int i = 0; i < TETRAMER_DIM_A; i++) {
-            for(int j = 0; j < TETRAMER_DIM_B - 1; j++) {
-                for(int k = 0; k < TETRAMER_DIM_B - 1; k++) {
-                    for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                        // delta2
-                        _fene_delta2_SD(i, j, k, l) = SQR(_fene_delta_SD(i, j, k, l));
+    }
 
-                        // f1
-                        F1_SD_RLOW[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)-0.06;
-                        F1_SD_RHIGH[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.3;
-                        F1_SD_RC[0](i, j, k, l) = F1_SD_R0[0](i, j, k, l)+0.35;
+    _rcut = fmax(rcutback_max, rcutbase_max);
+    _sqr_rcut = SQR(_rcut);
 
-                        F1_SD_RLOW[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)-0.08;
-                        F1_SD_RHIGH[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.35;
-                        F1_SD_RC[1](i, j, k, l) = F1_SD_R0[1](i, j, k, l)+0.5;
+    number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
+    _minus_kappa = -1.0 / lambda;
 
-                        number term1, term2, term3;
-                        for(int m = 0; m < 2; m++) {
+    // these are just for convenience for the smoothing parameter computation
+    number exs = _debye_huckel_RHIGH;
+    number q = _debye_huckel_prefactor;
+    number la = lambda;
 
-                            term1 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RLOW[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
-                            term2 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
-                            term3 = exp(-F1_SD_A[m](i, j, k, l) * (F1_SD_RHIGH[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)));
+    // compute the some smoothing parameters
+    _debye_huckel_B = -(exp(-exs / la) * q * q * (exs + la) * (exs + la)) / (-4. * exs * exs * exs * la * la * q);
+    _debye_huckel_RC = exs * (q * exs + 3. * q * la) / (q * (exs + la));
 
-                            F1_SD_BLOW[m](i, j, k, l) = SQR(F1_SD_A[m](i, j, k, l) * term1 * (1 - term1)) / (SQR(1 - term1) - SQR(1 - term2));
-                            F1_SD_BHIGH[m](i, j, k, l) = SQR(F1_SD_A[m](i, j, k, l) * term3 * (1 - term3)) / (SQR(1 - term3) - SQR(1 - term2));
-
-                            F1_SD_RCLOW[m](i, j, k, l) = F1_SD_RLOW[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BLOW[m](i, j, k, l) * (term1 * (1 - term1));
-                            F1_SD_RCHIGH[m](i, j, k, l) = F1_SD_RHIGH[m](i, j, k, l) - F1_SD_A[m](i, j, k, l) / F1_SD_BHIGH[m](i, j, k, l) * (term3 * (1 - term3));
-
-                            F1_SD_SHIFT[m](i, j, k, l) = F1_SD_EPS[m](i, j, k, l) * SQR(1 - exp(-(F1_SD_RC[m](i, j, k, l) - F1_SD_R0[m](i, j, k, l)) * F1_SD_A[m](i, j, k, l)));
-                        }
-                        // f2
-                        for(int m = 0; m < 4; m++) {
-
-                            if(m == 1) {  //for coaxial
-                                F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.18;
-                                F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.18;
-                                F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.2;
-                            }
-                            else {  //for cross-stacking
-                                F2_SD_RLOW[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)-0.08;
-                                F2_SD_RHIGH[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.08;
-                                F2_SD_RC[m](i, j, k, l) = F2_SD_R0[m](i, j, k, l)+0.1;
-                            }
-                                
-                            term1 = F2_SD_RLOW[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
-                            term2 = F2_SD_RHIGH[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
-                            term3 = F2_SD_RC[m](i, j, k, l) - F2_SD_R0[m](i, j, k, l);
-
-                            F2_SD_RCLOW[m](i, j, k, l) = F2_SD_RLOW[m](i, j, k, l) - term1 + SQR(term3) / term1;
-                            F2_SD_RCHIGH[m](i, j, k, l) = F2_SD_RHIGH[m](i, j, k, l) - term2 + SQR(term3) / term2;
-
-                            F2_SD_BLOW[m](i, j, k, l) = -0.5 * term1 / (F2_SD_RCLOW[m](i, j, k, l) - F2_SD_RLOW[m](i, j, k, l));
-                            F2_SD_BHIGH[m](i, j, k, l) = -0.5 * term2 / (F2_SD_RCHIGH[m](i, j, k, l) - F2_SD_RHIGH[m](i, j, k, l));
-                        }
-
-                        // f3
-                        for(int m = 0; m < 7; m++) {
-                            number tmp = SQR(_excl_s[m](i, j, k, l) / _excl_r[m](i, j, k, l));
-                            term1 = tmp * tmp * tmp;
-                            term2 = 4. * (SQR(term1) - term1);
-                            term3 = 12. / _excl_r[m](i, j, k, l) * (2. * SQR(term1) - term1);
-
-                            _excl_rc[m](i, j, k, l) = term2 / term3 + _excl_r[m](i, j, k, l);
-                            _excl_b[m](i, j, k, l) = SQR(term3) / term2;
-                        }
-
-                        // f4
-                        for(int m = 0; m < 21; m++) {
-                            F4_SD_THETA_TS[m](i, j, k, l) = sqrt(0.81225/F4_SD_THETA_A[m](i, j, k, l));
-                            F4_SD_THETA_TC[m](i, j, k, l) = 1. / F4_SD_THETA_A[m](i, j, k, l) / F4_SD_THETA_TS[m](i, j, k, l);
-                            F4_SD_THETA_B[m](i, j, k, l) = F4_SD_THETA_A[m](i, j, k, l) * F4_SD_THETA_TS[m](i, j, k, l) / (F4_SD_THETA_TC[m](i, j, k, l) - F4_SD_THETA_TS[m](i, j, k, l));
-                        }
-                        // f5
-                        for(int m = 0; m < 4; m++) {
-                            term1 = 1. - F5_SD_PHI_A[m](i, j, k, l) * SQR(F5_SD_PHI_XS[m](i, j, k, l));
-                            term2 = F5_SD_PHI_A[m](i, j, k, l) * F5_SD_PHI_XS[m](i, j, k, l);
-
-                            F5_SD_PHI_XC[m](i, j, k, l) = term1 / term2 + F5_SD_PHI_XS[m](i, j, k, l);
-                            F5_SD_PHI_B[m](i, j, k, l) = SQR(term2) / term1;
-                        }
-                    }
-                }
-            }
-        }
-
-        // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
-
-        if(_use_mbf) {
-            for(int i = 0; i < TETRAMER_DIM_A; i++) {
-                for(int j = 0; j < TETRAMER_DIM_B; j++) {
-                    for(int k = 0; k < TETRAMER_DIM_B; k++) {
-                        for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                            _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
-                            // if we use mbf, we should tell the user
-                            OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
-                        }
-                    }
-                }
-            }
-        }
-
-        // We don't have to change this, since we are not touching the unbonded excluded volume.
-        // Fixing rcut (cut distance for nonbonded interaction computation)
-        // We loop through all bases combinations, and pick the largest cutoff distance possible.
-        // Can be made more efficient if we define an SD version and use the right rcut depending on the types of interacting particles,
-        // But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would we gain?).
-        number rcutbase;
-        number rcutback;
-        number rcutbase_max = 0.;
-        number rcutback_max = 0.;
-        // QUESTION: these three arrays are identical... can we avoid the duplication?
-        number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-        number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-        number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-        for(int i = 0; i < 6; i++) {
-            for(int j = 0; j < 4; j++) {
-                for(int k = 0; k < 4; k++) {
-                    for(int l = 0; l < 6; l++) {
-                        for(int m = 0; m < 4; m++) {
-                            for(int n = 0; n < 4; n++) {
-                                rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
-                                if(rcutback > rcutback_max) rcutback_max = rcutback;
-                                rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, l);
-                                if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        _rcut = fmax(rcutback_max, rcutbase_max);
+    // note: in oxdna3 POS_MM_BACK1 and POS_MM_BACK2 are the same for all nucleotides
+    number debyecut = 2.0 * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
+    // the cutoff radius for the potential should be the larger of rcut and debyecut
+    if(debyecut > _rcut) {
+        _rcut = debyecut;
         _sqr_rcut = SQR(_rcut);
+    }
 
-        number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
-        _minus_kappa = -1.0 / lambda;
+    OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, _rcut);
+    OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
+    OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature (%lf) and salt concentration (%lf) is %f", _T, _salt_concentration, lambda);
 
-        // these are just for convenience for the smoothing parameter computation
-        number exs = _debye_huckel_RHIGH;
-        number q = _debye_huckel_prefactor;
-        number la = lambda;
+    // build mesh for the f4s
+    for(int int_type = 0; int_type < 21; int_type++) {
+        // the order of the interpolation interval extremes is reversed,
+        // due to the cosine being monotonically decreasing with increasing x
+        for(int i = 0; i < TETRAMER_DIM_A; i++) {
+            for(int j = 0; j < TETRAMER_DIM_B; j++) {
+                for(int k = 0; k < TETRAMER_DIM_B; k++) {
+                    for(int l = 0; l < TETRAMER_DIM_A; l++) {
+                        int points = MESH_F4_SD_POINTS[int_type];
+                        number upplimit = cos(fmax(0, F4_SD_THETA_T0[int_type](i, j, k, l) - F4_SD_THETA_TC[int_type](i, j, k, l)));
+                        number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[int_type](i, j, k, l) + F4_SD_THETA_TC[int_type](i, j, k, l)));
 
-        // compute the some smoothing parameters
-        _debye_huckel_B = -(exp(-exs / la) * q * q * (exs + la) * (exs + la)) / (-4. * exs * exs * exs * la * la * q);
-        _debye_huckel_RC = exs * (q * exs + 3. * q * la) / (q * (exs + la));
-
-        // note: in oxdna3 POS_MM_BACK1 and POS_MM_BACK2 are the same for all nucleotides
-        number debyecut = 2.0 * sqrt(SQR(POS_MM_BACK1) + SQR(POS_MM_BACK2)) + _debye_huckel_RC;
-        // the cutoff radius for the potential should be the larger of rcut and debyecut
-        if(debyecut > _rcut) {
-            _rcut = debyecut;
-            _sqr_rcut = SQR(_rcut);
-        }
-
-        OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, _rcut);
-        OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
-        OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature (%lf) and salt concentration (%lf) is %f", _T, _salt_concentration, lambda);
-
-        // build mesh for the f4s
-        for(int int_type = 0; int_type < 21; int_type++) {
-            // the order of the interpolation interval extremes is reversed,
-            // due to the cosine being monotonically decreasing with increasing x
-            for(int i = 0; i < TETRAMER_DIM_A; i++) {
-                for(int j = 0; j < TETRAMER_DIM_B; j++) {
-                    for(int k = 0; k < TETRAMER_DIM_B; k++) {
-                        for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                            int points = MESH_F4_SD_POINTS[int_type];
-                            number upplimit = cos(fmax(0, F4_SD_THETA_T0[int_type](i, j, k, l) - F4_SD_THETA_TC[int_type](i, j, k, l)));
-                            number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[int_type](i, j, k, l) + F4_SD_THETA_TC[int_type](i, j, k, l)));
-
-                            int tmp_args[5] = {int_type, i, j, k, l};
-                            _mesh_f4_SD[int_type][i][j][k][l].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void *)tmp_args, points, lowlimit, upplimit);
-                            assert(lowlimit < upplimit);
-                        }
+                        int tmp_args[5] = {int_type, i, j, k, l};
+                        _mesh_f4_SD[int_type][i][j][k][l].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void *)tmp_args, points, lowlimit, upplimit);
+                        assert(lowlimit < upplimit);
                     }
                 }
             }
@@ -1239,12 +1237,6 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 
     int type_n3_2 = (q->n3 != P_VIRTUAL) ? q->n3->type : NO_TYPE;
     int type_n5_2 = (p->n5 != P_VIRTUAL) ? p->n5->type : NO_TYPE;
-
-    // These two conditions are needed if we impose complementarity symmetry in bonded interaction.
-    // if(q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = type_n5_2;
-    // if(p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = type_n3_2;
-
-    // std::cout << "ptypes: " << q->get_index() << "," << p->get_index() << ", " << type_n3_2 << " " << q->type << " " << p->type << " " <<  type_n5_2 << std::endl;
 
     LR_vector rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
     number rbackmod = rback.module();
@@ -1651,7 +1643,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 
         // functions called at their relevant arguments
         // 3'3' diagonal
-        number f2_33 = _f2_SD(rcstackmod, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
+        number K = F2_SD_K[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3);
+        number f2_33 = _f2_SD(rcstackmod, K, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
         number f4t1_33 = _custom_f4_SD(cost1, CRST_F4_THETA1_33, type_q_n3, q->type, p->type, type_p_n3);
         number f4t2_33 = _custom_f4_SD(cost2, CRST_F4_THETA2_33, type_q_n3, q->type, p->type, type_p_n3);
         number f4t3_33 = _custom_f4_SD(cost3, CRST_F4_THETA3_33, type_q_n3, q->type, p->type, type_p_n3);
@@ -1660,7 +1653,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
         number f4t8_33 = _custom_f4_SD(cost8, CRST_F4_THETA8_33, type_q_n3, q->type, p->type, type_p_n3);
 
         // 5'5' diagonal
-        number f2_55 = _f2_SD(rcstackmod, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
+        K = F2_SD_K[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5);
+        number f2_55 = _f2_SD(rcstackmod, K, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t1_55 = _custom_f4_SD(cost1, CRST_F4_THETA1_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t2_55 = _custom_f4_SD(cost2, CRST_F4_THETA2_55, type_q_n5, q->type, p->type, type_p_n5);
         number f4t3_55 = _custom_f4_SD(cost3, CRST_F4_THETA3_55, type_q_n5, q->type, p->type, type_p_n5);
@@ -1677,8 +1671,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
             LR_vector torqueq(0, 0, 0);
 
             // derivatives called at the relevant arguments
-            number f2D_33 = _f2D_SD(rcstackmod, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
-            // std::cout << f2D_33 << std::endl;
+            K = F2_SD_K[CRST_F2_33](type_q_n3, q->type, p->type, type_p_n3);
+            number f2D_33 = _f2D_SD(rcstackmod, K, CRST_F2_33, type_q_n3, q->type, p->type, type_p_n3);
             number f4t1Dsin_33 = _custom_f4D_SD(cost1, CRST_F4_THETA1_33, type_q_n3, q->type, p->type, type_p_n3);
             number f4t2Dsin_33 = _custom_f4D_SD(cost2, CRST_F4_THETA2_33, type_q_n3, q->type, p->type, type_p_n3);
             number f4t3Dsin_33 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_33, type_q_n3, q->type, p->type, type_p_n3);
@@ -1686,8 +1680,8 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
             number f4t7Dsin_33 = _custom_f4D_SD(cost7, CRST_F4_THETA7_33, type_q_n3, q->type, p->type, type_p_n3);
             number f4t8Dsin_33 = -_custom_f4D_SD(cost8, CRST_F4_THETA8_33, type_q_n3, q->type, p->type, type_p_n3);
 
-            number f2D_55 = _f2D_SD(rcstackmod, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
-            // std::cout << f2D_55 << std::endl;
+            K = F2_SD_K[CRST_F2_55](type_q_n5, q->type, p->type, type_p_n5);
+            number f2D_55 = _f2D_SD(rcstackmod, K, CRST_F2_55, type_q_n5, q->type, p->type, type_p_n5);
             number f4t1Dsin_55 = _custom_f4D_SD(cost1, CRST_F4_THETA1_55, type_q_n5, q->type, p->type, type_p_n5);
             number f4t2Dsin_55 = _custom_f4D_SD(cost2, CRST_F4_THETA2_55, type_q_n5, q->type, p->type, type_p_n5);
             number f4t3Dsin_55 = -_custom_f4D_SD(cost3, CRST_F4_THETA3_55, type_q_n5, q->type, p->type, type_p_n5);
@@ -1785,32 +1779,33 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
         number cost6 = -b3 * rstackdir;
         
         // functions and their derivatives needed for energies and forces
-        int type_n3_2 = NO_TYPE;
-        int type_n5_2 = NO_TYPE;
+        int type_q_n3 = NO_TYPE;
+        int type_p_n5 = NO_TYPE;
 
-        if(q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-        if(p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-        
+        if(q->n3 != P_VIRTUAL) type_q_n3 = q->n3->type;
+        if(p->n5 != P_VIRTUAL) type_p_n5 = p->n5->type;
 
         // functions called at their relevant arguments
-        
         number f2;
-        
-        if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) f2 = _f2_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
-        else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) f2 = _f2_SD(rstackmod, CXST_F2, type_n5_2, p->type, q->type, type_n3_2);
-        else f2 = _f2_SD_SYMM(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+        if(p->n3 == P_VIRTUAL && q->n5 == P_VIRTUAL) {
+            double K = F2_SD_K[CXST_F2](type_q_n3, q->type, p->type, type_p_n5);
+            f2 = _f2_SD(rstackmod, K, CXST_F2, type_q_n3, q->type, p->type, type_p_n5);
+        }
+        else if(p->n5 == P_VIRTUAL && q->n3 == P_VIRTUAL) {
+            double K = F2_SD_K[CXST_F2](type_p_n5, p->type, q->type, type_q_n3);
+            f2 = _f2_SD(rstackmod, K, CXST_F2, type_p_n5, p->type, q->type, type_q_n3);
+        }
+        else {
+            double K = F2_SD_K_SYMM[CXST_F2](type_q_n3, q->type, p->type, type_p_n5);
+            f2 = _f2_SD(rstackmod, K, CXST_F2, type_q_n3, q->type, p->type, type_p_n5);
+        }
+
         number f4t1 = _custom_f4(cost1, CXST_F4_THETA1);
         number f4t4 = _custom_f4(cost4, CXST_F4_THETA4);
         number f4t5 = _custom_f4(cost5, CXST_F4_THETA5) + _custom_f4(-cost5, CXST_F4_THETA5);
         number f4t6 = _custom_f4(cost6, CXST_F4_THETA6) + _custom_f4(-cost6, CXST_F4_THETA6);
 
         energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
-   
-        /*
-        if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K[CXST_F2]( type_n3_2, q->type, p->type, type_n5_2) << " " << f2 << " " << energy << std::endl;
-        else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K[CXST_F2]( type_n5_2, p->type, q->type, type_n3_2) << " " << f2 << " " << energy << std::endl;
-        else std::cout << "Computing coax oxDNA3 " << q->get_index() << " " << p->get_index() << " " << F2_SD_K_SYMM[CXST_F2]( type_n3_2, q->type, p->type, type_n5_2) << " " << f2 << " " << energy << std::endl;
-        */
          
         // makes sense since the above f? can return exacly 0.
         if(update_forces && energy != 0.) {
@@ -1818,12 +1813,21 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
             LR_vector torquep(0, 0, 0);
             LR_vector torqueq(0, 0, 0);
 
-            
-            number f2D;
             // derivatives called at the relevant arguments
-            if (p->n3==P_VIRTUAL && q->n5==P_VIRTUAL) f2D = _f2D_SD(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
-            else if (p->n5==P_VIRTUAL && q->n3==P_VIRTUAL) f2D = _f2D_SD(rstackmod, CXST_F2, type_n5_2, p->type, q->type, type_n3_2);
-            else f2D = _f2D_SD_SYMM(rstackmod, CXST_F2, type_n3_2, q->type, p->type, type_n5_2);
+            number f2D;
+            if(p->n3 == P_VIRTUAL && q->n5 == P_VIRTUAL) {
+                double K = F2_SD_K[CXST_F2](type_q_n3, q->type, p->type, type_p_n5);
+                f2D = _f2D_SD(rstackmod, K, CXST_F2, type_q_n3, q->type, p->type, type_p_n5);
+            }
+            else if(p->n5 == P_VIRTUAL && q->n3 == P_VIRTUAL) {
+                double K = F2_SD_K[CXST_F2](type_p_n5, p->type, q->type, type_q_n3);
+                f2D = _f2D_SD(rstackmod, K, CXST_F2, type_p_n5, p->type, q->type, type_q_n3);
+            }
+            else {
+                double K = F2_SD_K_SYMM[CXST_F2](type_q_n3, q->type, p->type, type_p_n5);
+                f2D = _f2D_SD(rstackmod, K, CXST_F2, type_q_n3, q->type, p->type, type_p_n5);
+            }
+            
             number f4t1Dsin = _custom_f4D(cost1, CXST_F4_THETA1);
             number f4t4Dsin = -_custom_f4D(cost4, CXST_F4_THETA4);
             number f4t5Dsin = -_custom_f4D(cost5, CXST_F4_THETA5) + _custom_f4D(-cost5, CXST_F4_THETA5);
@@ -1877,11 +1881,6 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
     return energy;
 }
 
-
-
-
-
-
 number DNA3Interaction::_f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
     if(r < F1_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
@@ -1914,63 +1913,33 @@ number DNA3Interaction::_f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1
     return F1_SD_EPS[type](n3_2, n3_1, n5_1, n5_2) * val;
 }
 
-number DNA3Interaction::_f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+number DNA3Interaction::_f2_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0.;
     if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
         if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+            val = K * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
         } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = (F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
+            val = (K / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
         } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+            val = K * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
     return val;
 }
 
-number DNA3Interaction::_f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
+number DNA3Interaction::_f2D_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0.;
     if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
         if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
+            val = 2. * K * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
         } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
+            val = K * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
         } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = 2. * F2_SD_K[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
+            val = 2. * K * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
         }
     }
     return val;
 }
-
-number DNA3Interaction::_f2_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
-    number val = (number)0.;
-    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = (F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) / 2.) * (SQR(r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)) - SQR(F2_SD_RC[type](n3_2, n3_1, n5_1, n5_2) - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2)));
-        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * SQR(r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
-        }
-    }
-    return val;
-}
-
-number DNA3Interaction::_f2D_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
-    number val = (number)0.;
-    if(r < F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-        if(r > F2_SD_RHIGH[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = 2. * F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BHIGH[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCHIGH[type](n3_2, n3_1, n5_1, n5_2));
-        } else if(r > F2_SD_RLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_R0[type](n3_2, n3_1, n5_1, n5_2));
-        } else if(r > F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2)) {
-            val = 2. * F2_SD_K_SYMM[type](n3_2, n3_1, n5_1, n5_2) * F2_SD_BLOW[type](n3_2, n3_1, n5_1, n5_2) * (r - F2_SD_RCLOW[type](n3_2, n3_1, n5_1, n5_2));
-        }
-    }
-    return val;
-}
-
-
 
 number DNA3Interaction::_fakef4_SD(number cost, void *par) {
     if((*(int *)par == CXST_F4_THETA1) && (cost * cost > 1.0001))
@@ -1992,7 +1961,6 @@ number DNA3Interaction::_fakef4D_SD(number cost, void *par) {
 
 number DNA3Interaction::_f4_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2) {
     number val = (number)0;
-    // std::cout << "f4_SD args: " << t << " " << type << " " << n3 << " " << n5 << std::endl;
     t -= F4_SD_THETA_T0[type](n3_2, n3_1, n5_1, n5_2);
     if(t < 0)
         t *= -1;
@@ -2133,9 +2101,9 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles)
             if(p->n3 != P_VIRTUAL) {
                 type_n3_2 = p->n3->type;
             }
-        if(q->n5 != P_VIRTUAL) {
-        type_n5_2 = q->n5->type;
-        }
+            if(q->n5 != P_VIRTUAL) {
+                type_n5_2 = q->n5->type;
+            }
 
             number mind = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) - _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);
             number maxd = _fene_r0_SD(type_n3_2, p->type, q->type, type_n5_2) + _fene_delta_SD(type_n3_2, p->type, q->type, type_n5_2);

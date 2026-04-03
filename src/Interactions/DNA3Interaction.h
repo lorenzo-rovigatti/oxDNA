@@ -31,10 +31,8 @@ protected:
 
     number _f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-    number _f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-    number _f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-    number _f2_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2); //these are needed for the blunt ends stacking
-    number _f2D_SD_SYMM(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+    number _f2_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+    number _f2D_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2);
