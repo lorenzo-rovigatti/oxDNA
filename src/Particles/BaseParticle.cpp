@@ -72,7 +72,12 @@ void BaseParticle::set_initial_forces(llint step, BaseBox *box) {
 	if(ext_forces.size() > 0) {
 		LR_vector abs_pos = box->get_abs_pos(this);
 		for(auto ext_force : ext_forces) {
+			ext_force->set_current_particle(this);
 			force += ext_force->force(step, abs_pos);
+
+			if(is_rigid_body()) {
+				torque += orientationT * ext_force->torque(step, abs_pos);
+			}
 		}
 	}
 }
@@ -82,11 +87,8 @@ void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
 		LR_vector abs_pos = box->get_abs_pos(this);
 		ext_potential = (number) 0.;
 		for(auto ext_force : ext_forces) {
+			ext_force->set_current_particle(this);
 			ext_potential += ext_force->potential(step, abs_pos);
-
-			if(is_rigid_body()) {
-				torque += ext_force->torque(step, abs_pos);
-			}
 		}
 	}
 }

@@ -97,11 +97,8 @@ number ConstantRateTorque::potential(llint step, LR_vector &pos) {
 }
 
 LR_vector ConstantRateTorque::force(llint step, LR_vector &pos) {
-	//
-	// dobbiamo ruotare pos0 di (base + rate * t) radianti
-	// intorno all'asse passante per il centro.
-	// e quello ci da la pos della trappola;
-	//
+	// we rotate pos0 by (base + rate * t) radians around the axis passing 
+	// through the center, and that gives us the position of the trap
 	number t = (_F0 + _rate * (number) step);
 
 	number sintheta = sin(t);
