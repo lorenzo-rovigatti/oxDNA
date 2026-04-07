@@ -6,7 +6,11 @@
  */
 
 #include "PatchyInteraction.h"
+
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
+
+#include <fstream>
 
 PatchyInteraction::PatchyInteraction() :
 				BaseInteraction(),

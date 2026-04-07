@@ -6,6 +6,9 @@
  */
 
 #include "DNANucleotide.h"
+
+#include "../model.h"
+
 #include <iostream>
 
 LR_vector const DNANucleotide::principal_axis(1, 0, 0);

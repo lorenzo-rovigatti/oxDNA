@@ -8,6 +8,8 @@
 #include "HBEnergy.h"
 #include "../Interactions/DNAInteraction.h"
 
+#include <fstream>
+
 HBEnergy::HBEnergy() {
 	_mode = ALL_BASES;
 }

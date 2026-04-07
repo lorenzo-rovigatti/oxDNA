@@ -7,6 +7,8 @@
 
 #include "HardCylinderInteraction.h"
 
+#include <cstring>
+
 HardCylinderInteraction::HardCylinderInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(HardCylinder, _hc_pot);

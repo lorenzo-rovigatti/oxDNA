@@ -8,7 +8,6 @@
 #ifndef WRITHE_H_
 #define WRITHE_H_
 
-#include <iostream>
 #include "BaseObservable.h"
 /**
  * @brief Outputs the writhe of a strand, or the writhes of all the subdomains of a chain of the form [L,L+d], for all possible values of L and some d. It has been tested for the TEP model, but should in principle work

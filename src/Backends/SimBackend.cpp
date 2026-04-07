@@ -5,9 +5,6 @@
  *      Author: lorenzo
  */
 
-#include <sstream>
-#include <fstream>
-
 #ifdef ZSTD_ENABLED
 #include <ztdpp/zstdpp.hpp>
 #endif
@@ -23,6 +20,9 @@
 #include "../PluginManagement/PluginManager.h"
 #include "../Particles/BaseParticle.h"
 #include "../Utilities/Timings.h"
+
+#include <sstream>
+#include <fstream>
 
 SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can

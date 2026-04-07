@@ -9,6 +9,23 @@
 
 #include <cassert>
 
+Mesh::Mesh() : _N(0) {
+	_delta = _inv_sqr_delta = _xlow = _xupp = -1.;
+}
+
+Mesh::~Mesh() {
+
+}
+
+void Mesh::init(int size) {
+	_N = size;
+	_delta = 0;
+	_A.resize(size + 1);
+	_B.resize(size + 1);
+	_C.resize(size + 1);
+	_D.resize(size + 1);
+}
+
 void Mesh::build(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *args, int npoints, number xlow, number xupp) {
 	assert(xlow < xupp);
 	int i;
@@ -37,4 +54,8 @@ void Mesh::build(std::function<number(number, void*)> f, std::function<number(nu
 		_D[i] = (2 * (fx0 - fx1) + (derx0 + derx1) * dx) / dx;
 		_C[i] = (fx1 - fx0 + (-derx0 - _D[i]) * dx);
 	}
+}
+
+number Mesh::x_low() const {
+	return _xlow;
 }

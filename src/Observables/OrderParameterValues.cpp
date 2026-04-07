@@ -7,7 +7,10 @@
 
 #include "OrderParameterValues.h"
 
+#include "../Interactions/DNAInteraction.h"
+
 #include <sstream>
+#include <fstream>
 
 OrderParameterValues::OrderParameterValues() {
 

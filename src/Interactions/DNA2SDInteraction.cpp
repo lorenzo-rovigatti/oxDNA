@@ -1,10 +1,11 @@
 #include "DNA2SDInteraction.h"
 
 #include "../Particles/DNANucleotide.h"
+#include "../Utilities/Utils.h"
+
 #include <iostream>
 #include <iomanip>
 #include <limits>
-//#include <numbers>
 
 DNA2SDInteraction::DNA2SDInteraction() :
                                 DNA2Interaction() {

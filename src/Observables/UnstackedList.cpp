@@ -7,6 +7,9 @@
 
 #include "UnstackedList.h"
 
+#include "../model.h"
+#include "../Utilities/Utils.h"
+
 #include <sstream>
 
 UnstackedList::UnstackedList() {

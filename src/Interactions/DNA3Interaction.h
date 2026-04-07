@@ -31,8 +31,8 @@ protected:
 
     number _f1_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f1D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-    number _f2_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
-    number _f2D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+    number _f2_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2);
+    number _f2D_SD(number r, double K, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4D_SD(number r, int type, int n3_2, int n3_1, int n5_1, int n5_2);
     number _f4Dsin_SD(number t, int type, int n3_2, int n3_1, int n5_1, int n5_2);
@@ -51,7 +51,9 @@ public:
     virtual void init();
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
+
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_EPS[2];
+
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_A[2];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_RC[2];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_R0[2];
@@ -64,6 +66,7 @@ public:
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F1_SD_SHIFT[2];
 
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_K[4];
+    MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_K_SYMM[4];  //this is the symmetric part of F2_SD_K
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_RC[4];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_R0[4];
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> F2_SD_BLOW[4];

@@ -5,8 +5,11 @@
  *      Author: Ferdinando (after TcLOutput.cpp, written by Flavio, and TEPtclOutput.cpp, written by Ferdinando)
  */
 
-#include <sstream>
 #include "TEPxyzOutput.h"
+
+#include "../../Utilities/Utils.h"
+
+#include <sstream>
 
 TEPxyzOutput::TEPxyzOutput() :
 				Configuration() {

@@ -19,7 +19,7 @@ public:
     explicit ANMParticle(bool is_rigid_body = false);
     virtual ~ANMParticle();
 
-    virtual bool is_rigid_body() { return _is_rigid_body; }
+    bool is_rigid_body() const override { return _is_rigid_body; }
 
     virtual bool is_bonded(BaseParticle *q);
     virtual void add_bonded_neighbor(BaseParticle *nn);

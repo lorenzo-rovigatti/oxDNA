@@ -5,9 +5,12 @@
  *      Author: sulc
  */
 
-#include <cfloat>
-#include <sstream>
 #include "Weights.h"
+
+#include "OrderParameters.h"
+
+#include <fstream>
+#include <sstream>
 
 // functions for Weights class
 // Constructor

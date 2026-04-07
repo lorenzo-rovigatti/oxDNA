@@ -9,6 +9,8 @@
 #include "../Particles/PatchyParticle.h"
 #include "../Utilities/Utils.h"
 
+#include <fstream>
+
 KFInteraction::KFInteraction() :
 				BaseInteraction(),
 				_N_patches(0),

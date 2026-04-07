@@ -8,6 +8,7 @@
 #include "TopologyParser.h"
 
 #include "../Particles/BaseParticle.h"
+#include "Utils.h"
 
 #include <fstream>
 
@@ -125,6 +126,8 @@ int TopologyParser::parse_old_topology(std::vector<BaseParticle *> &particles) {
 
 	topology.close();
 
+	check_topology(particles);
+
 	return i;
 }
 
@@ -152,4 +155,19 @@ void TopologyParser::parse_new_topology() {
 	}
 
 	topology.close();
+}
+
+void TopologyParser::check_topology(std::vector<BaseParticle *> &particles) {
+	for(auto p : particles) {
+		if(p->n3 != P_VIRTUAL) {
+			if(p->n3->n5 != p) {
+				throw oxDNAException("Topology inconsistency detected: particle %d's n3 points to particle %d, but that particle's n5 does not point back", p->index, p->n3->index);
+			}
+		}
+		if(p->n5 != P_VIRTUAL) {
+			if(p->n5->n3 != p) {
+				throw oxDNAException("Topology inconsistency detected: particle %d's n5 points to particle %d, but that particle's n3 does not point back", p->index, p->n5->index);
+			}
+		}
+	}
 }

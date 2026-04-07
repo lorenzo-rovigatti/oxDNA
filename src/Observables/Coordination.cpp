@@ -7,6 +7,8 @@
 
 #include "Coordination.h"
 
+#include "../Utilities/OrderParameters.h"
+
 Coordination::Coordination() {
 
 }

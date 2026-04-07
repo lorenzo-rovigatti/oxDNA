@@ -10,6 +10,7 @@
 #include "Logger.h"
 
 #include <algorithm>
+#include <cstring>
 
 #ifdef NOCUDA
 #define SYNCHRONIZE()

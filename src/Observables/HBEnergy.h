@@ -20,7 +20,6 @@
  [base_file = <string> (file containing a list of nucleotides whose HB energy is to be computed, one nucleotide per line)]
  @endverbatim
  */
-
 class HBEnergy: public BaseObservable {
 protected:
 	enum {

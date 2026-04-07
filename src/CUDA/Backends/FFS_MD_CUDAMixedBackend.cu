@@ -6,6 +6,8 @@
  */
 
 #include "FFS_MD_CUDAMixedBackend.h"
+
+#include "../../model.h"
 #include "FFS_CUDA_MD.cuh"
 
 #include "../../Managers/SimManager.h"

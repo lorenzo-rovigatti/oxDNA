@@ -7,6 +7,7 @@
 
 #include "AverageEnergy.h"
 
+#include <algorithm>
 #include <sstream>
 #include <fstream>
 

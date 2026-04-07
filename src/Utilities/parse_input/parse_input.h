@@ -5,12 +5,6 @@
 #define _GNU_SOURCE
 #endif
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctype.h>
-#include <cmath>
-#include <string>
 #include <vector>
 #include <map>
 #include <set>

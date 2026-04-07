@@ -10,9 +10,10 @@
 
 #include "../../Boxes/BaseBox.h"
 
+#include "../CUDAUtils.h"
+
 #include <cfloat>
 #include <vector_functions.h>
-#include "../CUDAUtils.h"
 
 class CUDABox {
 protected:

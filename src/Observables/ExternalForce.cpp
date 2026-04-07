@@ -7,6 +7,8 @@
 
 #include "ExternalForce.h"
 
+#include "../Utilities/Utils.h"
+
 ExternalForce::ExternalForce() {
 
 }

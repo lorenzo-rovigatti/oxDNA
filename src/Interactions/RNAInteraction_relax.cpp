@@ -5,10 +5,11 @@
  *      Author: Ben Snodin
  */
 
-#include <fstream>
-
 #include "RNAInteraction_relax.h"
+
 #include "../Particles/RNANucleotide.h"
+
+#include <cstring>
 
 RNAInteraction_relax::RNAInteraction_relax() :
 				RNAInteraction() {

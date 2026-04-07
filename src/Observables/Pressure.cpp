@@ -7,6 +7,8 @@
 
 #include "Pressure.h"
 
+#include "../Utilities/Utils.h"
+
 Pressure::Pressure() :
 				BaseObservable(),
 				_custom_stress_tensor(true),

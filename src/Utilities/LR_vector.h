@@ -9,7 +9,7 @@
 #define SRC_UTILITIES_LR_VECTOR_H_
 
 #include <cmath>
-#include <iostream>
+#include <iosfwd>
 
 #ifdef FLOAT_PRECISION
 using number = float;
@@ -135,10 +135,7 @@ public:
 		*this /= std::sqrt(v_norm);
 	}
 
-	friend std::ostream &operator<<(std::ostream &stream, const LR_vector &vector) {
-		stream << "(" << vector.x << ", " << vector.y << ", " << vector.z << ")";
-		return stream;
-	}
+	friend std::ostream &operator<<(std::ostream &stream, const LR_vector &vector);
 };
 
 LR_vector operator*(const number S, const LR_vector &v);

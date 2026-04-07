@@ -9,7 +9,7 @@
 #define CUDACGNUCLEICACIDSINTERACTION_H_
 
 #include "CUDA/Interactions/CUDABaseInteraction.h"
-#include "CGNucleicAcidsInteraction.h"
+#include "ANNaMoInteraction.h"
 
 /**
  * @brief CUDA implementation of the {@link CGNucleicAcidsInteraction interaction}.

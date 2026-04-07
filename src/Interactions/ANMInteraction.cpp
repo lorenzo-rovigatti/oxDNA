@@ -12,9 +12,12 @@
  */
 
 #include "../Particles/ANMParticle.h"
+
+#include "../Utilities/Utils.h"
+
 #include <sstream>
 #include <unistd.h>
-
+#include <fstream>
 
 // TODO: Get the files loaded with their strings saved in the init
 

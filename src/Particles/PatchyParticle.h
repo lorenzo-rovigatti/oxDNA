@@ -45,11 +45,11 @@ public:
 
 	void set_positions();
 
-	virtual bool is_rigid_body() {
+	bool is_rigid_body() const override {
 		return true;
 	}
 
-	uint N_int_centers() override {
+	uint N_int_centers() const override {
 		return _N_patches;
 	}
 

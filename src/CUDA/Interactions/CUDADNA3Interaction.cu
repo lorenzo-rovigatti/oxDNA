@@ -7,12 +7,16 @@
 
 #include "CUDADNA3Interaction.h"
 
+#include "../../model.h"
 #include "CUDA_DNA3.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNA2Interaction.h"
+#include "../../Utilities/ConfigInfo.h"
 
 #include "../CUDAUtils.h"
+
+#include <algorithm>
 
 CUDADNA3Interaction::CUDADNA3Interaction() {
     _edge_compatible = true;
@@ -99,6 +103,8 @@ void CUDADNA3Interaction::cuda_init(int N) {
 
     params = _convert_param_array(F2_SD_K, 4);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K, params.data(), params.size() * sizeof(float)));
+    params = _convert_param_array(F2_SD_K_SYMM, 4);
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K_SYMM, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F2_SD_RC, 4);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RC, params.data(), params.size() * sizeof(float)));
     params = _convert_param_array(F2_SD_R0, 4);

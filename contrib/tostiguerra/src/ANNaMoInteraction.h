@@ -2,7 +2,7 @@
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
-#include "ParticleFTG.h"
+#include "ANNaMoParticle.h"
 
 #include <vector>
 #include <array>
@@ -32,26 +32,23 @@ struct PSBond {
 };
 
 struct PSBondCompare {
-	bool operator()(const PSBond &lhs, const PSBond &rhs) {
-		if(lhs.other->index == rhs.other->index) {
-			return false;
-		}
-		else {
-			return true;
-		}
+	bool operator()(const PSBond &lhs, const PSBond &rhs) const {
+		return lhs.other->index < rhs.other->index;
 	}
 };
 
 class CGNucleicAcidsInteraction: public BaseInteraction {
 protected:
+	int _annamo_version = 1;
+
 	number _Kfene = 15.;
 	number _rfene = 1.5;
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0, _WCA_sigma_unbonded, _WCA_sigma_crossover = 0.0;
 	number _PS_sqr_rep_rcut, _PS_sqr_rep_rcut_unbonded, _PS_sqr_rep_rcut_crossover;
 	number _tC = 37.0;
-	number dS_mod = 1.0;
-	number alpha_mod = 1.0;
+	number _nn_dS_offset = 1.0;
+	number _nn_alpha = 1.0;
 	number bdG_threshold = 1.0;
 
 	std::vector<LR_vector> _chain_coms;
@@ -84,8 +81,8 @@ protected:
 	bool _enable_patch_stacking = false;
 	number _semiflexibility_k;
 	number _semiflexibility_a1;
-	number _semiflexibility_3b_k;
-	number _semiflexibility_3b_exp_sigma = -1.0;
+	number _semiflex_gauss_k;
+	number _semiflex_gauss_xi = -1.0;
 	number _stacking_eta;
 
 	/// patchy stuff

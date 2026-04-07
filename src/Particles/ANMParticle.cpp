@@ -4,6 +4,7 @@
 
 #include "ANMParticle.h"
 
+#include <algorithm>
 
 ANMParticle::ANMParticle(bool is_rigid_body) : BaseParticle(), _is_rigid_body(is_rigid_body) {
     this->bonded_neighs = {};
@@ -13,7 +14,6 @@ ANMParticle::ANMParticle(bool is_rigid_body) : BaseParticle(), _is_rigid_body(is
 ANMParticle::~ANMParticle() {
 
 }
-
 
 void ANMParticle::add_bonded_neighbor(BaseParticle *nn) {
     if(!is_bonded(nn)) {
@@ -28,10 +28,8 @@ void ANMParticle::add_bonded_neighbor(BaseParticle *nn) {
     }
 }
 
-
-
 bool ANMParticle::is_bonded(BaseParticle *q) {
     std::vector<int>::iterator it;
-    it = find (bonded_neighs.begin(), bonded_neighs.end(), q->index);
+    it = std::find(bonded_neighs.begin(), bonded_neighs.end(), q->index);
     return it != bonded_neighs.end();
 }

@@ -7,6 +7,8 @@
 
 #include "BaseInteraction.h"
 
+#include "../model.h"
+
 /**
  * @brief Handles (generalised) Anisotropic-Chain interactions between spheres of size .1573 simulation units
  *
@@ -19,8 +21,6 @@
  * @verbatim
  * none
  */
-
-
 class ANMInteraction: public BaseInteraction {
 protected:
 
@@ -59,8 +59,6 @@ public:
 
     virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
-
-
 
 number ANMInteraction::_repulsive_lj_quart(const LR_vector &r, LR_vector &force, bool update_forces) {
     number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);

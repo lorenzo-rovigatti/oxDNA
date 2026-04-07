@@ -7,6 +7,8 @@
 
 #include "LJInteraction.h"
 
+#include <fstream>
+
 LJInteraction::LJInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(LENNARD_JONES, pair_interaction_nonbonded);

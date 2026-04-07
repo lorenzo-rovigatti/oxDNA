@@ -7,6 +7,8 @@
 
 #include "ParticlePosition.h"
 
+#include "../Utilities/Utils.h"
+
 ParticlePosition::ParticlePosition() :
 				_particle_id(-1),
 				_orientation(false),

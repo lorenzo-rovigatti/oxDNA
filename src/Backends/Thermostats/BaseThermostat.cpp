@@ -7,6 +7,8 @@
 
 #include "BaseThermostat.h"
 
+#include "../Utilities/ConfigInfo.h"
+
 BaseThermostat::BaseThermostat() :
 				_T((number) 0.f),
 				_supports_shear(false),
