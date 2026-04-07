@@ -267,6 +267,12 @@ endif()
 
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)
+set(OXPY_FALLBACK_VERSION "0.0.0")
+file(STRINGS "${PROJECT_SOURCE_DIR}/pyproject.toml" OXPY_FALLBACK_VERSION_LINE REGEX "^fallback_version = \".+\"$")
+if(OXPY_FALLBACK_VERSION_LINE)
+	string(REGEX REPLACE "^fallback_version = \"([^\"]+)\"$" "\\1" OXPY_FALLBACK_VERSION "${OXPY_FALLBACK_VERSION_LINE}")
+endif()
+
 IF(Git_FOUND)
 	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --git-dir WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE git_dir OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 	IF(git_dir MATCHES ".git$")
@@ -280,7 +286,18 @@ ENDIF(Git_FOUND)
 
 IF(IS_GIT_REPO)
 	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
-	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE tag OUTPUT_STRIP_TRAILING_WHITESPACE)
+	EXECUTE_PROCESS(
+		COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 HEAD
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+		OUTPUT_VARIABLE tag
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		RESULT_VARIABLE git_describe_result
+		ERROR_QUIET
+	)
+	if(NOT git_describe_result EQUAL 0 OR tag STREQUAL "")
+		SET(tag "v${OXPY_FALLBACK_VERSION}")
+		message(STATUS "No git tag found for HEAD, falling back to oxpy version ${OXPY_FALLBACK_VERSION}")
+	endif()
 ELSE()
 	get_filename_component(dir_name ${PROJECT_SOURCE_DIR} NAME)
 	string(REGEX MATCH "-([0-9]+\\.[0-9]+\\.[0-9]+.*)$" version_match ${dir_name})
@@ -288,7 +305,7 @@ ELSE()
 	if(version_match)
 		SET(tag "v${CMAKE_MATCH_1}")
 	else()
-		SET(tag "unknown")
+		SET(tag "v${OXPY_FALLBACK_VERSION}")
 	endif()
 ENDIF(IS_GIT_REPO)
 

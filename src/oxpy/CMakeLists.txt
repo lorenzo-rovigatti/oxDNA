@@ -106,10 +106,22 @@ IF(Python)
 		# Install the package using pip
 		if(OxpySystemInstall)
 			install(CODE "message(STATUS \"Installing oxpy system-wide via pip...\")
-						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_BASE_DIR})")
+						execute_process(
+							COMMAND \"${Python_EXECUTABLE}\" -m pip install \"${OXPY_BASE_DIR}\"
+							RESULT_VARIABLE oxpy_install_result
+						)
+						if(NOT oxpy_install_result EQUAL 0)
+							message(FATAL_ERROR \"oxpy installation failed\")
+						endif()")
 		else()
 			install(CODE "message(STATUS \"Installing oxpy for current user via pip...\")
-						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --user ${OXPY_BASE_DIR})")
+						execute_process(
+							COMMAND \"${Python_EXECUTABLE}\" -m pip install --user \"${OXPY_BASE_DIR}\"
+							RESULT_VARIABLE oxpy_install_result
+						)
+						if(NOT oxpy_install_result EQUAL 0)
+							message(FATAL_ERROR \"oxpy installation failed\")
+						endif()")
 		endif()
 	endif()
 	
