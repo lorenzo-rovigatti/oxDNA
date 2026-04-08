@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <map>
+#include <c++/11/algorithm>
 
 PLCluster::PLCluster() {
     _show_types = true;

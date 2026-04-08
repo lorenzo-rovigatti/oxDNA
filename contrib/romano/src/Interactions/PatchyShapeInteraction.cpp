@@ -1,8 +1,14 @@
 #include "PatchyShapeInteraction.h"
+
+#include <fstream>
+
 #include "Interactions/InteractionUtils.h"
 #include <sstream>
+#include <c++/11/algorithm>
 
- LR_vector getVector(input_file *obs_input,const char *key)
+#include "Utilities/Utils.h"
+
+LR_vector getVector(input_file *obs_input,const char *key)
 {
 	 double tmpf[3];
 	 int tmpi;
