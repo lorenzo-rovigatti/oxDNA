@@ -22,8 +22,7 @@
 MD_CUDABackend::MD_CUDABackend() :
 				MDBackend(),
 				CUDABaseBackend(),
-				_max_ext_forces(0),
-				_error_conf_file("error_conf.dat") {
+				_max_ext_forces(0) {
 	_use_edge = false;
 	_any_rigid_body = false;
 
@@ -44,8 +43,6 @@ MD_CUDABackend::MD_CUDABackend() :
 	_barostat_attempts = _barostat_accepted = 0;
 
 	_print_energy = false;
-
-	_obs_output_error_conf = nullptr;
 
 	// on CUDA the timers need to be told to explicitly synchronise on the GPU
 	TimingManager::instance()->enable_sync();
@@ -89,10 +86,6 @@ MD_CUDABackend::~MD_CUDABackend() {
 		delete[] _h_Ls;
 		delete[] _h_forces;
 		delete[] _h_torques;
-	}
-
-	if(_obs_output_error_conf != nullptr) {
-		delete _obs_output_error_conf;
 	}
 }
 
@@ -582,8 +575,8 @@ void MD_CUDABackend::sim_step() {
 		}
 		catch (oxDNAException &e) {
 			apply_simulation_data_changes();
-			_obs_output_error_conf->print_output(current_step());
-			throw oxDNAException("%s ----> The last configuration has been printed to %s", e.what(), _error_conf_file.c_str());
+			std::string filename = print_error_conf();
+			throw oxDNAException("%s ----> the last configuration has been printed to %s", e.what(), filename.c_str());
 		}
 		_d_are_lists_old[0] = false;
 		_N_updates++;
@@ -642,10 +635,6 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 		_cuda_barostat_thermostat->get_settings(*inp_file);
 	}
 
-	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
-	_obs_output_error_conf = new ObservableOutput(init_string);
-	_obs_output_error_conf->add_observable("type = configuration");
-
 	// if we want to limit the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
 	if(_avoid_cpu_calculations) {
 		_obs_output_file->clear();
@@ -689,8 +678,6 @@ void MD_CUDABackend::init() {
 	_h_Ls = new c_number4[N()];
 	_h_forces = new c_number4[N()];
 	_h_torques = new c_number4[N()];
-
-	_obs_output_error_conf->init();
 
 	// initialise the GPU array containing the size of the molecules
 	std::vector<int> mol_sizes;

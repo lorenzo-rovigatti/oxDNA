@@ -104,17 +104,23 @@ void OxpyManager::run_steps(llint steps, bool print_output) {
 			setTSNextStep(&_time_scale_manager);
 		}
 
-		if(i > 0 && i % _fix_diffusion_every == 0) {
-			_backend->fix_diffusion();
-		}
+		try {
+			if(i > 0 && i % _fix_diffusion_every == 0) {
+				_backend->fix_diffusion();
+			}
 
-		_backend->update_observables_data();
-		if(print_output) {
-			_backend->print_observables();
-		}
+			_backend->update_observables_data();
+			if(print_output) {
+				_backend->print_observables();
+			}
 
-		_backend->sim_step();
-		_backend->increment_current_step();
+			_backend->sim_step();
+			_backend->increment_current_step();
+		}
+		catch(oxDNAException &e) {
+			std::string filename = _backend->print_error_conf();
+			throw oxDNAException("%s ----> the last configuration has been printed to %s", e.what(), filename.c_str());
+		}
 	}
 
 	_backend->apply_simulation_data_changes();

@@ -11,6 +11,7 @@
 #include "../Backends/BackendFactory.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Utilities/Timings.h"
+#include "../Utilities/Utils.h"
 
 void gbl_terminate(int arg) {
 	// if the simulation has not started yet, then we make it so pressing ctrl+c twice
@@ -162,14 +163,20 @@ void SimManager::run() {
 			setTSNextStep(&_time_scale_manager);
 		}
 
-		if(_steps_run > 0 && _steps_run % _fix_diffusion_every == 0) {
-			_backend->fix_diffusion();
-		}
+		try {
+			if(_steps_run > 0 && _steps_run % _fix_diffusion_every == 0) {
+				_backend->fix_diffusion();
+			}
 
-		_backend->update_observables_data();
-		_backend->print_observables();
-		_backend->sim_step();
-		_backend->increment_current_step();
+			_backend->update_observables_data();
+			_backend->print_observables();
+			_backend->sim_step();
+			_backend->increment_current_step();
+		}
+		catch(oxDNAException &e) {
+			std::string filename = _backend->print_error_conf();
+			throw oxDNAException("%s ----> the last configuration has been printed to %s", e.what(), filename.c_str());
+		}
 	}
 	// this is in case _cur_step, after being increased by 1 before exiting the loop,
 	// has become a multiple of print_conf_every
