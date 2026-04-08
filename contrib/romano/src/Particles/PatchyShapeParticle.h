@@ -107,7 +107,7 @@ struct Patch {
         void add_patch(Patch &patch,int position);
 
         int get_patch_color(int patchid) const  {return this->patches[patchid].get_color();}
-        bool is_rigid_body() override {
+        bool is_rigid_body() const override {
             return true;
         }
 
