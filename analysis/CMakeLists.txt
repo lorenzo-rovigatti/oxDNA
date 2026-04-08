@@ -17,10 +17,22 @@ IF(Python)
 		# Install oxDNA_analysis_tools using the user's default Python (already validated >= 3.11 by src/oxpy/)
 		if(OxpySystemInstall)
 			install(CODE "message(STATUS \"Installing oxDNA_analysis_tools system-wide via pip...\")
-						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_SOURCE_DIR})")
+						execute_process(
+							COMMAND \"${Python_EXECUTABLE}\" -m pip install \"${CMAKE_CURRENT_SOURCE_DIR}\"
+							RESULT_VARIABLE analysis_install_result
+						)
+						if(NOT analysis_install_result EQUAL 0)
+							message(FATAL_ERROR \"oxDNA_analysis_tools installation failed\")
+						endif()")
 		else()
 			install(CODE "message(STATUS \"Installing oxDNA_analysis_tools for current user via pip...\")
-						execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --user ${CMAKE_CURRENT_SOURCE_DIR})")
+						execute_process(
+							COMMAND \"${Python_EXECUTABLE}\" -m pip install --user \"${CMAKE_CURRENT_SOURCE_DIR}\"
+							RESULT_VARIABLE analysis_install_result
+						)
+						if(NOT analysis_install_result EQUAL 0)
+							message(FATAL_ERROR \"oxDNA_analysis_tools installation failed\")
+						endif()")
 		endif()
 	endif()
 ENDIF(Python)
