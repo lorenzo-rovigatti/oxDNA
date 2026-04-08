@@ -1261,7 +1261,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
         if(fabs(rbackr0) > _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) - DBL_EPSILON) {
             std::cout << "Fene too large: " << q->get_index() << "," << p->get_index() << " type: " << type_n3_2 << q->type << p->type << type_n5_2 << " " << rbackmod << " " << _fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << _fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2) << " " << fene_delta2 << std::endl;
             if(update_forces && !_allow_broken_fene) {
-                throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2)), fabs(_fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2)));
+                throw oxDNAException("(DNAInteraction3.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %lf, %lf, %lf", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD(type_n3_2, q->type, p->type, type_n5_2)), fabs(_fene_delta_SD(type_n3_2, q->type, p->type, type_n5_2)));
             }
             return (number)(1.e12);
         }

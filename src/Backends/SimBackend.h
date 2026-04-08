@@ -202,6 +202,10 @@ public:
 
 	virtual void update_observables_data(bool force=false);
 
+	/**
+	 * @brief Returns the name of the file where the error configuration was printed
+	 */
+	virtual std::string print_error_conf();
 	virtual void print_conf(bool reduced=false, bool only_last=false);
 
 	/**

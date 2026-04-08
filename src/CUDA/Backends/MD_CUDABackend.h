@@ -52,9 +52,6 @@ protected:
 
 	bool _print_energy;
 
-	ObservableOutput *_obs_output_error_conf;
-	std::string _error_conf_file;
-
 	std::shared_ptr<CUDABaseThermostat> _cuda_thermostat;
 
 	bool _cuda_barostat_always_refresh = false;
