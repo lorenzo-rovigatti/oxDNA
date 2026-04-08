@@ -1,6 +1,7 @@
 #include "MGInteraction.h"
 
-#include "Particles/CustomParticle.h"
+#include "CustomParticle.h"
+
 #include <fstream>
 
 MGInteraction::MGInteraction() :

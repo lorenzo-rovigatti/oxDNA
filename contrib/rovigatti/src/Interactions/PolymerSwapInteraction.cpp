@@ -1,7 +1,9 @@
 #include "PolymerSwapInteraction.h"
 
 #include "Particles/Molecule.h"
-#include "Particles/CustomParticle.h"
+#include "Utilities/Utils.h"
+#include "Utilities/ConfigInfo.h"
+#include "CustomParticle.h"
 
 #include <fstream>
 

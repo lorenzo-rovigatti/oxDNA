@@ -13,7 +13,7 @@
 #include "MGAssemblyConf.h"
 #include "Interactions/PatchyInteraction.h"
 #include "../Interactions/FSInteraction.h"
-#include "Particles/CustomParticle.h"
+#include "../Interactions/CustomParticle.h"
 
 using namespace std;
 

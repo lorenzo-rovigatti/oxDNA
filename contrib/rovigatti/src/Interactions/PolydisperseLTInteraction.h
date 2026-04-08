@@ -10,6 +10,8 @@
 
 #include "Interactions/BaseInteraction.h"
 
+#include "Interactions/Mesh.h"
+
 /**
  * @brief A look-up table interaction that can manage polydisperse systems
  */
