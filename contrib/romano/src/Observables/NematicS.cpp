@@ -6,6 +6,9 @@
  */
 
 #include "NematicS.h"
+
+#include <Utilities/Utils.h>
+
 #include <vector>
 
 NematicS::NematicS() {
