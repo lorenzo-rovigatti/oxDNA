@@ -9,7 +9,7 @@
 
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
-#include "Particles/CustomParticle.h"
+#include "CustomParticle.h"
 
 /* CUDA constants */
 __constant__ bool MD_starr_model[1];

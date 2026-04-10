@@ -7,7 +7,6 @@
 
 #include "CUDADetailedPatchySwapInteraction.h"
 
-#include "Particles/CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
 
@@ -517,7 +516,7 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 	int N_base_patches = MAX_PATCHES * N_species;
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_base_patches, N_base_patches * sizeof(float4)));
 	std::vector<float4> h_base_patches(N_base_patches, make_float4(0., 0., 0., 0.));
-	for(uint ns = 0; ns < N_species; ns++) {
+	for(int ns = 0; ns < N_species; ns++) {
 		for(uint np = 0; np < _base_patches[ns].size(); np++) {
 			float4 bp_f4 = make_float4(_base_patches[ns][np].x, _base_patches[ns][np].y, _base_patches[ns][np].z, 0.);
 			h_base_patches[ns * MAX_PATCHES + np] = bp_f4;

@@ -7,10 +7,11 @@
 
 #include "CUDAFSInteraction.h"
 
-#include "Particles/CustomParticle.h"
+#include "CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
 
+#include <fstream>
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
 #include <thrust/transform.h>
