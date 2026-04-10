@@ -292,7 +292,7 @@ __global__ void ps_bonded_forces(c_number4 *poss, GPU_quat *orientations, c_numb
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
+	c_number4 T = torques[IND];
 	c_number4 ppos = poss[IND];
 	c_number4 a1, a2, a3;
 	if(MD_enable_patch_stacking[0]) {

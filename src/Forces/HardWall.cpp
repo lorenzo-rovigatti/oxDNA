@@ -42,7 +42,7 @@ std::tuple<std::vector<int>, std::string> HardWall::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector HardWall::value(llint step, LR_vector &pos) {
+LR_vector HardWall::force(llint step, LR_vector &pos) {
 	throw oxDNAException("HardWall can be used only in Monte Carlo simulations.");
 }
 

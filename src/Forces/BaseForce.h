@@ -97,9 +97,17 @@ public:
 	 * @brief returns value of the force (a vector)
 	 *
 	 * @param step useful for forces that depend on time
-	 * @param pos position of the particle
+	 * @param pos absolute position of the particle
 	 */
-	virtual LR_vector value(llint step, LR_vector &pos) = 0;
+	virtual LR_vector force(llint step, LR_vector &pos);
+
+	/**
+	 * @brief returns value of the torque (a vector)
+	 *
+	 * @param step useful for forces that depend on time
+	 * @param pos absolute position of the particle
+	 */
+	virtual LR_vector torque(llint step, LR_vector &pos);
 
 	/**
 	 * @brief returns value of the potential associated to the force (a number)

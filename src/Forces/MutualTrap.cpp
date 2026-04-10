@@ -60,7 +60,7 @@ LR_vector MutualTrap::_distance(LR_vector u, LR_vector v) {
 	}
 }
 
-LR_vector MutualTrap::value(llint step, LR_vector &pos) {
+LR_vector MutualTrap::force(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr));
 	return (dr / dr.module()) * (dr.module() - (_r0 + (_rate * step))) * (_stiff + (_stiff_rate * step));
 }

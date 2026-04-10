@@ -42,7 +42,7 @@ std::tuple<std::vector<int>, std::string> SawtoothForce::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector SawtoothForce::value(llint step, LR_vector &pos) {
+LR_vector SawtoothForce::force(llint step, LR_vector &pos) {
 	number x = (_F0 + (int) ((step - 1) / _wait_time) * _increment) * _direction.x;
 	number y = (_F0 + (int) ((step - 1) / _wait_time) * _increment) * _direction.y;
 	number z = (_F0 + (int) ((step - 1) / _wait_time) * _increment) * _direction.z;

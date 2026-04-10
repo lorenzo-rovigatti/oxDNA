@@ -53,7 +53,7 @@ class IForceHandler:
 
 
 class CoordinationHandler(IForceHandler):
-    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float, d0: float = 1.2, r0: float = 0.5, n: int = 6):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float, d0: float = 0.4, r0: float = 0.5, n: int = 6):
         super().__init__(pfile, xmin, xmax, dx)
         self.d0 = d0
         self.r0 = r0

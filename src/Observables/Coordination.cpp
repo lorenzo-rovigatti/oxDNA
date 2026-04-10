@@ -75,9 +75,16 @@ void Coordination::init() {
 std::string Coordination::get_output_string(llint curr_step) {
     number coordination = 0.0;
     for(auto &pair : _all_pairs) {
-        number r = std::sqrt(CONFIG_INFO->box->sqr_min_image_distance(pair.first->pos, pair.second->pos));
+        number r = _distance(pair).module();
         coordination += 1.0 / (1.0 + std::pow((r - _d0) / _r0, _n));
     }
 
     return Utils::sformat("%lf", coordination);
+}
+
+LR_vector Coordination::_distance(std::pair<BaseParticle *, BaseParticle *> &pair) {
+    LR_vector p_base = pair.first->pos + pair.first->int_centers[DNANucleotide::BASE];
+    LR_vector q_base = pair.second->pos + pair.second->int_centers[DNANucleotide::BASE];
+
+    return CONFIG_INFO->box->min_image(p_base, q_base);
 }
