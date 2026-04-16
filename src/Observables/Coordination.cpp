@@ -21,16 +21,13 @@ void Coordination::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
     getInputString(&my_inp, "op_file", _op_file, 1);
-
-    getInputNumber(&my_inp, "d0", &_d0, 0);
-	getInputNumber(&my_inp, "r0", &_r0, 0);
-    getInputInt(&my_inp, "n", &_n, 0);
+    _settings.get_settings(my_inp);
 }
 
 void Coordination::init() {
 	BaseObservable::init();
 
-    if(_n % 2 != 0) {
+    if(_settings.n % 2 != 0) {
         throw oxDNAException("Coordination: exponent n must be an even integer");
     }
 
@@ -73,18 +70,6 @@ void Coordination::init() {
 }
 
 std::string Coordination::get_output_string(llint curr_step) {
-    number coordination = 0.0;
-    for(auto &pair : _all_pairs) {
-        number r = _distance(pair).module();
-        coordination += 1.0 / (1.0 + std::pow((r - _d0) / _r0, _n));
-    }
-
+    number coordination = meta::coordination(_settings, _all_pairs);
     return Utils::sformat("%lf", coordination);
-}
-
-LR_vector Coordination::_distance(std::pair<BaseParticle *, BaseParticle *> &pair) {
-    LR_vector p_base = pair.first->pos + pair.first->int_centers[DNANucleotide::BASE];
-    LR_vector q_base = pair.second->pos + pair.second->int_centers[DNANucleotide::BASE];
-
-    return CONFIG_INFO->box->min_image(p_base, q_base);
 }

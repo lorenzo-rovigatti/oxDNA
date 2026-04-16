@@ -39,6 +39,22 @@ std::tuple<std::vector<int>, std::vector<BaseParticle *>> get_particle_lists(inp
 
 std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
 
+struct CoordSettings {
+	int coord_mode;
+	number hb_energy_cutoff, hb_transition_width, d0, r0;
+	int n;
+
+	CoordSettings();
+
+	void get_settings(input_file &inp);
+};
+
+LR_vector distance(std::pair<BaseParticle *, BaseParticle *> &pair);
+number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle *, BaseParticle *>> &all_pairs);
+number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair);
+number hb_energy(BaseParticle *p1, BaseParticle *p2);
+number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
+
 }
 
 #endif /* SRC_FORCES_METADYNAMICS_META_UTILS_H_ */

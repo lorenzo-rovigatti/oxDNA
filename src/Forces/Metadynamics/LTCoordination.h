@@ -9,8 +9,10 @@
 #define LTCOORDINATION_H
 
 #include "../BaseForce.h"
+#include "meta_utils.h"
 
 #include <unordered_map>
+#include <string>
 
 class LTCoordination: public BaseForce {
 public:
@@ -35,14 +37,13 @@ public:
 	number coord_max; // maximum coordination number, defaults to the number of pairs defined in the OP file
 	int N_grid;
 	number d_coord; // grid spacing
-    number d0 = 0.4; // optimal distance for coordination, defaults to 1.2 in internal units
-    number r0 = 0.5; // width of the switching function, defaults to 0.5 in internal units
-    int n = 6; // exponent of the switching function, defaults to 6
+
+    meta::CoordSettings settings;
     std::vector<number> potential_grid;
 
 private:
-    LR_vector _distance(std::pair<BaseParticle *, BaseParticle *> &pair);
-    number _coordination();
+    number _dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair);
+    LR_vector _dcoord_dtheta();
 };
 
 #endif /* LTCOORDINATION_H */

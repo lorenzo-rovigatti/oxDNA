@@ -128,9 +128,13 @@ void MD_CPUBackend::_first_step() {
 			p->set_positions();
 		}
 
-		p->set_initial_forces(current_step(), _box.get());
-
 		_lists->single_update(p);
+	}
+
+	// Update the forces acting on the particles due to external fields. This has to be done after the 
+	// position update since some external forces might depend on other particles' degrees of freedom
+	for(auto p : _particles) {
+		p->set_initial_forces(current_step(), _box.get());
 	}
 
 	if(particles_with_warning.size() > 0) {

@@ -10,6 +10,8 @@
 
 #include "BaseObservable.h"
 
+#include "../Forces/Metadynamics/meta_utils.h"
+
 class Coordination: public BaseObservable {
 public:
     Coordination();
@@ -22,12 +24,9 @@ public:
 
 private:
     std::string _op_file;
-    number _d0 = 0.4; // optimal distance for coordination, defaults to 1.2 in internal units
-    number _r0 = 0.5; // width of the switching function, defaults to 0.5 in internal units
-    int _n = 6; // exponent of the switching function, defaults to 6
-    std::vector<std::pair<BaseParticle *, BaseParticle *>> _all_pairs;
 
-    LR_vector _distance(std::pair<BaseParticle *, BaseParticle *> &pair);
+    meta::CoordSettings _settings;
+    std::vector<std::pair<BaseParticle *, BaseParticle *>> _all_pairs;
 };
 
 #endif /* COORDINATION_H */

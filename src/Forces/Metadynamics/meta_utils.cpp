@@ -7,6 +7,9 @@
 
 #include "meta_utils.h"
 #include "../../Boxes/BaseBox.h"
+#include "../../Utilities/ConfigInfo.h"
+#include "../../Particles/DNANucleotide.h"
+#include "../../Interactions/DNAInteraction.h"
 
 #include <fast_double_parser/fast_double_parser.h>
 
@@ -64,6 +67,99 @@ std::vector<number> split_to_numbers(const std::string &str, const std::string &
 	}
 
 	return output;
+}
+
+CoordSettings::CoordSettings() {
+	coord_mode = 0;
+	hb_energy_cutoff = -0.2;
+	hb_transition_width = 0.1;
+	d0 = 0.4;
+	r0 = 0.5;
+	n = 6;
+}
+
+void CoordSettings::get_settings(input_file &inp) {
+	getInputNumber(&inp, "d0", &d0, 0);
+	getInputNumber(&inp, "r0", &r0, 0);
+    getInputInt(&inp, "n", &n, 0);
+
+    if(n % 2 != 0) {
+        throw oxDNAException("LTCoordination: exponent n must be an even integer");
+    }
+
+	// Parse coordination mode
+    std::string coord_type("hb_cutoff");
+    getInputString(&inp, "coordination_type", coord_type, 0);
+    if(coord_type == "switching_function") {
+        coord_mode = 0;  // SWITCHING_FUNCTION
+        OX_LOG(Logger::LOG_INFO, "LTCoordination: Using switching function for coordination");
+    } 
+    else if(coord_type == "hb_cutoff") {
+        coord_mode = 1;  // HB_CUTOFF
+        // Get HB parameters
+        getInputNumber(&inp, "hb_energy_cutoff", &hb_energy_cutoff, 0);
+        getInputNumber(&inp, "hb_transition_width", &hb_transition_width, 0);
+        OX_LOG(Logger::LOG_INFO, "Coordination: Using HB energy cutoff for coordination, hb_energy_cutoff = %.2f, hb_transition_width = %.2f", hb_energy_cutoff, hb_transition_width);
+    }
+    else {
+        throw oxDNAException("Coordination: unknown coordination_type '%s' (valid options: 'switching_function', 'hb_cutoff')", coord_type.c_str());
+    }
+}
+
+LR_vector distance(std::pair<BaseParticle *, BaseParticle *> &pair) {
+    LR_vector p_base = pair.first->pos + pair.first->int_centers[DNANucleotide::BASE];
+    LR_vector q_base = pair.second->pos + pair.second->int_centers[DNANucleotide::BASE];
+
+    return CONFIG_INFO->box->min_image(p_base, q_base);
+}
+
+number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle *, BaseParticle *>> &all_pairs) {
+    number coordination = 0.0;
+    for(auto &pair : all_pairs) {
+        coordination += get_pair_contribution(settings, pair);
+    }
+    return coordination;
+}
+
+number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair) {
+    // Compute coordination contribution from a single pair
+    // Optimized since each particle belongs to only one pair
+    if(settings.coord_mode == 1) {  // HB_CUTOFF
+        number energy = hb_energy(pair.first, pair.second);
+        return smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, energy);
+    }
+	else {
+        // SWITCHING_FUNCTION mode
+        number r = distance(pair).module();
+        // printf("%d %d %g\n", pair.first->index, pair.second->index, r);
+        return 1.0 / (1.0 + std::pow((r - settings.d0) / settings.r0, settings.n));
+    }
+}
+
+number hb_energy(BaseParticle *p1, BaseParticle *p2) {
+    // Compute hydrogen bonding energy between two particles
+    // This uses the interaction model's HB energy calculation
+    
+    LR_vector r = CONFIG_INFO->box->min_image(p1->pos, p2->pos);
+    CONFIG_INFO->interaction->set_computed_r(r);
+    
+    // Get the hydrogen bonding interaction energy
+    number hb_energy = CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p1, p2, false, false);
+    
+    return hb_energy;
+}
+
+number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy) {
+    // Smooth step function that transitions around hb_energy_cutoff
+    // Using tanh for smoothness: transitions from 1 (favorable HB, low energy) 
+    // to 0 (unfavorable, high energy)
+    number x = (hb_energy_cutoff - hb_energy) / hb_transition_width;
+    
+    // Clamp to avoid numerical overflow with tanh
+    if(x > 10.0) return 1.0;
+    if(x < -10.0) return 0.0;
+    
+    return 0.5 * (1.0 + tanh(x));
 }
 
 }
