@@ -98,9 +98,6 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
     auto pair = all_pairs[particle_to_pair_index[_current_particle]];
     int sign = (pair.first == _current_particle) ? -1 : 1;
 
-    LR_vector r_vec = meta::distance(pair);
-    number r = r_vec.module();
-
     number coord = Utils::clamp(meta::coordination(settings, all_pairs), coord_min, coord_max); // ensure we are within the grid limits
     int ic_left = std::floor((coord - coord_min) / d_coord);
 	int ic_right = ic_left + 1;
@@ -116,11 +113,8 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
 		df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
 	}
 
-    // Numerically compute dcoord/dr for any coordination definition
-    number dcoord_dr = _dcoord_dr(pair);
-
-    // df / dr = df / dcoord * dcoord / dr_ij * dr_ij / dr
-    return (number) sign * r_vec * (df_dcoord * dcoord_dr / r);
+    LR_vector dcoord_dpos = _dcoord_dpos(pair);
+    return dcoord_dpos * (df_dcoord * sign);
 }
 
 LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
@@ -152,6 +146,28 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 	}
 
     return my_potential / (2.0 * all_pairs.size()); // divide by 2 to avoid double counting
+}
+
+LR_vector LTCoordination::_dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &pair) {
+    static number delta = 1e-6;
+    LR_vector old_pos = _current_particle->pos;
+    LR_vector grad(0, 0, 0);
+    int sign = (pair.first == _current_particle) ? -1 : 1;
+
+    for(int i = 0; i < 3; i++) {
+        LR_vector shift(0, 0, 0);
+        shift[i] = delta;
+
+        _current_particle->pos = old_pos + shift;
+        number plus = meta::get_pair_contribution(settings, pair);
+
+        _current_particle->pos = old_pos - shift;
+        number minus = meta::get_pair_contribution(settings, pair);
+
+        grad[i] = sign * (plus - minus) / (2.0 * delta);
+    }
+    _current_particle->pos = old_pos;
+    return grad;
 }
 
 number LTCoordination::_dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair) {

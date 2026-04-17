@@ -42,6 +42,7 @@ public:
     std::vector<number> potential_grid;
 
 private:
+    LR_vector _dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &pair);
     number _dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair);
     LR_vector _dcoord_dtheta();
 };

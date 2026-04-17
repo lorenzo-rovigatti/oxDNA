@@ -122,9 +122,8 @@ number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle 
 }
 
 number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair) {
-    // Compute coordination contribution from a single pair
-    // Optimized since each particle belongs to only one pair
-    if(settings.coord_mode == 1) {  // HB_CUTOFF
+    // HB_CUTOFF mode: contribution is a smooth function of the HB energy of the pair
+    if(settings.coord_mode == 1) {
         number energy = hb_energy(pair.first, pair.second);
         return smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, energy);
     }
@@ -136,14 +135,9 @@ number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, B
 }
 
 number hb_energy(BaseParticle *p1, BaseParticle *p2) {
-    // Compute hydrogen bonding energy between two particles
-    // This uses the interaction model's HB energy calculation
-    
-    LR_vector r = CONFIG_INFO->box->min_image(p1->pos, p2->pos);
-    CONFIG_INFO->interaction->set_computed_r(r);
-    
     // Get the hydrogen bonding interaction energy
-    number hb_energy = CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p1, p2, false, false);
+    // TODO: get rid of the dynamic lookup by caching the interaction pointer in the CoordSettings struct
+    number hb_energy = CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p1, p2, true, false);
     
     return hb_energy;
 }
