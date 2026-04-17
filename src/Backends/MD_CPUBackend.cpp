@@ -121,7 +121,10 @@ void MD_CPUBackend::_first_step() {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
+			LR_matrix R(
+				LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, 
+				xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, 
+				xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
 			p->orientation = p->orientation * R;
 			p->orientationT = p->orientation.get_transpose();
@@ -135,6 +138,11 @@ void MD_CPUBackend::_first_step() {
 	// position update since some external forces might depend on other particles' degrees of freedom
 	for(auto p : _particles) {
 		p->set_initial_forces(current_step(), _box.get());
+		// if(p->force.norm() > 0) {
+		// 	printf("%d: %g %g %g, %g %g %g\n", p->index, p->force.x, p->force.y, p->force.z, p->torque.x, p->torque.y, p->torque.z);
+		// 	LR_vector total_torque = p->torque + p->int_centers[2].cross(p->force);
+		// 	printf("Total torque: %g %g %g\n", total_torque.x, total_torque.y, total_torque.z);
+		// }
 	}
 
 	if(particles_with_warning.size() > 0) {

@@ -112,14 +112,12 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
 	}
 
 	else {
+        // note that this is not striclty only df/dcoord, since it also has a minux sign (hence the "get_x_force" name)
 		df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
 	}
 
     // Numerically compute dcoord/dr for any coordination definition
     number dcoord_dr = _dcoord_dr(pair);
-
-    LR_vector my_F = -sign * r_vec * (dcoord_dr / r);
-    printf("FORCE pair: %d %d, idx: %d, %g (%g %g %g)\n", pair.first->index, pair.second->index, _current_particle->index, dcoord_dr, my_F.x, my_F.y, my_F.z);
 
     // df / dr = df / dcoord * dcoord / dr_ij * dr_ij / dr
     return (number) sign * r_vec * (df_dcoord * dcoord_dr / r);
@@ -131,16 +129,11 @@ LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
 
     number df_dcoord = 0;
     if((ic_left >= 0) && (ic_left + 1 <= N_grid - 1)) {
+        // note that this is not striclty only df/dcoord, since it also has a minux sign (hence the "get_x_force" name)
         df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
     }
 
-    // Part 1: Torque from off-center force application
-    LR_vector F = force(step, pos);
-    LR_vector torque = _current_particle->int_centers[DNANucleotide::BASE].cross(F);
-
-    // Part 2: Direct torque from orientation-dependent coordination
-    LR_vector dcoord_dtheta = _dcoord_dtheta();
-    torque += dcoord_dtheta * df_dcoord;
+    LR_vector torque = _dcoord_dtheta() * df_dcoord;
 
     return torque;
 }
@@ -185,9 +178,7 @@ number LTCoordination::_dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair)
 }
 
 LR_vector LTCoordination::_dcoord_dtheta() {
-    static number delta = 1e-1;
-    static number sin_delta = sin(delta);
-    static number cos_delta = cos(delta);
+    static number delta = 1e-6;
     
     // Get the pair this particle belongs to
     auto pair = all_pairs[particle_to_pair_index[_current_particle]];
@@ -197,52 +188,45 @@ LR_vector LTCoordination::_dcoord_dtheta() {
     
     LR_vector dcoord_dtheta(0, 0, 0);
     number contrib_plus, contrib_minus;
+
+    // here we use a central difference scheme, perturbing the orientation around each axis 
+    // *in the lab reference frame* in both directions and computing the contribution to the 
+    // coordination from the pair this particle belongs to
     
     // Central difference: Perturb rotation around x-axis (positive)
-    _current_particle->orientation.v2 = old_orient.v2 * cos_delta + old_orient.v3 * sin_delta;
-    _current_particle->orientation.v3 = -old_orient.v2 * sin_delta + old_orient.v3 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(1, 0, 0), delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_plus = meta::get_pair_contribution(settings, pair);
     
     // Central difference: Perturb rotation around x-axis (negative)
-    _current_particle->orientation = old_orient;
-    _current_particle->orientation.v2 = old_orient.v2 * cos_delta - old_orient.v3 * sin_delta;
-    _current_particle->orientation.v3 = old_orient.v2 * sin_delta + old_orient.v3 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(1, 0, 0), -delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_minus = meta::get_pair_contribution(settings, pair);
     dcoord_dtheta.x = (contrib_plus - contrib_minus) / (2.0 * delta);
     
     // Central difference: Perturb rotation around y-axis (positive)
-    _current_particle->orientation = old_orient;
-    _current_particle->orientation.v1 = old_orient.v1 * cos_delta - old_orient.v3 * sin_delta;
-    _current_particle->orientation.v3 = old_orient.v1 * sin_delta + old_orient.v3 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(0, 1, 0), delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_plus = meta::get_pair_contribution(settings, pair);
     
     // Central difference: Perturb rotation around y-axis (negative)
-    _current_particle->orientation = old_orient;
-    _current_particle->orientation.v1 = old_orient.v1 * cos_delta + old_orient.v3 * sin_delta;
-    _current_particle->orientation.v3 = -old_orient.v1 * sin_delta + old_orient.v3 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(0, 1, 0), -delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_minus = meta::get_pair_contribution(settings, pair);
     dcoord_dtheta.y = (contrib_plus - contrib_minus) / (2.0 * delta);
     
     // Central difference: Perturb rotation around z-axis (positive)
-    _current_particle->orientation = old_orient;
-    _current_particle->orientation.v1 = old_orient.v1 * cos_delta + old_orient.v2 * sin_delta;
-    _current_particle->orientation.v2 = -old_orient.v1 * sin_delta + old_orient.v2 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(0, 0, 1), delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_plus = meta::get_pair_contribution(settings, pair);
     
     // Central difference: Perturb rotation around z-axis (negative)
-    _current_particle->orientation = old_orient;
-    _current_particle->orientation.v1 = old_orient.v1 * cos_delta - old_orient.v2 * sin_delta;
-    _current_particle->orientation.v2 = old_orient.v1 * sin_delta + old_orient.v2 * cos_delta;
+    _current_particle->orientation = Utils::get_rotation_matrix_from_axis_angle(LR_vector(0, 0, 1), -delta) * old_orient;
     _current_particle->orientationT = _current_particle->orientation.get_transpose();
     _current_particle->set_positions();
     contrib_minus = meta::get_pair_contribution(settings, pair);
@@ -252,14 +236,12 @@ LR_vector LTCoordination::_dcoord_dtheta() {
     _current_particle->orientation = old_orient;
     _current_particle->orientationT = old_orientT;
     _current_particle->set_positions();
-
-    printf("TORQUE pair: %d %d, idx: %d, %g %g %g\n", pair.first->index, pair.second->index, _current_particle->index, dcoord_dtheta.x, dcoord_dtheta.y, dcoord_dtheta.z);
     
     return dcoord_dtheta;
 }
 
 // LR_vector LTCoordination::_dcoord_dtheta() {
-//     static number delta = 1e-1;
+//     static number delta = 1e-2;
 //     static number sin_delta = sin(delta);
 //     static number cos_delta = cos(delta);
     

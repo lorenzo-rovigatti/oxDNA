@@ -131,7 +131,6 @@ number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, B
 	else {
         // SWITCHING_FUNCTION mode
         number r = distance(pair).module();
-        // printf("%d %d %g\n", pair.first->index, pair.second->index, r);
         return 1.0 / (1.0 + std::pow((r - settings.d0) / settings.r0, settings.n));
     }
 }

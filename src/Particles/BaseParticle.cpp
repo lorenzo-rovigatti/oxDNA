@@ -76,9 +76,13 @@ void BaseParticle::set_initial_forces(llint step, BaseBox *box) {
 			force += ext_force->force(step, abs_pos);
 
 			if(is_rigid_body()) {
-				torque += orientationT * ext_force->torque(step, abs_pos);
+				torque += ext_force->torque(step, abs_pos);
 			}
 		}
+	}
+
+	if(is_rigid_body()) {
+		torque = orientationT * torque;
 	}
 }
 
