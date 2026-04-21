@@ -35,7 +35,11 @@ def _find_executable(name):
 
 def _plugin_search_path():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.normpath(os.path.join(script_dir, ".."))
+    tostiguerra = os.path.normpath(os.path.join(script_dir, ".."))
+    rovigatti = os.path.normpath(
+        os.path.join(script_dir, "..", "..", "contrib", "rovigatti")
+    )
+    return f"{tostiguerra}:{rovigatti}"
 
 
 # ---------------------------------------------------------------------------
@@ -92,11 +96,12 @@ def _write_input_dat(cfg):
         "data_output_1 = {",
         "name = bonds.dat",
         f"print_every = {print_conf_interval}",
+        "only_last = False",
         "col_1 = {",
-        "type = pair_energy",
+        "type = Bonds",
+        "bond_energy_term_id = 2",
         "}",
         "}",
-        "",
         "data_output_2 = {",
         "name = last_backup.dat",
         "only_last = true",
