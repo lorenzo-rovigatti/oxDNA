@@ -66,7 +66,7 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
     // here we look for duplicates
     auto it = std::adjacent_find(p_indices.begin(), p_indices.end());
     if(it != p_indices.end()) {
-        throw oxDNAException("LTCoordination: duplicate particle index found in the op_file: %d", *it);
+        throw oxDNAException("LTCoordination: duplicate particle index found in the op_file: %d. LTCoordination assumes each particle appears only once", *it);
     }
 
     settings.get_settings(inp);
@@ -96,7 +96,6 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
 
 LR_vector LTCoordination::force(llint step, LR_vector &pos) {
     auto pair = all_pairs[particle_to_pair_index[_current_particle]];
-    int sign = (pair.first == _current_particle) ? -1 : 1;
 
     number coord = Utils::clamp(meta::coordination(settings, all_pairs), coord_min, coord_max); // ensure we are within the grid limits
     int ic_left = std::floor((coord - coord_min) / d_coord);
@@ -114,7 +113,16 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
 	}
 
     LR_vector dcoord_dpos = _dcoord_dpos(pair);
-    return dcoord_dpos * (df_dcoord * sign);
+
+    // DNANucleotide p = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.first : pair.second);
+    // DNANucleotide q = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.second : pair.first);
+    // p.force = LR_vector();
+    // q.force = LR_vector();
+    // CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, &p, &q, true, true);
+    // printf("FORCE %d\n\t%g %g %g\n", p.index, p.force.x, p.force.y, p.force.z);
+    // printf("\t%g %g %g\n", dcoord_dpos.x, dcoord_dpos.y, dcoord_dpos.z);
+
+    return dcoord_dpos * df_dcoord;
 }
 
 LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
@@ -127,9 +135,19 @@ LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
         df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
     }
 
-    LR_vector torque = _dcoord_dtheta() * df_dcoord;
+    LR_vector dcoord_dtheta = _dcoord_dtheta();
 
-    return torque;
+    // auto pair = all_pairs[particle_to_pair_index[_current_particle]];
+    // DNANucleotide p = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.first : pair.second);
+    // DNANucleotide q = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.second : pair.first);
+    // p.force = LR_vector();
+    // q.force = LR_vector();
+    // LR_vector pref_torque = _current_particle->orientationT * dcoord_dtheta;
+    // CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, &p, &q, true, true);
+    // printf("TORQUE %d\n\t%g %g %g\n", p.index, p.torque.x, p.torque.y, p.torque.z);
+    // printf("\t%g %g %g\n", pref_torque.x, pref_torque.y, pref_torque.z);
+
+    return dcoord_dtheta * df_dcoord;
 }
 
 number LTCoordination::potential(llint step, LR_vector &pos) {
@@ -143,20 +161,19 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 	}
 	else {
 		my_potential = meta::interpolate_potential(coord, d_coord, coord_min, potential_grid);
+        // printf("coord = %lf, index = %d, potential = %lf\n", coord, ic_left, my_potential);
 	}
 
     return my_potential / (2.0 * all_pairs.size()); // divide by 2 to avoid double counting
 }
 
 LR_vector LTCoordination::_dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &pair) {
-    static number delta = 1e-6;
     LR_vector old_pos = _current_particle->pos;
-    LR_vector grad(0, 0, 0);
-    int sign = (pair.first == _current_particle) ? -1 : 1;
+    LR_vector grad;
 
     for(int i = 0; i < 3; i++) {
-        LR_vector shift(0, 0, 0);
-        shift[i] = delta;
+        LR_vector shift;
+        shift[i] = delta_F;
 
         _current_particle->pos = old_pos + shift;
         number plus = meta::get_pair_contribution(settings, pair);
@@ -164,15 +181,13 @@ LR_vector LTCoordination::_dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &
         _current_particle->pos = old_pos - shift;
         number minus = meta::get_pair_contribution(settings, pair);
 
-        grad[i] = sign * (plus - minus) / (2.0 * delta);
+        grad[i] =  (plus - minus) / (2.0 * delta_F);
     }
     _current_particle->pos = old_pos;
     return grad;
 }
 
 number LTCoordination::_dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair) {
-    static number delta = 1e-6;
-    
     LR_vector r_vec = meta::distance(pair);
     number r = r_vec.module();
 
@@ -182,15 +197,15 @@ number LTCoordination::_dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair)
     int sign = (pair.first == _current_particle) ? 1 : -1;
     
     // Central difference - only compute contribution from this pair (particle belongs to single pair)
-    _current_particle->pos = old_pos + dr_hat * (sign * delta);
+    _current_particle->pos = old_pos + dr_hat * (sign * delta_F);
     number contrib_plus = meta::get_pair_contribution(settings, pair);
     
-    _current_particle->pos = old_pos - dr_hat * (sign * delta);
+    _current_particle->pos = old_pos - dr_hat * (sign * delta_F);
     number contrib_minus = meta::get_pair_contribution(settings, pair);
     
     _current_particle->pos = old_pos;  // Restore
     
-    return (contrib_plus - contrib_minus) / (2.0 * delta);
+    return (contrib_plus - contrib_minus) / (2.0 * delta_F);
 }
 
 LR_vector LTCoordination::_dcoord_dtheta() {
@@ -255,50 +270,3 @@ LR_vector LTCoordination::_dcoord_dtheta() {
     
     return dcoord_dtheta;
 }
-
-// LR_vector LTCoordination::_dcoord_dtheta() {
-//     static number delta = 1e-2;
-//     static number sin_delta = sin(delta);
-//     static number cos_delta = cos(delta);
-    
-//     // Get the pair this particle belongs to
-//     auto pair = all_pairs[particle_to_pair_index[_current_particle]];
-//     number contrib_0 = meta::get_pair_contribution(settings, pair);
-    
-//     LR_matrix old_orient = _current_particle->orientation;
-//     LR_matrix old_orientT = _current_particle->orientationT;
-    
-//     LR_vector dcoord_dtheta(0, 0, 0);
-    
-//     // Perturb rotation around x-axis
-//     _current_particle->orientation.v2 = old_orient.v2 * cos_delta + old_orient.v3 * sin_delta;
-//     _current_particle->orientation.v3 = -old_orient.v2 * sin_delta + old_orient.v3 * cos_delta;
-//     _current_particle->orientationT = _current_particle->orientation.get_transpose();
-//     _current_particle->set_positions();
-//     dcoord_dtheta.x = (meta::get_pair_contribution(settings, pair) - contrib_0) / delta;
-    
-//     // Perturb rotation around y-axis
-//     _current_particle->orientation = old_orient;
-//     _current_particle->orientation.v1 = old_orient.v1 * cos_delta - old_orient.v3 * sin_delta;
-//     _current_particle->orientation.v3 = old_orient.v1 * sin_delta + old_orient.v3 * cos_delta;
-//     _current_particle->orientationT = _current_particle->orientation.get_transpose();
-//     _current_particle->set_positions();
-//     dcoord_dtheta.y = (meta::get_pair_contribution(settings, pair) - contrib_0) / delta;
-    
-//     // Perturb rotation around z-axis
-//     _current_particle->orientation = old_orient;
-//     _current_particle->orientation.v1 = old_orient.v1 * cos_delta + old_orient.v2 * sin_delta;
-//     _current_particle->orientation.v2 = -old_orient.v1 * sin_delta + old_orient.v2 * cos_delta;
-//     _current_particle->orientationT = _current_particle->orientation.get_transpose();
-//     _current_particle->set_positions();
-//     dcoord_dtheta.z = (meta::get_pair_contribution(settings, pair) - contrib_0) / delta;
-    
-//     // Restore original orientation
-//     _current_particle->orientation = old_orient;
-//     _current_particle->orientationT = old_orientT;
-//     _current_particle->set_positions();
-
-//     printf("TORQUE pair: %d %d, idx: %d, %g %g %g\n", pair.first->index, pair.second->index, _current_particle->index, dcoord_dtheta.x, dcoord_dtheta.y, dcoord_dtheta.z);
-    
-//     return dcoord_dtheta;
-// }

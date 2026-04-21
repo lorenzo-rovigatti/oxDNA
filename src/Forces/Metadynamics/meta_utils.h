@@ -52,7 +52,6 @@ struct CoordSettings {
 LR_vector distance(std::pair<BaseParticle *, BaseParticle *> &pair);
 number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle *, BaseParticle *>> &all_pairs);
 number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair);
-number hb_energy(BaseParticle *p1, BaseParticle *p2);
 number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
 
 }

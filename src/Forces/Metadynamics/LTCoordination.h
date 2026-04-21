@@ -37,6 +37,8 @@ public:
 	number coord_max; // maximum coordination number, defaults to the number of pairs defined in the OP file
 	int N_grid;
 	number d_coord; // grid spacing
+    number delta_F = 1e-6; // displacement for finite difference calculation of the force
+    number delta_T = 1e-6; // displacement for finite difference calculation of the torque
 
     meta::CoordSettings settings;
     std::vector<number> potential_grid;
@@ -45,6 +47,8 @@ private:
     LR_vector _dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &pair);
     number _dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair);
     LR_vector _dcoord_dtheta();
+
+    LR_matrix _rot_matrices[3][2]; // rotation matrices for the 3 possible rotation axes and 2 possible directions of rotation (positive or negative)
 };
 
 #endif /* LTCOORDINATION_H */

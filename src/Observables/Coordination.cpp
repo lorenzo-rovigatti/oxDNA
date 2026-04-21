@@ -27,10 +27,6 @@ void Coordination::get_settings(input_file &my_inp, input_file &sim_inp) {
 void Coordination::init() {
 	BaseObservable::init();
 
-    if(_settings.n % 2 != 0) {
-        throw oxDNAException("Coordination: exponent n must be an even integer");
-    }
-
     OrderParameters op;
     op.init_from_file(_op_file.c_str(), CONFIG_INFO->particles(), CONFIG_INFO->N());
     if(op.get_distance_parameters_count() > 0) {

@@ -124,22 +124,15 @@ number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle 
 number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair) {
     // HB_CUTOFF mode: contribution is a smooth function of the HB energy of the pair
     if(settings.coord_mode == 1) {
-        number energy = hb_energy(pair.first, pair.second);
-        return smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, energy);
+        // TODO: get rid of the dynamic lookup by caching the interaction pointer in the CoordSettings struct
+        number hb_energy = CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, pair.first, pair.second, true, false);
+        return smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
     }
 	else {
         // SWITCHING_FUNCTION mode
         number r = distance(pair).module();
         return 1.0 / (1.0 + std::pow((r - settings.d0) / settings.r0, settings.n));
     }
-}
-
-number hb_energy(BaseParticle *p1, BaseParticle *p2) {
-    // Get the hydrogen bonding interaction energy
-    // TODO: get rid of the dynamic lookup by caching the interaction pointer in the CoordSettings struct
-    number hb_energy = CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p1, p2, true, false);
-    
-    return hb_energy;
 }
 
 number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy) {
@@ -151,7 +144,7 @@ number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_widt
     // Clamp to avoid numerical overflow with tanh
     if(x > 10.0) return 1.0;
     if(x < -10.0) return 0.0;
-    
+
     return 0.5 * (1.0 + tanh(x));
 }
 
