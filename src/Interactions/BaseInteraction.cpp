@@ -46,6 +46,14 @@ number BaseInteraction::pair_interaction_term(int name, BaseParticle *p, BasePar
 	return interaction->second(p, q, false, update_forces);
 }
 
+const BaseInteraction::energy_function& BaseInteraction::get_interaction_function(int name) {
+	typename interaction_map::iterator interaction = _interaction_map.find(name);
+	if(interaction == _interaction_map.end()) {
+		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
+	}
+	return interaction->second;
+}
+
 std::map<int, number> BaseInteraction::get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) {
 	begin_energy_computation();
 

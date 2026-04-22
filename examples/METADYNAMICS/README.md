@@ -155,13 +155,27 @@ potential_grid = comma-separated values
 
 ### Continuous coordination number (hydrogen-bond-based CV)
 
-For a set of hydrogen-bond candidate pairs indexed by $(i,j)$, with inter-particle distances $r_{ij}$, a smooth coordination number is defined as
+For a set of hydrogen-bond candidate pairs indexed by $(i,j)$, it is possible to define a smooth coordination number
+in two ways:
+
+1. If $U_{HB}(i,j)$ is the pair energy contribution due to hydrogen bonding between $i$ and $j$, then a smooth coordination number can be defined as
+$$
+C_{HB} = \sum_{(j, j)} \frac{1}{2} \left[ 1 + \tanh{\left( \frac{U_{\rm cut} - U_{HB}(i, j)}{U_w} \right)} \right],
+$$
+where $U_{\rm cut}$ and $U_w$ are two parameters that can be set with the `hb_energy_cutoff` and `hb_transition_width` TOML keys and whose values default to $-0.2$ and $0.1$, respectively. This CV can be set with `coordination_type = "hb_energy"`.
+2. Defining $r_{ij}$ as the distance between the HB sites of $i$ and $j$, a smooth coordination number can be defined as
+$$
+C_{sw} = \sum_{(i,j)} \frac{1}{1 + \left(\dfrac{r_{ij} - d_0}{r_0}\right)^n},
+$$
+where $d_0$, $r_0$, and $n$ are parameters controlling the switching function (see example configuration). This CV is continuous and bounded, and is the basis for the coordination-based metadynamics example. This CV can be selected by setting `coordination_type = "switching_function"` in the TOML input file. The default values for the $d_0$, $r_0$, and $n$ parameters are $0.4$, $0.5$, and $6$ (as in the example below), but different values can be used by setting the `d0`, `r0`, and `n` keys in the metadynamics TOML file.
+
+It is also possible to use a coordination number that is a combination of the two by setting `coordination_type = "mixed"`:
 
 $$
-C = \sum_{(i,j)} \frac{1}{1 + \left(\dfrac{r_{ij} - d_0}{r_0}\right)^n},
+C_{\rm tot} = w C_{HB} + (1 - w) C_{sw},
 $$
 
-where $d_0$, $r_0$, and $n$ are parameters controlling the switching function (see example configuration). This CV is continuous and bounded, and is the basis for the coordination-based metadynamics example.
+where $w \in [0, 1]$ is set with the `mixed_weight` option and defaults to $0.7$.
 
 Usage (brief):
 
@@ -172,7 +186,9 @@ Usage (brief):
 ```toml
 type = meta_coordination
 op_file = "path/to/op_file"   # order-parameter file listing hb pairs
-d0 = 1.2
+coordination_type = "mixed"
+hb_energy_cutoff = -0.1
+d0 = 0.4
 r0 = 0.5
 n = 6
 coord_min = 0.0
@@ -181,7 +197,7 @@ N_grid = 121
 potential_grid = comma-separated values
 ```
 
-The `op_file` must contain the hydrogen-bond definitions; the code will extract the list of pairs and compute the continuous coordination number using the switching parameters `d0`, `r0` and exponent `n`. Note that the default values for these parameters are $1.2$, $0.5$, and $6$ (as in the example above), but different values can be used by setting the `d0`, `r0`, and `n` keys in the metadynamics TOML file.
+The `op_file` must contain the hydrogen-bond definitions; the code will extract the list of pairs and compute the continuous coordination number using the switching parameters `d0`, `r0` and exponent `n`. Note that 
 
 ## Set up a metadynamics simulation
 

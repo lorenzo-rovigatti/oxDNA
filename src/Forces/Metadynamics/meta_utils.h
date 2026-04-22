@@ -40,7 +40,10 @@ std::tuple<std::vector<int>, std::vector<BaseParticle *>> get_particle_lists(inp
 std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
 
 struct CoordSettings {
-	int coord_mode;
+	enum class CoordMode { HB_ENERGY, SWITCHING_FUNCTION, MIXED } coord_mode;
+	// only used if coord_mode == MIXED, must be between 0 and 1. The contribution of the HB_ENERGY mode will be multiplied 
+	// by this weight, while the contribution of the SWITCHING_FUNCTION mode will be multiplied by (1 - mixed_weight)
+	number mixed_weight;
 	number hb_energy_cutoff, hb_transition_width, d0, r0;
 	int n;
 

@@ -23,7 +23,9 @@
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
  */
 class BaseInteraction {
-private:
+public:
+	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
+	using interaction_map = std::map<int, energy_function>;
 
 protected:
 	BaseBox *_box;
@@ -48,8 +50,6 @@ protected:
 
 	virtual void _update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force);
 
-	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
-	using interaction_map = std::map<int, energy_function>;
 	interaction_map _interaction_map;
 
 public:
@@ -174,6 +174,17 @@ public:
 	 * @return
 	 */
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+
+	/**
+	 * @brief Returns a reference to the energy function for a given interaction term.
+	 *
+	 * This method is useful for caching function pointers to avoid repeated map lookups in hot code paths.
+	 * Throws an exception if the interaction term is not found.
+	 *
+	 * @param name identifier of the interaction method
+	 * @return const reference to the energy_function
+	 */
+	virtual const energy_function& get_interaction_function(int name);
 
 	/**
 	 * @brief Returns the total potential energy of the system

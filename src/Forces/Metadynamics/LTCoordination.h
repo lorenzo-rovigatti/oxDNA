@@ -44,11 +44,13 @@ public:
     std::vector<number> potential_grid;
 
 private:
-    LR_vector _dcoord_dpos(std::pair<BaseParticle*, BaseParticle*> &pair);
-    number _dcoord_dr(std::pair<BaseParticle*, BaseParticle*> &pair);
-    LR_vector _dcoord_dtheta();
-
+    number _current_coordination;
+    llint _last_step_calculated = -1; // to avoid recalculating the coordination number multiple times in the same step (e.g. for different particles belonging to the same pair)
     LR_matrix _rot_matrices[3][2]; // rotation matrices for the 3 possible rotation axes and 2 possible directions of rotation (positive or negative)
+
+    LR_vector _dcoord_dpos();
+    LR_vector _dcoord_dtheta();
+    number _coordination(llint step);
 };
 
 #endif /* LTCOORDINATION_H */

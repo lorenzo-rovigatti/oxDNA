@@ -53,11 +53,18 @@ class IForceHandler:
 
 
 class CoordinationHandler(IForceHandler):
-    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float, d0: float = 0.4, r0: float = 0.5, n: int = 6):
+    def __init__(self, pfile: str, xmin: float, xmax: float, dx: float, 
+                 coordination_type: str = "hb_cutoff", mixed_weight: float = 0.7, 
+                 hb_energy_cutoff: float = -0.2, hb_transition_width: float = 0.1,
+                 d0: float = 0.4, r0: float = 0.5, n: int = 6):
         super().__init__(pfile, xmin, xmax, dx)
         self.d0 = d0
         self.r0 = r0
         self.n = n
+        self.coordination_type = coordination_type
+        self.mixed_weight = mixed_weight
+        self.hb_energy_cutoff = hb_energy_cutoff
+        self.hb_transition_width = hb_transition_width
 
     def parse_pfile(self, pfile: str):
         self.pairs = []
@@ -90,9 +97,13 @@ class CoordinationHandler(IForceHandler):
     col_1 = {{
         type = coordination
         op_file = op_coordination.dat
+        coordination_type = {self.coordination_type}
+        mixed_weight = {self.mixed_weight}
         d0 = {self.d0}
         r0 = {self.r0}
         n = {self.n}
+        hb_energy_cutoff = {self.hb_energy_cutoff}
+        hb_transition_width = {self.hb_transition_width}
     }}
     col_2 = {{
         type = force_energy
@@ -115,9 +126,13 @@ class CoordinationHandler(IForceHandler):
     N_grid = {self.N_grid}
     potential_grid = {grid_string}
     op_file = op_coordination.dat
+    coordination_type = {self.coordination_type}
+    mixed_weight = {self.mixed_weight}
     d0 = {self.d0}
     r0 = {self.r0}
     n = {self.n}
+    hb_energy_cutoff = {self.hb_energy_cutoff}
+    hb_transition_width = {self.hb_transition_width}
 }}
 '''
 
@@ -305,13 +320,14 @@ class AngleCOMTrapHandler(IForceHandler):
 
 class oxDNARunner(mp.Process):
 
-    def __init__(self, index, input_file, queue):
+    def __init__(self, index, input_file, queue, ready_event):
         mp.Process.__init__(self)
 
         self.index = index
         self.working_dir = f"{Estimator.RUN_BASEDIR}{index}"
         self.input_file = input_file
         self.queue = queue
+        self.ready_event = ready_event
         
         self._pconn, self._cconn = mp.Pipe()
         self._exception = None
@@ -319,34 +335,41 @@ class oxDNARunner(mp.Process):
     def run(self):
         os.chdir(self.working_dir)
         
-        with oxpy.Context():
-            input_file = oxpy.InputFile()
-            input_file.init_from_filename(self.input_file)
-            
-            self.manager = oxpy.OxpyManager(input_file)
-            
-            while True:
-                try:
-                    print_conf, steps, new_potential_grid = self.queue.get()
-                    if print_conf:
-                        self.manager.print_configuration()
-                    # if steps is None we have to break the loop and stop the walker
-                    if steps is not None:
-                        # update the lookup tables of all the metadynamics-related forces
-                        for force in self.manager.config_info().forces:
-                            if force.group_name == "metadynamics":
-                                force.potential_grid = new_potential_grid
-                        
-                        self.manager.run(steps)
-                    else:
-                        break
-                except Exception as e:
-                    # if an exception is raised we save the traceback and send it (together with the exception)
-                    # to this process' pipe, through which we can obtain and send it to the parent's process
-                    tb = traceback.format_exc()
-                    self._cconn.send((e, tb))
-                finally:
-                    self.queue.task_done()
+        try:
+            with oxpy.Context():
+                input_file = oxpy.InputFile()
+                input_file.init_from_filename(self.input_file)
+                
+                self.manager = oxpy.OxpyManager(input_file)
+                # Signal successful initialization
+                self.ready_event.set()
+                
+                while True:
+                    try:
+                        print_conf, steps, new_potential_grid = self.queue.get()
+                        if print_conf:
+                            self.manager.print_configuration()
+                        # if steps is None we have to break the loop and stop the walker
+                        if steps is not None:
+                            # update the lookup tables of all the metadynamics-related forces
+                            for force in self.manager.config_info().forces:
+                                if force.group_name == "metadynamics":
+                                    force.potential_grid = new_potential_grid
+                            
+                            self.manager.run(steps)
+                        else:
+                            break
+                    except Exception as e:
+                        # if an exception is raised we save the traceback and send it (together with the exception)
+                        # to this process' pipe, through which we can obtain and send it to the parent's process
+                        tb = traceback.format_exc()
+                        self._cconn.send((e, tb))
+                    finally:
+                        self.queue.task_done()
+        except Exception as e:
+            # Initialization errors (before entering the loop)
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
                 
     @property
     def exception(self):
@@ -375,7 +398,7 @@ class Estimator():
             self.handler = AngleCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
         elif coordination:
             additional_args = {}
-            for key in "d0", "r0", "n": # optional arguments for the coordination CV
+            for key in "coordination_type", "mixed_weight", "d0", "r0", "n": # optional arguments for the coordination CV
                 if key in kw_args:
                     additional_args[key] = kw_args[key]
             self.handler = CoordinationHandler(args.p_fname, args.xmin, args.xmax, args.dX, **additional_args)
@@ -505,6 +528,20 @@ class Estimator():
         for w in self.walkers:
             self.write_external_forces_file(w.working_dir)
             w.start()
+        
+        # wait for all workers to initialize successfully
+        for i, ready_event in enumerate(self.ready_events):
+            if not ready_event.wait(timeout=2):
+                # timeout or error occurred
+                for w in self.walkers:
+                    if w.exception is not None:
+                        error, traceback = w.exception
+                        print(f"The following error was raised during the initialization of worker {w.index}:")
+                        print(error)
+                        print(traceback)
+                        exit(1)
+                print(f"CRITICAL: Worker {i} failed to initialize within timeout", file=sys.stderr)
+                exit(1)
                 
     def get_new_data(self, dir_name):
         # Read only the last sampled order parameter value
@@ -611,8 +648,11 @@ class Estimator():
     def _init_walkers(self):
         self.queue = mp.JoinableQueue()
         self.walkers = []
+        self.ready_events = []
         for walker_index in range(self.N_walkers):
-            self.walkers.append(oxDNARunner(walker_index, Estimator.INPUT_FILE, self.queue))
+            ready_event = mp.Event()
+            self.ready_events.append(ready_event)
+            self.walkers.append(oxDNARunner(walker_index, Estimator.INPUT_FILE, self.queue, ready_event))
             
     def stop_runners(self, print_last_conf=False):
         runner_args = [print_last_conf, None, 0]
@@ -631,9 +671,11 @@ class Estimator():
         for w in self.walkers:
             self.write_external_forces_file(w.working_dir)
             self.queue.put(runner_args)
+        
+        # wait for all workers to complete
         self.queue.join()
         
-        # check whether exceptions were raised by the walkers during the previous run
+        # check whether exceptions were raised by the walkers during execution
         for w in self.walkers:
             if w.exception is not None:
                 error, traceback = w.exception
