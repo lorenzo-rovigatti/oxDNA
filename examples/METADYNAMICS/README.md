@@ -25,6 +25,8 @@ Once launched, the script runs a certain number of metadynamics simulations that
 
 When used on CUDA-powered simulations, by default the interface launches the processes without any indication about the device that should be used, and in fact will honour the `CUDA_device` key if found in the base input file. Therefore, if GPUs are not set to run in compute mode "EXCLUSIVE_PROCESS", all the walkers will use the same GPU (the one specified by `CUDA_device` or, if this is not present in the base input file, the first available GPU). The `--use_sequential_GPUs` switch can be used to tell each walker to run on a distinct GPU: walker 0 will run on device 0, walker 1 on device 1, *etc.*
 
+Note that reproducible results (at least on CPU) can be obtained by using a seed, which can be specified with the `--seed` switch, or by using a `seed` key in the TOML configuration file. Any seed found in the base input file will be overwritten.
+
 ## Supported collective variables
 
 The interface provides the following collective variables (CVs). Below each CV we give a compact mathematical definition using the centre-of-mass positions of the selected nucleotide sets: for a set $A$ with $N_A$ particles we denote its centre of mass by

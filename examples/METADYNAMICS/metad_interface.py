@@ -8,6 +8,7 @@ import traceback
 import pickle as pkl
 import glob
 import toml
+import random
 
 try:
     import oxpy
@@ -390,7 +391,7 @@ class Estimator():
     def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, tau=int(1e5), N_walkers=1, 
                 use_sequential_GPUs=False, p_fname="", dim=1, ratio=False, angle=False, coordination=False,
                 xmin=0, xmax=30, conf_interval=1000, save_hills=10, continue_run=False, T=None, 
-                op_interval: int=1000, **kw_args):
+                op_interval: int=1000, seed=None, **kw_args):
 
         if ratio:
             self.handler = AtanCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
@@ -422,6 +423,8 @@ class Estimator():
         self.save_hills = save_hills
         self.continue_run = continue_run
         self.op_interval = op_interval
+
+        random.seed(seed)
 
         # we update the spacing for integer division 
         if not self.continue_run:
@@ -520,6 +523,9 @@ class Estimator():
                     with open(os.path.join(w.working_dir, Estimator.INPUT_FILE), 'w+') as f:
                         if use_sequential_GPUs:
                             input_file["CUDA_device"] = str(w.index)
+
+                        input_file["seed"] = str(random.randint(0, int(1e9)))
+
                         f.write(str(input_file))
 
                     self.handler.prepare_folder(w.working_dir)
@@ -770,6 +776,7 @@ def build_parser():
     parser.add_argument("--save_hills", type=int, default=10, help="Potential sampling frequency")
     parser.add_argument("--T", default=None, help="Simulation temperature")
     parser.add_argument("--op_interval", type=int, default=1000, help="Order parameter print frequency")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducible results")
 
     # Boolean flags
     parser.add_argument("--continue_run", action="store_true", help="Continue previous simulation")
