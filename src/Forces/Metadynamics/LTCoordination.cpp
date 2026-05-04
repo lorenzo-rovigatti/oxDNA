@@ -117,15 +117,12 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
 		df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
 	}
 
-    LR_vector dcoord_dpos = _dcoord_dpos();
-
-    // DNANucleotide p = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.first : pair.second);
-    // DNANucleotide q = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.second : pair.first);
-    // p.force = LR_vector();
-    // q.force = LR_vector();
-    // CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, &p, &q, true, true);
-    // printf("FORCE %d\n\t%g %g %g\n", p.index, p.force.x, p.force.y, p.force.z);
-    // printf("\t%g %g %g\n", dcoord_dpos.x, dcoord_dpos.y, dcoord_dpos.z);
+    // std::cout << "F OLD " << _dcoord_dpos() << std::endl;
+    // auto pair = all_pairs[particle_to_pair_index[_current_particle]];
+    auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
+    LR_vector dcoord_dpos = force_torque.first;
+    // auto F = dcoord_dpos;
+    // std::cout << "F NEW " << F << std::endl;
 
     return dcoord_dpos * df_dcoord;
 }
@@ -140,17 +137,11 @@ LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
         df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
     }
 
-    LR_vector dcoord_dtheta = _dcoord_dtheta();
-
-    // auto pair = all_pairs[particle_to_pair_index[_current_particle]];
-    // DNANucleotide p = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.first : pair.second);
-    // DNANucleotide q = *dynamic_cast<DNANucleotide *>(_current_particle == pair.first ? pair.second : pair.first);
-    // p.force = LR_vector();
-    // q.force = LR_vector();
-    // LR_vector pref_torque = _current_particle->orientationT * dcoord_dtheta;
-    // CONFIG_INFO->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, &p, &q, true, true);
-    // printf("TORQUE %d\n\t%g %g %g\n", p.index, p.torque.x, p.torque.y, p.torque.z);
-    // printf("\t%g %g %g\n", pref_torque.x, pref_torque.y, pref_torque.z);
+    // std::cout << "T OLD " << _dcoord_dtheta() << std::endl;
+    auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
+    LR_vector dcoord_dtheta = force_torque.second;
+    // auto torque = dcoord_dtheta;
+    // std::cout << "T NEW " << torque << std::endl;
 
     return dcoord_dtheta * df_dcoord;
 }
@@ -166,7 +157,6 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
 	}
 	else {
 		my_potential = meta::interpolate_potential(coord, d_coord, coord_min, potential_grid);
-        // printf("coord = %lf, index = %d, potential = %lf\n", coord, ic_left, my_potential);
 	}
 
     return my_potential / (2.0 * all_pairs.size()); // divide by 2 to avoid double counting
