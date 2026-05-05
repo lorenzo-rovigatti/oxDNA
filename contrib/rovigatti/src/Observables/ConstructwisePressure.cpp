@@ -8,6 +8,9 @@
 #include "ConstructwisePressure.h"
 
 #include "../Interactions/PolymerSwapInteraction.h"
+#include "Utilities/Utils.h"
+
+#include <algorithm>
 
 ConstructwisePressure::ConstructwisePressure() :
 				BaseObservable(),

@@ -9,6 +9,7 @@
 
 #include "Utilities/Utils.h"
 
+#include <fstream>
 #include <sstream>
 
 #define QUICKHULL_IMPLEMENTATION

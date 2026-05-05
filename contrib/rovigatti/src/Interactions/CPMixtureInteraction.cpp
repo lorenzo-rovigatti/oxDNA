@@ -7,6 +7,8 @@
 
 #include "CPMixtureInteraction.h"
 
+#include <fstream>
+
 CPMixtureInteraction::CPMixtureInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(CP, pair_interaction_nonbonded);

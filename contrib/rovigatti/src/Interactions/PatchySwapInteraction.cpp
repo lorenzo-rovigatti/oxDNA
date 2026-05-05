@@ -6,9 +6,11 @@
  */
 
 #include "PatchySwapInteraction.h"
-#include "Particles/CustomParticle.h"
+#include "CustomParticle.h"
 #include "Utilities/Utils.h"
+#include "Utilities/ConfigInfo.h"
 
+#include <fstream>
 #include <string>
 
 using namespace std;

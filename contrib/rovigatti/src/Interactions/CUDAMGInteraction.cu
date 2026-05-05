@@ -7,7 +7,7 @@
 
 #include "CUDAMGInteraction.h"
 
-#include "Particles/CustomParticle.h"
+#include "CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
 

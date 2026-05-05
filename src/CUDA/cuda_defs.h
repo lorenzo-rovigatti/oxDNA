@@ -40,7 +40,7 @@
 
 #define COPY_ARRAY_TO_CONSTANT(dest, src, size) {\
 		float *val = new float[(size)];\
-		for(int i = 0; i < (size); i++) val[i] = (float) ((src)[i]);\
+		for(uint i = 0; i < (uint)(size); i++) val[i] = (float) ((src)[i]);\
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), val, (size)*sizeof(float)));\
 		delete[] val; }
 

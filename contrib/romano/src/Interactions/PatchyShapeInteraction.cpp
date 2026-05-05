@@ -1,8 +1,14 @@
 #include "PatchyShapeInteraction.h"
+
+#include <fstream>
+
 #include "Interactions/InteractionUtils.h"
 #include <sstream>
+#include <algorithm>
 
- LR_vector getVector(input_file *obs_input,const char *key)
+#include "Utilities/Utils.h"
+
+LR_vector getVector(input_file *obs_input,const char *key)
 {
 	 double tmpf[3];
 	 int tmpi;
@@ -239,8 +245,7 @@ number PatchyShapeInteraction::_repulsive_lj_n(const LR_vector &r, LR_vector &fo
 number PatchyShapeInteraction::_exc_LJ_vol_interaction_sphere(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 
 	LR_vector force(0,0,0);
-    if (compute_r)
-        _computed_r = _box->min_image(p,q);
+    if (compute_r) _computed_r = _box->min_image(p,q);
 
 	number energy = _repulsive_lj(_computed_r, force, PLEXCL_S, PLEXCL_R, PLEXCL_B, PLEXCL_RC, update_forces);
 /*
@@ -456,15 +461,6 @@ number PatchyShapeInteraction::_exc_vol_hs (BaseParticle *ap, BaseParticle *aq, 
     if (compute_r){
         _computed_r = _box->min_image(ap, aq);
     }
-	BaseParticle *p = NULL, *q = NULL;
-    // todo: is this next block still needed?
-	if (ap->index < aq->index) {
-		p = ap;
-		q = aq;
-	} else {
-		p = aq;
-		q = ap;
-	}
 
 	number rnorm = _computed_r.norm();
     // if r ** 2 > (2 * sphere radius) **2, set energy 0
@@ -517,8 +513,9 @@ number PatchyShapeInteraction::_patchy_interaction_kf(BaseParticle *p, BaseParti
  * @return
  */
 number PatchyShapeInteraction::patchy_interaction_full_torsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-    if (compute_r)
+    if (compute_r) {
         _computed_r = _box->min_image(p,q);
+	}
 	number rnorm = _computed_r.norm();
 	if(rnorm > this->_sqr_rcut) return (number) 0.f;
 
@@ -558,8 +555,8 @@ number PatchyShapeInteraction::patchy_interaction_full_torsion(BaseParticle *p, 
 
                 LR_vector patch_dist = _computed_r + qpatch - ppatch;
                 number dist = patch_dist.norm();
-                LR_vector patch_dist_dir = patch_dist / sqrt(dist);
-                number rdist = sqrt(rnorm);
+                
+				number rdist = sqrt(rnorm);
                 LR_vector r_dist_dir = _computed_r / rdist;
 
                 //printf("Patches %d and %d distance %f  cutoff is: %f,\n",pp->patches[pi].id,qq->patches[pj].id,dist,SQR(PATCHY_CUTOFF));
@@ -737,8 +734,8 @@ number PatchyShapeInteraction::patchy_interaction_partial_torsion(BaseParticle *
 
                 LR_vector patch_dist = _computed_r + qpatch - ppatch;
                 number dist = patch_dist.norm();
-                LR_vector patch_dist_dir = patch_dist / sqrt(dist);
-                number rdist = sqrt(rnorm);
+                
+				number rdist = sqrt(rnorm);
                 LR_vector r_dist_dir = _computed_r / rdist;
 
                 //printf("Patches %d and %d distance %f  cutoff is: %f,\n",pp->patches[pi].id,qq->patches[pj].id,dist,SQR(PATCHY_CUTOFF));
@@ -1567,7 +1564,7 @@ void PatchyShapeInteraction::init() {
 void PatchyShapeInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 
 	OX_LOG(Logger::LOG_INFO, "ALLOCATING");
-	for (int i = 0; i < particles.size(); i++) {
+	for (uint i = 0; i < particles.size(); i++) {
 		//int i_patches = (i < _N_A) ? _N_patches : _N_patches_B;
 		particles[i] = new PatchyShapeParticle(1);
 	}
@@ -1707,8 +1704,9 @@ void PatchyShapeInteraction::read_topology(int *N_strands, std::vector<BaseParti
     	//ss >> type;
     	//printf("at the end of while, Loaded type %d, and state is %d\n",type,ss.good());
     }
-    if (total_count != *N_strands)
+    if (total_count != *N_strands) {
         throw oxDNAException("Number of particles specified in .top file header (%d) does not match particle list length (%d)", *N_strands, total_count);
+	}
 
 	OX_LOG(Logger::LOG_INFO, "There were %d particles, %d types", *N_strands, n_particle_types);
     int patch_index = 0;
