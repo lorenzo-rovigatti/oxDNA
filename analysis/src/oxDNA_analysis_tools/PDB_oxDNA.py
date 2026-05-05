@@ -110,20 +110,50 @@ class Residue():
         p, a1, a3 = self.calc_ox_properties()
         return Monomer(self.resi, self.resn, strand, None, None, None, p, a1, a3)
 
-def _parse_atom_serial(s: str) -> int:
-    """Parse a PDB atom serial number, handling the hybrid36 convention beyond 99999.
+_HY36_UPPER_VALUES = {c: i for i, c in enumerate('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
+_HY36_LOWER_VALUES = {c: i for i, c in enumerate('0123456789abcdefghijklmnopqrstuvwxyz')}
 
-    Values 1-99999 are standard decimal.  Values >= 100000 are encoded as a
-    5-character base-36 string (0-9 then A-Z per digit) with an offset chosen so
-    that A0000 == 100000.  This is the hybrid36 scheme used by VMD, NAMD, Chimera,
-    and others (e.g. A0009 -> A000A -> A000B ...).
+def _hy36_decode_pure(values: dict, s: str) -> int:
+    result = 0
+    for c in s:
+        result = result * 36 + values[c]
+    return result
+
+def _parse_res_seq(s: str) -> int:
+    """Parse a PDB residue sequence number using the hybrid-36 convention (Grosse-Kunstleve 2007).
+
+    Decimal 1–9999, uppercase A000–ZZZZ (10000–1223055), lowercase
+    a000–zzzz (1223056–2436111).
     """
     s = s.strip()
-    try:
+    if not s:
+        return 0
+    f = s[0]
+    if f == '-' or f.isdigit():
         return int(s)
-    except ValueError:
-        # hybrid36 offset: int('A0000', 36) - 100000 = 16796160 - 100000 = 16696160
-        return int(s, 36) - 16696160
+    if f.isupper():
+        return _hy36_decode_pure(_HY36_UPPER_VALUES, s) - 10 * 36**3 + 10000
+    if f.islower():
+        return _hy36_decode_pure(_HY36_LOWER_VALUES, s) + 16 * 36**3 + 10000
+    raise ValueError(f"invalid hybrid-36 residue sequence: {s!r}")
+
+def _parse_atom_serial(s: str) -> int:
+    """Parse a PDB atom serial using the hybrid-36 convention (Grosse-Kunstleve 2007).
+
+    Decimal 1–99999, uppercase A0000–ZZZZZ (100000–43770015), lowercase
+    a0000–zzzzz (43770016–87440031).
+    """
+    s = s.strip()
+    if not s:
+        return 0
+    f = s[0]
+    if f == '-' or f.isdigit():
+        return int(s)
+    if f.isupper():
+        return _hy36_decode_pure(_HY36_UPPER_VALUES, s) - 10 * 36**4 + 100000
+    if f.islower():
+        return _hy36_decode_pure(_HY36_LOWER_VALUES, s) + 16 * 36**4 + 100000
+    raise ValueError(f"invalid hybrid-36 atom serial: {s!r}")
 
 def parse_atom(l:str):
     return Atom(
@@ -132,7 +162,7 @@ def parse_atom(l:str):
         l[16].strip(),                                                 # alternate location
         l[17:20].strip(),                                              # resname
         l[21],                                                         # chain
-        int(l[22:26].strip()),                                         # resid
+        _parse_res_seq(l[22:26]),                                      # resid
         np.array([float(l[30:38]), float(l[38:46]), float(l[46:54])])  # xyz coords
     )
 

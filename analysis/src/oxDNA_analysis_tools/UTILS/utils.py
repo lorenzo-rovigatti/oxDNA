@@ -21,12 +21,14 @@ def get_pos_base(cm_pos, a1, a3 = None, type='DNA'):
         return cm_pos + a1 * POS_BASE
 
 def get_pos_stack(cm_pos, a1, a3=None, type='DNA'):
+    """
+    Returns the position of the stacking site
+    """
     return cm_pos + a1 * POS_STACK
 
 def get_pos_back(cm_pos, a1, a3, type='DNA'):
     """
-    Returns the position of the backbone centroid
-    Note that cm_pos is the centrod of the backbone and base.
+    Returns the position of the backbone bead based on the center of mass
     """
     # In DNANucleotide.cpp, the definition of a1, a3, a2 is:
     # [1, 0, 0]
@@ -98,13 +100,7 @@ def kabsch_align(arr:np.ndarray, ref:np.ndarray, center=True, inplace:bool=False
 
 def get_angle(a, b):
     """
-    Get angle between a,b
-
-    >>> a = [0, 1, 0]
-    >>> b = [0, 0, 1]
-    >>> round(get_angle(a,b),3)
-    1.571
-
+    Get angle between two vectors
     """
     ab = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
     if ab > (1. - FLT_EPSILON): 

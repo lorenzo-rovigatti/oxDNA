@@ -251,24 +251,49 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
 
     return(reading_position, amino_acids)
 
-_HY36_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-_HY36_OFFSET = 16696160  # int('A0000', 36) - 100000
+_HY36_DIGITS_UPPER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+_HY36_DIGITS_LOWER = '0123456789abcdefghijklmnopqrstuvwxyz'
+
+def _hy36_encode_pure(digits: str, value: int) -> str:
+    n = len(digits)
+    result = []
+    while value:
+        result.append(digits[value % n])
+        value //= n
+    result.reverse()
+    return ''.join(result) if result else digits[0]
+
+def _format_res_seq(n: int) -> str:
+    """Format a PDB residue sequence number using the hybrid-36 convention (Grosse-Kunstleve 2007).
+
+    1–9999: decimal.  10000–1223055: uppercase base-36 (A000–ZZZZ).
+    1223056–2436111: lowercase base-36 (a000–zzzz).
+    """
+    if n < 10000:
+        return f"{n:4d}"
+    i = n - 10000
+    if i < 26 * 36**3:
+        return _hy36_encode_pure(_HY36_DIGITS_UPPER, i + 10 * 36**3)
+    i -= 26 * 36**3
+    if i < 26 * 36**3:
+        return _hy36_encode_pure(_HY36_DIGITS_LOWER, i + 10 * 36**3)
+    raise ValueError(f"residue sequence number {n} out of hybrid-36 range (max 2436111)")
 
 def _format_atom_serial(n: int) -> str:
-    """Format a PDB atom serial number using the hybrid36 convention beyond 99999.
+    """Format a PDB atom serial using the hybrid-36 convention (Grosse-Kunstleve 2007).
 
-    Values 1-99999 are written as standard decimal.  Values >= 100000 are encoded
-    as 5-character base-36 strings (0-9 then A-Z per digit) with an offset chosen
-    so that A0000 == 100000 (e.g. 100010 -> A000A, 100036 -> A0010).
+    1–99999: decimal.  100000–43770015: uppercase base-36 (A0000–ZZZZZ).
+    43770016–87440031: lowercase base-36 (a0000–zzzzz).
     """
     if n < 100000:
         return f"{n:5d}"
-    n += _HY36_OFFSET
-    chars = []
-    for _ in range(5):
-        chars.append(_HY36_DIGITS[n % 36])
-        n //= 36
-    return ''.join(reversed(chars))
+    i = n - 100000
+    if i < 26 * 36**4:
+        return _hy36_encode_pure(_HY36_DIGITS_UPPER, i + 10 * 36**4)
+    i -= 26 * 36**4
+    if i < 26 * 36**4:
+        return _hy36_encode_pure(_HY36_DIGITS_LOWER, i + 10 * 36**4)
+    raise ValueError(f"atom serial {n} out of hybrid-36 range (max 87440031)")
 
 def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper) -> int:
     """
@@ -286,7 +311,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
     #re-index and create PDB string
     for nid, n in enumerate(strand_pdb, 1):
         for a in n:
-            print("{:6s}{:5s} {:^4s}{:1s}{:>3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
+            print("{:6s}{:5s} {:^4s}{:1s}{:>3s} {:1s}{:4s}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
                 .format(
                     "ATOM",                         #record
                     _format_atom_serial(atom_counter), #atom_id
@@ -294,7 +319,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
                     " ",                            #alt_loc
                     a['residue_name'],              #res_name
                     chain_id,                       #chain_id
-                    nid,                            #res_id
+                    _format_res_seq(nid),           #res_id
                     " ",                            #ins_code
                     a['pos'][0],                    #coord_x
                     a['pos'][1],                    #coord_y
@@ -305,7 +330,7 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
                 ),
                 file=out
             )
-            atom_counter = (atom_counter + 1) % 43770016  # hybrid36 max: ZZZZZ
+            atom_counter = (atom_counter + 1) % 87440032  # hybrid36 max: zzzzz
     print("TER", file=out)
 
     return(atom_counter)

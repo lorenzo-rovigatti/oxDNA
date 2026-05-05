@@ -14,8 +14,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from oxDNA_analysis_tools.oxDNA_PDB import oxDNA_PDB, _format_atom_serial, cli_parser as oxDNA_PDB_cli_parser
-from oxDNA_analysis_tools.PDB_oxDNA import PDB_oxDNA, _parse_atom_serial, cli_parser as PDB_oxDNA_cli_parser
+from oxDNA_analysis_tools.oxDNA_PDB import oxDNA_PDB, _format_atom_serial, _format_res_seq, cli_parser as oxDNA_PDB_cli_parser
+from oxDNA_analysis_tools.PDB_oxDNA import PDB_oxDNA, _parse_atom_serial, _parse_res_seq, cli_parser as PDB_oxDNA_cli_parser
 from oxDNA_analysis_tools.UTILS.RyeReader import (
     describe,
     get_confs,
@@ -349,30 +349,68 @@ class TestHybrid36:
         boundary and within the hybrid36 range.
 
         Key values exercised:
-          99999  -> "99999"  (last pure-decimal serial)
-          100000 -> "A0000"  (first hybrid36 serial)
-          100009 -> "A0009"  (last digit still numeric)
-          100010 -> "A000A"  (first carry into base-36 territory)
-          100035 -> "A000Z"  (Z = 35, last value in units digit)
-          100036 -> "A0010"  (carry into tens digit)
-          164067 -> "A1DFN"  (first atom serial in HYBRID36_PDB fixture)
-          164100 -> "A1DGK"  (last atom serial in HYBRID36_PDB fixture)
+          99999    -> "99999"  (last pure-decimal serial)
+          100000   -> "A0000"  (first uppercase hybrid36 serial)
+          100009   -> "A0009"  (last digit still numeric)
+          100010   -> "A000A"  (first carry into base-36 territory)
+          100035   -> "A000Z"  (Z = 35, last value in units digit)
+          100036   -> "A0010"  (carry into tens digit)
+          164067   -> "A1DFN"  (first atom serial in HYBRID36_PDB fixture)
+          164100   -> "A1DGK"  (last atom serial in HYBRID36_PDB fixture)
+          43770015 -> "ZZZZZ"  (last uppercase serial)
+          43770016 -> "a0000"  (first lowercase serial)
+          87440031 -> "zzzzz"  (last lowercase serial)
         """
         cases = [
-            (99999,  "99999"),
-            (100000, "A0000"),
-            (100009, "A0009"),
-            (100010, "A000A"),
-            (100035, "A000Z"),
-            (100036, "A0010"),
-            (164067, "A1DFN"),
-            (164100, "A1DGK"),
+            (99999,    "99999"),
+            (100000,   "A0000"),
+            (100009,   "A0009"),
+            (100010,   "A000A"),
+            (100035,   "A000Z"),
+            (100036,   "A0010"),
+            (164067,   "A1DFN"),
+            (164100,   "A1DGK"),
+            (43770015, "ZZZZZ"),
+            (43770016, "a0000"),
+            (87440031, "zzzzz"),
         ]
         for value, encoded in cases:
             assert _format_atom_serial(value).strip() == encoded, \
                 f"_format_atom_serial({value}) should be '{encoded}'"
             assert _parse_atom_serial(encoded) == value, \
                 f"_parse_atom_serial('{encoded}') should be {value}"
+
+    def test_res_seq_format_and_parse_roundtrip(self):
+        """
+        Round-trip for 4-column residue sequence numbers.
+
+        Key values exercised:
+          9999    -> "9999"  (last pure-decimal residue)
+          10000   -> "A000"  (first uppercase hybrid36 residue)
+          10009   -> "A009"
+          10010   -> "A00A"
+          10035   -> "A00Z"
+          10036   -> "A010"
+          1223055 -> "ZZZZ"  (last uppercase residue)
+          1223056 -> "a000"  (first lowercase residue)
+          2436111 -> "zzzz"  (last lowercase residue)
+        """
+        cases = [
+            (9999,    "9999"),
+            (10000,   "A000"),
+            (10009,   "A009"),
+            (10010,   "A00A"),
+            (10035,   "A00Z"),
+            (10036,   "A010"),
+            (1223055, "ZZZZ"),
+            (1223056, "a000"),
+            (2436111, "zzzz"),
+        ]
+        for value, encoded in cases:
+            assert _format_res_seq(value).strip() == encoded, \
+                f"_format_res_seq({value}) should be '{encoded}'"
+            assert _parse_res_seq(encoded) == value, \
+                f"_parse_res_seq('{encoded}') should be {value}"
 
     def test_pdb_oxdna_hybrid36_single_nucleotide(self):
         """
