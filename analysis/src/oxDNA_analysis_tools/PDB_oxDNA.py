@@ -7,11 +7,117 @@ from typing import Tuple, List, Dict
 from dataclasses import dataclass
 from itertools import permutations
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
+from oxDNA_analysis_tools.UTILS.mmcif import parse_atom_site
 from oxDNA_analysis_tools.UTILS.RyeReader import write_conf, write_top
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, System, Strand, Monomer
 
 BASE_SHIFT = 1.13
 COM_SHIFT = 0.5
+
+# ── Vectorised geometry helpers ───────────────────────────────────────────────
+
+# Pre-computed at import time — same for every call.
+_RING_NAMES = ("C2", "C4", "C5", "C6", "N1", "N3")
+_RING_IDX   = {name: i for i, name in enumerate(_RING_NAMES)}
+# All 120 ordered triples drawn from the 6 ring atoms (same as permutations(6,3))
+_PERM_ARR   = np.array(list(permutations(range(6), 3)), dtype=np.intp)  # (120, 3)
+# Index pairs for a1: pyrimidines (C/T/U) and purines (A/G)
+_PYR_PAIRS  = np.array([[_RING_IDX["N3"], _RING_IDX["C6"]],
+                         [_RING_IDX["C2"], _RING_IDX["N1"]],
+                         [_RING_IDX["C4"], _RING_IDX["C5"]]], dtype=np.intp)  # (3, 2)
+_PUR_PAIRS  = np.array([[_RING_IDX["N1"], _RING_IDX["C4"]],
+                         [_RING_IDX["C2"], _RING_IDX["N3"]],
+                         [_RING_IDX["C6"], _RING_IDX["C5"]]], dtype=np.intp)  # (3, 2)
+
+
+def _calc_ox_properties_batch(residues: list):
+    """
+    Vectorised equivalent of ``Residue.calc_ox_properties()`` for a list of
+    residues belonging to the same strand.
+
+    All 120 ring-atom permutations (for a3) and the 3 base-edge pairs (for a1)
+    are evaluated across every residue simultaneously using numpy batch ops,
+    replacing the per-residue Python loops that dominate runtime for large
+    structures.
+
+    Returns
+    -------
+    positions : (N, 3) — COM in oxDNA units
+    a1s       : (N, 3) — base-pairing-edge unit vectors
+    a3s       : (N, 3) — base-normal unit vectors
+    """
+    for r in residues:
+        r.parse_nucleic_atoms()   # populate atom_lookup if not done
+
+    # ── Ring-atom positions: (N, 6, 3) ────────────────────────────────────
+    ring_atoms = np.array(
+        [[r.atom_lookup[name].pos for name in _RING_NAMES] for r in residues],
+        dtype=float,
+    )
+
+    # ── Reference vector for a3 sign: C5' − C3', (N, 3) ──────────────────
+    ref_vecs = np.array(
+        [r.atom_lookup["C5'"].pos - r.atom_lookup["C3'"].pos for r in residues],
+        dtype=float,
+    )
+
+    # ── COM of all atoms, converted to oxDNA units: (N, 3) ────────────────
+    positions = np.array(
+        [np.mean([a.pos for a in r.atoms], axis=0) for r in residues],
+        dtype=float,
+    ) * ANGSTROM_TO_OXDNA
+
+    # ── Batch a3 ──────────────────────────────────────────────────────────
+    # Gather the three point clouds for all 120 permutations: each (N, 120, 3)
+    p    = ring_atoms[:, _PERM_ARR[:, 0], :]
+    q    = ring_atoms[:, _PERM_ARR[:, 1], :]
+    r_pt = ring_atoms[:, _PERM_ARR[:, 2], :]
+
+    v1 = p - q
+    v2 = p - r_pt
+    v1 /= np.linalg.norm(v1, axis=-1, keepdims=True)
+    v2 /= np.linalg.norm(v2, axis=-1, keepdims=True)
+
+    a3_all = np.cross(v1, v2)                                # (N, 120, 3)
+    a3_all /= np.linalg.norm(a3_all, axis=-1, keepdims=True)
+
+    # Flip contributions where the normal points away from the helix axis
+    dots = np.einsum('nki,ni->nk', a3_all, ref_vecs)        # (N, 120)
+    a3_all *= np.where(dots < 0, -1.0, 1.0)[:, :, None]
+
+    a3 = a3_all.sum(axis=1)                                  # (N, 3)
+    a3 /= np.linalg.norm(a3, axis=-1, keepdims=True)
+
+    # ── Batch a1 ──────────────────────────────────────────────────────────
+    is_pyr = np.array(
+        [("C" in r.resn or "T" in r.resn or "U" in r.resn) for r in residues],
+        dtype=bool,
+    )
+
+    def _pair_a1(pair_idx):
+        p = ring_atoms[:, pair_idx[:, 0], :]  # (N, 3, 3)
+        q = ring_atoms[:, pair_idx[:, 1], :]
+        vecs = p - q
+        vecs /= np.linalg.norm(vecs, axis=-1, keepdims=True)
+        return vecs.sum(axis=1)               # (N, 3)
+
+    pyr_a1 = _pair_a1(_PYR_PAIRS)
+    pur_a1 = _pair_a1(_PUR_PAIRS)
+
+    a1 = np.where(is_pyr[:, None], pyr_a1, pur_a1)          # (N, 3)
+    a1 /= np.linalg.norm(a1, axis=-1, keepdims=True)
+
+    return positions, a1, a3
+
+
+def _flush_to_strand(residue_buffer: list, strand) -> None:
+    """Batch-compute oxDNA properties for all buffered residues and append to strand."""
+    if not residue_buffer:
+        return
+    positions, a1s, a3s = _calc_ox_properties_batch(residue_buffer)
+    for r_b, pos, a1, a3 in zip(residue_buffer, positions, a1s, a3s):
+        strand.append(Monomer(r_b.resi, r_b.resn, strand, None, None, None, pos, a1, a3))
+    residue_buffer.clear()
 OXDNA_TO_ANGSTROM = 8.518
 ANGSTROM_TO_OXDNA = 1. / OXDNA_TO_ANGSTROM
 
@@ -166,44 +272,182 @@ def parse_atom(l:str):
         np.array([float(l[30:38]), float(l[38:46]), float(l[46:54])])  # xyz coords
     )
 
-def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], List[System]]:
-    """
-    Convert a PDB string to an oxDNA Configuration/System
+def _is_mmcif(text: str) -> bool:
+    """Return True if *text* looks like an mmCIF file (starts with a data_ block)."""
+    return text.lstrip().startswith('data_')
 
-    Parameters:
-        pdb_str (str) : The contents of a PDB file as a string
-        old_top (bool) : (optional) If True, create an old-style topology. default=False
 
-    Returns:
-        (tuple(System, Configuration)) : The system and configuration in oxDNA ready for write-out
-    """
-    
-    # Cleanup function to run whenever we end a strand
+def _parse_mmcif(cif_str: str, old_top: bool = False) -> Tuple[List[Configuration], List[System]]:
+    """Convert an mmCIF string to oxDNA Configuration/System objects."""
+
+    residue_buffer: list = []
+
     def end_strand():
-        nonlocal a, r, strand, sys, prev_chain, prev_resi
-        if any(atom.type == "O2'" for atom in r.atoms): # Check for the 2' hydroxyl
-            strand.type='RNA'
+        nonlocal a, r, strand, sys, prev_chain, prev_model
+        if any(atom.type == "O2'" for atom in r.atoms):
+            strand.type = 'RNA'
         if not r.has_backbone_atoms():
-            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
+            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
+                level='warning')
         else:
-            monomer = r.to_monomer(strand)
-            strand.append(monomer)
+            residue_buffer.append(r)
+        _flush_to_strand(residue_buffer, strand)
         sys.append(strand)
-        strand = Strand(strand.id+1)
+        strand = Strand(strand.id + 1)
         prev_chain = a.chain
-        prev_resi = -1
 
-    # Cleanup function to run whenever we end a model
     def end_system():
         nonlocal sys, old_top, systems, configs
         if old_top:
             for s in sys.strands:
                 s.monomers = s.monomers[::-1]
                 s.set_old(True)
+        positions = np.array([m.pos for s in sys.strands for m in s])
+        box = 1.5 * (np.max(positions) - np.min(positions))
+        conf = Configuration(
+            0, np.array([box, box, box]), np.array([0, 0, 0]),
+            positions,
+            np.array([m.a1 for s in sys.strands for m in s]),
+            np.array([m.a3 for s in sys.strands for m in s]),
+        )
+        systems.append(sys)
+        configs.append(conf)
+        sys = System('', [])
 
+    rows = parse_atom_site(cif_str)
+
+    systems: List[System] = []
+    configs: List[Configuration] = []
+    sys = System('')
+    strand = Strand(1)
+    prev_resi: int = -1
+    prev_chain: str = ''
+    prev_model: str = '1'
+    r: Residue = None   # type: ignore[assignment]
+    a: Atom = None      # type: ignore[assignment]
+
+    for row in rows:
+        if row.get('group_PDB', 'ATOM') not in ('ATOM', 'HETATM'):
+            continue
+
+        atom_name = (row.get('label_atom_id') or row.get('auth_atom_id', '')).replace('*', "'")
+        alt_loc   = row.get('label_alt_id', '.')
+        alt_loc   = '' if alt_loc in ('.', '?') else alt_loc
+        resn      = row.get('label_comp_id') or row.get('auth_comp_id', '')
+        chain     = row.get('label_asym_id') or row.get('auth_asym_id', '')
+        raw_seq   = row.get('label_seq_id') or row.get('auth_seq_id', '0')
+        resi      = int(raw_seq) if raw_seq not in ('.', '?') else 0
+        model     = row.get('pdbx_PDB_model_num', '1')
+
+        if model != prev_model and len(sys.strands) > 0:
+            if prev_resi != -1:
+                end_strand()
+            end_system()
+            strand = Strand(1)
+            prev_resi = -1
+            prev_chain = ''
+        prev_model = model
+
+        a = Atom(
+            id=int(row.get('id', 0)),
+            type=atom_name,
+            alt=alt_loc,
+            resn=resn,
+            chain=chain,
+            resi=resi,
+            pos=np.array([float(row['Cartn_x']), float(row['Cartn_y']), float(row['Cartn_z'])]),
+        )
+
+        if a.alt and a.alt not in ('A', '1'):
+            continue
+        if a.alt:
+            log(f"Alternate location for atom {a.id} of residue {a.resi} "
+                f"encountered, using location {a.alt}")
+
+        if prev_chain != '' and a.chain != prev_chain and prev_resi != -1:
+            end_strand()
+
+        if a.resi != prev_resi:
+            if prev_resi != -1:
+                if not r.has_backbone_atoms():
+                    log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
+                        level='warning')
+                else:
+                    residue_buffer.append(r)
+            try:
+                r = Residue(a.resn, a.resi)
+            except RuntimeError as e:
+                log(str(e), level='warning')
+                prev_resi = a.resi
+                prev_chain = a.chain
+                continue
+
+        r.atoms.append(a)
+        prev_resi = a.resi
+        prev_chain = a.chain
+
+    # Flush the last residue / strand / system
+    if prev_resi != -1:
+        if not r.has_backbone_atoms():
+            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
+                level='warning')
+        else:
+            residue_buffer.append(r)
+        if any(atom.type == "O2'" for atom in r.atoms):
+            strand.type = 'RNA'
+        _flush_to_strand(residue_buffer, strand)
+        sys.append(strand)
+        if old_top:
+            for s in sys.strands:
+                s.monomers = s.monomers[::-1]
+                s.set_old(True)
+    if len(sys.strands) > 0:
+        end_system()
+
+    return configs, systems
+
+
+def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], List[System]]:
+    """
+    Convert a PDB or mmCIF string to an oxDNA Configuration/System.
+
+    The format is detected automatically: strings that begin with a ``data_``
+    block are treated as mmCIF; everything else is treated as PDB.
+
+    Parameters:
+        pdb_str (str) : The contents of a PDB or mmCIF file as a string
+        old_top (bool) : (optional) If True, create an old-style topology. default=False
+
+    Returns:
+        (tuple(List[Configuration], List[System])) : The system and configuration in oxDNA ready for write-out
+    """
+    if _is_mmcif(pdb_str):
+        return _parse_mmcif(pdb_str, old_top)
+
+    residue_buffer: list = []
+
+    def end_strand():
+        nonlocal a, r, strand, sys, prev_chain, prev_resi
+        if any(atom.type == "O2'" for atom in r.atoms):
+            strand.type = 'RNA'
+        if not r.has_backbone_atoms():
+            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
+        else:
+            residue_buffer.append(r)
+        _flush_to_strand(residue_buffer, strand)
+        sys.append(strand)
+        strand = Strand(strand.id+1)
+        prev_chain = a.chain
+        prev_resi = -1
+
+    def end_system():
+        nonlocal sys, old_top, systems, configs
+        if old_top:
+            for s in sys.strands:
+                s.monomers = s.monomers[::-1]
+                s.set_old(True)
         positions = np.array([m.pos for s in sys.strands for m in s])
         box = 1.5*(np.max(positions) - np.min(positions))
-            
         conf = Configuration(0, np.array([box, box, box]), np.array([0, 0, 0]), positions, np.array([m.a1 for s in sys.strands for m in s]), np.array([m.a3 for s in sys.strands for m in s]))
         systems.append(sys)
         configs.append(conf)
@@ -218,28 +462,26 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
 
     lines = pdb_str.split('\n')
     for l in lines:
-        if l.startswith('ATOM'): # We have found an atom
+        if l.startswith('ATOM'):
             a = parse_atom(l)
 
             # Catch case where there was no TER on the previous strand
-            if prev_chain != '':
-                if a.chain != prev_chain and len(strand) != 0:
-                    end_strand()
-            
+            if prev_chain != '' and a.chain != prev_chain and prev_resi != -1:
+                end_strand()
+
             # Use the first available alternate position
             if a.alt:
                 if not (a.alt == 'A' or a.alt == '1'):
-                    continue 
+                    continue
                 log(f"Alternate location for atom {a.id} of residue {a.resi} encountered, using location {a.alt}")
-            
+
             # We're in a new residue
             if a.resi != prev_resi:
                 if prev_resi != -1:
                     if not r.has_backbone_atoms():
                         log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
                     else:
-                        monomer = r.to_monomer(strand)
-                        strand.append(monomer)
+                        residue_buffer.append(r)
                 r = Residue(a.resn, a.resi)
 
             r.atoms.append(a)
@@ -247,34 +489,31 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
             prev_chain = a.chain
             continue
 
-        # End of a chain
         elif l.startswith('TER'):
             end_strand()
             continue
 
-        # End the system, start a new one (if there is one)
-        # Also catch the last strand if there was no TER identifier
         elif l.startswith('END'):
-            if len(strand) > 0:
+            if prev_resi != -1:
                 end_strand()
             if len(sys.strands) > 0:
                 end_system()
             continue
-    
+
     # Catch the case where there was no TER identifier
-    if len(strand) > 0: 
+    if prev_resi != -1:
         end_strand()
-        
+
     # Catch the case where there was no END identifier
     if len(sys) > 0:
         end_system()
-    
+
     return configs, systems
 
 # This is what gets picked up by the cli documentation builder
 def cli_parser(prog="program_name"):
-    parser = argparse.ArgumentParser(prog = prog, description="Convert a PDB file to oxDNA")
-    parser.add_argument('pdb_file', type=str, help='The pdb file you wish to convert')
+    parser = argparse.ArgumentParser(prog=prog, description="Convert a PDB or mmCIF file to oxDNA")
+    parser.add_argument('pdb_file', type=str, help='The PDB or mmCIF file to convert (format is auto-detected)')
     parser.add_argument('-o', '--output', metavar='output_file', help='The filename to save the output oxDNA files to')
     parser.add_argument('-b', '--backward', action='store_true', default=False, help="Use the old topology format? (strands will be listed 3'-5')")
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
@@ -295,11 +534,11 @@ def main():
 
     old_top = args.backward
  
-    # -o names the output file
+    # -o names the output file; strip known structure-file extensions from the basename
     if args.output:
         outbase = args.output
     else:
-        outbase = pdb_file.replace('.pdb', '')
+        outbase = path.splitext(pdb_file)[0]
         log(f"No outfile name provided, defaulting to \"{outbase}\"")
 
     # Get the string from the PDB

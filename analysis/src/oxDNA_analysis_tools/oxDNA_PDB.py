@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-
+import time
+start_time = time.time()
 import os
 import re
 import inspect
+import itertools
 import numpy as np
 import copy
 import argparse
 from collections import defaultdict
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple, Union, Iterator
 from io import TextIOWrapper
 from pathlib import Path
 
@@ -15,6 +17,10 @@ from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, 
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
 from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration, System
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
+from oxDNA_analysis_tools.UTILS.mmcif import (
+    write_data_block_header, write_atom_site_block,
+    write_entity_block, write_entity_poly_block,
+)
 import oxDNA_analysis_tools.UTILS.utils as utils
 
 # This is terrible code, but it *does* get the path of this file whether its run as a script or imported as a module or whatever Sphinx does to build docs.
@@ -295,6 +301,265 @@ def _format_atom_serial(n: int) -> str:
         return _hy36_encode_pure(_HY36_DIGITS_LOWER, i + 10 * 36**4)
     raise ValueError(f"atom serial {n} out of hybrid-36 range (max 87440031)")
 
+def _load_templates() -> tuple:
+    """Load DNA and RNA nucleotide fragment templates from pdb_templates/."""
+    DNAbases: Dict = {}
+    RNAbases: Dict = {}
+    for f in PDB_PATH.iterdir():
+        base = get_nucs_from_PDB(str(f))[0]
+        base.compute_as()
+        base.a1, base.a2, base.a3 = utils.get_orthonormalized_base(base.a1, base.a2, base.a3)
+        if 'D' in f.stem:
+            DNAbases[f.stem] = base
+        else:
+            RNAbases[f.stem] = base
+    return DNAbases, RNAbases
+
+
+def _preprocess_templates(DNAbases: Dict, RNAbases: Dict, hydrogen: bool) -> Dict:
+    """
+    Extract numpy arrays from PDB_Nucleotide template objects.
+
+    Called once per oxDNA_PDB invocation.  The returned dict maps each
+    template key (e.g. 'DA3', 'RG5') to a sub-dict containing:
+      'proxies'       : (5, 3) reference proxy points for Kabsch alignment
+      'atoms_centered': (n_atoms, 3) atom positions centred at their COM
+      'n_atoms'       : int
+      'a1'            : (3,) template a1 vector (used for the post-rotation shift)
+      'atom_names'    : list[str]
+      'residue_name'  : str
+    """
+    result: Dict = {}
+    for name, base in DNAbases.items():
+        result[name] = _extract_template_arrays(base, DNA_funcs, hydrogen)
+    for name, base in RNAbases.items():
+        result[name] = _extract_template_arrays(base, RNA_funcs, hydrogen)
+    return result
+
+
+def _extract_template_arrays(base, funcs: Dict, hydrogen: bool) -> Dict:
+    # The original per-nucleotide loop deep-copied the template then called
+    # compute_as(), which overwrites the orthonormalized a1/a2/a3 stored by
+    # _load_templates() with the raw ring-atom values.  The proxies must use
+    # those same raw values to produce an identical rotation matrix R.
+    saved_a1, saved_a2, saved_a3 = base.a1.copy(), base.a2.copy(), base.a3.copy()
+    base.compute_as()
+    a1 = base.a1.copy()
+    a3 = base.a3.copy()
+    a2 = base.a2.copy()
+    proxies = np.array([a1, a3, a2, funcs["back"](base), funcs["base"](base)], dtype=float)
+    base.a1, base.a2, base.a3 = saved_a1, saved_a2, saved_a3   # restore
+
+    # Original code centred on the COM of ALL atoms (including H) before
+    # rotating, even when hydrogen=False.  Replicate that here.
+    all_atoms = base.get_atoms()
+    all_positions = np.array([a.pos for a in all_atoms], dtype=float)
+    com = all_positions.mean(axis=0)
+
+    out_atoms = [a for a in all_atoms if hydrogen or 'H' not in a.name]
+    out_positions = np.array([a.pos for a in out_atoms], dtype=float)
+    atoms_centered = out_positions - com
+
+    return {
+        'proxies':        proxies,
+        'atoms_centered': atoms_centered,
+        'n_atoms':        len(out_atoms),
+        'a1':             a1,           # raw (non-orthonormalized), matches loop
+        'atom_names':     [a.name for a in out_atoms],
+        'residue_name':   base.name,
+    }
+
+
+def _nucleotide_template_key(nucleotide, strand, isDNA: bool, uniform_residue_names: bool) -> str:
+    """Return the template dict key for a single nucleotide."""
+    if isinstance(nucleotide.btype, int):
+        nb = number_to_DNAbase[nucleotide.btype % 4] if isDNA else number_to_RNAbase[nucleotide.btype % 4]
+    elif isinstance(nucleotide.btype, str):
+        nb = nucleotide.btype
+    else:
+        raise RuntimeError(f"Bad base type: {nucleotide.btype} on nucleotide id {nucleotide.id}")
+
+    if uniform_residue_names:
+        end_type = ""
+    elif (nucleotide is strand.monomers[0] or nucleotide is strand.monomers[-1]) and not strand.is_circular():
+        if strand.is_old():
+            end_type = "3" if nucleotide is strand.monomers[0] else "5"
+        else:
+            end_type = "5" if nucleotide is strand.monomers[0] else "3"
+    else:
+        end_type = ""
+
+    sugar_type = 'D' if strand.type == 'DNA' else ('R' if strand.type == 'RNA' and end_type else '')
+    return sugar_type + nb + end_type
+
+
+def _batch_kabsch(mobile: np.ndarray, ref: np.ndarray) -> np.ndarray:
+    """
+    Vectorised Kabsch rotation matrices for N pairs of point sets.
+
+    Matches ``utils.kabsch_align`` exactly:
+        cov = mobile.T @ ref
+        u, _, vt = svd(cov)
+        rot = (vt.T @ u.T).T  =  u @ vt
+        if det(rot) < 0: vt[2] = -vt[2]; rot = u @ vt  (reflection correction)
+
+    Parameters
+    ----------
+    mobile : (N, K, 3)  — the "from" point clouds
+    ref    : (N, K, 3)  — the "to"   point clouds
+
+    Returns
+    -------
+    R : (N, 3, 3) such that ``mobile @ R ≈ ref`` for each sample.
+    """
+    M = mobile.swapaxes(-1, -2) @ ref   # (N, 3, 3): M[n] = mobile[n].T @ ref[n]
+    U, _s, Vt = np.linalg.svd(M)       # each (N, 3, 3); numpy returns Vt
+    # Reflection correction: flip last row of Vt when det(U @ Vt) < 0
+    d = np.linalg.det(U @ Vt)          # (N,)
+    D = np.zeros((len(M), 3, 3))
+    D[:, 0, 0] = D[:, 1, 1] = 1.0
+    D[:, 2, 2] = d
+    return U @ D @ Vt                   # (N, 3, 3)
+
+
+def _build_nucleic_strand_atoms(
+    strand,
+    conf: Configuration,
+    templates: Dict,
+    rmsf_per_nucleotide,
+    box_angstrom: np.ndarray,
+    reverse: bool,
+    uniform_residue_names: bool,
+) -> List[List[Dict]]:
+    """
+    Convert one oxDNA DNA/RNA strand into a list of per-residue atom dicts.
+
+    Uses vectorised numpy operations: all Kabsch alignments and atom
+    rotations for the strand are computed in a single batch, with no
+    Python loop over nucleotides during the heavy linear-algebra work.
+    """
+    monomers = strand.monomers
+    N = len(monomers)
+    if N == 0:
+        return []
+
+    isDNA = strand.get_kwdata()['type'] == 'DNA'
+
+    # ── 1. Resolve template key for every nucleotide ──────────────────────────
+    nb_list = [_nucleotide_template_key(nuc, strand, isDNA, uniform_residue_names)
+               for nuc in monomers]
+
+    # ── 2. Allocate batch arrays ──────────────────────────────────────────────
+    max_atoms = max(templates[nb]['n_atoms'] for nb in nb_list)
+
+    proxies_batch  = np.empty((N, 5, 3))          # template reference frames
+    ox_sites_batch = np.empty((N, 5, 3))          # target oxDNA reference frames
+    atoms_padded   = np.zeros((N, max_atoms, 3))  # zero-padded centered positions
+    a1_tpl         = np.empty((N, 3))             # template a1 for post-rotation shift
+    pos_batch      = np.empty((N, 3))             # target positions in Å
+    n_atoms_arr    = np.empty(N, dtype=int)
+
+    for i, (nuc, nb) in enumerate(zip(monomers, nb_list)):
+        tpl = templates[nb]
+        n   = tpl['n_atoms']
+
+        proxies_batch[i]     = tpl['proxies']
+        atoms_padded[i, :n]  = tpl['atoms_centered']
+        a1_tpl[i]            = tpl['a1']
+        n_atoms_arr[i]       = n
+
+        pos = conf.positions[nuc.id] * FROM_OXDNA_TO_ANGSTROM
+        a1  = conf.a1s[nuc.id]
+        a3  = conf.a3s[nuc.id]
+        a2  = np.cross(a3, a1)
+        bbs = (utils.get_pos_back(pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
+        bs  = (utils.get_pos_base( pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
+        ox_sites_batch[i] = (a1, a3, a2, bbs, bs)
+        pos_batch[i]      = pos
+
+    # ── 3. Batch Kabsch: one SVD call for the whole strand ────────────────────
+    R_batch = _batch_kabsch(proxies_batch, ox_sites_batch)  # (N, 3, 3)
+
+    # ── 4. Rotate and translate all atom clouds simultaneously ─────────────────
+    # atoms_padded @ R_batch : (N, max_atoms, 3) @ (N, 3, 3) → (N, max_atoms, 3)
+    final_atoms = atoms_padded @ R_batch + pos_batch[:, None, :]
+
+    # ── 5. a1 shift (empirical correction that slightly improves RNA geometry) ─
+    new_a1 = (a1_tpl[:, None, :] @ R_batch).squeeze(1)  # (N, 3)
+    final_atoms -= 0.5 * new_a1[:, None, :]
+
+    # ── 6. Reconstruct the List[List[Dict]] output format ────────────────────
+    strand_pdb = []
+    for i, (nuc, nb) in enumerate(zip(monomers, nb_list)):
+        tpl  = templates[nb]
+        n    = tpl['n_atoms']
+        bfac = rmsf_per_nucleotide[nuc.id]
+        strand_pdb.append([
+            {'name': tpl['atom_names'][j], 'residue_name': tpl['residue_name'],
+             'pos': final_atoms[i, j], 'bfactor': bfac}
+            for j in range(n)
+        ])
+
+    if reverse:
+        strand_pdb = strand_pdb[::-1]
+
+    return strand_pdb
+
+
+def _strand_sequence(strand) -> str:
+    """Return the one-letter sequence of a DNA/RNA strand in storage order."""
+    isDNA = strand.get_kwdata()['type'] == 'DNA'
+    bases = []
+    for m in strand.monomers:
+        if type(m.btype) == int:
+            bases.append(number_to_DNAbase[m.btype % 4] if isDNA else number_to_RNAbase[m.btype % 4])
+        else:
+            bases.append(str(m.btype))
+    return ''.join(bases)
+
+
+def _resolve_output_format(format: str, system: System, hydrogen: bool = True) -> str:
+    """Return ``'pdb'`` or ``'mmcif'`` for the given format hint and system size.
+
+    ``'auto'`` selects mmCIF when the estimated atom count exceeds 99 999 or
+    the total residue count exceeds 9 999 — the plain-decimal PDB limits.
+    """
+    if format == 'mmcif':
+        return 'mmcif'
+    if format == 'pdb':
+        return 'pdb'
+    total_residues = sum(len(s.monomers) for s in system.strands)
+    atoms_per_nuc = 33 if hydrogen else 22   # conservative upper bound
+    est_atoms = total_residues * atoms_per_nuc
+    if est_atoms > 99999 or total_residues > 9999:
+        log(f"System has ~{est_atoms} estimated atoms / {total_residues} residues; "
+            "automatically using mmCIF output")
+        return 'mmcif'
+    return 'pdb'
+
+
+def _chain_id_generator(mmcif: bool) -> Iterator[str]:
+    """Yield unique chain IDs for each strand.
+
+    For PDB output the IDs are single characters (A–Z, a–z, 0–9); a warning
+    is logged if the pool of 62 is exhausted and IDs start cycling.
+    For mmCIF output multi-character IDs are used once the 26 uppercase
+    single-letter pool is exhausted: A–Z, AA–AZ, BA–BZ, …, ZA–ZZ, AAA–AAZ, …
+    """
+    if mmcif:
+        for length in itertools.count(1):
+            for combo in itertools.product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=length):
+                yield ''.join(combo)
+    else:
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        i = 0
+        while True:
+            if i > 0 and i % len(chars) == 0:
+                log("More than 62 chains identified, looping chain identifier...", level='warning')
+            yield chars[i % len(chars)]
+            i += 1
+
+
 def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper) -> int:
     """
         Write a list of nucleotide property dictionaries as a new chain to an open PDB file
@@ -335,41 +600,34 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
 
     return(atom_counter)
 
-def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str=''):
+def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_files:Union[List[str], None]=None, reverse:bool=False, hydrogen:bool=True, uniform_residue_names:bool=False, one_file_per_strand:bool=False, rmsf_file:str='', format:str='auto'):
     """
-        Convert an oxDNA file to a PDB file using fragment assembly.  Directly writes the file.
+        Convert an oxDNA file to a PDB or mmCIF file using fragment assembly.
 
         Parameters:
             conf (Configuration) : The Configuration to convert
             system (System) : The system topology for the configuration to convert
-            out_basename (str) : Filename(-.pdb) to write out to
+            out_basename (str) : Filename base (without extension) to write out to
             protein_pdb_files (List[str]) : Filenames of pdb files corresponding to proteins present in the oxDNA files. (Default: [])
             reverse (bool) :  Reverse nucleic acid strands from oxDNA files (If you want 'correct' PDB files from backwards oxDNA files). (Default: False)
-            hydrogen (bool) : Write hydrogens to output file (Probably false if, for example, exporting for GROMACS simulation). (Default: True)
-            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (True if, for example, exporting for GROMACS simulation). (Default: False)
-            one_strand_per_file (bool) : Split each strand into a separate PDB file (appends numbers to out_basename). (Default: False)
-            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field of the PDB file. (Default: '')
-
+            hydrogen (bool) : Write hydrogens to output file (Default: True)
+            uniform_residue_names (bool) : Don't add '5' and '3' to the names of the terminal residues (Default: False)
+            one_file_per_strand (bool) : Split each strand into a separate file (appends strand id to out_basename). (Default: False)
+            rmsf_file (str) : Write oxDNA (json-formatted from deviations) RMSFs into the b-factor field. (Default: '')
+            format (str) : Output format: 'pdb', 'mmcif', or 'auto'. 'auto' selects mmCIF when the
+                system exceeds the plain-decimal PDB limits (>99999 atoms or >9999 residues). (Default: 'auto')
     """
-    # Open PDB File of nice lookin duplexes to get base structures from
-    DNAbases = {}
-    RNAbases = {}
-    for f in PDB_PATH.iterdir():
-        base = get_nucs_from_PDB(str(f))[0]
-        base.compute_as()
-        base.a1, base.a2, base.a3 = utils.get_orthonormalized_base(base.a1, base.a2, base.a3)
-        if 'D' in f.stem:
-            DNAbases[f.stem] = base
-        else:
-            RNAbases[f.stem] = base
+    use_mmcif = _resolve_output_format(format, system, hydrogen) == 'mmcif'
+    ext = '.cif' if use_mmcif else '.pdb'
 
+    DNAbases, RNAbases = _load_templates()
+    templates = _preprocess_templates(DNAbases, RNAbases, hydrogen)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
     # Handle RMSF -> bFactor conversion
     if rmsf_file:
         with open(rmsf_file) as f:
             try:
-                # .json format from oat deviations
                 substrings = f.read().split("[")[1].split("]")[0].split(",")
             except Exception as e:
                 raise RuntimeError("Parsing error in RMSF file. Invalid Format: %s" % e)
@@ -380,36 +638,31 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
     else:
         rmsf_per_nucleotide = defaultdict(lambda: 1.00)
 
-    # Process optional conditionals
-    correct_for_large_boxes = False
-    if np.any(box_angstrom[box_angstrom > 999]):
-        log("At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back through periodic boundary conditions")
-        correct_for_large_boxes = True
-    
     if one_file_per_strand:
-        out_name = out_basename+"_{}.pdb".format(system.strands[0].id)
+        out_name = out_basename + "_{}".format(system.strands[0].id) + ext
     else:
-        out_name = out_basename+".pdb"
+        out_name = out_basename + ext
 
-    # Start writing the output file
     with open(out_name, 'w+') as out:
-        reading_position = 0 
-        chain_id = 'A'
+        reading_position = 0
+        chain_iter = _chain_id_generator(use_mmcif)
+        chain_id = next(chain_iter)
         atom_counter = 1
+        entity_id = 1
 
-        # Iterate over strands in the oxDNA file
+        # mmCIF needs all strand data before writing entity blocks (combined file).
+        all_chain_data = []
+        entity_rows = []
+        entity_poly_rows = []
+
+        if use_mmcif and not one_file_per_strand:
+            write_data_block_header(out, os.path.basename(out_basename))
+
         for i, strand in enumerate(system.strands):
             strand_pdb = []
-            nucleotides_in_strand = strand.monomers
-            sequence = [n.btype for n in nucleotides_in_strand]
-            isDNA = True #This should be in the strand parser instead.
-            isDNA = strand.get_kwdata()['type'] == 'DNA'
-
             log("Converting strand {}".format(strand.id), end='\r')
 
-            # Handle protein
             if strand.type == 'peptide' and protein_pdb_files:
-                # Map oxDNA configuration onto R-group orientations from pdb file
                 s_pdbfile = iter(protein_pdb_files)
                 pdbfile = next(s_pdbfile)
                 reading_position, amino_acids = peptide_to_pdb(strand, conf, pdbfile, reading_position)
@@ -418,148 +671,72 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
                         pdbfile = next(s_pdbfile)
                         reading_position = 0
                     except StopIteration:
-                        protein_pdb_files = [] #had better be nucleic acids next or we're going to the error in the elif.
-
-                # Convert AminoAcid objects to write-ready dicts    
+                        protein_pdb_files = []
                 for aa in amino_acids:
-                    amino_acid_pdb = aa.to_pdb(
-                        hydrogen,
-                        bfactor=rmsf_per_nucleotide[aa.idx],
-                    )
-                    strand_pdb.append(amino_acid_pdb)
-                
-                # Write residue to file
-                atom_counter = write_strand_to_PDB(strand_pdb, chain_id, atom_counter, out)
-                
+                    strand_pdb.append(aa.to_pdb(hydrogen, bfactor=rmsf_per_nucleotide[aa.idx]))
+
             elif strand.id < 0 and not protein_pdb_files:
                 raise RuntimeError("You must provide PDB files containing just the protein for each protein in the scene.")
 
-            # Nucleic Acids
             elif strand.type == 'DNA' or strand.type == 'RNA':
-                for nucleotide in nucleotides_in_strand:
-                    # Get paragon DNA or RNA nucleotide
-                    if type(nucleotide.btype) == int:
-                        if isDNA:
-                            nb = number_to_DNAbase[nucleotide.btype % 4]
-                        else:
-                            nb = number_to_RNAbase[nucleotide.btype % 4]
-                    elif type(nucleotide.btype) == str: 
-                        nb = nucleotide.btype
-                    else:
-                        raise RuntimeError(f"Bad base type: {nucleotide.btype} on nucleotide id {nucleotide.id}")
-                    
-                    # Change the base type for the ends
-                    if (nucleotide == strand.monomers[0] or nucleotide == strand.monomers[-1]) and not strand.is_circular():
-                        if strand.is_old():
-                            if nucleotide == strand.monomers[0]:
-                                end_type = "3"
-                            elif nucleotide == strand.monomers[-1]:
-                                end_type = "5"
-                        else:
-                            if nucleotide == strand.monomers[0]:
-                                end_type = "5"
-                            elif nucleotide == strand.monomers[-1]:
-                                end_type = "3"
-                    else:
-                        end_type = ""
-
-                    sugar_type = 'D' if (strand.type == 'DNA') else 'R' if (strand.type == 'RNA' and end_type) else ''
-                    nb = sugar_type + nb + end_type
-
-                    if isDNA:
-                        my_base = copy.deepcopy(DNAbases[nb])
-                    else:
-                        my_base = copy.deepcopy(RNAbases[nb])
-
-                    # Compute oxDNA reference frame for current all-atom fragment
-                    funcs = DNA_funcs if strand.type == 'DNA' else RNA_funcs
-                    my_base.compute_as()
-                    proxies = np.array([
-                        my_base.a1,
-                        my_base.a3,
-                        my_base.a2,
-                        funcs["back"](my_base),
-                        funcs["base"](my_base)
-                    ])
-
-                    # Prepare oxDNA base for alignment
-                    pos = conf.positions[nucleotide.id] * FROM_OXDNA_TO_ANGSTROM
-                    a1 = conf.a1s[nucleotide.id]
-                    a3 = conf.a3s[nucleotide.id]
-                    a2 = np.cross(a3, a1)
-                    bbs = (utils.get_pos_back(pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
-                    bs = (utils.get_pos_base(pos, a1, a3, type=strand.type) - pos) * FROM_OXDNA_TO_ANGSTROM
-                    ox_sites = np.array([
-                        a1,
-                        a3,
-                        a2,
-                        bbs,
-                        bs
-                    ])
-
-                    # Compute rotation matrix for all-atom fragment
-                    rot = utils.kabsch_align(proxies, ox_sites, center=False, inplace=True, return_rot=True)
-
-                    # Rotate + translate atom positions
-                    atoms_array = np.array([a.pos for a in my_base.get_atoms()])
-                    atoms_array -= np.mean(atoms_array, axis=0)
-                    np.dot(atoms_array, rot, out=atoms_array)
-                    atoms_array += pos
-                    for i, a in enumerate(my_base.get_atoms()):
-                        a.pos = atoms_array[i]
-
-                    my_base.compute_as()
-                    for a in my_base.get_atoms():
-                        a.pos -= 0.5 * my_base.a1 # voodoo, slightly improves RNA structure.
-
-                    if correct_for_large_boxes:
-                        my_base.correct_for_large_boxes(box_angstrom)
-
-                    # Turn nucleotide object into a dict for output
-                    nucleotide_pdb = my_base.to_pdb(
-                        hydrogen,
-                        bfactor=rmsf_per_nucleotide[nucleotide.id],
-                    )
-                    strand_pdb.append(nucleotide_pdb)
-
-                # Reverse the strand if the nucleotides should be flipped
-                if reverse:
-                    strand_pdb = strand_pdb[::-1]
-
-                # Write the current strand to the pdb file.
-                atom_counter = write_strand_to_PDB(strand_pdb, chain_id, atom_counter, out)
+                strand_pdb = _build_nucleic_strand_atoms(
+                    strand, conf, templates,
+                    rmsf_per_nucleotide,
+                    box_angstrom, reverse, uniform_residue_names,
+                )
 
             else:
                 log(f"Unknown strand type {strand.type} on strand {strand.id}. Skipping", level='warning')
-                
-            # Either open a new file or increment chain ID
-            # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
+
+            if strand_pdb:
+                if use_mmcif:
+                    if strand.type in ('DNA', 'RNA'):
+                        poly_type = 'polydeoxyribonucleotide' if strand.type == 'DNA' else 'polyribonucleotide'
+                        entity_rows.append((entity_id, f'{strand.type} strand'))
+                        entity_poly_rows.append((entity_id, poly_type, _strand_sequence(strand)))
+                    else:
+                        entity_rows.append((entity_id, 'protein strand'))
+
+                    if one_file_per_strand:
+                        write_data_block_header(out, f'{os.path.basename(out_basename)}_{strand.id}')
+                        write_entity_block(entity_rows[-1:], out)
+                        if entity_poly_rows and entity_poly_rows[-1][0] == entity_id:
+                            write_entity_poly_block(entity_poly_rows[-1:], out)
+                        write_atom_site_block([(chain_id, strand_pdb, entity_id)], out)
+                        entity_rows.clear()
+                        entity_poly_rows.clear()
+                    else:
+                        all_chain_data.append((chain_id, strand_pdb, entity_id))
+                else:
+                    atom_counter = write_strand_to_PDB(strand_pdb, chain_id, atom_counter, out)
+
             if one_file_per_strand:
-                print("END", file=out) # Add the END identifier
+                if not use_mmcif:
+                    print("END", file=out)
                 out.close()
-                log("Wrote strand {}'s data to {}".format (strand.id, out_name))
-                chain_id = 'A'
+                log("Wrote strand {}'s data to {}".format(strand.id, out_name))
+                chain_iter = _chain_id_generator(use_mmcif)
+                chain_id = next(chain_iter)
+                entity_id = 1
                 if i < len(system) - 1:
                     next_strand = system.strands[i + 1]
-                    out_name = out_basename + "_{}.pdb".format(next_strand.id, )
+                    out_name = out_basename + "_{}".format(next_strand.id) + ext
                     out = open(out_name, "w")
             else:
-                chain_id = chr(ord(chain_id)+1)
-                if chain_id == chr(ord('Z')+1):
-                    chain_id = 'a'
-                elif chain_id == chr(ord('z')+1):
-                    chain_id = '1'
-                elif chain_id == chr(ord('0')+1):
-                    log("More than 62 chains identified, looping chain identifier...", level='warning')
-                    chain_id = 'A'
-        
-        # Add the END identifier at the end of the file
+                chain_id = next(chain_iter)
+                entity_id += 1
+
         if not one_file_per_strand:
-            print("END", file=out)
+            if use_mmcif and all_chain_data:
+                write_entity_block(entity_rows, out)
+                if entity_poly_rows:
+                    write_entity_poly_block(entity_poly_rows, out)
+                write_atom_site_block(all_chain_data, out)
+            elif not use_mmcif:
+                print("END", file=out)
         print()
 
     log("Wrote data to '{}'".format(out_name))
-        
     log("DONE")
 
 
@@ -570,7 +747,7 @@ def cli_parser(prog="oxDNA_PDB.py"):
     parser.add_argument('configuration', type=str,
                         help='the configuration file you wish to convert')
     parser.add_argument('direction', type=str,
-                        help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
+                        help='the direction of strands in the oxDNA files, either 35 or 53.  Old oxDNA files are 3-5. New oxDNA files are 5-3')
     parser.add_argument('pdbfiles', type=str, nargs='*',
                         help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.')
     parser.add_argument('-o', '--output', type=str, 
@@ -585,8 +762,14 @@ def cli_parser(prog="oxDNA_PDB.py"):
                         help='if you want to use uniform residue names in the output PDB file')
     parser.add_argument('-1', '--one_file_per_strand', action='store_true',
                         default=False, help='if you want to have one PDB file per strand')
-    parser.add_argument('-r', '--rmsf-file', dest='rmsf_bfactor', type=str, nargs=1, 
+    parser.add_argument('-r', '--rmsf-file', dest='rmsf_bfactor', type=str, nargs=1,
                         help='A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)')
+    parser.add_argument('--format', choices=['auto', 'pdb', 'mmcif'], default='auto',
+                        help="Output format: 'pdb' (always PDB), 'mmcif' (always mmCIF), "
+                             "'auto' (mmCIF when system exceeds plain-decimal PDB limits). Default: auto")
+    parser.add_argument('--no-inbox', dest='no_inbox', action='store_true', default=False,
+                        help='Skip the inbox (periodic-boundary centering) step before conversion. '
+                             'Use when the structure is already centred or spans a periodic box.')
     return parser
 
 def main():
@@ -606,8 +789,14 @@ def main():
         protein_pdb_files = []
 
     # Parse optional arguments
+    fmt = args.format
     if args.output:
-        out_basename = re.sub(r"\.pdb$", "", args.output)
+        if args.output.endswith('.cif'):
+            out_basename = args.output[:-4]
+            if fmt == 'auto':
+                fmt = 'mmcif'
+        else:
+            out_basename = re.sub(r"\.pdb$", "", args.output)
     else:
         out_basename = conf_file
     reverse = False
@@ -626,9 +815,12 @@ def main():
     system, _ = strand_describe(top_file)
     ti, di = describe(top_file, conf_file)
     conf = get_confs(ti, di, 0, 1)[0]
-    conf = inbox(conf, center=True)
+    if not args.no_inbox:
+        conf = inbox(conf, center=True)
 
-    oxDNA_PDB(conf, system, out_basename, protein_pdb_files, reverse, hydrogen, uniform_residue_names, one_file_per_strand, rmsf_file)
+    oxDNA_PDB(conf, system, out_basename, protein_pdb_files, reverse, hydrogen, uniform_residue_names, one_file_per_strand, rmsf_file, format=fmt)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':
     main()
