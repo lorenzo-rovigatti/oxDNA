@@ -27,13 +27,13 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
         
       - name: Build oxpy and install it through pip
-        run: pip install .
+        run: python -m pip install .
 
       - name: Build oat and install it through pip
-        run: pip install ./analysis
+        run: python -m pip install ./analysis
         
       - name: Install the documentation's requirements
-        run: pip install --upgrade -r docs/docs_requirements.txt
+        run: python -m pip install --upgrade -r docs/docs_requirements.txt
     
       - name: Build the docs
         run: |
