@@ -66,13 +66,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#attraction-plane">Attraction plane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsive-sphere">Repulsive sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#yukawa-sphere">Yukawa sphere</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-lj-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-hard-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-sphere-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_sphere_moving</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-kepler-poinsot"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_kepler_poinsot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#com">COM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lj-wall">LJ_wall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sawtooth">Sawtooth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repulsion-plane-moving">repulsion_plane_moving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hard-wall">hard_wall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repulsive-sphere-moving">repulsive_sphere_moving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repulsive-kepler-poinsot">repulsive_kepler_poinsot</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
@@ -408,8 +408,8 @@ particle = all
 </div>
 </div>
 </section>
-<section id="type-com">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code><a class="headerlink" href="#type-com" title="Permalink to this heading"></a></h2>
+<section id="com">
+<h2>COM<a class="headerlink" href="#com" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
     stiffness of the spring
 r0 = &lt;float&gt;
@@ -424,8 +424,8 @@ ref_list = &lt;string&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-lj-wall">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code><a class="headerlink" href="#type-lj-wall" title="Permalink to this heading"></a></h2>
+<section id="lj-wall">
+<h2>LJ_wall<a class="headerlink" href="#lj-wall" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
     the vector normal to the plane: it should point towards the half-plane
     where the repulsion is not acting.
@@ -453,8 +453,8 @@ particle = &lt;int&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-sawtooth">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code><a class="headerlink" href="#type-sawtooth" title="Permalink to this heading"></a></h2>
+<section id="sawtooth">
+<h2>Sawtooth<a class="headerlink" href="#sawtooth" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
     particle to apply the force to. -1 applies it to all particles.
 F0 = &lt;float&gt;
@@ -467,8 +467,8 @@ increment = &lt;float&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-repulsion-plane-moving">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code><a class="headerlink" href="#type-repulsion-plane-moving" title="Permalink to this heading"></a></h2>
+<section id="repulsion-plane-moving">
+<h2>repulsion_plane_moving<a class="headerlink" href="#repulsion-plane-moving" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
     stiffness of the repulsion.
 dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
@@ -485,8 +485,8 @@ ref_particle = &lt;int&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-hard-wall">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code><a class="headerlink" href="#type-hard-wall" title="Permalink to this heading"></a></h2>
+<section id="hard-wall">
+<h2>hard_wall<a class="headerlink" href="#hard-wall" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
     the vector normal to the plane: it should point towards the half-plane
     that is allowed to the particles.
@@ -502,8 +502,8 @@ particle = &lt;int&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-repulsive-sphere-moving">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_sphere_moving</span></code><a class="headerlink" href="#type-repulsive-sphere-moving" title="Permalink to this heading"></a></h2>
+<section id="repulsive-sphere-moving">
+<h2>repulsive_sphere_moving<a class="headerlink" href="#repulsive-sphere-moving" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
     index(es) of the particle(s) on which the force shall be applied. Can
     be a list of comma-separated indexes / ranges. If -1 or all, the force
@@ -532,8 +532,8 @@ rate = &lt;float&gt;
 </pre></div>
 </div>
 </section>
-<section id="type-repulsive-kepler-poinsot">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_kepler_poinsot</span></code><a class="headerlink" href="#type-repulsive-kepler-poinsot" title="Permalink to this heading"></a></h2>
+<section id="repulsive-kepler-poinsot">
+<h2>repulsive_kepler_poinsot<a class="headerlink" href="#repulsive-kepler-poinsot" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
     index(es) of the particle(s) on which the force shall be applied. Can
     be a list of comma-separated indexes / ranges. If -1 or all, the force

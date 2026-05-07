@@ -87,6 +87,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#forces-to-dot-bracket">Forces to dot-bracket</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#forces-to-pairs">Forces to pairs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#generate-force">Generate force</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#idconvert">IDconvert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mean">Mean</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#minify">Minify</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
@@ -788,6 +789,47 @@
 </dl>
 </section>
 </section>
+<section id="idconvert">
+<h2>IDconvert<a class="headerlink" href="#idconvert" title="Permalink to this heading"></a></h2>
+<p><p>Translate nucleotide IDs between two oxDNA topology files.</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">IDconvert</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">min</span><span class="o">-</span><span class="n">score</span> <span class="n">MIN_SCORE</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="nb">min</span><span class="o">-</span><span class="n">block</span> <span class="n">MIN_BLOCK</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                     <span class="n">reference</span> <span class="n">compare</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>reference</kbd></dt>
+<dd><p>Reference topology file whose nucleotide IDs are provided as input.</p>
+</dd>
+<dt><kbd>compare</kbd></dt>
+<dd><p>Comparison topology file to map the IDs into.</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>-i, --index</kbd></dt>
+<dd><p>File containing a space- or comma-separated list of nucleotide IDs from the reference topology to translate.  If omitted, all nucleotides in the reference are used.</p>
+</dd>
+<dt><kbd>--min-score</kbd></dt>
+<dd><p>Minimum similarity score (0–1) required to accept a strand match in phase 1 (default: 0.75).</p>
+<p>Default: 0.75</p>
+</dd>
+<dt><kbd>--min-block</kbd></dt>
+<dd><p>Minimum consecutive-base block length for phase 2 nicking/ligation matching (default: 8).</p>
+<p>Default: 8</p>
+</dd>
+<dt><kbd>-q, --quiet</kbd></dt>
+<dd><p>Silence non-essential output.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
 <section id="mean">
 <h2>Mean<a class="headerlink" href="#mean" title="Permalink to this heading"></a></h2>
 <p><p>Computes the mean structure of a trajectory file</p>
@@ -964,10 +1006,11 @@
 </section>
 <section id="oxdna-pdb">
 <h2>oxDNA -&gt; PDB<a class="headerlink" href="#oxdna-pdb" title="Permalink to this heading"></a></h2>
-<p><p>Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.</p>
+<p><p>Convert oxDNA files to PDB or mmCIF.  This converter can handle oxDNANM protein simulation files.</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">oxDNA_PDB</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">OUTPUT_DIRECTION</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span>
-                     <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">format</span> <span class="p">{</span><span class="n">auto</span><span class="p">,</span><span class="n">pdb</span><span class="p">,</span><span class="n">mmcif</span><span class="p">}]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">inbox</span><span class="p">]</span>
                      <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="p">[</span><span class="n">pdbfiles</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -981,7 +1024,7 @@
 <dd><p>the configuration file you wish to convert</p>
 </dd>
 <dt><kbd>direction</kbd></dt>
-<dd><p>the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.</p>
+<dd><p>the direction of strands in the oxDNA files, either 35 or 53.  Old oxDNA files are 3-5. New oxDNA files are 5-3</p>
 </dd>
 <dt><kbd>pdbfiles</kbd></dt>
 <dd><p>PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.</p>
@@ -1016,7 +1059,22 @@
 <dt><kbd>-r, --rmsf-file</kbd></dt>
 <dd><p>A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)</p>
 </dd>
+<dt><kbd>--format</kbd></dt>
+<dd><p>Possible choices: auto, pdb, mmcif</p>
+<p>Output format: ‘pdb’ (always PDB), ‘mmcif’ (always mmCIF), ‘auto’ (mmCIF when system exceeds plain-decimal PDB limits). Default: auto</p>
+<p>Default: “auto”</p>
+</dd>
+<dt><kbd>--no-inbox</kbd></dt>
+<dd><p>Skip the inbox (periodic-boundary centering) step before conversion. Use when the structure is already centred or spans a periodic box.</p>
+<p>Default: False</p>
+</dd>
 </dl>
+</section>
+<p>When converting protein-containing structures, reference PDB/mmcif files for the proteins must be provided. The ANM model does not contain any orientation information, so a crude alignment between the reference all-atom files and the ANM model is performed before translating the Cα atoms to match the coarse-grained bead positions. We do not recommend using proteins converted from the ANM model for rigirous analysis which relies on sidechains or all-atom simulations.</p>
+<p>For nucleic acid structures converted to all-atom formats using <code class="docutils literal notranslate"><span class="pre">oxDNA_PDB</span></code>, it is often beneficial to optimize the all-atom geometry using a pairing-aware tool like <a class="reference external" href="https://genesilico.pl/software/stand-alone/qrnas">QRNAS</a> before continuing with analysis or further simulation.</p>
+<section id="all-atom-formats">
+<h3>All-atom formats<a class="headerlink" href="#all-atom-formats" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">oxDNA_PDB</span></code> contains writers for both the classic PDB the modern mmcif format. For structures with over 100000 atoms or 1000 strands, the mmcif format is automatically generated due to limitations in the PDB format’s fixed-width columns. If you want to force a classic PDB format file with hybrid-36 encoding for column overflows, use the <code class="docutils literal notranslate"><span class="pre">--format</span> <span class="pre">pdb</span></code> flag.</p>
 </section>
 </section>
 <section id="pairs-to-dot-bracket">
@@ -1052,16 +1110,16 @@
 </section>
 <section id="pdb-oxdna">
 <h2>PDB -&gt; oxDNA<a class="headerlink" href="#pdb-oxdna" title="Permalink to this heading"></a></h2>
-<p><p>Convert a PDB file to oxDNA</p>
+<p><p>Convert a PDB or mmCIF file to oxDNA</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">PDB_oxDNA</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">pdb_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">PDB_oxDNA</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">pdb_file</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
 <h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>pdb_file</kbd></dt>
-<dd><p>The pdb file you wish to convert</p>
+<dd><p>The PDB or mmCIF file to convert (format is auto-detected)</p>
 </dd>
 </dl>
 </section>
@@ -1070,10 +1128,6 @@
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The filename to save the output oxDNA files to</p>
-</dd>
-<dt><kbd>-b, --backward</kbd></dt>
-<dd><p>Use the old topology format? (strands will be listed 3’-5’)</p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-q, --quiet</kbd></dt>
 <dd><p>Don’t print ‘INFO’ messages to stderr</p>

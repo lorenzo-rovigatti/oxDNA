@@ -159,6 +159,15 @@
     :prog: oat generate_forces
 ```
 
+## IDconvert
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/IDconvert.py
+    :func: cli_parser
+    :prog: oat IDconvert
+```
+
 ## Mean
 
 ```{eval-rst}
@@ -203,6 +212,13 @@
     :func: cli_parser
     :prog: oat oxDNA_PDB
 ```
+
+When converting protein-containing structures, reference PDB/mmcif files for the proteins must be provided. The ANM model does not contain any orientation information, so a crude alignment between the reference all-atom files and the ANM model is performed before translating the Cα atoms to match the coarse-grained bead positions. We do not recommend using proteins converted from the ANM model for rigirous analysis which relies on sidechains or all-atom simulations.
+
+For nucleic acid structures converted to all-atom formats using `oxDNA_PDB`, it is often beneficial to optimize the all-atom geometry using a pairing-aware tool like [QRNAS](https://genesilico.pl/software/stand-alone/qrnas) before continuing with analysis or further simulation.
+
+### All-atom formats
+`oxDNA_PDB` contains writers for both the classic PDB the modern mmcif format. For structures with over 100000 atoms or 1000 strands, the mmcif format is automatically generated due to limitations in the PDB format's fixed-width columns. If you want to force a classic PDB format file with hybrid-36 encoding for column overflows, use the `--format pdb` flag.
 
 ## Pairs to dot-bracket
 ```{eval-rst}

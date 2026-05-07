@@ -398,6 +398,22 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="oxDNA_analysis_tools.UTILS.data_structures.Strand.get_5_3">
+<span class="sig-name descname"><span class="pre">get_5_3</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand.get_5_3" title="Permalink to this definition"></a></dt>
+<dd><p>Return a list of <code class="docutils literal notranslate"><span class="pre">(id,</span> <span class="pre">btype_str)</span></code> tuples for this strand in 5’→3’ order.</p>
+<p>Handles both new-format and old-format strands, including circular strands.</p>
+<ul class="simple">
+<li><p><strong>New-format</strong> strands store monomers in 5’→3’ order already, so
+<code class="docutils literal notranslate"><span class="pre">self.monomers</span></code> is returned directly.</p></li>
+<li><p><strong>Old-format</strong> strands store monomers in file order (typically 3’→5’),
+so connectivity is traversed from the 5’ end (the monomer whose <code class="docutils literal notranslate"><span class="pre">n5</span></code>
+is <code class="docutils literal notranslate"><span class="pre">None</span></code>) following <code class="docutils literal notranslate"><span class="pre">n3</span></code> links.  For circular old-format strands
+there is no monomer with <code class="docutils literal notranslate"><span class="pre">n5</span> <span class="pre">is</span> <span class="pre">None</span></code>, so traversal starts at
+<code class="docutils literal notranslate"><span class="pre">monomers[0]</span></code> and stops when a monomer id is revisited.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="oxDNA_analysis_tools.UTILS.data_structures.Strand.get_kwdata">
 <span class="sig-name descname"><span class="pre">get_kwdata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand.get_kwdata" title="Permalink to this definition"></a></dt>
 <dd><p>Returns all attributes of this object which do not begin with ‘__’</p>
