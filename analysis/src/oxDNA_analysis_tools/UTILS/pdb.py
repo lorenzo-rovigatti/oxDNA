@@ -35,7 +35,6 @@ BASES = ['DA', 'DT', 'DG', 'DC', 'DI',
 AAS = ["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
 class Atom(object):
-    serial_atom = 1
 
     def __init__(self, pdb_line:str):
         object.__init__(self)
@@ -44,12 +43,25 @@ class Atom(object):
         # some PDB files have * in place of '
         if "*" in self.name:
             self.name = self.name.replace("*", "'")
-        
+
         self.alternate = pdb_line[16]
         self.residue = pdb_line[17:20].strip()
         self.chain_id = pdb_line[21:22].strip()
         self.residue_idx = int(pdb_line[22:26])
         self.pos = np.array([float(pdb_line[30:38]), float(pdb_line[38:46]), float(pdb_line[46:54])])
+
+    @classmethod
+    def from_dict(cls, name: str, residue: str, chain_id: str,
+                  residue_idx: int, pos: 'np.ndarray', alternate: str = '') -> 'Atom':
+        """Construct an Atom from named fields (e.g. parsed from mmCIF rows)."""
+        a = cls.__new__(cls)
+        a.name = name.replace('*', "'")
+        a.alternate = alternate
+        a.residue = residue
+        a.chain_id = chain_id
+        a.residue_idx = residue_idx
+        a.pos = pos
+        return a
         
     def is_hydrogen(self) -> bool:
         return "H" in self.name
@@ -262,7 +274,7 @@ class PDB_AminoAcid(object):
         for a in self.get_atoms():
             if not print_H and 'H' in a.name:
                 continue
-            res.append(a.to_pdb('', bfactor))
+            res.append(a.to_pdb(bfactor))
 
         return res
 

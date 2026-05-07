@@ -862,7 +862,10 @@ def get_top_string(system:System, old_format:bool=False) -> str:
                 n_aa += len(seq)
                 aa_strands += 1
 
-        header.append(f'{n_na+n_aa} {na_strands+aa_strands}{" "+str(n_na) if n_aa > 0 else ""}{" "+str(n_aa) if n_aa > 0 else ""} 5->3')
+        if n_aa > 0:
+            header.append(f'{n_na+n_aa} {na_strands+aa_strands} {n_na} {n_aa} {na_strands} 5->3')
+        else:
+            header.append(f'{n_na} {na_strands} 5->3')
         out = header+body
         return '\n'.join(out)
     
