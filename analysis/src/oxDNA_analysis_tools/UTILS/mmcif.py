@@ -136,15 +136,15 @@ def _element_from_name(atom_name: str) -> str:
     return 'X'
 
 
-def _next_chain_id(chain_id: str) -> str:
-    """Advance the chain identifier through A-Z, a-z, 0-9, cycling at overflow."""
-    if chain_id == 'Z':
-        return 'a'
-    if chain_id == 'z':
-        return '1'
-    if chain_id == '9':
-        return 'A'
-    return chr(ord(chain_id) + 1)
+def is_mmcif(text: str) -> bool:
+    """Return True if *text* is (or looks like) an mmCIF coordinate file.
+
+    Standard files begin with a ``data_`` block header.  Some deposited files
+    omit the header and start directly with ``_``-prefixed data items; those
+    are detected by the presence of ``_atom_site.`` anywhere in the content.
+    """
+    stripped = text.lstrip()
+    return stripped.startswith('data_') or '_atom_site.' in stripped
 
 
 # ── Writer ────────────────────────────────────────────────────────────────────

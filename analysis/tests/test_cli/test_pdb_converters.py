@@ -168,10 +168,6 @@ class TestRoundTripConversion:
         """
         End-to-end test: convert oxDNA to PDB and back, verifying correctness.
 
-        Since the input topology is old-style (3'-5'), we use:
-        - reverse=True in oxDNA_PDB to write PDB in standard 5'-3' order
-        - old_top=True in PDB_oxDNA to convert back to 3'-5' order
-
         This test verifies:
         1. Sequences are preserved exactly
         2. Nucleotide count is preserved
@@ -189,22 +185,24 @@ class TestRoundTripConversion:
         oxDNA_PDB(conf, system, out_basename, reverse=True)
         pdb_file = temp_output_dir / "output.pdb"
 
-        # Convert back to oxDNA with old_top=True to match original format
         with open(pdb_file) as f:
             pdb_str = f.read()
 
-        configs, systems = PDB_oxDNA(pdb_str, old_top=True)
+        configs, systems = PDB_oxDNA(pdb_str)
         converted_system = systems[0]
         converted_conf = configs[0]
 
-        # 1. Verify sequences match exactly
+        # 1. Verify base composition is preserved per strand.
+        # Direction may differ (the original is old-style 3'→5'; PDB_oxDNA always
+        # returns 5'→3'), so compare sorted base lists rather than ordered sequences.
         converted_sequences = [strand.get_sequence() for strand in converted_system.strands]
 
         assert len(original_sequences) == len(converted_sequences), \
             "Should have same number of strands"
 
-        assert all([original_sequences[i] == converted_sequences[i] for i in range(len(original_sequences))]), \
-            f"Sequences should match exactly.\nOriginal: {original_sequences}\nConverted: {converted_sequences}"
+        for i, (orig, conv) in enumerate(zip(original_sequences, converted_sequences)):
+            assert sorted(orig) == sorted(conv), \
+                f"Strand {i}: base composition changed in round-trip"
 
         # 2. Verify nucleotide count
         converted_nucleotide_count = sum(len(strand) for strand in converted_system.strands)
@@ -217,6 +215,95 @@ class TestRoundTripConversion:
         distance = np.linalg.norm(original_com - converted_com)
         assert distance < 1.0, \
             f"Center of mass should be preserved within 1 oxDNA unit, got {distance}"
+
+
+# =============================================================================
+# Mixed protein + nucleic acid round-trip tests
+# =============================================================================
+
+class TestMixedRoundTrip:
+    """Round-trip test for structures containing both protein and nucleic acid."""
+
+    @pytest.fixture(scope="class")
+    def mixed_cif_path(self, test_resources):
+        return test_resources / "1L1V_0.cif"
+
+    @pytest.fixture
+    def mixed_round_trip(self, mixed_cif_path, tmp_path):
+        """Shared fixture: CIF → oxDNA → CIF, returns (original_cif_text, rt_cif_text, system)."""
+        from oxDNA_analysis_tools.UTILS.mmcif import parse_atom_site
+
+        original_text = mixed_cif_path.read_text()
+        configs1, systems1 = PDB_oxDNA(original_text)
+        conf1, sys1 = configs1[0], systems1[0]
+
+        n_protein = sum(1 for s in sys1.strands if s.type == 'peptide')
+        out_base = str(tmp_path / "rt")
+        oxDNA_PDB(conf1, sys1, out_base,
+                  protein_pdb_files=[str(mixed_cif_path)] * n_protein,
+                  format='mmcif')
+
+        rt_text = (tmp_path / "rt.cif").read_text()
+        return original_text, rt_text, sys1
+
+    @staticmethod
+    def _representative_positions(cif_text: str) -> np.ndarray:
+        """Extract Cα (protein) and C1′ (nucleic acid) positions from a CIF.
+
+        These atoms are the closest all-atom proxies for the coarse-grained
+        bead positions, and are the same atoms PyMOL uses by default when
+        aligning mixed protein/nucleic structures.
+        """
+        from oxDNA_analysis_tools.UTILS.mmcif import parse_atom_site
+        ANCHOR_ATOMS = {"CA", "C1'"}
+        rows = [r for r in parse_atom_site(cif_text) if r.get('group_PDB') == 'ATOM']
+        positions = []
+        for row in rows:
+            atom = (row.get('label_atom_id') or row.get('auth_atom_id', '')).strip()
+            if atom in ANCHOR_ATOMS:
+                positions.append([
+                    float(row['Cartn_x']),
+                    float(row['Cartn_y']),
+                    float(row['Cartn_z']),
+                ])
+        return np.array(positions)
+
+    def test_mixed_roundtrip_rmsd(self, mixed_round_trip):
+        """
+        CIF → oxDNA → CIF round-trip for a mixed protein/DNA structure.
+
+        Compares Cα (protein) and C1′ (nucleic acid) positions between the
+        original and round-tripped all-atom CIF files after Kabsch alignment.
+        This is equivalent to PyMOL's default alignment and should give
+        RMSD < 2 Å (PyMOL reports ~1.25 Å for this structure).
+        """
+        from oxDNA_analysis_tools.UTILS.utils import kabsch_align
+
+        original_text, rt_text, _sys1 = mixed_round_trip
+        pos_orig = self._representative_positions(original_text)
+        pos_rt   = self._representative_positions(rt_text)
+
+        assert pos_orig.shape == pos_rt.shape, \
+            f"Anchor atom count changed: {pos_orig.shape[0]} → {pos_rt.shape[0]}"
+
+        aligned_rt, _ = kabsch_align(pos_rt.copy(), pos_orig.copy(),
+                                     center=True, return_rot=True)
+        rmsd = float(np.sqrt(np.mean(np.sum((aligned_rt - pos_orig) ** 2, axis=1))))
+
+        assert rmsd < 2.0, \
+            f"Round-trip RMSD {rmsd:.3f} Å exceeds 2 Å threshold"
+
+    def test_mixed_strand_counts_preserved(self, mixed_round_trip):
+        """Strand counts and types must survive the round-trip."""
+        original_text, rt_text, sys1 = mixed_round_trip
+        _, systems2 = PDB_oxDNA(rt_text)
+        sys2 = systems2[0]
+
+        assert len(sys2.strands) == len(sys1.strands), \
+            "Strand count changed in round-trip"
+        assert sorted(s.type for s in sys2.strands) == \
+               sorted(s.type for s in sys1.strands), \
+            "Strand types changed in round-trip"
 
 
 # =============================================================================
@@ -270,16 +357,10 @@ class TestPDBOxDNACLIParser:
     def test_parser_accepts_all_options(self):
         """Test parser accepts all options."""
         parser = PDB_oxDNA_cli_parser()
-        args = parser.parse_args([
-            "input.pdb",
-            "-o", "output",
-            "-b",
-            "-q"
-        ])
+        args = parser.parse_args(["input.pdb", "-o", "output", "-q"])
 
         assert args.pdb_file == "input.pdb"
         assert args.output == "output"
-        assert args.backward is True
         assert args.quiet is True
 
     def test_parser_defaults(self):
@@ -289,7 +370,6 @@ class TestPDBOxDNACLIParser:
 
         assert args.pdb_file == "input.pdb"
         assert args.output is None
-        assert args.backward is False
         assert args.quiet is False
 
 

@@ -7,12 +7,14 @@ from typing import Tuple, List, Dict
 from dataclasses import dataclass
 from itertools import permutations
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
-from oxDNA_analysis_tools.UTILS.mmcif import parse_atom_site
+from oxDNA_analysis_tools.UTILS.mmcif import parse_atom_site, is_mmcif
+from oxDNA_analysis_tools.UTILS.pdb import (
+    NAME_TO_AA,
+    FROM_OXDNA_TO_ANGSTROM as OXDNA_TO_ANGSTROM,
+    FROM_ANGSTROM_TO_OXDNA as ANGSTROM_TO_OXDNA,
+)
 from oxDNA_analysis_tools.UTILS.RyeReader import write_conf, write_top
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, System, Strand, Monomer
-
-BASE_SHIFT = 1.13
-COM_SHIFT = 0.5
 
 # ── Vectorised geometry helpers ───────────────────────────────────────────────
 
@@ -114,12 +116,48 @@ def _flush_to_strand(residue_buffer: list, strand) -> None:
     """Batch-compute oxDNA properties for all buffered residues and append to strand."""
     if not residue_buffer:
         return
-    positions, a1s, a3s = _calc_ox_properties_batch(residue_buffer)
-    for r_b, pos, a1, a3 in zip(residue_buffer, positions, a1s, a3s):
-        strand.append(Monomer(r_b.resi, r_b.resn, strand, None, None, None, pos, a1, a3))
+    if isinstance(residue_buffer[0], ProteinResidue):
+        for r_b in residue_buffer:
+            strand.append(r_b.to_monomer(strand))
+    else:
+        positions, a1s, a3s = _calc_ox_properties_batch(residue_buffer)
+        for r_b, pos, a1, a3 in zip(residue_buffer, positions, a1s, a3s):
+            strand.append(Monomer(r_b.resi, r_b.resn, strand, None, None, None, pos, a1, a3))
     residue_buffer.clear()
-OXDNA_TO_ANGSTROM = 8.518
-ANGSTROM_TO_OXDNA = 1. / OXDNA_TO_ANGSTROM
+
+
+def _is_amino_acid(resn: str) -> bool:
+    """Return True if *resn* is a standard amino acid 3-letter code."""
+    return resn.strip() in NAME_TO_AA
+
+
+class ProteinResidue:
+    """Minimal all-atom amino acid residue for coarse-graining to an oxDNA ANM bead.
+
+    The CG position is the Cα position in oxDNA units; a1/a3 are set to the
+    identity frame because protein beads are isotropic.
+    """
+
+    def __init__(self, resn: str, resi: int):
+        self.resn = resn.strip()
+        self.resi = resi
+        self.ca_pos: np.ndarray = None
+        self.atoms: list = []
+
+    def add_atom(self, atom) -> None:
+        self.atoms.append(atom)
+        if atom.type == 'CA':
+            self.ca_pos = atom.pos.copy()
+
+    def is_valid(self) -> bool:
+        return self.ca_pos is not None
+
+    def to_monomer(self, strand) -> Monomer:
+        # Use the one-letter code so topology writers can join btypes as strings.
+        btype = NAME_TO_AA.get(self.resn, 'X')
+        pos   = self.ca_pos * ANGSTROM_TO_OXDNA
+        return Monomer(self.resi, btype, strand, None, None, None,
+                       pos, np.array([1., 0., 0.]), np.array([0., 0., 1.]))
 
 @dataclass
 class Atom():
@@ -272,47 +310,81 @@ def parse_atom(l:str):
         np.array([float(l[30:38]), float(l[38:46]), float(l[46:54])])  # xyz coords
     )
 
-def _is_mmcif(text: str) -> bool:
-    """Return True if *text* looks like an mmCIF file (starts with a data_ block)."""
-    return text.lstrip().startswith('data_')
+_is_mmcif = is_mmcif   # local alias; public version lives in UTILS/mmcif.py
 
 
-def _parse_mmcif(cif_str: str, old_top: bool = False) -> Tuple[List[Configuration], List[System]]:
-    """Convert an mmCIF string to oxDNA Configuration/System objects."""
-
-    residue_buffer: list = []
-
-    def end_strand():
-        nonlocal a, r, strand, sys, prev_chain, prev_model
+def _finalize_residue(r, residue_buffer: list, strand) -> None:
+    """Validate and buffer a completed residue. No-op when *r* is None."""
+    if r is None:
+        return
+    if isinstance(r, ProteinResidue):
+        if r.is_valid():
+            residue_buffer.append(r)
+        else:
+            log(f"Residue {r.resn}{r.resi} has no CA atom, skipping", level='warning')
+    else:
         if any(atom.type == "O2'" for atom in r.atoms):
             strand.type = 'RNA'
         if not r.has_backbone_atoms():
-            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
-                level='warning')
+            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
         else:
             residue_buffer.append(r)
+
+
+def _finalize_system(sys: System, first_strand_type: str,
+                     systems: list, configs: list) -> System:
+    """Separate, relabel, reorder strands; build Configuration; return a fresh System."""
+    protein_strands = [s for s in sys.strands if s.type == 'peptide']
+    na_strands      = [s for s in sys.strands if s.type != 'peptide']
+    for i, s in enumerate(protein_strands, 1):
+        s.id = -i
+    for i, s in enumerate(na_strands, 1):
+        s.id = i
+    sys.strands = (protein_strands + na_strands
+                   if first_strand_type == 'peptide'
+                   else na_strands + protein_strands)
+    if not sys.strands:
+        return System('', [])
+    # Reassign monomer IDs to 0-based global indices so that
+    # conf.positions[monomer.id] always resolves to the correct slot.
+    # PDB/CIF-loaded monomers carry m.id = PDB residue number by default,
+    # which would cause out-of-bounds or wrong-position access downstream.
+    global_idx = 0
+    for s in sys.strands:
+        for m in s.monomers:
+            m.id = global_idx
+            global_idx += 1
+    positions = np.array([m.pos for s in sys.strands for m in s])
+    box = 1.5 * (np.max(positions) - np.min(positions))
+    configs.append(Configuration(
+        0, np.array([box, box, box]), np.array([0, 0, 0]),
+        positions,
+        np.array([m.a1 for s in sys.strands for m in s]),
+        np.array([m.a3 for s in sys.strands for m in s]),
+    ))
+    systems.append(sys)
+    return System('', [])
+
+
+def _parse_mmcif(cif_str: str) -> Tuple[List[Configuration], List[System]]:
+    """Convert an mmCIF string to oxDNA Configuration/System objects."""
+
+    residue_buffer: list = []
+    first_strand_type: str = None   # 'peptide' or 'na'
+
+    def end_strand():
+        nonlocal strand, sys, prev_chain, prev_resi
+        _finalize_residue(r, residue_buffer, strand)
         _flush_to_strand(residue_buffer, strand)
-        sys.append(strand)
+        if len(strand) > 0:
+            sys.append(strand)
         strand = Strand(strand.id + 1)
         prev_chain = a.chain
+        prev_resi = -1
 
     def end_system():
-        nonlocal sys, old_top, systems, configs
-        if old_top:
-            for s in sys.strands:
-                s.monomers = s.monomers[::-1]
-                s.set_old(True)
-        positions = np.array([m.pos for s in sys.strands for m in s])
-        box = 1.5 * (np.max(positions) - np.min(positions))
-        conf = Configuration(
-            0, np.array([box, box, box]), np.array([0, 0, 0]),
-            positions,
-            np.array([m.a1 for s in sys.strands for m in s]),
-            np.array([m.a3 for s in sys.strands for m in s]),
-        )
-        systems.append(sys)
-        configs.append(conf)
-        sys = System('', [])
+        nonlocal sys
+        sys = _finalize_system(sys, first_strand_type, systems, configs)
 
     rows = parse_atom_site(cif_str)
 
@@ -323,11 +395,12 @@ def _parse_mmcif(cif_str: str, old_top: bool = False) -> Tuple[List[Configuratio
     prev_resi: int = -1
     prev_chain: str = ''
     prev_model: str = '1'
-    r: Residue = None   # type: ignore[assignment]
-    a: Atom = None      # type: ignore[assignment]
+    r   = None
+    a   = None
 
     for row in rows:
-        if row.get('group_PDB', 'ATOM') not in ('ATOM', 'HETATM'):
+        # Match PDB behaviour: only process standard ATOM records, skip HETATM
+        if row.get('group_PDB', 'ATOM') != 'ATOM':
             continue
 
         atom_name = (row.get('label_atom_id') or row.get('auth_atom_id', '')).replace('*', "'")
@@ -350,11 +423,7 @@ def _parse_mmcif(cif_str: str, old_top: bool = False) -> Tuple[List[Configuratio
 
         a = Atom(
             id=int(row.get('id', 0)),
-            type=atom_name,
-            alt=alt_loc,
-            resn=resn,
-            chain=chain,
-            resi=resi,
+            type=atom_name, alt=alt_loc, resn=resn, chain=chain, resi=resi,
             pos=np.array([float(row['Cartn_x']), float(row['Cartn_y']), float(row['Cartn_z'])]),
         )
 
@@ -369,45 +438,44 @@ def _parse_mmcif(cif_str: str, old_top: bool = False) -> Tuple[List[Configuratio
 
         if a.resi != prev_resi:
             if prev_resi != -1:
-                if not r.has_backbone_atoms():
-                    log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
-                        level='warning')
-                else:
-                    residue_buffer.append(r)
-            try:
-                r = Residue(a.resn, a.resi)
-            except RuntimeError as e:
-                log(str(e), level='warning')
-                prev_resi = a.resi
-                prev_chain = a.chain
-                continue
+                _finalize_residue(r, residue_buffer, strand)
+            if _is_amino_acid(a.resn):
+                r = ProteinResidue(a.resn, a.resi)
+                strand.type = 'peptide'
+                if first_strand_type is None:
+                    first_strand_type = 'peptide'
+            else:
+                try:
+                    r = Residue(a.resn, a.resi)
+                except RuntimeError as e:
+                    log(str(e), level='warning')
+                    r = None
+                    prev_resi = a.resi
+                    prev_chain = a.chain
+                    continue
+                if first_strand_type is None:
+                    first_strand_type = 'na'
 
-        r.atoms.append(a)
+        if r is None:
+            continue
+        if isinstance(r, ProteinResidue):
+            r.add_atom(a)
+        else:
+            r.atoms.append(a)
         prev_resi = a.resi
         prev_chain = a.chain
 
-    # Flush the last residue / strand / system
     if prev_resi != -1:
-        if not r.has_backbone_atoms():
-            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping",
-                level='warning')
-        else:
-            residue_buffer.append(r)
-        if any(atom.type == "O2'" for atom in r.atoms):
-            strand.type = 'RNA'
+        _finalize_residue(r, residue_buffer, strand)
         _flush_to_strand(residue_buffer, strand)
         sys.append(strand)
-        if old_top:
-            for s in sys.strands:
-                s.monomers = s.monomers[::-1]
-                s.set_old(True)
     if len(sys.strands) > 0:
         end_system()
 
     return configs, systems
 
 
-def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], List[System]]:
+def PDB_oxDNA(pdb_str:str) -> Tuple[List[Configuration], List[System]]:
     """
     Convert a PDB or mmCIF string to an oxDNA Configuration/System.
 
@@ -416,75 +484,77 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
 
     Parameters:
         pdb_str (str) : The contents of a PDB or mmCIF file as a string
-        old_top (bool) : (optional) If True, create an old-style topology. default=False
 
     Returns:
         (tuple(List[Configuration], List[System])) : The system and configuration in oxDNA ready for write-out
     """
     if _is_mmcif(pdb_str):
-        return _parse_mmcif(pdb_str, old_top)
+        return _parse_mmcif(pdb_str)
 
     residue_buffer: list = []
+    first_strand_type: str = None   # 'peptide' or 'na'
 
     def end_strand():
-        nonlocal a, r, strand, sys, prev_chain, prev_resi
-        if any(atom.type == "O2'" for atom in r.atoms):
-            strand.type = 'RNA'
-        if not r.has_backbone_atoms():
-            log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
-        else:
-            residue_buffer.append(r)
+        nonlocal strand, sys, prev_chain, prev_resi
+        _finalize_residue(r, residue_buffer, strand)
         _flush_to_strand(residue_buffer, strand)
-        sys.append(strand)
+        if len(strand) > 0:
+            sys.append(strand)
         strand = Strand(strand.id+1)
         prev_chain = a.chain
         prev_resi = -1
 
     def end_system():
-        nonlocal sys, old_top, systems, configs
-        if old_top:
-            for s in sys.strands:
-                s.monomers = s.monomers[::-1]
-                s.set_old(True)
-        positions = np.array([m.pos for s in sys.strands for m in s])
-        box = 1.5*(np.max(positions) - np.min(positions))
-        conf = Configuration(0, np.array([box, box, box]), np.array([0, 0, 0]), positions, np.array([m.a1 for s in sys.strands for m in s]), np.array([m.a3 for s in sys.strands for m in s]))
-        systems.append(sys)
-        configs.append(conf)
-        sys = System('', [])
+        nonlocal sys
+        sys = _finalize_system(sys, first_strand_type, systems, configs)
 
     systems = []
     configs = []
     sys = System('')
     strand = Strand(1)
-    prev_resi:int = -1
-    prev_chain:str = ''
+    prev_resi: int = -1
+    prev_chain: str = ''
+    r = None
 
     lines = pdb_str.split('\n')
     for l in lines:
         if l.startswith('ATOM'):
             a = parse_atom(l)
 
-            # Catch case where there was no TER on the previous strand
             if prev_chain != '' and a.chain != prev_chain and prev_resi != -1:
                 end_strand()
 
-            # Use the first available alternate position
             if a.alt:
                 if not (a.alt == 'A' or a.alt == '1'):
                     continue
                 log(f"Alternate location for atom {a.id} of residue {a.resi} encountered, using location {a.alt}")
 
-            # We're in a new residue
             if a.resi != prev_resi:
                 if prev_resi != -1:
-                    if not r.has_backbone_atoms():
-                        log(f"Residue {r.resn}{r.resi} is missing C3' or C5' atom, skipping", level='warning')
-                    else:
-                        residue_buffer.append(r)
-                r = Residue(a.resn, a.resi)
+                    _finalize_residue(r, residue_buffer, strand)
+                if _is_amino_acid(a.resn):
+                    r = ProteinResidue(a.resn, a.resi)
+                    strand.type = 'peptide'
+                    if first_strand_type is None:
+                        first_strand_type = 'peptide'
+                else:
+                    try:
+                        r = Residue(a.resn, a.resi)
+                    except RuntimeError as e:
+                        log(str(e), level='warning')
+                        r = None
+                        prev_resi = a.resi
+                        prev_chain = a.chain
+                        continue
+                    if first_strand_type is None:
+                        first_strand_type = 'na'
 
-            r.atoms.append(a)
+            if r is None:
+                continue   # unrecognised residue type; skip
+            if isinstance(r, ProteinResidue):
+                r.add_atom(a)
+            else:
+                r.atoms.append(a)
             prev_resi = a.resi
             prev_chain = a.chain
             continue
@@ -500,11 +570,9 @@ def PDB_oxDNA(pdb_str:str, old_top:bool=False) -> Tuple[List[Configuration], Lis
                 end_system()
             continue
 
-    # Catch the case where there was no TER identifier
     if prev_resi != -1:
         end_strand()
 
-    # Catch the case where there was no END identifier
     if len(sys) > 0:
         end_system()
 
@@ -515,7 +583,6 @@ def cli_parser(prog="program_name"):
     parser = argparse.ArgumentParser(prog=prog, description="Convert a PDB or mmCIF file to oxDNA")
     parser.add_argument('pdb_file', type=str, help='The PDB or mmCIF file to convert (format is auto-detected)')
     parser.add_argument('-o', '--output', metavar='output_file', help='The filename to save the output oxDNA files to')
-    parser.add_argument('-b', '--backward', action='store_true', default=False, help="Use the old topology format? (strands will be listed 3'-5')")
     parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
@@ -532,8 +599,6 @@ def main():
     # Parse CLI input
     pdb_file = args.pdb_file
 
-    old_top = args.backward
- 
     # -o names the output file; strip known structure-file extensions from the basename
     if args.output:
         outbase = args.output
@@ -546,18 +611,13 @@ def main():
         pdb_str = f.read()
 
     # Get the oxDNA-style data structures
-    configs, systems = PDB_oxDNA(pdb_str, old_top=old_top)
+    configs, systems = PDB_oxDNA(pdb_str)
 
     for i, (conf, sys) in enumerate(zip(configs, systems)):
-        # Figure out the names
-        if len(configs) == 1:
-            sysn = ''
-        else:
-            sysn = '_'+str(i)
-        outtop = outbase+sysn+'.top'
-        outdat = outbase+sysn+'.dat'
-        # Write out the files
-        write_top(outtop, sys, old_format=old_top)
+        sysn = '' if len(configs) == 1 else f'_{i}'
+        outtop = outbase + sysn + '.top'
+        outdat = outbase + sysn + '.dat'
+        write_top(outtop, sys)
         write_conf(outdat, conf)
         log(f"Wrote outfiles {outtop}, {outdat}")
 

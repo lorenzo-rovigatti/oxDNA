@@ -13,13 +13,14 @@ from typing import List, Dict, Tuple, Union, Iterator
 from io import TextIOWrapper
 from pathlib import Path
 
-from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
+from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM, NAME_TO_AA
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
 from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration, System
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.mmcif import (
     write_data_block_header, write_atom_site_block,
     write_entity_block, write_entity_poly_block,
+    parse_atom_site, is_mmcif,
 )
 import oxDNA_analysis_tools.UTILS.utils as utils
 
@@ -178,45 +179,75 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
 
     return bases
 
+def _atom_from_cif_row(row: Dict) -> Atom:
+    """Construct a UTILS/pdb.py Atom from an _atom_site mmCIF row dict."""
+    raw = row.get('label_seq_id') or row.get('auth_seq_id', '0')
+    return Atom.from_dict(
+        name     = (row.get('label_atom_id') or row.get('auth_atom_id', '')).strip(),
+        residue  = (row.get('label_comp_id') or row.get('auth_comp_id', '')).strip(),
+        chain_id = (row.get('label_asym_id') or row.get('auth_asym_id', '')).strip(),
+        residue_idx = int(raw) if raw not in ('.', '?') else 0,
+        pos      = np.array([float(row['Cartn_x']), float(row['Cartn_y']), float(row['Cartn_z'])]),
+    )
+
+
 def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> Tuple[int, List[PDB_AminoAcid]]:
     """
-        Get amino acid descriptions from a PDB file.
+        Get amino acid descriptions from a PDB or mmCIF file.
 
         Parameters:
-            pdbfile (str) : File path to PDB file
-            start_res (int) : Line number to start parsing from, default 0.
+            pdbfile (str) : File path to PDB or mmCIF file (format auto-detected).
+            start_res (int) : Residue index to start from, default 0.
             n_res (int) : Get only this many residues, default until end of file.
 
         Returns
-            (Tuple[int, List[PDB_AminoAcid]]) : The line number in the PDB file the read left off at and a list of amino acids extracted from the file.
+            (Tuple[int, List[PDB_AminoAcid]]) : The next residue position (or -1 if
+            the file was exhausted) and the list of amino acids extracted.
     """
-    with open(pdbfile) as pdbf:
+    with open(pdbfile) as f:
+        content = f.read()
+
+    if is_mmcif(content):
+        # ── mmCIF path ────────────────────────────────────────────────────────
+        rows = [r for r in parse_atom_site(content)
+                if r.get('group_PDB', 'ATOM') == 'ATOM']
+        amino_acids: List[PDB_AminoAcid] = []
+        old_key = None
+        aa = None
+        for row in rows:
+            resn = (row.get('label_comp_id') or row.get('auth_comp_id', '')).strip()
+            if resn not in NAME_TO_AA:
+                continue   # skip nucleic acids, ligands, water, etc.
+            chain = (row.get('label_asym_id') or row.get('auth_asym_id', '')).strip()
+            raw   = row.get('label_seq_id') or row.get('auth_seq_id', '0')
+            resi  = int(raw) if raw not in ('.', '?') else 0
+            key   = (chain, resi)
+            if key != old_key:
+                aa = PDB_AminoAcid(resn, resi)
+                amino_acids.append(aa)
+                old_key = key
+            aa.add_atom(_atom_from_cif_row(row))
+    else:
+        # ── PDB path ──────────────────────────────────────────────────────────
         amino_acids = []
         old_residue = ''
-        lines = pdbf.readlines()
-        for l in lines:
+        for l in content.splitlines():
             if l.startswith('ATOM'):
-                # We assume that this file just contains proteins.  Die if you find a nucleic acid
-                if l[17:20].strip() in na_pdb_names:
-                    raise RuntimeError("Invalid residue name {} in {}. The reference PDB file must only contain protein residues.".format(l[17:20].strip(), pdbfile))
-                
+                if l[17:20].strip() not in NAME_TO_AA:
+                    continue   # skip nucleic acids, ligands, water, etc.
                 a = Atom(l)
                 if a.residue_idx != old_residue:
                     aa = PDB_AminoAcid(a.residue, a.residue_idx)
                     amino_acids.append(aa)
                     old_residue = a.residue_idx
                 aa.add_atom(a)
-    
+
     if n_res == -1:
         end = len(amino_acids)
     else:
         end = start_res + n_res
 
-    if end == len(amino_acids):
-        next_pos = -1
-    else:
-        next_pos = end
-
+    next_pos = -1 if end >= len(amino_acids) else end
     return next_pos, amino_acids[start_res:end]
 
 def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int) -> Tuple[int, List[PDB_AminoAcid]]:
@@ -237,18 +268,16 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
 
     reading_position, amino_acids = get_AAs_from_PDB(pdbfile, reading_position, len(coord))
     
-    # Translate CA COM of PDB structure to COM of oxDNA structure
+    # Align PDB CA COM to oxDNA bead COM
     ca_poses = np.array([a.get_ca_pos() for a in amino_acids])
-    pdb_com = np.mean(ca_poses, axis=0)
-    ox_com = np.mean(coord, axis=0)
-    centered_ca_poses = np.array([a.get_ca_pos() for a  in amino_acids]) - pdb_com
-    centered_ox_poses = coord - ox_com
-    centered_atom_poses = np.array([a.pos - pdb_com for aa in amino_acids for a in aa.get_atoms()])
-
-    # Get rotation matrix
-    M = np.dot(centered_ca_poses.T, centered_ox_poses)
-    u,s,v = np.linalg.svd(M, compute_uv=True)
-    R = np.dot(v.T, u.T)
+    pdb_com  = np.mean(ca_poses, axis=0)
+    ox_com   = np.mean(coord,    axis=0)
+    centered_ca_poses = ca_poses - pdb_com
+    centered_ox_poses = coord    - ox_com
+    
+    _, R_row = utils.kabsch_align(centered_ca_poses, centered_ox_poses,
+                                   center=False, return_rot=True)
+    R = R_row.T
 
     # reposition and rotate each amino acid
     for i, aa in enumerate(amino_acids):
@@ -643,8 +672,11 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
     else:
         out_name = out_basename + ext
 
+    # One PDB file per protein strand; create the iterator once so each strand
+    # advances to the next file rather than re-reading from the first.
+    protein_file_iter = iter(protein_pdb_files or [])
+
     with open(out_name, 'w+') as out:
-        reading_position = 0
         chain_iter = _chain_id_generator(use_mmcif)
         chain_id = next(chain_iter)
         atom_counter = 1
@@ -662,20 +694,15 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
             strand_pdb = []
             log("Converting strand {}".format(strand.id), end='\r')
 
-            if strand.type == 'peptide' and protein_pdb_files:
-                s_pdbfile = iter(protein_pdb_files)
-                pdbfile = next(s_pdbfile)
-                reading_position, amino_acids = peptide_to_pdb(strand, conf, pdbfile, reading_position)
-                if reading_position == -1:
-                    try:
-                        pdbfile = next(s_pdbfile)
-                        reading_position = 0
-                    except StopIteration:
-                        protein_pdb_files = []
+            if strand.type == 'peptide':
+                pdbfile = next(protein_file_iter, None)
+                if pdbfile is None:
+                    raise RuntimeError("You must provide a PDB file for each protein strand.")
+                _, amino_acids = peptide_to_pdb(strand, conf, pdbfile, 0)
                 for aa in amino_acids:
                     strand_pdb.append(aa.to_pdb(hydrogen, bfactor=rmsf_per_nucleotide[aa.idx]))
 
-            elif strand.id < 0 and not protein_pdb_files:
+            elif strand.id < 0:
                 raise RuntimeError("You must provide PDB files containing just the protein for each protein in the scene.")
 
             elif strand.type == 'DNA' or strand.type == 'RNA':
@@ -798,7 +825,7 @@ def main():
         else:
             out_basename = re.sub(r"\.pdb$", "", args.output)
     else:
-        out_basename = conf_file
+        out_basename = os.path.splitext(conf_file)[0]
     reverse = False
     if args.output_direction:
         if args.output_direction not in ["35", "53"]:
