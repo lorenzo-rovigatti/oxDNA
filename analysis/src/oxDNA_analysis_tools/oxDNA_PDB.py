@@ -768,7 +768,7 @@ def oxDNA_PDB(conf:Configuration, system:System, out_basename:str, protein_pdb_f
 
 
 def cli_parser(prog="oxDNA_PDB.py"):
-    parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
+    parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB or mmCIF.  This converter can handle oxDNANM protein simulation files.")
     parser.add_argument('topology', type=str,
                         help='the oxDNA topology file for the structure')
     parser.add_argument('configuration', type=str,
