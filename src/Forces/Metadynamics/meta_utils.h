@@ -55,7 +55,7 @@ struct CoordSettings {
 number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle *, BaseParticle *>> &all_pairs);
 number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair);
 std::pair<LR_vector, LR_vector> get_pair_force_torque_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair, BaseParticle *current_particle);
-number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vector &torque);
+number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vector &torque, bool compute_force_torque=true);
 number der_smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
 number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
 

@@ -1,35 +1,11 @@
 /*
- * CUDAForces.h
+ * forces_defs.cuh
  *
  *  Created on: 26/giu/2013
  *      Author: lorenzo
  */
-
 #ifndef CUDAFORCES_H_
 #define CUDAFORCES_H_
-
-#include "../Forces/COMForce.h"
-#include "../Forces/ConstantRateForce.h"
-#include "../Forces/ConstantRateTorque.h"
-#include "../Forces/ConstantTrap.h"
-#include "../Forces/LowdimMovingTrap.h"
-#include "../Forces/MovingTrap.h"
-#include "../Forces/MutualTrap.h"
-#include "../Forces/RepulsionPlane.h"
-#include "../Forces/RepulsionPlaneMoving.h"
-#include "../Forces/RepulsiveSphere.h"
-#include "../Forces/RepulsiveSphereSmooth.h"
-#include "../Forces/RepulsiveSphereMoving.h"
-#include "../Forces/RepulsiveKeplerPoinsot.h"
-#include "../Forces/LJWall.h"
-#include "../Forces/GenericCentralForce.h"
-#include "../Forces/LJCone.h"
-#include "../Forces/RepulsiveEllipsoid.h"
-#include "../Forces/YukawaSphere.h"
-#include "../Forces/Metadynamics/LTCOMTrap.h"
-#include "../Forces/AttractionPlane.h"
-
-#include "CUDAUtils.h"
 
 #define CUDA_TRAP_NO_FORCE -1
 #define CUDA_TRAP_CONSTANT 0
@@ -51,7 +27,31 @@
 #define CUDA_ATTRACTION_PLANE 16
 #define CUDA_REPULSIVE_SPHERE_MOVING 17
 #define CUDA_REPULSIVE_KEPLER_POINSOT 18
+#define CUDA_LR_COORDINATION 19
 
+#include "../../Forces/COMForce.h"
+#include "../../Forces/ConstantRateForce.h"
+#include "../../Forces/ConstantRateTorque.h"
+#include "../../Forces/ConstantTrap.h"
+#include "../../Forces/LowdimMovingTrap.h"
+#include "../../Forces/MovingTrap.h"
+#include "../../Forces/MutualTrap.h"
+#include "../../Forces/RepulsionPlane.h"
+#include "../../Forces/RepulsionPlaneMoving.h"
+#include "../../Forces/RepulsiveSphere.h"
+#include "../../Forces/RepulsiveSphereSmooth.h"
+#include "../../Forces/RepulsiveSphereMoving.h"
+#include "../../Forces/RepulsiveKeplerPoinsot.h"
+#include "../../Forces/LJWall.h"
+#include "../../Forces/GenericCentralForce.h"
+#include "../../Forces/LJCone.h"
+#include "../../Forces/RepulsiveEllipsoid.h"
+#include "../../Forces/YukawaSphere.h"
+#include "../../Forces/AttractionPlane.h"
+
+#include "metad_forces.cuh"
+
+#include "../CUDAUtils.h"
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -393,66 +393,6 @@ void init_COMForce_from_CPU(COM_force *cuda_force, COMForce *cpu_force, bool fir
 }
 
 /**
- * @brief CUDA version of a COMForce.
- */
-struct lt_com_trap {
-	int type;
-
-	int p1a_size;
-	int p2a_size;
-    int *p1a;
-    int *p2a;
-
-    int xmin;
-    int xmax;
-    int N_grid;
-
-    c_number dX;
-    c_number *potential_grid;
-
-    int mode;
-	bool PBC;
-};
-
-void init_LTCOMTrap_from_CPU(lt_com_trap *cuda_force, LTCOMTrap *cpu_force, bool first_time) {
-	cuda_force->type = CUDA_LR_COM_TRAP;
-	cuda_force->xmin = cpu_force->xmin;
-	cuda_force->xmax = cpu_force->xmax;
-	cuda_force->N_grid = cpu_force->N_grid;
-	cuda_force->dX = cpu_force->dX;
-	cuda_force->mode = cpu_force->_mode;
-	cuda_force->PBC = cpu_force->PBC;
-	cuda_force->p1a_size = cpu_force->_p1a_ptr.size();
-	cuda_force->p2a_size = cpu_force->_p2a_ptr.size();
-
-	// copy the particle arrays
-	std::vector<int> local_p1a;
-	for(auto particle : cpu_force->_p1a_ptr) {
-		local_p1a.push_back(particle->index);
-	}
-	std::vector<int> local_p2a;
-	for(auto particle : cpu_force->_p2a_ptr) {
-		local_p2a.push_back(particle->index);
-	}
-
-	// copy the potential array
-	std::vector<c_number> local_grid;
-	for(auto v : cpu_force->potential_grid) {
-		local_grid.push_back(v);
-	}
-
-	if(first_time) {
-		// TODO: this memory never gets free'd
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p1a, sizeof(int) * local_p1a.size()));
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p2a, sizeof(int) * local_p2a.size()));
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number>(&cuda_force->potential_grid, sizeof(c_number) * local_grid.size()));
-	}
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p1a, local_p1a.data(), sizeof(int) * local_p1a.size(), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p2a, local_p2a.data(), sizeof(int) * local_p2a.size(), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->potential_grid, local_grid.data(), sizeof(c_number) * local_grid.size(), cudaMemcpyHostToDevice));
-}
-
-/**
  * @brief CUDA version of a YukawaSphere.
  */
 struct Yukawa_sphere {
@@ -564,6 +504,7 @@ union CUDA_trap {
 	repulsive_ellipsoid repulsiveellipsoid;
 	COM_force comforce;
 	lt_com_trap ltcomtrap;
+	lt_coordination ltcoordination;
 	Yukawa_sphere yukawasphere;
 	attraction_plane attractionplane;
 	repulsive_sphere_moving repulsivespheremoving;

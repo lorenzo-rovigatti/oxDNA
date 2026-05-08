@@ -134,31 +134,6 @@ void MD_CPUBackend::_first_step() {
 		_lists->single_update(p);
 	}
 
-	// Update the forces acting on the particles due to external fields. This has to be done after the 
-	// position update since some external forces might depend on other particles' degrees of freedom
-	for(auto p : _particles) {
-		p->set_initial_forces(current_step(), _box.get());
-		// if(p->force.norm() > 0) {
-		// 	printf("ID %d\n\t%g %g %g\n\t%g %g %g\n\t%g %g %g\n", p->index, 
-		// 		p->force.x, p->force.y, p->force.z, 
-		// 		p->torque.x, p->torque.y, p->torque.z,
-		// 		p->int_centers[2].cross(p->force).x, p->int_centers[2].cross(p->force).y, p->int_centers[2].cross(p->force).z);
-		// 	LR_vector total_torque = p->torque + p->int_centers[2].cross(p->force);
-		// 	printf("\t%g %g %g\n", total_torque.x, total_torque.y, total_torque.z);
-		// }
-	}
-
-	// LR_vector torque3 = _particles[3]->torque;
-	// LR_vector torque4 = _particles[4]->torque;
-	// LR_vector dist = CONFIG_INFO->box->min_image(_particles[4]->pos, _particles[3]->pos);
-	// LR_vector force_torque = dist.cross(_particles[3]->force);
-	// LR_vector tot = torque3 + torque4 + force_torque;
-	// printf("TORQUE3 %g %g %g\n", torque3.x, torque3.y, torque3.z);
-	// printf("TORQUE4 %g %g %g\n", torque4.x, torque4.y, torque4.z);
-	// printf("FORCE_TORQUE %g %g %g\n", force_torque.x, force_torque.y, force_torque.z);
-	// printf("DIST %g %g %g\n", dist.x, dist.y, dist.z);
-	// printf("TOT %g %g %g\n", tot.x, tot.y, tot.z);
-
 	if(particles_with_warning.size() > 0) {
 		std::stringstream ss;
 		for(auto idx : particles_with_warning) {
@@ -170,6 +145,12 @@ void MD_CPUBackend::_first_step() {
 
 void MD_CPUBackend::_compute_forces() {
 	_interaction->begin_energy_and_force_computation();
+
+	// Update the forces acting on the particles due to external fields. This has to be done after the 
+	// position update since some external forces might depend on other particles' degrees of freedom
+	for(auto p : _particles) {
+		p->set_initial_forces(current_step(), _box.get());
+	}
 
 	_U = (number) 0;
 	for(auto p : _particles) {

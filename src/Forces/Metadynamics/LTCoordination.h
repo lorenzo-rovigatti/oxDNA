@@ -37,8 +37,6 @@ public:
 	number coord_max; // maximum coordination number, defaults to the number of pairs defined in the OP file
 	int N_grid;
 	number d_coord; // grid spacing
-    number delta_F = 1e-6; // displacement for finite difference calculation of the force
-    number delta_T = 1e-6; // displacement for finite difference calculation of the torque
 
     meta::CoordSettings settings;
     std::vector<number> potential_grid;
@@ -46,10 +44,16 @@ public:
 private:
     number _current_coordination;
     llint _last_step_calculated = -1; // to avoid recalculating the coordination number multiple times in the same step (e.g. for different particles belonging to the same pair)
-    LR_matrix _rot_matrices[3][2]; // rotation matrices for the 3 possible rotation axes and 2 possible directions of rotation (positive or negative)
 
+    // the two methods below use finite difference to calculate the derivatives of the coordination number with respect 
+    // to particle position and orientation, which are then used to calculate forces and torques. They are not currently
+    // used but can be useful if we want to implement a more complex potential that cannot be easily differentiated analytically.
     LR_vector _dcoord_dpos();
     LR_vector _dcoord_dtheta();
+    LR_matrix _rot_matrices[3][2]; // rotation matrices for the 3 possible rotation axes and 2 possible directions of rotation (positive or negative)
+    number _delta_F = 1e-6; // displacement for finite difference calculation of the force
+    number _delta_T = 1e-6; // displacement for finite difference calculation of the torque
+
     number _coordination(llint step);
 };
 

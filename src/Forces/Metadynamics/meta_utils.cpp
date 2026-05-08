@@ -136,31 +136,35 @@ number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, B
     // Avoid dynamic loopkup by caching the hydrogen bonding function pointer. This is important since this function is called many times during the force computation. 
     static BaseInteraction::energy_function HB_function = CONFIG_INFO->interaction->get_interaction_function(DNAInteraction::HYDROGEN_BONDING);
 
+    number contrib = 0.0;
     switch(settings.coord_mode) {
         case CoordSettings::CoordMode::HB_ENERGY: {
             LR_vector force, torque;
-            number hb_energy = hb_interaction(pair.first, pair.second, force, torque);
-            return smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
+            number hb_energy = hb_interaction(pair.first, pair.second, force, torque, false);
+            contrib = smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
+            break;
         }
         case CoordSettings::CoordMode::SWITCHING_FUNCTION: {
             LR_vector r = CONFIG_INFO->box->min_image(pair.first->pos + pair.first->int_centers[DNANucleotide::BASE], pair.second->pos + pair.second->int_centers[DNANucleotide::BASE]);
             number r_mod = r.module();
-            return 1.0 / (1.0 + std::pow((r_mod - settings.d0) / settings.r0, settings.n));
+            contrib =  1.0 / (1.0 + std::pow((r_mod - settings.d0) / settings.r0, settings.n));
+            break;
         }
         case CoordSettings::CoordMode::MIXED: {
             LR_vector force, torque;
-            number hb_energy = hb_interaction(pair.first, pair.second, force, torque);
+            number hb_energy = hb_interaction(pair.first, pair.second, force, torque, false);
             number hb_contribution = smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
 
             LR_vector r = CONFIG_INFO->box->min_image(pair.first->pos + pair.first->int_centers[DNANucleotide::BASE], pair.second->pos + pair.second->int_centers[DNANucleotide::BASE]);
             number r_mod = r.module();
             number switching_contribution = 1.0 / (1.0 + std::pow((r_mod - settings.d0) / settings.r0, settings.n));
 
-            return settings.mixed_weight * hb_contribution + (1.0 - settings.mixed_weight) * switching_contribution;
+            contrib = settings.mixed_weight * hb_contribution + (1.0 - settings.mixed_weight) * switching_contribution;
+            break;
         }
     }
 
-    return 0.0; // should never be reached
+    return contrib;
 }
 
 std::pair<LR_vector, LR_vector> get_pair_force_torque_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair, BaseParticle *current_particle) {
@@ -172,7 +176,7 @@ std::pair<LR_vector, LR_vector> get_pair_force_torque_contribution(CoordSettings
 
     switch(settings.coord_mode) {
         case CoordSettings::CoordMode::HB_ENERGY: {
-            number hb_energy = hb_interaction(current_particle, other_particle, force, torque);
+            number hb_energy = hb_interaction(current_particle, other_particle, force, torque, true);
             number dcoord_dhb_energy = der_smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
             force *= dcoord_dhb_energy;
             torque *= dcoord_dhb_energy;
@@ -191,7 +195,7 @@ std::pair<LR_vector, LR_vector> get_pair_force_torque_contribution(CoordSettings
             break;
         }
         case CoordSettings::CoordMode::MIXED: {
-            number hb_energy = hb_interaction(current_particle, other_particle, force, torque);
+            number hb_energy = hb_interaction(current_particle, other_particle, force, torque, true);
             number dcoord_dhb_energy = der_smooth_hb_contribution(settings.hb_energy_cutoff, settings.hb_transition_width, hb_energy);
             LR_vector hb_force_contribution = force * dcoord_dhb_energy;
             LR_vector hb_torque_contribution = torque * dcoord_dhb_energy;
@@ -273,7 +277,7 @@ number _f4Dsin(number t, number t0, number a) {
 	return val;
 }
 
-number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vector &torque) {
+number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vector &torque, bool compute_force_torque) {
     force = torque = LR_vector();
     // true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
@@ -319,10 +323,9 @@ number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vec
 		number f4t8 = _f4(t8, HYDR_THETA8_T0, HYDR_THETA8_A);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
-        // printf("NEW  %d %d %lf %lf %lf %lf %lf %lf %lf %lf\n", p->index, q->index, energy, f1, f4t1, f4t2, f4t3, f4t4, f4t7, f4t8);
 
 		// makes sense, since the above functions may return 0. exactly
-		if(energy != 0.) {
+		if(compute_force_torque && energy != 0.) {
 			// derivatives called at the relevant arguments
 			number f1D = _f1D(rhydromod);
 			number f4t1Dsin =  _f4Dsin(t1, HYDR_THETA1_T0, HYDR_THETA1_A);

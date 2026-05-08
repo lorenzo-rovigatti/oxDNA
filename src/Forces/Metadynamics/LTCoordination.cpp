@@ -93,8 +93,8 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
     // initialise rotation matrices for torque calculation
     LR_vector axes[3] = {LR_vector(1, 0, 0), LR_vector(0, 1, 0), LR_vector(0, 0, 1)};
     for(int i = 0; i < 3; i++) {
-        _rot_matrices[i][0] = Utils::get_rotation_matrix_from_axis_angle(axes[i], delta_T);
-        _rot_matrices[i][1] = Utils::get_rotation_matrix_from_axis_angle(axes[i], -delta_T);;
+        _rot_matrices[i][0] = Utils::get_rotation_matrix_from_axis_angle(axes[i], _delta_T);
+        _rot_matrices[i][1] = Utils::get_rotation_matrix_from_axis_angle(axes[i], -_delta_T);;
     }
 
     std::string msg = Utils::sformat("LTCoordination force (d0 = %lf, r0 = %lf, n = %d, coord_min = %lf, coord_max = %lf, N_grid = %d)", settings.d0, settings.r0, settings.n, coord_min, coord_max, N_grid);
@@ -117,12 +117,8 @@ LR_vector LTCoordination::force(llint step, LR_vector &pos) {
 		df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
 	}
 
-    // std::cout << "F OLD " << _dcoord_dpos() << std::endl;
-    // auto pair = all_pairs[particle_to_pair_index[_current_particle]];
     auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
     LR_vector dcoord_dpos = force_torque.first;
-    // auto F = dcoord_dpos;
-    // std::cout << "F NEW " << F << std::endl;
 
     return dcoord_dpos * df_dcoord;
 }
@@ -137,11 +133,8 @@ LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
         df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
     }
 
-    // std::cout << "T OLD " << _dcoord_dtheta() << std::endl;
     auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
     LR_vector dcoord_dtheta = force_torque.second;
-    // auto torque = dcoord_dtheta;
-    // std::cout << "T NEW " << torque << std::endl;
 
     return dcoord_dtheta * df_dcoord;
 }
@@ -169,7 +162,7 @@ LR_vector LTCoordination::_dcoord_dpos() {
 
     for(int i = 0; i < 3; i++) {
         LR_vector shift;
-        shift[i] = delta_F;
+        shift[i] = _delta_F;
 
         _current_particle->pos = old_pos + shift;
         number plus = meta::get_pair_contribution(settings, pair);
@@ -177,7 +170,7 @@ LR_vector LTCoordination::_dcoord_dpos() {
         _current_particle->pos = old_pos - shift;
         number minus = meta::get_pair_contribution(settings, pair);
 
-        grad[i] = (plus - minus) / (2.0 * delta_F);
+        grad[i] = (plus - minus) / (2.0 * _delta_F);
     }
     _current_particle->pos = old_pos;
     return grad;
@@ -209,7 +202,7 @@ LR_vector LTCoordination::_dcoord_dtheta() {
         _current_particle->set_positions();
         contrib_minus = meta::get_pair_contribution(settings, pair);
 
-        dcoord_dtheta[i] = (contrib_plus - contrib_minus) / (2.0 * delta_T);
+        dcoord_dtheta[i] = (contrib_plus - contrib_minus) / (2.0 * _delta_T);
     }
     
     // Restore original orientation
