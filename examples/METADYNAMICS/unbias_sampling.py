@@ -89,6 +89,10 @@ if __name__ == "__main__":
     # defined as the proper number of hydrogen bonds, which is stored in the third column of the OP file
     if config_data["coordination"] == True:
         hb_biased_values = op_data[:, 2]
+
+        hb_biased_beta_FE = get_beta_FE(hb_biased_values, op_range=op_range)
+        np.savetxt("biased_hb_beta_FE.dat", np.column_stack(hb_biased_beta_FE))
+
         bins = list(range(int(op_max - op_min) + 1))
         hb_unbiased_beta_FE = get_beta_FE(hb_biased_values, weights=weights, bins=bins)
         np.savetxt("unbiased_hb_beta_FE.dat", np.column_stack(hb_unbiased_beta_FE))

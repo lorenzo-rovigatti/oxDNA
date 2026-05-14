@@ -10,11 +10,13 @@
 #include "meta_utils.h"
 #include "../../Utilities/OrderParameters.h"
 #include "../../Utilities/Utils.h"
+#include "../../Interactions/BaseInteraction.h"
+#include "../../Interactions/DNA2Interaction.h"
 
 #include <iostream>
 
 LTCoordination::LTCoordination() {
-
+    
 }
 
 LTCoordination::~LTCoordination() {
@@ -64,16 +66,10 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
     // here we look for duplicates
     auto it = std::adjacent_find(p_indices.begin(), p_indices.end());
     if(it != p_indices.end()) {
-        throw oxDNAException("LTCoordination: duplicate particle index found in the op_file: %d", *it);
+        throw oxDNAException("LTCoordination: duplicate particle index found in the op_file: %d. LTCoordination assumes each particle appears only once", *it);
     }
 
-    getInputNumber(&inp, "d0", &d0, 0);
-	getInputNumber(&inp, "r0", &r0, 0);
-    getInputInt(&inp, "n", &n, 0);
-
-    if(n % 2 != 0) {
-        throw oxDNAException("LTCoordination: exponent n must be an even integer");
-    }
+    settings.get_settings(inp);
 
     // build the grid
     if(getInputNumber(&inp, "coord_min", &coord_min, 0) == KEY_NOT_FOUND) {
@@ -94,22 +90,19 @@ std::tuple<std::vector<int>, std::string> LTCoordination::init(input_file &inp) 
         throw oxDNAException("LTCoordination: potential_grid size (%u) != N_grid (%d)", potential_grid.size(), N_grid);
     }
 
-    std::string msg = Utils::sformat("LTCoordination force (d0 = %lf, r0 = %lf, n = %d, coord_min = %lf, coord_max = %lf, N_grid = %d)", 
-        d0, r0, n, coord_min, coord_max, N_grid);
+    // initialise rotation matrices for torque calculation
+    LR_vector axes[3] = {LR_vector(1, 0, 0), LR_vector(0, 1, 0), LR_vector(0, 0, 1)};
+    for(int i = 0; i < 3; i++) {
+        _rot_matrices[i][0] = Utils::get_rotation_matrix_from_axis_angle(axes[i], _delta_T);
+        _rot_matrices[i][1] = Utils::get_rotation_matrix_from_axis_angle(axes[i], -_delta_T);;
+    }
+
+    std::string msg = Utils::sformat("LTCoordination force (d0 = %lf, r0 = %lf, n = %d, coord_min = %lf, coord_max = %lf, N_grid = %d)", settings.d0, settings.r0, settings.n, coord_min, coord_max, N_grid);
     return std::make_tuple(p_indices, msg);
 }
 
-LR_vector LTCoordination::value(llint step, LR_vector &pos) {
-    auto pair = all_pairs[particle_to_pair_index[_current_particle]];
-    int sign = (pair.first == _current_particle) ? -1 : 1;
-
-    LR_vector r_vec = CONFIG_INFO->box->min_image(pair.first->pos, pair.second->pos);
-    number r = r_vec.module();
-    double x = (r - d0) / r0;
-    double xn = std::pow(x, n);
-    double dcoord_dr = -(n / r0) * std::pow(x, n - 1) / (SQR(1.0 + xn));
-
-    number coord = Utils::clamp(_coordination(), coord_min, coord_max); // ensure we are within the grid limits
+LR_vector LTCoordination::force(llint step, LR_vector &pos) {
+    number coord = _coordination(step);
     int ic_left = std::floor((coord - coord_min) / d_coord);
 	int ic_right = ic_left + 1;
 
@@ -120,15 +113,34 @@ LR_vector LTCoordination::value(llint step, LR_vector &pos) {
 	}
 
 	else {
+        // note that this is not striclty only df/dcoord, since it also has a minux sign (hence the "get_x_force" name)
 		df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
 	}
 
-    // df / dr = df / dcoord * dcoord / dr_ij * dr_ij / dr
-    return (number) sign * r_vec * (df_dcoord * dcoord_dr / r);
+    auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
+    LR_vector dcoord_dpos = force_torque.first;
+
+    return dcoord_dpos * df_dcoord;
+}
+
+LR_vector LTCoordination::torque(llint step, LR_vector &pos) {
+    number coord = _coordination(step);
+    int ic_left = std::floor((coord - coord_min) / d_coord);
+
+    number df_dcoord = 0;
+    if((ic_left >= 0) && (ic_left + 1 <= N_grid - 1)) {
+        // note that this is not striclty only df/dcoord, since it also has a minux sign (hence the "get_x_force" name)
+        df_dcoord = meta::get_x_force(coord, d_coord, coord_min, potential_grid);
+    }
+
+    auto force_torque = meta::get_pair_force_torque_contribution(settings, all_pairs[particle_to_pair_index[_current_particle]], _current_particle);
+    LR_vector dcoord_dtheta = force_torque.second;
+
+    return dcoord_dtheta * df_dcoord;
 }
 
 number LTCoordination::potential(llint step, LR_vector &pos) {
-    number coord = Utils::clamp(_coordination(), coord_min, coord_max); // ensure we are within the grid limits
+    number coord = _coordination(step);
     int ic_left = std::floor((coord - coord_min) / d_coord);
 	int ic_right = ic_left + 1;
 
@@ -143,12 +155,68 @@ number LTCoordination::potential(llint step, LR_vector &pos) {
     return my_potential / (2.0 * all_pairs.size()); // divide by 2 to avoid double counting
 }
 
-double LTCoordination::_coordination() {
-    number coordination = 0.0;
-    for(auto &pair : all_pairs) {
-        number r = std::sqrt(CONFIG_INFO->box->sqr_min_image_distance(pair.first->pos, pair.second->pos));
-        coordination += 1.0 / (1.0 + std::pow((r - d0) / r0, n));
-    }
+LR_vector LTCoordination::_dcoord_dpos() {
+    auto pair = all_pairs[particle_to_pair_index[_current_particle]];
+    LR_vector old_pos = _current_particle->pos;
+    LR_vector grad;
 
-    return coordination;
+    for(int i = 0; i < 3; i++) {
+        LR_vector shift;
+        shift[i] = _delta_F;
+
+        _current_particle->pos = old_pos + shift;
+        number plus = meta::get_pair_contribution(settings, pair);
+
+        _current_particle->pos = old_pos - shift;
+        number minus = meta::get_pair_contribution(settings, pair);
+
+        grad[i] = (plus - minus) / (2.0 * _delta_F);
+    }
+    _current_particle->pos = old_pos;
+    return grad;
+}
+
+LR_vector LTCoordination::_dcoord_dtheta() {
+    // Get the pair this particle belongs to
+    auto pair = all_pairs[particle_to_pair_index[_current_particle]];
+    
+    LR_matrix old_orient = _current_particle->orientation;
+    LR_matrix old_orientT = _current_particle->orientationT;
+    
+    LR_vector dcoord_dtheta(0, 0, 0);
+    number contrib_plus, contrib_minus;
+
+    // here we use a central difference scheme, perturbing the orientation around each axis 
+    // *in the lab reference frame* in both directions and computing the contribution to the 
+    // coordination from the pair this particle belongs to
+    for(int i = 0; i < 3; i++) {
+        // positive rotation
+        _current_particle->orientation = _rot_matrices[i][0] * old_orient;
+        _current_particle->orientationT = _current_particle->orientation.get_transpose();
+        _current_particle->set_positions();
+        contrib_plus = meta::get_pair_contribution(settings, pair);
+
+        // negative rotation
+        _current_particle->orientation = _rot_matrices[i][1] * old_orient;
+        _current_particle->orientationT = _current_particle->orientation.get_transpose();
+        _current_particle->set_positions();
+        contrib_minus = meta::get_pair_contribution(settings, pair);
+
+        dcoord_dtheta[i] = (contrib_plus - contrib_minus) / (2.0 * _delta_T);
+    }
+    
+    // Restore original orientation
+    _current_particle->orientation = old_orient;
+    _current_particle->orientationT = old_orientT;
+    _current_particle->set_positions();
+    
+    return dcoord_dtheta;
+}
+
+number LTCoordination::_coordination(llint step) {
+    if(step != _last_step_calculated) {
+        _current_coordination = Utils::clamp(meta::coordination(settings, all_pairs), coord_min, coord_max);
+        _last_step_calculated = step;
+    }
+    return _current_coordination;
 }

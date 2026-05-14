@@ -179,7 +179,7 @@ std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
+LR_vector GenericCentralForce::force(llint step, LR_vector &pos) {
 	LR_vector dir = center - pos;
 	number dist_sqr = dir.norm();
 	dir.normalize();

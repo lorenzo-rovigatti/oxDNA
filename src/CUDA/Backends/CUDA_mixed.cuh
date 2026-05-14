@@ -50,7 +50,7 @@ __global__ void first_step_mixed(float4 __restrict__ *poss, GPU_quat __restrict_
 	if(any_rigid_body) {
 		float4 T = torques[IND];
 		LR_double4 L = Lsd[IND];
-		
+
 		L.x += T.x * MD_dt[0] * 0.5f;
 		L.y += T.y * MD_dt[0] * 0.5f;
 		L.z += T.z * MD_dt[0] * 0.5f;

@@ -121,14 +121,15 @@ void MD_CPUBackend::_first_step() {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
+			LR_matrix R(
+				LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, 
+				xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, 
+				xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
 			p->orientation = p->orientation * R;
 			p->orientationT = p->orientation.get_transpose();
 			p->set_positions();
 		}
-
-		p->set_initial_forces(current_step(), _box.get());
 
 		_lists->single_update(p);
 	}
@@ -144,6 +145,12 @@ void MD_CPUBackend::_first_step() {
 
 void MD_CPUBackend::_compute_forces() {
 	_interaction->begin_energy_and_force_computation();
+
+	// Update the forces acting on the particles due to external fields. This has to be done after the 
+	// position update since some external forces might depend on other particles' degrees of freedom
+	for(auto p : _particles) {
+		p->set_initial_forces(current_step(), _box.get());
+	}
 
 	_U = (number) 0;
 	for(auto p : _particles) {

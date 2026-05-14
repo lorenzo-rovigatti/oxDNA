@@ -118,6 +118,15 @@ LR_vector get_random_vector_in_sphere(number r);
 void orthonormalize_matrix(LR_matrix &M);
 
 /**
+ * @brief Returns a matrix which generates a rotation around the given axis of the given angle.
+ * 
+ * @param axis the rotation axis, must be a unit vector
+ * @param angle the rotation angle in radians
+ * @return the rotation matrix
+ */
+LR_matrix get_rotation_matrix_from_axis_angle(const LR_vector &axis, number angle);
+
+/**
  * @brief Returns a matrix which generates a rotation around a random axis of a random angle, extracted between 0 and max_angle.
  *
  * @param max_angle
@@ -248,9 +257,7 @@ inline LR_vector Utils::get_random_vector_in_sphere(number r) {
 	return res;
 }
 
-inline LR_matrix Utils::get_random_rotation_matrix_from_angle(number angle) {
-	LR_vector axis = Utils::get_random_vector();
-
+inline LR_matrix Utils::get_rotation_matrix_from_axis_angle(const LR_vector &axis, number angle) {
 	number t = angle;
 	number sintheta = sin(t);
 	number costheta = cos(t);
@@ -263,9 +270,17 @@ inline LR_matrix Utils::get_random_rotation_matrix_from_angle(number angle) {
 	number ysin = axis.y * sintheta;
 	number zsin = axis.z * sintheta;
 
-	LR_matrix R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
+	LR_matrix R(
+		axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin, 
+		xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin, 
+		xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
 
 	return R;
+}
+
+inline LR_matrix Utils::get_random_rotation_matrix_from_angle(number angle) {
+	LR_vector axis = Utils::get_random_vector();
+	return get_rotation_matrix_from_axis_angle(axis, angle);
 }
 
 inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {

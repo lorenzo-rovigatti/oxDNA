@@ -62,7 +62,7 @@ void COMForce::_compute_coms(llint step) {
 	}
 }
 
-LR_vector COMForce::value(llint step, LR_vector &pos) {
+LR_vector COMForce::force(llint step, LR_vector &pos) {
 	_compute_coms(step);
 	LR_vector dist = (_ref_com - _com);
 	number d_com = dist.module();

@@ -50,7 +50,7 @@ LR_vector ConstantTrap::_distance(LR_vector u, LR_vector v) {
 	}
 }
 
-LR_vector ConstantTrap::value(llint step, LR_vector &pos) {
+LR_vector ConstantTrap::force(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr)); // other - self
 	number sign = copysign(1., (double) (dr.module() - _r0));
 	return (_stiff * sign) * (dr / dr.module());

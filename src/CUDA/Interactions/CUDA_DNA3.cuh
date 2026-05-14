@@ -1005,7 +1005,7 @@ __global__ void DNA3_forces(const c_number4 __restrict__ *poss, const GPU_quat _
     if(IND >= MD_N[0]) return;
 
     c_number4 F = forces[IND];
-    c_number4 T = make_c_number4(0, 0, 0, 0);
+    c_number4 T = torques[IND];
     c_number4 ppos = poss[IND];
     LR_bonds pbonds = bonds[IND];
     neigh_types p_neighs(particle_types, pbonds);

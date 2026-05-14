@@ -56,7 +56,7 @@ std::tuple<std::vector<int>, std::string> LowdimMovingTrap::init(input_file &inp
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector LowdimMovingTrap::value(llint step, LR_vector &pos) {
+LR_vector LowdimMovingTrap::force(llint step, LR_vector &pos) {
 	LR_vector postrap;
 	number x, y, z;
 

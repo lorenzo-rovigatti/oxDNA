@@ -7,7 +7,7 @@
 
 #include "MD_CUDABackend.h"
 
-#include "../CUDAForces.h"
+#include "../Forces/forces_defs.cuh"
 #include "CUDA_MD.cuh"
 #include "../../Interactions/DNAInteraction.h"
 #include "../../Observables/ObservableOutput.h"
@@ -171,7 +171,6 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth *) p->ext_forces[j];
 					init_RepulsiveSphereSmooth_from_CPU(&cuda_force->repulsivespheresmooth, p_force);
 				}
-				
 				else if(force_type == typeid(RepulsiveSphereMoving)) {
 					RepulsiveSphereMoving *p_force = (RepulsiveSphereMoving *) p->ext_forces[j];
 					init_RepulsiveSphereMoving_from_CPU(&cuda_force->repulsivespheremoving, p_force);
@@ -207,6 +206,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 				else if(force_type == typeid(LTCOMTrap)) {
 					LTCOMTrap *p_force = (LTCOMTrap *) p->ext_forces[j];
 					init_LTCOMTrap_from_CPU(&cuda_force->ltcomtrap, p_force, first_time);
+				}
+				else if(force_type == typeid(LTCoordination)) {
+					LTCoordination *p_force = (LTCoordination *) p->ext_forces[j];
+					init_LTCoordination_from_CPU(&cuda_force->ltcoordination, p_force, p->index, first_time);
 				}
 				else if(force_type == typeid(YukawaSphere)) {
 					YukawaSphere *p_force = (YukawaSphere *) p->ext_forces[j];

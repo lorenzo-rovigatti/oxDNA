@@ -836,7 +836,7 @@ __global__ void dna_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
+	c_number4 T = torques[IND];
 	c_number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 	bool p_is_end = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);
