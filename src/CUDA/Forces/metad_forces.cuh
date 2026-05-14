@@ -278,37 +278,39 @@ __device__ c_number hb_interaction(const c_number4 &r, const c_number4 &rhydro, 
 		if(compute_F_T && hb_energy != 0.f) {
 			// derivatives called at the relevant arguments
 			c_number f1D = _f1D(rhydromod);
-			c_number f4t1D = -_f4D(t1, HYDR_THETA1_T0, HYDR_THETA1_A);
-			c_number f4t2D = -_f4D(t2, HYDR_THETA2_T0, HYDR_THETA2_A);
-			c_number f4t3D = _f4D(t3, HYDR_THETA3_T0, HYDR_THETA3_A);
-			c_number f4t4D = _f4D(t4, HYDR_THETA4_T0, HYDR_THETA4_A);
-			c_number f4t7D = -_f4D(t7, HYDR_THETA7_T0, HYDR_THETA7_A);
-			c_number f4t8D = _f4D(t8, HYDR_THETA8_T0, HYDR_THETA8_A);
+			c_number f4t1D =  _f4D(t1, HYDR_THETA1_T0, HYDR_THETA1_A);
+			c_number f4t2D =  _f4D(t2, HYDR_THETA2_T0, HYDR_THETA2_A);
+			c_number f4t3D = -_f4D(t3, HYDR_THETA3_T0, HYDR_THETA3_A);
+			c_number f4t4D = -_f4D(t4, HYDR_THETA4_T0, HYDR_THETA4_A);
+			c_number f4t7D =  _f4D(t7, HYDR_THETA7_T0, HYDR_THETA7_A);
+			c_number f4t8D = -_f4D(t8, HYDR_THETA8_T0, HYDR_THETA8_A);
 
 			// RADIAL PART
-			c_number4 Ftmp = rhydrodir * hb_energy * f1D / f1;
+			c_number4 Ftmp = -rhydrodir * (f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			*T += stably_normalised(_cross(a3, b3)) * (hb_energy * f4t4D / f4t4);
+			*T += stably_normalised(_cross(a3, b3)) * (-f1 * f4t1 * f4t2 * f4t3 * f4t4D * f4t7 * f4t8);
 
 			// TETA1; t1 = LRACOS (-a1 * b1);
-			*T += stably_normalised(_cross(a1, b1)) * (hb_energy * f4t1D / f4t1);
+			*T += stably_normalised(_cross(a1, b1)) * (-f1 * f4t1D * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= stably_normalised(b1 + rhydrodir * cost2) * (hb_energy * f4t2D / (f4t2 * rhydromod));
+            number fact = f1 * f4t1 * f4t2D * f4t3 * f4t4 * f4t7 * f4t8;
+			Ftmp += stably_normalised(b1 + rhydrodir * cost2) * (fact / rhydromod);
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -hb_energy * f4t3D / f4t3;
-			Ftmp += stably_normalised(a1 - rhydrodir * cost3) * (part / rhydromod);
-			*T += stably_normalised(_cross(rhydrodir, a1)) * part;
+            fact = f1 * f4t1 * f4t2 * f4t3D * f4t4 * f4t7 * f4t8;
+			Ftmp += stably_normalised(a1 - rhydrodir * cost3) * (fact / rhydromod);
+			*T += stably_normalised(_cross(rhydrodir, a1)) * fact;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			Ftmp -= stably_normalised(b3 + rhydrodir * cost7) * (hb_energy * f4t7D / (f4t7 * rhydromod));
+            fact = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7D * f4t8;
+			Ftmp += stably_normalised(b3 + rhydrodir * cost7) * (fact / rhydromod);
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -hb_energy * f4t8D / f4t8;
-			Ftmp += stably_normalised(a3 - rhydrodir * cost8) * (part / rhydromod);
-			*T += stably_normalised(_cross(rhydrodir, a3)) * part;
+			fact = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8D;
+			Ftmp += stably_normalised(a3 - rhydrodir * cost8) * (fact / rhydromod);
+			*T += stably_normalised(_cross(rhydrodir, a3)) * fact;
 
 			*T += _cross(ppos_base, Ftmp);
 

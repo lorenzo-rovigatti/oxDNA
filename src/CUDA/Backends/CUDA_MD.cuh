@@ -106,7 +106,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 	c_number4 ppos = poss[IND];
 	c_number4 F = make_c_number4(0, 0, 0, 0);
 	c_number4 T = make_c_number4(0, 0, 0, 0);
-	bool update_torque = false;
 
 	for(int i = 0; i < max_ext_forces; i++) {
 		// coalesced
@@ -510,8 +509,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 			case CUDA_LR_COORDINATION: {
-				update_torque = true;
-
 				cuda_meta::lt_coordination_force_torque(&extF.ltcoordination, IND, poss, orientations, ppos, F, T, box);
 				break;
 				
@@ -550,13 +547,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 		}
-	}
-
-	if(update_torque) {
-		GPU_quat po = orientations[IND];
-		c_number4 a1, a2, a3;
-		get_vectors_from_quat(po, a1, a2, a3);
-		T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
 	}
 
 	forces[IND] = F;

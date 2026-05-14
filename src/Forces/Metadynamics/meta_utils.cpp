@@ -357,22 +357,25 @@ number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vec
             // t2 generates a torque on q, which is not needed here, so we don't compute it
 
 			// THETA3; t3 = LRACOS (a1 * rhydrodir);
-			force += (a1 - rhydrodir * cost3) * (f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8 / rhydromod);
+            fact = f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
+			force += (a1 - rhydrodir * cost3) * (fact / rhydromod);
 
 			LR_vector t3dir = rhydrodir.cross(a1);
-			torquemod = f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
+			torquemod = fact;
 
 			torque += t3dir * torquemod;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			force += (b3 + rhydrodir * cost7) * (f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8 / rhydromod);
+            fact = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8;
+			force += (b3 + rhydrodir * cost7) * (fact / rhydromod);
             // t7 generates a torque on q, which is not needed here, so we don't compute it
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			force += (a3 - rhydrodir * cost8) * (f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin / rhydromod);
+            fact = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
+			force += (a3 - rhydrodir * cost8) * (fact / rhydromod);
 
 			LR_vector t8dir = rhydrodir.cross(a3);
-			torquemod = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
+			torquemod = fact;
 
 			torque += t8dir * torquemod;
 
