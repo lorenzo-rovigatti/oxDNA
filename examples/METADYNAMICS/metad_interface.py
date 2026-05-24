@@ -519,16 +519,19 @@ class Estimator():
                     shutil.copy(initial_conf, os.path.join(w.working_dir, Estimator.LAST_CONF))
                     shutil.copy(top_file, w.working_dir)
                     
-                    # write the meta input
-                    with open(os.path.join(w.working_dir, Estimator.INPUT_FILE), 'w+') as f:
-                        if use_sequential_GPUs:
-                            input_file["CUDA_device"] = str(w.index)
-
-                        input_file["seed"] = str(random.randint(0, int(1e9)))
-
-                        f.write(str(input_file))
-
                     self.handler.prepare_folder(w.working_dir)
+            
+            # now write the meta input. We need to do this independently of continue_run
+            # since in principle the user could want to restart the run with different parameters 
+            # (e.g. different number tau, conf_interval, etc)
+            for w in self.walkers:
+                with open(os.path.join(w.working_dir, Estimator.INPUT_FILE), 'w+') as f:
+                    if use_sequential_GPUs:
+                        input_file["CUDA_device"] = str(w.index)
+
+                    input_file["seed"] = str(random.randint(0, int(1e9)))
+
+                    f.write(str(input_file))
 
         # write the initial force files                
         for w in self.walkers:
