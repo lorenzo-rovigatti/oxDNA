@@ -57,7 +57,11 @@ IF(Python)
 	# we need the oxDNA "common" library to be compiled so that the resulting code is position-independent and the library can be linked dynamically
 	set_target_properties(oxdna_common PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	
-	Python_add_library(core MODULE bindings.cpp ${oxpy_SOURCES} WITH_SOABI)
+	if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.17")
+		Python_add_library(core MODULE bindings.cpp ${oxpy_SOURCES} WITH_SOABI)
+	else()
+		Python_add_library(core MODULE bindings.cpp ${oxpy_SOURCES})
+	endif()
 	set_target_properties(core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	target_include_directories(core PRIVATE ${Python_INCLUDE_DIRS})
 	# On MacOS, Python extensions should NOT link against libpython
