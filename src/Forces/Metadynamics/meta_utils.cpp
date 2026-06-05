@@ -270,8 +270,13 @@ number _f4Dsin(number t, number t0, number a) {
 	}
 
 	if(tt0 < 1.0 / std::sqrt(a)) {
-        number sint = sin(t);
-        val = m * 2.0 * a * tt0 / sint;
+        number sint = std::sin(t);
+        // for perfectly aligned nucleotides, i.e. for generated structures, the value of sint may be 0.
+        // This would cause the derivative diverge here (which in reality is compensated by how this 
+        // contribution is multiplied by the combination of vectors involved in the angle calculation).
+        // To avoid the divergence we assume that t - t0 = t, so that we can write t / sin(t) = 1,
+        // which is wrong but will happen only at the very beginning of a simulation.
+        val = (sint > 1e-10) ? m * 2.0 * a * tt0 / sint : m * 2.0 * a;
 	}
 
 	return val;
