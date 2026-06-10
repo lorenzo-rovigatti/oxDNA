@@ -63,6 +63,9 @@ if __name__ == "__main__":
 
         dx = (op_max - op_min) / (N_grid - 1)
         op_grid = np.arange(op_min, op_max + dx, dx)
+        # it can happen that, due to rounding issues, op_grid has one more element than bias, so we need to trim it
+        if len(op_grid) > len(bias):
+            op_grid = op_grid[:len(bias)]
         np.savetxt("bias_from_force_file.dat", np.column_stack((op_grid, bias)))
 
     # Read the order parameter values from the OP file
