@@ -3,13 +3,13 @@
 import os, shutil
 import toml
 import oxpy
+import random
 
 BASE_RUNNER_DIR = "run-meta_0"
 RUNNER_INPUT_FILE = "input-meta"
 METAD_CONFIG_FILENAME = "original_metad_config.toml"
 
 FILES = {
-    RUNNER_INPUT_FILE : "input",
     "last_conf.dat" : "init_conf.dat",
     "ext_meta.txt" : "ext_meta.txt"
 }
@@ -19,7 +19,8 @@ LINES = {
     "log_file" : ["oxDNA_log.txt", ""],
     "no_stdout_energy" : ["true", ""],
     "print_conf_interval" : ["1e11", "1e5"],
-    "restart_step_counter" : ["", "true"]
+    "restart_step_counter" : ["", "true"],
+    "seed" : ["*", ""]
 }
 
 def build_parser():
@@ -33,6 +34,7 @@ def build_parser():
 
     parser.add_argument("--config", type=str, required=True, help="Path to the TOML configuration file printed by the metadynamics interface.")
     parser.add_argument("--force", "-f", action="store_true", help="Whether to overwrite the sampling folder if it already exists.")
+    parser.add_argument("--seed", "-s", type=int, default=random.randint(0, 2**32 - 1), help="The seed to use for the oxDNA simulation. If not given, the seed will be chosen randomly.")
 
     return parser
 
@@ -57,39 +59,33 @@ if __name__ == "__main__":
     # Copy also the metadynamics configuration file
     shutil.copy(args.config, os.path.join(args.sampling_dir, METAD_CONFIG_FILENAME))
 
-    # Read the name of the topology file from the input file
     with oxpy.Context(print_coda=False):
         input_file = oxpy.InputFile()
         input_file.init_from_filename(os.path.join(BASE_RUNNER_DIR, RUNNER_INPUT_FILE))
+        # Read the name of the topology file from the input file and add it to FILES so that it is copied over to the sampling dir
         topology_file = input_file["topology"]
-        FILES[topology_file] = topology_file # add it to FILES so that it is copied over to the sampling dir
+        FILES[topology_file] = topology_file
+
+        # Replace the lines of the input file that need to be changed to run the sampling
+        LINES["seed"][1] = f"{args.seed}"
+        for key in LINES:
+            if key in input_file:
+                option = input_file[key]
+                if LINES[key][0] != "" and LINES[key][0] != "*" and option != LINES[key][0]:
+                    print(f"Warning: the value of {key} in the input file is not {LINES[key][0]} as expected, but {option}. The line will be replaced anyway, but make sure that we are working with the correct input file.")
+
+            if LINES[key][1] == "" and key in input_file:
+                del input_file[key]
+            else:
+                input_file[key] = LINES[key][1]
+
+        # Print the modified input file to the sampling directory
+        input_filename = os.path.join(args.sampling_dir, "input")
+        with open(input_filename, "w") as f:
+            print(input_file, file=f)
 
     # Copy the base simulation files
     for f_old, f_new in FILES.items():
         src = os.path.join(BASE_RUNNER_DIR, f_old)
         dst = os.path.join(args.sampling_dir, f_new)
         shutil.copy(src, dst)
-
-    # Replace the lines of the input file that need to be changed to run the sampling
-    input_file = os.path.join(args.sampling_dir, "input")
-    with open(input_file, "r") as f:
-        lines = f.readlines()
-        lines_to_delete = []
-        for i in range(len(lines)):
-            spl = [s.strip() for s in lines[i].strip().split("=")]
-            if len(spl) == 2:
-                key, option = spl
-                if key in LINES:
-                    if LINES[key][0] != "" and option != LINES[key][0]:
-                        print(f"Warning: the value of {key} in the input file is not {LINES[key][0]} as expected, but {option}. The line will be replaced anyway, but make sure that we are working with the correct input file.")
-                    if LINES[key][1] == "":
-                        lines_to_delete.append(i)
-                    else:
-                        option = LINES[key][1]
-                        lines[i] = f"{key} = {option}\n"
-
-        for i in reversed(lines_to_delete):
-            del lines[i]
-
-    with open(input_file, "w") as f:
-        f.writelines(lines)
