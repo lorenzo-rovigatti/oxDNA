@@ -47,7 +47,7 @@ std::tuple<std::vector<int>, std::string> MovingTrap::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector MovingTrap::value(llint step, LR_vector &pos) {
+LR_vector MovingTrap::force(llint step, LR_vector &pos) {
 	LR_vector postrap;
 	number x, y, z;
 

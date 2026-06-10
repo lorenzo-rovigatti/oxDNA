@@ -50,7 +50,7 @@ std::tuple<std::vector<int>, std::string> YukawaSphere::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector YukawaSphere::value(llint step, LR_vector &pos) {
+LR_vector YukawaSphere::force(llint step, LR_vector &pos) {
 	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number dist_surface = _radius - dist.module();
 	if(dist_surface < 0) {

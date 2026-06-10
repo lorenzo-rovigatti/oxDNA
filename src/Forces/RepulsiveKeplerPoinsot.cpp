@@ -236,7 +236,7 @@ static inline bool star_metric_and_grad(
     return found;
 }
 
-LR_vector RepulsiveKeplerPoinsot::value(llint step, LR_vector &pos) {
+LR_vector RepulsiveKeplerPoinsot::force(llint step, LR_vector &pos) {
     const number growth = (number)1.0 + _rate * (number)step;
     if(growth <= (number)0.0) return LR_vector(0,0,0);
 

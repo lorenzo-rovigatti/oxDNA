@@ -41,7 +41,7 @@ std::tuple<std::vector<int>, std::string> AttractionPlane::init(input_file &inp)
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector AttractionPlane::value(llint step, LR_vector &pos) {
+LR_vector AttractionPlane::force(llint step, LR_vector &pos) {
 	number distance_from_plane = this->_direction*pos + this->_position;
 
 	if(distance_from_plane >=  0.) {

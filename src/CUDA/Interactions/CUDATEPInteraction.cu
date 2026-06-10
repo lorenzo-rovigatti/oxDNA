@@ -200,7 +200,7 @@ __global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
+	c_number4 T = torques[IND];
 	c_number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 

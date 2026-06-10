@@ -52,7 +52,7 @@ number RepulsionPlane::_updated_position(llint step) {
 	return position;
 }
 
-LR_vector RepulsionPlane::value(llint step, LR_vector &pos) {
+LR_vector RepulsionPlane::force(llint step, LR_vector &pos) {
 	number distance = _direction * pos + _updated_position(step);
 	if(distance >= 0.) return LR_vector(0., 0., 0.);
 	else return -(distance * _stiff) * _direction;

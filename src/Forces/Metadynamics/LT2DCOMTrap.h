@@ -31,7 +31,7 @@ public:
 
 	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
-	LR_vector value(llint step, LR_vector &pos) override;
+	LR_vector force(llint step, LR_vector &pos) override;
 	number potential(llint step, LR_vector &pos) override;
 
 protected:

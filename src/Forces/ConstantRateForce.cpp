@@ -51,7 +51,7 @@ std::tuple<std::vector<int>, std::string> ConstantRateForce::init(input_file &in
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {
+LR_vector ConstantRateForce::force(llint step, LR_vector &pos) {
 	LR_vector dir = _direction;
 	if(dir_as_centre) {
 		dir -= pos;

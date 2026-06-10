@@ -125,7 +125,7 @@ __global__ void Levy_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0.f, 0.f, 0.f, 0.f);
+	c_number4 T = torques[IND];
 	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 	c_number4 ppatch = a1 * 0.5f;

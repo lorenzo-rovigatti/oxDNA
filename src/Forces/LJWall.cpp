@@ -56,7 +56,7 @@ std::tuple<std::vector<int>, std::string> LJWall::init(input_file &inp) {
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector LJWall::value(llint step, LR_vector &pos) {
+LR_vector LJWall::force(llint step, LR_vector &pos) {
 	number distance = _direction * pos + _position; // distance from the plane
 	number rel_distance = distance / _sigma; // distance from the plane in units of _sigma
 	if(rel_distance > _cutoff) return LR_vector(0., 0., 0.);

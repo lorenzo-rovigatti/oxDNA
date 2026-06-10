@@ -68,7 +68,7 @@ std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp) 
 	return std::make_tuple(std::vector<int>{_particle}, description);
 }
 
-LR_vector AlignmentField::value(llint step, LR_vector &pos) {
+LR_vector AlignmentField::force(llint step, LR_vector &pos) {
 	throw oxDNAException("Not implemented... %s %s", __FILE__, __LINE__);
 }
 
