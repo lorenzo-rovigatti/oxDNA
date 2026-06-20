@@ -1,0 +1,37 @@
+######## PROGRAM PARAMETERS ########
+sim_type = MD
+backend = CPU
+restart_step_counter = 0
+interaction_type = DNA2
+salt_concentration = 1.0
+use_average_seq = false
+seq_dep_file = /path_to/oxDNA2_sequence_dependent_parameters.txt
+
+######## SIM PARAMETERS ########
+steps = 2e10
+thermostat = brownian
+newtonian_steps = 53
+diff_coeff = 0.5
+
+dt = 0.002
+newtonian_steps = 57
+diff_coeff = 0.5
+list_type = verlet
+T = 25C
+verlet_skin = 0.2
+
+######## INPUT / OUTPUT ########
+topology = ../topology.top
+conf_file = ../init_conf.dat
+lastconf_file = last_conf.dat
+trajectory_file = trajectory.dat
+energy_file = energy.dat
+refresh_vel = true
+print_conf_interval = 3e6
+print_energy_every = 3e6
+time_scale = linear
+
+######## EXTERNAL FORCES ########
+external_forces      = false
+external_forces_file = ../forces.dat
+
