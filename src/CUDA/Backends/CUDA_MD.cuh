@@ -508,6 +508,11 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
+			case CUDA_LR_COORDINATION: {
+				cuda_meta::lt_coordination_force_torque(&extF.ltcoordination, IND, poss, orientations, ppos, F, T, box);
+				break;
+				
+			}
 			case CUDA_YUKAWA_SPHERE: {
 				c_number4 centre = make_c_number4(extF.yukawasphere.center.x, extF.yukawasphere.center.y, extF.yukawasphere.center.z, 0.);
 

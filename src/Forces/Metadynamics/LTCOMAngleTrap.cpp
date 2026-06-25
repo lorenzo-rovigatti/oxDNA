@@ -59,7 +59,7 @@ LR_vector LTCOMAngleTrap::_distance(LR_vector u, LR_vector v) {
 		return v - u;
 }
 
-LR_vector LTCOMAngleTrap::value(llint step, LR_vector &pos) {
+LR_vector LTCOMAngleTrap::force(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p3a_vec = meta::particle_list_com(_p3a_ptr, CONFIG_INFO->box);

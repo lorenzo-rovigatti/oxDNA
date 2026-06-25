@@ -52,7 +52,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveEllipsoid::init(input_file &i
 	return std::make_tuple(particle_ids, description);
 }
 
-LR_vector RepulsiveEllipsoid::value(llint step, LR_vector &pos) {
+LR_vector RepulsiveEllipsoid::force(llint step, LR_vector &pos) {
 	LR_vector dist = CONFIG_INFO->box->min_image(_centre, pos);
 
 	double internal_cut = SQR(dist.x) / SQR(_r_2.x) + SQR(dist.y) / SQR(_r_2.y) + SQR(dist.z) / SQR(_r_2.z);

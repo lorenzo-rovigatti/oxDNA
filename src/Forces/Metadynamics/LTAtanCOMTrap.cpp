@@ -98,7 +98,7 @@ LR_vector LTAtanCOMTrap::_distance(LR_vector u, LR_vector v) {
 		return v - u;
 }
 
-LR_vector LTAtanCOMTrap::value(llint step, LR_vector &pos) {
+LR_vector LTAtanCOMTrap::force(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);

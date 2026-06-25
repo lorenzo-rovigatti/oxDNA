@@ -39,6 +39,26 @@ std::tuple<std::vector<int>, std::vector<BaseParticle *>> get_particle_lists(inp
 
 std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
 
+struct CoordSettings {
+	enum class CoordMode { HB_ENERGY, SWITCHING_FUNCTION, MIXED } coord_mode;
+	// only used if coord_mode == MIXED, must be between 0 and 1. The contribution of the HB_ENERGY mode will be multiplied 
+	// by this weight, while the contribution of the SWITCHING_FUNCTION mode will be multiplied by (1 - mixed_weight)
+	number mixed_weight;
+	number hb_energy_cutoff, hb_transition_width, d0, r0;
+	int n;
+
+	CoordSettings();
+
+	void get_settings(input_file &inp);
+};
+
+number coordination(CoordSettings &settings, std::vector<std::pair<BaseParticle *, BaseParticle *>> &all_pairs);
+number get_pair_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair);
+std::pair<LR_vector, LR_vector> get_pair_force_torque_contribution(CoordSettings &settings, std::pair<BaseParticle*, BaseParticle*> &pair, BaseParticle *current_particle);
+number hb_interaction(BaseParticle *p, BaseParticle *q, LR_vector &force, LR_vector &torque, bool compute_force_torque=true);
+number der_smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
+number smooth_hb_contribution(number hb_energy_cutoff, number hb_transition_width, number hb_energy);
+
 }
 
 #endif /* SRC_FORCES_METADYNAMICS_META_UTILS_H_ */

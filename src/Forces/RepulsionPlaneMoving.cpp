@@ -53,7 +53,7 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 	return std::make_tuple(particle_indices_vector, description);
 }
 
-LR_vector RepulsionPlaneMoving::value(llint step, LR_vector &pos) {
+LR_vector RepulsionPlaneMoving::force(llint step, LR_vector &pos) {
 	LR_vector force(0., 0., 0.);
 	for(std::vector<int>::size_type i = 0; i < ref_p_ptr.size(); i++) {
 		number distance = (pos - CONFIG_INFO->box->get_abs_pos(ref_p_ptr[i])) * _direction;

@@ -21,18 +21,11 @@ void Coordination::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
     getInputString(&my_inp, "op_file", _op_file, 1);
-
-    getInputNumber(&my_inp, "d0", &_d0, 0);
-	getInputNumber(&my_inp, "r0", &_r0, 0);
-    getInputInt(&my_inp, "n", &_n, 0);
+    _settings.get_settings(my_inp);
 }
 
 void Coordination::init() {
 	BaseObservable::init();
-
-    if(_n % 2 != 0) {
-        throw oxDNAException("Coordination: exponent n must be an even integer");
-    }
 
     OrderParameters op;
     op.init_from_file(_op_file.c_str(), CONFIG_INFO->particles(), CONFIG_INFO->N());
@@ -73,11 +66,6 @@ void Coordination::init() {
 }
 
 std::string Coordination::get_output_string(llint curr_step) {
-    number coordination = 0.0;
-    for(auto &pair : _all_pairs) {
-        number r = std::sqrt(CONFIG_INFO->box->sqr_min_image_distance(pair.first->pos, pair.second->pos));
-        coordination += 1.0 / (1.0 + std::pow((r - _d0) / _r0, _n));
-    }
-
+    number coordination = meta::coordination(_settings, _all_pairs);
     return Utils::sformat("%lf", coordination);
 }

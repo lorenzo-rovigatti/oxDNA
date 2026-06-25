@@ -63,6 +63,9 @@ if __name__ == "__main__":
 
         dx = (op_max - op_min) / (N_grid - 1)
         op_grid = np.arange(op_min, op_max + dx, dx)
+        # it can happen that, due to rounding issues, op_grid has one more element than bias, so we need to trim it
+        if len(op_grid) > len(bias):
+            op_grid = op_grid[:len(bias)]
         np.savetxt("bias_from_force_file.dat", np.column_stack((op_grid, bias)))
 
     # Read the order parameter values from the OP file
@@ -89,6 +92,10 @@ if __name__ == "__main__":
     # defined as the proper number of hydrogen bonds, which is stored in the third column of the OP file
     if config_data["coordination"] == True:
         hb_biased_values = op_data[:, 2]
+
+        hb_biased_beta_FE = get_beta_FE(hb_biased_values, op_range=op_range)
+        np.savetxt("biased_hb_beta_FE.dat", np.column_stack(hb_biased_beta_FE))
+
         bins = list(range(int(op_max - op_min) + 1))
         hb_unbiased_beta_FE = get_beta_FE(hb_biased_values, weights=weights, bins=bins)
         np.savetxt("unbiased_hb_beta_FE.dat", np.column_stack(hb_unbiased_beta_FE))
