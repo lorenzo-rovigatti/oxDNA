@@ -1,6 +1,6 @@
 # Flux through the first distance interface.
 input = "../input"
-ncpus = 1
+ncpus = 24
 
 pairs = [
   [20, 71],
@@ -16,7 +16,7 @@ use_bonds = true
 bond_threshold = -0.10
 
 initial_seed = 12345
-desired_success_count = 10
+desired_success_count = 5000
 
 state_A = -4
 interface = [-4, -3]

@@ -1,6 +1,6 @@
 # Shoot from Q=-3 towards Q=-2.
 input = "../input"
-ncpus = 1
+ncpus = 24
 
 pairs = [
   [20, 71],
@@ -16,7 +16,7 @@ use_bonds = true
 bond_threshold = -0.10
 
 initial_seed = 22345
-total_simulations = 100
+total_simulations = 50000
 
 starting_conf_pattern = "../FLUX/success_*.dat"
 

@@ -1,6 +1,6 @@
 # Shoot from Q=-2 towards Q=-1.
 input = "../input"
-ncpus = 1
+ncpus = 24
 
 pairs = [
   [20, 71],
@@ -16,7 +16,7 @@ use_bonds = true
 bond_threshold = -0.10
 
 initial_seed = 32345
-total_simulations = 100
+total_simulations = 20000
 
 starting_conf_pattern = "../SHOOT_01_dist_m3_m2/success_*.dat"
 
