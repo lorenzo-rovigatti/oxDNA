@@ -6,7 +6,7 @@ This example provides a minimal implementation of a Forward Flux Sampling (FFS) 
 
 The workflow consists of one FLUX stage followed by four SHOOT stages. One representative successful configuration obtained at each interface is included in the example and illustrated below.
 
-![Representative configurations](scheme.png)
+![Representative configurations](example/scheme.png)
 
 The interfaces used in this example are
 
@@ -44,7 +44,7 @@ python3 plot_results.py
 
 reproduces these values and generates the diagnostic plot
 
-![Reference cumulative rate estimate](ffs_cumulative_rate.png)
+![Reference cumulative rate estimate](example/ffs_cumulative_rate.png)
 
 showing how the final FFS rate estimate is constructed from the successive interfaces.
 
