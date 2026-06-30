@@ -11,6 +11,7 @@
 #include "../../python_defs.h"
 
 #include "HBList.h"
+#include "ParticleStress.h"
 
 #include <Observables/BaseObservable.h>
 
@@ -79,6 +80,7 @@ void export_BaseObservable(py::module &m) {
 	)pbdoc");
 
 	export_HBList(sub_m);
+	export_ParticleStress(sub_m);
 }
 
 #endif /* OXPY_BUILD_DOCS_BINDINGS_INCLUDES_BASEOBSERVABLE_H_ */

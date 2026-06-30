@@ -66,6 +66,15 @@ To check if a specific option has been set you can use `in`::
             The name of the input file whence the options will be loaded.
 	)pbdoc");
 
+	input.def("init_from_string", &input_file::init_from_string, py::arg("input_string"), R"pbdoc(
+        Initialise the object from a string containing the input options.
+
+        Parameters
+        ----------
+        input_string: str
+            The string containing the input options.
+	)pbdoc");
+
 	input.def("get_bool", [](input_file &inp, std::string &key) {
 		bool res;
 		getInputBool(&inp, key.c_str(), &res, 0);

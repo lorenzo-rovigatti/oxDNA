@@ -55,6 +55,7 @@
 #include "ExternalForce.h"
 #include "ParticleForceAndTorque.h"
 #include "Coordination.h"
+#include "ParticleStress.h"
 
 #include "Configurations/BinaryConfiguration.h"
 #include "Configurations/TEPtclOutput.h"
@@ -127,6 +128,7 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	else if(!strncasecmp(obs_type, "external_force", 512)) res = std::make_shared<ExternalForce>();
 	else if(!strncasecmp(obs_type, "force_and_torque", 512)) res = std::make_shared<ParticleForceAndTorque>();
 	else if(!strncasecmp(obs_type, "coordination", 512)) res = std::make_shared<Coordination>();
+	else if(!strncasecmp(obs_type, "particle_stress", 512)) res = std::make_shared<ParticleStress>();
 #ifdef LEGACY_CODE
 	else if(!strncasecmp(obs_type, "salt_extrapolation", 512)) res = std::make_shared<SaltExtrapolation>();
 	else if(!strncasecmp(obs_type, "jordan_conf", 512)) res = std::make_shared<JordanOutput>();

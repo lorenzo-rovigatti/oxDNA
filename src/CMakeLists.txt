@@ -70,6 +70,7 @@ SET(observables_SOURCES
 	Observables/AllVectors.cpp
 	Observables/ExternalForce.cpp
 	Observables/ParticleForceAndTorque.cpp
+	Observables/ParticleStress.cpp
 	Observables/Coordination.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
