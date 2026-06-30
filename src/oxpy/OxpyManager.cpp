@@ -105,7 +105,7 @@ void OxpyManager::run_steps(llint steps, bool print_output) {
 		}
 
 		try {
-			if(i > 0 && i % _fix_diffusion_every == 0) {
+			if(_steps_run > 0 && _steps_run % _fix_diffusion_every == 0) {
 				_backend->fix_diffusion();
 			}
 
