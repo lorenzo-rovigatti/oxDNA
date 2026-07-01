@@ -1,0 +1,29 @@
+# Shoot from Q=-3 towards Q=-2.
+input = "../input"
+ncpus = 24
+
+pairs = [
+  [20, 71],
+]
+
+# Hybrid OP:
+# Q is distance-based while no listed pair is bonded.
+# If use_bonds = true and one or more listed pairs are bonded, Q = nbonds.
+distance_thresholds = [8, 5, 3, 2]
+distance_final_state = 0
+
+use_bonds = true
+bond_threshold = -0.10
+
+initial_seed = 22345
+total_simulations = 50000
+
+starting_conf_pattern = "../FLUX/success_*.dat"
+
+state_A = -4
+interface = [-3, -2]
+
+[log]
+filename = "ffs.log"
+verbose = true
+also_stderr = true

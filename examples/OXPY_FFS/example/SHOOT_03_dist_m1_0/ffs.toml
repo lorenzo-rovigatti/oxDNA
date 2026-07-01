@@ -1,0 +1,29 @@
+# Shoot from Q=-1 towards Q=0.
+input = "../input"
+ncpus = 24
+
+pairs = [
+  [20, 71],
+]
+
+# Hybrid OP:
+# Q is distance-based while no listed pair is bonded.
+# If use_bonds = true and one or more listed pairs are bonded, Q = nbonds.
+distance_thresholds =  [8, 5, 3, 2]
+distance_final_state = 0
+
+use_bonds = true
+bond_threshold = -0.10
+
+initial_seed = 42345
+total_simulations = 20000
+
+starting_conf_pattern = "../SHOOT_02_dist_m2_m1/success_*.dat"
+
+state_A = -4
+interface = [-1, 0]
+
+[log]
+filename = "ffs.log"
+verbose = true
+also_stderr = true
