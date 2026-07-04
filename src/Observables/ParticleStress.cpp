@@ -21,11 +21,22 @@ void ParticleStress::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputBool(&my_inp, "print_coordinates", &_also_coordinates, 0);
+	getInputBool(&my_inp, "ignore_custom_stress_tensor", &_ignore_custom_stress_tensor, 0);
 }
 
 std::vector<StressTensor> ParticleStress::stress_tensors() {
 	if(_config_info->interaction->has_custom_stress_tensor()) {
-		throw oxDNAException("ParticleStress observable cannot be used with interactions that have a custom stress tensor.");
+		static bool print_warning = true;
+		if(!_ignore_custom_stress_tensor) {
+			throw oxDNAException("ParticleStress observable cannot be used with interactions that have a custom stress tensor, unless the 'ignore_custom_stress_tensor' option is set to true.");
+		}
+		else {
+			if(print_warning) {
+				OX_LOG(Logger::LOG_WARNING, "Using ParticleStress observable with an interaction that has a custom stress tensor. The results may not be physically meaningful.");
+				print_warning = false;
+			}
+
+		}
 	}
 
 	static std::vector<LR_vector> old_forces, old_torques;

@@ -20,6 +20,7 @@
 class ParticleStress: public BaseObservable {
 protected:
 	bool _also_coordinates = false;
+	bool _ignore_custom_stress_tensor = false;
 public:
 	ParticleStress();
 	virtual ~ParticleStress();
