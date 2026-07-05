@@ -21,85 +21,91 @@ void ParticleStress::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputBool(&my_inp, "print_coordinates", &_also_coordinates, 0);
-	getInputBool(&my_inp, "ignore_custom_stress_tensor", &_ignore_custom_stress_tensor, 0);
 }
 
 std::vector<StressTensor> ParticleStress::stress_tensors() {
-	if(_config_info->interaction->has_custom_stress_tensor()) {
-		static bool print_warning = true;
-		if(!_ignore_custom_stress_tensor) {
-			throw oxDNAException("ParticleStress observable cannot be used with interactions that have a custom stress tensor, unless the 'ignore_custom_stress_tensor' option is set to true.");
-		}
-		else {
-			if(print_warning) {
-				OX_LOG(Logger::LOG_WARNING, "Using ParticleStress observable with an interaction that has a custom stress tensor. The results may not be physically meaningful.");
-				print_warning = false;
-			}
-
-		}
-	}
-
-	static std::vector<LR_vector> old_forces, old_torques;
-
 	std::vector<StressTensor> stress_tensors(_config_info->N());
-	_config_info->interaction->begin_energy_and_force_computation();
 
-	// pair_interaction will change these vectors, but we still need them in the next
-	// first integration step. For this reason we copy and then restore their values
-	// after the calculation
-	old_forces.resize(_config_info->N());
-	old_torques.resize(_config_info->N());
-	for(int i = 0; i < _config_info->N(); i++) {
-		old_forces[i] = _config_info->particles()[i]->force;
-		old_torques[i] = _config_info->particles()[i]->torque;
+	if(_config_info->interaction->has_custom_stress_tensor()) {
+		for(int i = 0; i < _config_info->N(); i++) {
+			BaseParticle *p = _config_info->particles()[i];
+			StressTensor &stress_tensor = stress_tensors[p->index];
+
+			stress_tensor[0] += p->pos.x * p->force.x;
+			stress_tensor[1] += p->pos.y * p->force.y;
+			stress_tensor[2] += p->pos.z * p->force.z;
+			stress_tensor[3] += p->pos.x * p->force.y;
+			stress_tensor[4] += p->pos.x * p->force.z;
+			stress_tensor[5] += p->pos.y * p->force.z;
+
+			stress_tensor[0] += SQR(p->vel.x);
+			stress_tensor[1] += SQR(p->vel.y);
+			stress_tensor[2] += SQR(p->vel.z);
+			stress_tensor[3] += p->vel.x * p->vel.y;
+			stress_tensor[4] += p->vel.x * p->vel.z;
+			stress_tensor[5] += p->vel.y * p->vel.z;
+		}
 	}
-	
-	for(int i = 0; i < _config_info->N(); i++) {
-		BaseParticle *p = _config_info->particles()[i];
-		StressTensor &stress_tensor = stress_tensors[p->index];
-		std::vector<BaseParticle *> neighs = _config_info->lists->get_neigh_list(p);
+	else {
+		static std::vector<LR_vector> old_forces, old_torques;
+		_config_info->interaction->begin_energy_and_force_computation();
 
-		std::set<BaseParticle *> bonded_neighs;
-		for(auto &pair : p->affected) {
-			if(pair.first != p) {
-				bonded_neighs.insert(pair.first);
+		// pair_interaction will change these vectors, but we still need them in the next
+		// first integration step. For this reason we copy and then restore their values
+		// after the calculation
+		old_forces.resize(_config_info->N());
+		old_torques.resize(_config_info->N());
+		for(int i = 0; i < _config_info->N(); i++) {
+			old_forces[i] = _config_info->particles()[i]->force;
+			old_torques[i] = _config_info->particles()[i]->torque;
+		}
+		
+		for(int i = 0; i < _config_info->N(); i++) {
+			BaseParticle *p = _config_info->particles()[i];
+			StressTensor &stress_tensor = stress_tensors[p->index];
+			std::vector<BaseParticle *> neighs = _config_info->lists->get_neigh_list(p);
+
+			std::set<BaseParticle *> bonded_neighs;
+			for(auto &pair : p->affected) {
+				if(pair.first != p) {
+					bonded_neighs.insert(pair.first);
+				}
+				if(pair.second != p) {
+					bonded_neighs.insert(pair.second);
+				}
 			}
-			if(pair.second != p) {
-				bonded_neighs.insert(pair.second);
+
+			neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
+
+			for(auto q : neighs) {
+				if(p->index > q->index) {
+					LR_vector r = _config_info->box->min_image(p->pos, q->pos);
+					_config_info->interaction->set_computed_r(r);
+
+					p->force = LR_vector();
+					_config_info->interaction->pair_interaction(p, q, false, true);
+
+					stress_tensor[0] -= r.x * p->force.x;
+					stress_tensor[1] -= r.y * p->force.y;
+					stress_tensor[2] -= r.z * p->force.z;
+					stress_tensor[3] -= r.x * p->force.y;
+					stress_tensor[4] -= r.x * p->force.z;
+					stress_tensor[5] -= r.y * p->force.z;
+				}
 			}
+
+			stress_tensor[0] += SQR(p->vel.x);
+			stress_tensor[1] += SQR(p->vel.y);
+			stress_tensor[2] += SQR(p->vel.z);
+			stress_tensor[3] += p->vel.x * p->vel.y;
+			stress_tensor[4] += p->vel.x * p->vel.z;
+			stress_tensor[5] += p->vel.y * p->vel.z;
 		}
 
-		neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
-
-		for(auto q : neighs) {
-			if(p->index > q->index) {
-				LR_vector r = _config_info->box->min_image(p->pos, q->pos);
-				_config_info->interaction->set_computed_r(r);
-
-				p->force = LR_vector();
-				_config_info->interaction->pair_interaction(p, q, false, true);
-
-				stress_tensor[0] -= r.x * p->force.x;
-				stress_tensor[1] -= r.y * p->force.y;
-				stress_tensor[2] -= r.z * p->force.z;
-				stress_tensor[3] -= r.x * p->force.y;
-				stress_tensor[4] -= r.x * p->force.z;
-				stress_tensor[5] -= r.y * p->force.z;
-			}
+		for(int i = 0; i < _config_info->N(); i++) {
+			_config_info->particles()[i]->force = old_forces[i];
+			_config_info->particles()[i]->torque = old_torques[i];
 		}
-
-		LR_vector &vel = p->vel;
-		stress_tensor[0] += SQR(vel.x);
-		stress_tensor[1] += SQR(vel.y);
-		stress_tensor[2] += SQR(vel.z);
-		stress_tensor[3] += vel.x * vel.y;
-		stress_tensor[4] += vel.x * vel.z;
-		stress_tensor[5] += vel.y * vel.z;
-	}
-
-	for(int i = 0; i < _config_info->N(); i++) {
-		_config_info->particles()[i]->force = old_forces[i];
-		_config_info->particles()[i]->torque = old_torques[i];
 	}
 
 	return stress_tensors;
