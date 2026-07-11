@@ -30,7 +30,7 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 std::string Pressure::get_output_string(llint curr_step) {
-	if(!_custom_stress_tensor || !_config_info->interaction->has_custom_stress_tensor()) {
+	if(!_custom_stress_tensor || !_config_info->interaction->has_custom_stress_tensor() || !_config_info->interaction->has_particle_stress_tensor()) {
 		_config_info->interaction->compute_standard_stress_tensor();
 	}
 

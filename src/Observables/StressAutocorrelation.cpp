@@ -111,7 +111,7 @@ bool StressAutocorrelation::require_data_on_CPU() {
 }
 
 void StressAutocorrelation::update_data(llint curr_step) {
-	if(!_config_info->interaction->has_custom_stress_tensor()) {
+	if(!_config_info->interaction->has_custom_stress_tensor() || !_config_info->interaction->has_particle_stress_tensor()) {
 		_config_info->interaction->compute_standard_stress_tensor();
 	}
 
