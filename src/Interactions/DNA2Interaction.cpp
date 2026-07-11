@@ -201,7 +201,7 @@ number DNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, bool com
 			p->force -= force;
 			q->force += force;
 
-			_update_stress_tensor(_computed_r, force);
+			_update_stress_tensor(p, q, _computed_r, force);
 
 			p->torque += p->orientationT * torquep;
 			q->torque += q->orientationT * torqueq;
@@ -291,7 +291,7 @@ number DNA2Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
 			p->force -= force;
 			q->force += force;
 
-			_update_stress_tensor(_computed_r, force);
+			_update_stress_tensor(p, q, _computed_r, force);
 
 			torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
 			torqueq += q->int_centers[DNANucleotide::STACK].cross(force);

@@ -1088,7 +1088,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
     }
 
     // P-BASE vs. Q-BACK
@@ -1106,7 +1106,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
     }
 
     // P-BACK vs. Q-BASE
@@ -1124,7 +1124,7 @@ number DNA3Interaction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
 
         // we need torques in the reference system of the particle
         p->torque += p->orientationT * torquep;
@@ -1163,7 +1163,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
     }
 
     // P-BACK vs. Q-BASE
@@ -1181,7 +1181,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
     }
 
     // P-BASE vs. Q-BACK
@@ -1199,7 +1199,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
     }
 
     // BACK-BACK
@@ -1217,7 +1217,7 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
 
         // we need torques in the reference system of the particle
         p->torque += p->orientationT * torquep;
@@ -1277,7 +1277,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
         p->force -= force;
         q->force += force;
 
-        _update_stress_tensor(_computed_r, force);
+        _update_stress_tensor(p, q, _computed_r, force);
 
         p->torque -= p->orientationT * p->int_centers[DNANucleotide::BACK].cross(force);
         q->torque += q->orientationT * q->int_centers[DNANucleotide::BACK].cross(force);
@@ -1868,7 +1868,7 @@ number DNA3Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool
             p->force -= force;
             q->force += force;
 
-            _update_stress_tensor(_computed_r, force);
+            _update_stress_tensor(p, q, _computed_r, force);
 
             torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
             torqueq += q->int_centers[DNANucleotide::STACK].cross(force);

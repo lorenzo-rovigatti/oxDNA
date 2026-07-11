@@ -46,9 +46,15 @@ protected:
 
 	LR_vector _computed_r;
 
+	std::vector<StressTensor> _particle_stress_tensors;
 	StressTensor _stress_tensor;
+	bool _has_particle_stress_tensors;
+	bool _has_stress_tensor;
+
+	StressTensor _sum_particle_stress_tensors() const;
 
 	virtual void _update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force);
+	virtual void _update_stress_tensor(BaseParticle *p, BaseParticle *q, const LR_vector &r_p, const LR_vector &group_force);
 
 	interaction_map _interaction_map;
 
@@ -134,8 +140,11 @@ public:
 	void compute_standard_stress_tensor();
 
 	StressTensor stress_tensor() const;
+	const std::vector<StressTensor> &particle_stress_tensors() const;
+	bool has_particle_stress_tensor() const;
 
 	void set_stress_tensor(StressTensor st);
+	void set_particle_stress_tensors(const std::vector<StressTensor> &stress_tensors);
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
