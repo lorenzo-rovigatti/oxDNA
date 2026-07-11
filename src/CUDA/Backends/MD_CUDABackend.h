@@ -49,6 +49,7 @@ protected:
 
 	llint _barostat_attempts, _barostat_accepted;
 	int _update_st_every = 0;
+	bool _update_particle_st = false;
 
 	bool _print_energy;
 
