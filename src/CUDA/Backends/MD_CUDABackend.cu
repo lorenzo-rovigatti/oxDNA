@@ -554,6 +554,8 @@ void MD_CUDABackend::_thermalize() {
 }
 
 void MD_CUDABackend::_update_stress_tensor() {
+	if(!_update_st_every) return;
+
 	if(_update_particle_st) {
 		_interaction->set_particle_stress_tensors(_cuda_interaction->CPU_particle_stress_tensors(_d_vels));
 	}

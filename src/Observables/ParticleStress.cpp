@@ -32,8 +32,7 @@ std::vector<StressTensor> ParticleStress::stress_tensors() {
 	if(!_config_info->interaction->has_particle_stress_tensor()) {
 		throw oxDNAException("ParticleStress requires per-particle stress tensors, "
 			"but the current interaction only provides a reduced stress tensor. "
-			"If you are running on CUDA, set CUDA_update_particle_stress_tensor = true and ensure that "
-			"CUDA_update_stress_tensor_every is set to a value that divides the observable's output interval."
+			"If you are running on CUDA, set CUDA_update_particle_stress_tensor = true"
 		);
 	}
 
