@@ -50,6 +50,8 @@ protected:
 	StressTensor _stress_tensor;
 	bool _has_particle_stress_tensors;
 	bool _has_stress_tensor;
+	/// Step at which the stress tensor was last updated. -1 means never updated.
+	llint _stress_tensor_step;
 
 	StressTensor _sum_particle_stress_tensors() const;
 

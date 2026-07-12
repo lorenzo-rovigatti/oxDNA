@@ -25,6 +25,7 @@ BaseInteraction::BaseInteraction() {
 
 	_has_particle_stress_tensors = false;
 	_has_stress_tensor = false;
+	_stress_tensor_step = -1;
 }
 
 BaseInteraction::~BaseInteraction() {
@@ -177,7 +178,7 @@ void BaseInteraction::_update_stress_tensor(BaseParticle *p, BaseParticle *q, co
 	_stress_tensor[4] += r_p.x * group_force.z;
 	_stress_tensor[5] += r_p.y * group_force.z;
 
-	if(!_has_particle_stress_tensors || _particle_stress_tensors.size() != CONFIG_INFO->N()) {
+	if(!_has_particle_stress_tensors || _particle_stress_tensors.size() != (size_t) CONFIG_INFO->N()) {
 		_particle_stress_tensors.assign(CONFIG_INFO->N(), StressTensor({0., 0., 0., 0., 0., 0.}));
 	}
 
@@ -282,6 +283,7 @@ void BaseInteraction::compute_standard_stress_tensor() {
 	_stress_tensor = stress_tensor;
 	_has_particle_stress_tensors = true;
 	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 bool BaseInteraction::has_custom_stress_tensor() const {
@@ -310,12 +312,14 @@ void BaseInteraction::reset_stress_tensor() {
 
 	_has_particle_stress_tensors = true;
 	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 void BaseInteraction::set_stress_tensor(StressTensor st) {
 	_stress_tensor = st;
 	_has_stress_tensor = true;
 	_has_particle_stress_tensors = false;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 void BaseInteraction::set_particle_stress_tensors(const std::vector<StressTensor> &stress_tensors) {
@@ -323,11 +327,21 @@ void BaseInteraction::set_particle_stress_tensors(const std::vector<StressTensor
 	_stress_tensor = _sum_particle_stress_tensors();
 	_has_particle_stress_tensors = true;
 	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 StressTensor BaseInteraction::stress_tensor() const {
 	if(!_has_stress_tensor) {
 		throw oxDNAException("Stress tensor requested but not initialised");
+	}
+
+	if(_stress_tensor_step != CONFIG_INFO->curr_step) {
+		throw oxDNAException(
+			"Stress tensor was last updated at step %lld but the current step is %lld. "
+			"If running a CUDA simulation, make sure CUDA_update_stress_tensor_every "
+			"divides the stress observable's output interval.",
+			_stress_tensor_step, CONFIG_INFO->curr_step
+		);
 	}
 
 	StressTensor norm_st(_stress_tensor);
@@ -340,7 +354,18 @@ StressTensor BaseInteraction::stress_tensor() const {
 
 const std::vector<StressTensor> &BaseInteraction::particle_stress_tensors() const {
 	if(!_has_particle_stress_tensors) {
-		throw oxDNAException("Particle stress tensors requested but not available");
+		throw oxDNAException("Particle stress tensors requested but not available. "
+			"For CUDA simulations, set CUDA_update_particle_stress_tensor = true and "
+			"ensure CUDA_update_stress_tensor_every divides the observable's output interval.");
+	}
+
+	if(_stress_tensor_step != CONFIG_INFO->curr_step) {
+		throw oxDNAException(
+			"Particle stress tensors were last updated at step %lld but the current step is %lld. "
+			"If running a CUDA simulation, make sure CUDA_update_stress_tensor_every "
+			"divides the stress observable's output interval.",
+			_stress_tensor_step, CONFIG_INFO->curr_step
+		);
 	}
 
 	return _particle_stress_tensors;
