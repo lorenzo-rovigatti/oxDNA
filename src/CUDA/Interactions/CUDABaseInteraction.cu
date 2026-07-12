@@ -80,10 +80,7 @@ void CUDABaseInteraction::get_cuda_settings(input_file &inp) {
 	int update_st_every = 0;
 	getInputInt(&inp, "CUDA_update_stress_tensor_every", &update_st_every, 0);
 	getInputBool(&inp, "CUDA_update_particle_stress_tensor", &_update_particle_st, 0);
-	if(update_st_every > 0) {
-		_update_st = true;
-	}
-	if(_update_particle_st) {
+	if(update_st_every > 0 || _update_particle_st) {
 		_update_st = true;
 	}
 

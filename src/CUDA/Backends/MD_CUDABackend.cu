@@ -314,6 +314,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 
 void MD_CUDABackend::apply_simulation_data_changes() {
 	_gpu_to_host();
+	_update_stress_tensor();
 
 	for(int i = 0; i < N(); i++) {
 		// since we may have been sorted all the particles in a different order
@@ -553,13 +554,11 @@ void MD_CUDABackend::_thermalize() {
 }
 
 void MD_CUDABackend::_update_stress_tensor() {
-	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
-		if(_update_particle_st) {
-			_interaction->set_particle_stress_tensors(_cuda_interaction->CPU_particle_stress_tensors(_d_vels));
-		}
-		else {
-			_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
-		}
+	if(_update_particle_st) {
+		_interaction->set_particle_stress_tensors(_cuda_interaction->CPU_particle_stress_tensors(_d_vels));
+	}
+	else {
+		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
 	}
 }
 
@@ -604,7 +603,9 @@ void MD_CUDABackend::sim_step() {
 		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
 
-	_update_stress_tensor();
+	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
+		_update_stress_tensor();
+	}
 
 	_timer_forces->pause();
 

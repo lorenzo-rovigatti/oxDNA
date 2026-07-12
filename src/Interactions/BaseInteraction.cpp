@@ -170,6 +170,7 @@ void BaseInteraction::_update_stress_tensor(const LR_vector &r_p, const LR_vecto
 
 void BaseInteraction::_update_stress_tensor(BaseParticle *p, BaseParticle *q, const LR_vector &r_p, const LR_vector &group_force) {
 	_has_stress_tensor = true;
+	_has_particle_stress_tensors = true;
 
 	_stress_tensor[0] += r_p.x * group_force.x;
 	_stress_tensor[1] += r_p.y * group_force.y;
@@ -196,8 +197,6 @@ void BaseInteraction::_update_stress_tensor(BaseParticle *p, BaseParticle *q, co
 		_particle_stress_tensors[p->index][i] += half;
 		_particle_stress_tensors[q->index][i] += half;
 	}
-
-	_has_particle_stress_tensors = true;
 }
 
 void BaseInteraction::compute_standard_stress_tensor() {

@@ -137,8 +137,7 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 			p->force -= force;
 			q->force += force;
 
-			_update_stress_tensor(p->pos, -force);
-			_update_stress_tensor(p->pos + _computed_r, force);
+			_update_stress_tensor(p, q, _computed_r, force);
 		}
 	}
 	else {
@@ -151,8 +150,7 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 				p->force -= force;
 				q->force += force;
 
-				_update_stress_tensor(p->pos, -force);
-				_update_stress_tensor(p->pos + _computed_r, force);
+				_update_stress_tensor(p, q, _computed_r, force);
 			}
 		}
 	}
@@ -215,8 +213,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 							q_bond.q_torque = -p_torque;
 						}
 
-						_update_stress_tensor(p->pos, -tmp_force);
-						_update_stress_tensor(p->pos + _computed_r, tmp_force);
+						_update_stress_tensor(p, q, _computed_r, tmp_force);
 					}
 
 					if(!no_three_body) {
@@ -336,8 +333,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 								q_bond.p_torque = -q_torque;
 								q_bond.q_torque = -p_torque;
 
-								_update_stress_tensor(p->pos, -tot_force);
-								_update_stress_tensor(p->pos + _computed_r, tot_force);
+								_update_stress_tensor(p, q, _computed_r, tot_force);
 							}
 
 							if(!no_three_body) {
@@ -381,6 +377,8 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 
 					p->torque -= factor * new_bond.p_torque;
 					other->torque += factor * new_bond.q_torque;
+
+					_update_stress_tensor(p, other, new_bond.r, tmp_force);
 				}
 
 				{
@@ -394,6 +392,8 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 
 					p->torque -= factor * other_bond.p_torque;
 					other->torque += factor * other_bond.q_torque;
+					
+					_update_stress_tensor(p, other, other_bond.r, tmp_force);
 				}
 			}
 		}

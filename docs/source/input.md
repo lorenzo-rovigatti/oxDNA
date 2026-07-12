@@ -113,6 +113,8 @@ The following options require `backend = CUDA`.
 * `[CUDA_avoid_cpu_calculations = <bool>]`: Do not run any computations on the CPU. If set to `true`, the energy will not be printed. It may speed up the simulation of very large systems. Defaults to `false`.
 * `[CUDA_barostat_always_refresh = <bool>]`: Refresh the momenta of all particles after a successful volume move. Used only if `use_barostat = true`, defaults to `false`.
 * `[CUDA_print_energy = <bool>]`: print the potential energy as computed on the GPU to the standard output. Useful for debugging purposes, since the "regular" potential energy is computed on the CPU.
+* `[CUDA_update_stress_tensor_every = <int>]`: copy the value of the stress computed on the GPU to the CPU every this number of steps, so that it can be consumed by observables. Defaults to 0, which means "never copy".
+* `[CUDA_update_particle_stress_tensor = <bool>]`: copy the per-particle stress-tensors in addition to the total stress tensor, also every `CUDA_update_stress_tensor_every` steps. Defaults to `false`.
 
 ## Monte Carlo options
 
