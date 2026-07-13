@@ -235,6 +235,12 @@ Compute the stress autocorrelation function $G(t)$ using the multi-tau method de
 * `[p = <int>]`: The size of the coarse-grained levels used by the algorithm. Defaults to 16.
 * `[serialise = <bool>]`: if `true`, every time the observable is printed, also generate files that can be used to recreate the observable's data structures. This makes it possible to restart simulations that keep accumulating statistics for the autocorrelation. Note that if this is set to `true`, then the observable will look for these files to reload the data upon restarting. Defaults to `false`.
 
+## Particle stress
+
+Print the per-particle stress tensor (one line per particle, with this ordering: $\sigma_{xx}, \sigma_{yy}, \sigma_{zz}, \sigma_{xy}, \sigma_{xz}, \sigma_{yz}$). For each pair interaction, the stress is split evenly between the two involved particles.
+
+* `[print_coordinates = <bool>]`: if `true`, the coordinates of each particle are also printed following the stress tensor.
+
 ## Pitch
 
 * `type = pitch`: the observable type

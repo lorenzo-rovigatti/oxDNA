@@ -22,6 +22,10 @@ BaseInteraction::BaseInteraction() {
 
 	_rcut = 2.5;
 	_sqr_rcut = SQR(_rcut);
+
+	_has_particle_stress_tensors = false;
+	_has_stress_tensor = false;
+	_stress_tensor_step = -1;
 }
 
 BaseInteraction::~BaseInteraction() {
@@ -141,13 +145,58 @@ void BaseInteraction::begin_energy_and_force_computation() {
 	begin_energy_computation();
 }
 
+StressTensor BaseInteraction::_sum_particle_stress_tensors() const {
+	StressTensor total = {0., 0., 0., 0., 0., 0.};
+	for(const auto &particle_stress_tensor : _particle_stress_tensors) {
+		for(uint i = 0; i < total.size(); i++) {
+			total[i] += particle_stress_tensor[i];
+		}
+	}
+
+	return total;
+}
+
 void BaseInteraction::_update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force) {
+	_has_stress_tensor = true;
+	_has_particle_stress_tensors = false;
+
 	_stress_tensor[0] += r_p.x * group_force.x;
 	_stress_tensor[1] += r_p.y * group_force.y;
 	_stress_tensor[2] += r_p.z * group_force.z;
 	_stress_tensor[3] += r_p.x * group_force.y;
 	_stress_tensor[4] += r_p.x * group_force.z;
 	_stress_tensor[5] += r_p.y * group_force.z;
+}
+
+void BaseInteraction::_update_stress_tensor(BaseParticle *p, BaseParticle *q, const LR_vector &r_p, const LR_vector &group_force) {
+	_has_stress_tensor = true;
+	_has_particle_stress_tensors = true;
+
+	_stress_tensor[0] += r_p.x * group_force.x;
+	_stress_tensor[1] += r_p.y * group_force.y;
+	_stress_tensor[2] += r_p.z * group_force.z;
+	_stress_tensor[3] += r_p.x * group_force.y;
+	_stress_tensor[4] += r_p.x * group_force.z;
+	_stress_tensor[5] += r_p.y * group_force.z;
+
+	if(!_has_particle_stress_tensors || _particle_stress_tensors.size() != (size_t) CONFIG_INFO->N()) {
+		_particle_stress_tensors.assign(CONFIG_INFO->N(), StressTensor({0., 0., 0., 0., 0., 0.}));
+	}
+
+	StressTensor pair_stress = {
+		r_p.x * group_force.x,
+		r_p.y * group_force.y,
+		r_p.z * group_force.z,
+		r_p.x * group_force.y,
+		r_p.x * group_force.z,
+		r_p.y * group_force.z
+	};
+
+	for(uint i = 0; i < pair_stress.size(); i++) {
+		number half = pair_stress[i] * (number) 0.5;
+		_particle_stress_tensors[p->index][i] += half;
+		_particle_stress_tensors[q->index][i] += half;
+	}
 }
 
 void BaseInteraction::compute_standard_stress_tensor() {
@@ -165,6 +214,7 @@ void BaseInteraction::compute_standard_stress_tensor() {
 		old_torques[i] = CONFIG_INFO->particles()[i]->torque;
 	}
 
+	_particle_stress_tensors.assign(CONFIG_INFO->N(), StressTensor({0., 0., 0., 0., 0., 0.}));
 	StressTensor stress_tensor = { 0., 0., 0., 0., 0., 0. };
 	double energy = 0.;
 
@@ -191,22 +241,34 @@ void BaseInteraction::compute_standard_stress_tensor() {
 				p->force = LR_vector();
 				energy += (double) pair_interaction(p, q, false, true);
 
-				stress_tensor[0] -= r.x * p->force.x;
-				stress_tensor[1] -= r.y * p->force.y;
-				stress_tensor[2] -= r.z * p->force.z;
-				stress_tensor[3] -= r.x * p->force.y;
-				stress_tensor[4] -= r.x * p->force.z;
-				stress_tensor[5] -= r.y * p->force.z;
+				StressTensor pair_stress = {
+					-r.x * p->force.x,
+					-r.y * p->force.y,
+					-r.z * p->force.z,
+					-r.x * p->force.y,
+					-r.x * p->force.z,
+					-r.y * p->force.z
+				};
+				for(uint k = 0; k < pair_stress.size(); k++) {
+					number half = pair_stress[k] * (number) 0.5;
+					_particle_stress_tensors[p->index][k] += half;
+					_particle_stress_tensors[q->index][k] += half;
+				}
 			}
 		}
 
 		LR_vector &vel = p->vel;
-		stress_tensor[0] += SQR(vel.x);
-		stress_tensor[1] += SQR(vel.y);
-		stress_tensor[2] += SQR(vel.z);
-		stress_tensor[3] += vel.x * vel.y;
-		stress_tensor[4] += vel.x * vel.z;
-		stress_tensor[5] += vel.y * vel.z;
+		StressTensor kinetic_stress = {
+			SQR(vel.x),
+			SQR(vel.y),
+			SQR(vel.z),
+			vel.x * vel.y,
+			vel.x * vel.z,
+			vel.y * vel.z
+		};
+		for(uint k = 0; k < kinetic_stress.size(); k++) {
+			_particle_stress_tensors[p->index][k] += kinetic_stress[k];
+		}
 	}
 
 	for(int i = 0; i < CONFIG_INFO->N(); i++) {
@@ -216,7 +278,11 @@ void BaseInteraction::compute_standard_stress_tensor() {
 		p->torque = old_torques[i];
 	}
 
+	stress_tensor = _sum_particle_stress_tensors();
 	_stress_tensor = stress_tensor;
+	_has_particle_stress_tensors = true;
+	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 bool BaseInteraction::has_custom_stress_tensor() const {
@@ -224,28 +290,88 @@ bool BaseInteraction::has_custom_stress_tensor() const {
 }
 
 void BaseInteraction::reset_stress_tensor() {
+	_particle_stress_tensors.assign(CONFIG_INFO->N(), StressTensor({0., 0., 0., 0., 0., 0.}));
 	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
 	for(auto p : CONFIG_INFO->particles()) {
-		_stress_tensor[0] += SQR(p->vel.x);
-		_stress_tensor[1] += SQR(p->vel.y);
-		_stress_tensor[2] += SQR(p->vel.z);
-		_stress_tensor[3] += p->vel.x * p->vel.y;
-		_stress_tensor[4] += p->vel.x * p->vel.z;
-		_stress_tensor[5] += p->vel.y * p->vel.z;
+		StressTensor &particle_stress = _particle_stress_tensors[p->index];
+		particle_stress[0] += SQR(p->vel.x);
+		particle_stress[1] += SQR(p->vel.y);
+		particle_stress[2] += SQR(p->vel.z);
+		particle_stress[3] += p->vel.x * p->vel.y;
+		particle_stress[4] += p->vel.x * p->vel.z;
+		particle_stress[5] += p->vel.y * p->vel.z;
+
+		_stress_tensor[0] += particle_stress[0];
+		_stress_tensor[1] += particle_stress[1];
+		_stress_tensor[2] += particle_stress[2];
+		_stress_tensor[3] += particle_stress[3];
+		_stress_tensor[4] += particle_stress[4];
+		_stress_tensor[5] += particle_stress[5];
 	}
+
+	_has_particle_stress_tensors = true;
+	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 void BaseInteraction::set_stress_tensor(StressTensor st) {
 	_stress_tensor = st;
+	_has_stress_tensor = true;
+	_has_particle_stress_tensors = false;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
+}
+
+void BaseInteraction::set_particle_stress_tensors(const std::vector<StressTensor> &stress_tensors) {
+	_particle_stress_tensors = stress_tensors;
+	_stress_tensor = _sum_particle_stress_tensors();
+	_has_particle_stress_tensors = true;
+	_has_stress_tensor = true;
+	_stress_tensor_step = CONFIG_INFO->curr_step;
 }
 
 StressTensor BaseInteraction::stress_tensor() const {
+	if(!_has_stress_tensor) {
+		throw oxDNAException("Stress tensor requested but not initialised");
+	}
+
+	if(_stress_tensor_step != CONFIG_INFO->curr_step) {
+		throw oxDNAException(
+			"Stress tensor was last updated at step %lld but the current step is %lld. "
+			"If running a CUDA simulation, make sure CUDA_update_stress_tensor_every "
+			"divides the stress observable's output interval.",
+			_stress_tensor_step, CONFIG_INFO->curr_step
+		);
+	}
+
 	StressTensor norm_st(_stress_tensor);
 	for(auto &v : norm_st) {
 		v /= CONFIG_INFO->box->V();
 	}
 
 	return norm_st;
+}
+
+const std::vector<StressTensor> &BaseInteraction::particle_stress_tensors() const {
+	if(!_has_particle_stress_tensors) {
+		throw oxDNAException("Particle stress tensors requested but not available. "
+			"For CUDA simulations, set CUDA_update_particle_stress_tensor = true and "
+			"ensure CUDA_update_stress_tensor_every divides the observable's output interval.");
+	}
+
+	if(_stress_tensor_step != CONFIG_INFO->curr_step) {
+		throw oxDNAException(
+			"Particle stress tensors were last updated at step %lld but the current step is %lld. "
+			"If running a CUDA simulation, make sure CUDA_update_stress_tensor_every "
+			"divides the stress observable's output interval.",
+			_stress_tensor_step, CONFIG_INFO->curr_step
+		);
+	}
+
+	return _particle_stress_tensors;
+}
+
+bool BaseInteraction::has_particle_stress_tensor() const {
+	return _has_particle_stress_tensors;
 }
 
 number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {

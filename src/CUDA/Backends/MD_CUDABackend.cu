@@ -314,6 +314,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 
 void MD_CUDABackend::apply_simulation_data_changes() {
 	_gpu_to_host();
+	_update_stress_tensor();
 
 	for(int i = 0; i < N(); i++) {
 		// since we may have been sorted all the particles in a different order
@@ -553,7 +554,12 @@ void MD_CUDABackend::_thermalize() {
 }
 
 void MD_CUDABackend::_update_stress_tensor() {
-	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
+	if(!_update_st_every) return;
+
+	if(_update_particle_st) {
+		_interaction->set_particle_stress_tensors(_cuda_interaction->CPU_particle_stress_tensors(_d_vels));
+	}
+	else {
 		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
 	}
 }
@@ -599,7 +605,9 @@ void MD_CUDABackend::sim_step() {
 		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
 
-	_update_stress_tensor();
+	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
+		_update_stress_tensor();
+	}
 
 	_timer_forces->pause();
 
@@ -627,6 +635,10 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	getInputBool(&inp, "CUDA_barostat_always_refresh", &_cuda_barostat_always_refresh, 0);
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
 	getInputInt(&inp, "CUDA_update_stress_tensor_every", &_update_st_every, 0);
+	getInputBool(&inp, "CUDA_update_particle_stress_tensor", &_update_particle_st, 0);
+	if(_update_particle_st && _update_st_every <= 0) {
+		_update_st_every = 1;
+	}
 
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat(inp, _box.get());
 	_cuda_thermostat->get_settings(inp);
@@ -733,7 +745,12 @@ void MD_CUDABackend::init() {
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
 
 	if(_update_st_every > 0) {
-		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+		if(_update_particle_st) {
+			_interaction->set_particle_stress_tensors(_cuda_interaction->CPU_particle_stress_tensors(_d_vels));
+		}
+		else {
+			_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+		}
 	}
 }
 

@@ -12,6 +12,8 @@
 #include "../Lists/CUDABaseList.h"
 #include "../cuda_utils/CUDABox.h"
 
+#include <vector>
+
 /**
  * @brief Abstract class providing an interface for CUDA-based interactions.
  */
@@ -28,6 +30,7 @@ protected:
 	CUDA_kernel_cfg _ffs_dist_eval_kernel_cfg;
 
 	bool _update_st = false;
+	bool _update_particle_st = false;
 	CUDAStressTensor *_d_st = nullptr, *_h_st = nullptr;
 
 	int _N = -1;
@@ -50,6 +53,7 @@ public:
 	virtual void sync_GPU() {}
 
 	virtual StressTensor CPU_stress_tensor(c_number4 *vels);
+	virtual std::vector<StressTensor> CPU_particle_stress_tensors(c_number4 *vels);
 
 	void set_launch_cfg(CUDA_kernel_cfg &launch_cfg);
 
