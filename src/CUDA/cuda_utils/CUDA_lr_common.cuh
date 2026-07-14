@@ -156,7 +156,7 @@ __forceinline__ __host__ int get_particle_index_host(const c_number4 &r_i) {
 	return GpuUtils::float_as_int(r_i.w) & mask22;
 }
 
-__forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
+__forceinline__ __device__ LR_double4 make_LR_double4(const c_number4 &v) {
 	LR_double4 ret;
 	ret.x = (double) v.x;
 	ret.y = (double) v.y;
@@ -363,6 +363,61 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 	a.z -= b.z;
 	a.w += b.w;
 }
+
+#if defined(OXDNA_HIP) && !defined(CUDA_DOUBLE_PRECISION)
+// Under HIP the working c_number4 is a plain struct (see cuda_defs.h), distinct
+// from HIP's float4, so it needs its own operators. Semantics match the float4
+// block above: the 4th component (energy) is ADDED on subtraction.
+__forceinline__ __host__ __device__ c_number4 operator*(c_number4 v, c_number c) {
+	return make_c_number4(v.x * c, v.y * c, v.z * c, v.w * c);
+}
+
+__forceinline__ __host__ __device__ c_number4 operator/(c_number4 v, c_number c) {
+	c_number inv = 1.f / c;
+	return v * inv;
+}
+
+__forceinline__ __host__ __device__ c_number4 operator*(c_number c, c_number4 v) {
+	return make_c_number4(v.x * c, v.y * c, v.z * c, v.w * c);
+}
+
+__forceinline__ __host__ __device__ c_number4 operator-(c_number4 a) {
+	return make_c_number4(-a.x, -a.y, -a.z, -a.w);
+}
+
+__forceinline__ __host__ __device__ c_number4 operator+(c_number4 a) {
+	return make_c_number4(a.x, a.y, a.z, a.w);
+}
+
+__forceinline__ __host__ __device__ c_number4 operator+(c_number4 a, c_number4 b) {
+	return make_c_number4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+
+__forceinline__ __host__ __device__ void operator+=(c_number4 &a, c_number4 b) {
+	a.x += b.x;
+	a.y += b.y;
+	a.z += b.z;
+	a.w += b.w;
+}
+
+__forceinline__ __host__ __device__ void operator*=(c_number4 &a, c_number b) {
+	a.x *= b;
+	a.y *= b;
+	a.z *= b;
+	a.w *= b;
+}
+
+__forceinline__ __device__ c_number4 operator-(c_number4 a, c_number4 b) {
+	return make_c_number4(a.x - b.x, a.y - b.y, a.z - b.z, a.w + b.w);
+}
+
+__forceinline__ __device__ void operator-=(c_number4 &a, c_number4 b) {
+	a.x -= b.x;
+	a.y -= b.y;
+	a.z -= b.z;
+	a.w += b.w;
+}
+#endif // OXDNA_HIP && !CUDA_DOUBLE_PRECISION
 
 __forceinline__ __device__ c_number4 stably_normalised(const c_number4 &v) {
 	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));

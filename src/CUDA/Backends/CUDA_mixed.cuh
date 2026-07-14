@@ -10,23 +10,23 @@ __device__ GPU_quat_double _get_updated_orientation(LR_double4 &L, GPU_quat_doub
 	L.x /= norm;
 	L.y /= norm;
 	L.z /= norm;
-	
+
 	double sintheta, costheta;
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
 	double qw = 0.5*sqrt(max(0., 2. + 2.*costheta));
 	double winv = (double)1.0 /qw;
 	GPU_quat_double R = {0.5*L.x*sintheta*winv, 0.5*L.y*sintheta*winv, 0.5*L.z*sintheta*winv, qw};
-	
+
 	return quat_multiply(old_o, R);
 }
 
-__global__ void first_step_mixed(float4 __restrict__ *poss, GPU_quat __restrict__ *orientations, LR_double4 __restrict__ *possd,
-		GPU_quat_double __restrict__ *orientationsd, const float4 __restrict__ *list_poss, LR_double4 __restrict__ *velsd,
-		LR_double4 __restrict__ *Lsd, const float4 __restrict__ *forces, const float4 __restrict__ *torques,
+__global__ void first_step_mixed(c_number4 __restrict__ *poss, GPU_quat __restrict__ *orientations, LR_double4 __restrict__ *possd,
+		GPU_quat_double __restrict__ *orientationsd, const c_number4 __restrict__ *list_poss, LR_double4 __restrict__ *velsd,
+		LR_double4 __restrict__ *Lsd, const c_number4 __restrict__ *forces, const c_number4 __restrict__ *torques,
 		bool *are_lists_old, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
-	float4 F = forces[IND];
+	c_number4 F = forces[IND];
 
 	LR_double4 v = velsd[IND];
 
@@ -44,34 +44,34 @@ __global__ void first_step_mixed(float4 __restrict__ *poss, GPU_quat __restrict_
 
 	possd[IND] = r;
 
-	float4 rf = make_float4(r.x, r.y, r.z, r.w);
+	c_number4 rf = make_c_number4(r.x, r.y, r.z, r.w);
 	poss[IND] = rf;
 
 	if(any_rigid_body) {
-		float4 T = torques[IND];
+		c_number4 T = torques[IND];
 		LR_double4 L = Lsd[IND];
 
 		L.x += T.x * MD_dt[0] * 0.5f;
 		L.y += T.y * MD_dt[0] * 0.5f;
 		L.z += T.z * MD_dt[0] * 0.5f;
-		
+
 		Lsd[IND] = L;
-		
+
 		GPU_quat_double new_o = _get_updated_orientation(L, orientationsd[IND]);
 		orientationsd[IND] = new_o;
 
 		GPU_quat new_of = {(float)new_o.x, (float)new_o.y, (float)new_o.z, (float)new_o.w};
-		orientations[IND] = new_of; 
+		orientations[IND] = new_of;
 	}
 
 	// do verlet lists need to be updated?
 	if(quad_distance(rf, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
-__global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool any_rigid_body) {
+__global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, c_number4 *forces, c_number4 *torques, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
-	float4 F = forces[IND];
+	c_number4 F = forces[IND];
 	LR_double4 v = velsd[IND];
 
 	v.x += (F.x * MD_dt[0] * 0.5f);
@@ -81,29 +81,29 @@ __global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *fo
 	velsd[IND] = v;
 
 	if(any_rigid_body) {
-		float4 T = torques[IND];
+		c_number4 T = torques[IND];
 		LR_double4 L = Lsd[IND];
-		
+
 		L.x += (T.x * MD_dt[0] * 0.5f);
 		L.y += (T.y * MD_dt[0] * 0.5f);
 		L.z += (T.z * MD_dt[0] * 0.5f);
-		
+
 		Lsd[IND] = L;
 	}
 }
 
-__global__ void float4_to_LR_double4(float4 *src, LR_double4 *dest) {
+__global__ void float4_to_LR_double4(c_number4 *src, LR_double4 *dest) {
 	if(IND >= MD_N[0]) return;
 
-	float4 tmp = src[IND];
+	c_number4 tmp = src[IND];
 	dest[IND] = make_LR_double4(tmp);
 }
 
-__global__ void LR_double4_to_float4(LR_double4 *src, float4 *dest) {
+__global__ void LR_double4_to_float4(LR_double4 *src, c_number4 *dest) {
 	if(IND >= MD_N[0]) return;
 
 	LR_double4 tmp = src[IND];
-	dest[IND] = make_float4((float)tmp.x, (float)tmp.y, (float)tmp.z, tmp.w);
+	dest[IND] = make_c_number4((float)tmp.x, (float)tmp.y, (float)tmp.z, tmp.w);
 }
 
 __global__ void float4_to_LR_double4(GPU_quat *src, GPU_quat_double *dest) {

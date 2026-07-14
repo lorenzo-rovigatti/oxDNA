@@ -91,6 +91,26 @@ public:
 		return make_int3(cx, cy, cz);
 	}
 
+#if defined(OXDNA_HIP) && !defined(CUDA_DOUBLE_PRECISION)
+	// Under HIP the working c_number4 is a plain struct distinct from float4, so
+	// the float4 overloads above do not match; provide equivalents.
+	__forceinline__ __device__ int compute_cell_index(const int N_cells_side[3], const c_number4 &r) const {
+		int cx = ((r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON)) * N_cells_side[0];
+		int cy = ((r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON)) * N_cells_side[1];
+		int cz = ((r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON)) * N_cells_side[2];
+
+		return (cz * N_cells_side[1] + cy) * N_cells_side[0] + cx;
+	}
+
+	__forceinline__ __device__ int3 compute_cell_spl_idx(const int N_cells_side[3], const c_number4 &r) const {
+		int cx = (r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON) * N_cells_side[0];
+		int cy = (r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON) * N_cells_side[1];
+		int cz = (r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON) * N_cells_side[2];
+
+		return make_int3(cx, cy, cz);
+	}
+#endif
+
 	/**
 	 * @brief (Re-)initialise the object from its CPU counterpart. For now it assumes that the box is orthogonal (cubic or non-cubic)
 	 *

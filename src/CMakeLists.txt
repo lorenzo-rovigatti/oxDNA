@@ -340,6 +340,75 @@ IF(CUDA)
 	endif()
 
 	MESSAGE(STATUS "${CUDA_COMMON_FLAGS}")
+ELSEIF(HIP)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
+
+	set(HIP_GPU_SOURCES
+		CUDA/CUDA_sort.cu
+		CUDA/CUDAUtils.cu
+		CUDA/cuda_utils/cuda_device_utils.cu
+		CUDA/Backends/CUDABaseBackend.cu
+		CUDA/Backends/MD_CUDABackend.cu
+		CUDA/Interactions/CUDABaseInteraction.cu
+		CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDADNA3Interaction.cu
+		CUDA/Interactions/CUDALJInteraction.cu
+		CUDA/Interactions/CUDARNAInteraction.cu
+		CUDA/Interactions/CUDAPatchyInteraction.cu
+		CUDA/Interactions/CUDATEPInteraction.cu
+		CUDA/Interactions/CUDAInteractionFactory.cu
+		CUDA/Interactions/CUDADNANMInteraction.cu
+		CUDA/Lists/CUDAListFactory.cu
+		CUDA/Lists/CUDANoList.cu
+		CUDA/Lists/CUDASimpleVerletList.cu
+		CUDA/Lists/CUDABinVerletList.cu
+		CUDA/Thermostats/CUDABaseThermostat.cu
+		CUDA/Thermostats/CUDANoThermostat.cu
+		CUDA/Thermostats/CUDAThermostatFactory.cu
+		CUDA/Thermostats/CUDABrownianThermostat.cu
+		CUDA/Thermostats/CUDASRDThermostat.cu
+		CUDA/Thermostats/CUDALangevinThermostat.cu
+		CUDA/Thermostats/CUDABussiThermostat.cu
+		CUDA/Thermostats/CUDARefreshThermostat.cu
+	)
+
+	IF(NOT CUDA_DOUBLE)
+		LIST(APPEND HIP_GPU_SOURCES
+			CUDA/Backends/MD_CUDAMixedBackend.cu
+			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
+		)
+	ENDIF()
+
+	LIST(APPEND common_SOURCES ${HIP_GPU_SOURCES} Utilities/Timings.cpp)
+
+	# The .cu files and BackendFactory.cpp (which includes the GPU backend headers)
+	# are built with the HIP compiler.
+	set_source_files_properties(
+		${HIP_GPU_SOURCES}
+		Utilities/Timings.cpp
+		Backends/BackendFactory.cpp
+		PROPERTIES LANGUAGE HIP
+	)
+
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
+
+	set(HIP_COMMON_FLAGS
+		-ffast-math
+		-O3
+		-include ${CMAKE_SOURCE_DIR}/src/CUDA/hip/cuda_hip_compat.h
+	)
+
+	add_library(${lib_name} SHARED ${common_SOURCES})
+	target_link_libraries(${lib_name} PRIVATE hip::host)
+	target_compile_options(${lib_name} PRIVATE $<$<COMPILE_LANGUAGE:HIP>:${HIP_COMMON_FLAGS}>)
+
+	add_executable(${exe_name} ${oxDNA_SOURCES})
+	target_link_libraries(${exe_name} PRIVATE hip::host)
+	target_compile_options(${exe_name} PRIVATE $<$<COMPILE_LANGUAGE:HIP>:${HIP_COMMON_FLAGS}>)
+
+	add_executable(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
+	target_link_libraries(DNAnalysis PRIVATE hip::host)
+	target_compile_options(DNAnalysis PRIVATE $<$<COMPILE_LANGUAGE:HIP>:${HIP_COMMON_FLAGS}>)
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 	SET(common_SOURCES

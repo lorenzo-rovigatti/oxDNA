@@ -48,6 +48,17 @@ __device__ int compute_cell_index(const LR_double4 &r, const int cell_type) {
 	return (cz * bverlet_N_cells_side[cell_type] + cy) * bverlet_N_cells_side[cell_type] + cx;
 }
 
+#if defined(OXDNA_HIP) && !defined(CUDA_DOUBLE_PRECISION)
+// Under HIP c_number4 is a plain struct distinct from float4; provide the overload.
+__device__ int compute_cell_index(const c_number4 &r, const int cell_type) {
+	int cx = ((r.x - floorf(r.x / bverlet_box_side[0]) * bverlet_box_side[0]) / bverlet_box_side[0]) * (1.f - FLT_EPSILON) * bverlet_N_cells_side[cell_type];
+	int cy = ((r.y - floorf(r.y / bverlet_box_side[0]) * bverlet_box_side[0]) / bverlet_box_side[0]) * (1.f - FLT_EPSILON) * bverlet_N_cells_side[cell_type];
+	int cz = ((r.z - floorf(r.z / bverlet_box_side[0]) * bverlet_box_side[0]) / bverlet_box_side[0]) * (1.f - FLT_EPSILON) * bverlet_N_cells_side[cell_type];
+
+	return (cz * bverlet_N_cells_side[cell_type] + cy) * bverlet_N_cells_side[cell_type] + cx;
+}
+#endif
+
 __device__ int get_neigh_cell(const int index, const int3 &offset, const int cell_type) {
 	int x = index % bverlet_N_cells_side[cell_type];
 	int y = (index / bverlet_N_cells_side[cell_type]) % bverlet_N_cells_side[cell_type];
