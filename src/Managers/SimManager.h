@@ -16,9 +16,6 @@
 #include "../Backends/SimBackend.h"
 #include "../Utilities/time_scales/time_scales.h"
 
-struct double4;
-struct float4;
-
 /**
  * @brief Manages a simulation, be it MC, MD, on GPU or on CPU.
  *

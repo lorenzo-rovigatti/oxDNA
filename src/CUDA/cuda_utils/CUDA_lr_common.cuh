@@ -311,6 +311,9 @@ __forceinline__ __device__ void operator-=(float3 &a, float3 b) {
 	a.z -= b.z;
 }
 
+// HIP provides native float4 arithmetic; hip/cuda_hip_compat.h customises its
+// subtraction semantics for oxDNA's energy component.
+#ifndef OXDNA_HIP
 // FLOAT4
 __forceinline__ __host__ __device__ float4 operator*(float4 v, float c) {
 	return make_float4(v.x * c, v.y * c, v.z * c, v.w * c);
@@ -363,6 +366,7 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 	a.z -= b.z;
 	a.w += b.w;
 }
+#endif // OXDNA_HIP
 
 __forceinline__ __device__ c_number4 stably_normalised(const c_number4 &v) {
 	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));
