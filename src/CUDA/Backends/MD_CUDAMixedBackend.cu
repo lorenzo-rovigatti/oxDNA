@@ -51,14 +51,14 @@ void CUDAMixedBackend::_init_CUDA_MD_symbols() {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &myN, sizeof(int)) );
 }
 
-void CUDAMixedBackend::_float4_to_LR_double4(c_number4 *src, LR_double4 *dest) {
+void CUDAMixedBackend::_float4_to_LR_double4(float4 *src, LR_double4 *dest) {
 	float4_to_LR_double4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
 	CUT_CHECK_ERROR("float4_to_LR_double4 error");
 }
 
-void CUDAMixedBackend::_LR_double4_to_float4(LR_double4 *src, c_number4 *dest) {
+void CUDAMixedBackend::_LR_double4_to_float4(LR_double4 *src, float4 *dest) {
 	LR_double4_to_float4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
@@ -85,7 +85,7 @@ void CUDAMixedBackend::_first_step() {
 		(_d_poss, _d_orientations, _d_possd, _d_orientationsd, _d_list_poss, _d_velsd, _d_Lsd, _d_forces, _d_torques, _d_are_lists_old, this->_any_rigid_body);
 }
 
-void CUDAMixedBackend::_rescale_positions(c_number4 new_Ls, c_number4 old_Ls) {
+void CUDAMixedBackend::_rescale_positions(float4 new_Ls, float4 old_Ls) {
 	MD_CUDABackend::_rescale_positions(new_Ls, old_Ls);
 	_float4_to_LR_double4(_d_poss, _d_possd);
 }

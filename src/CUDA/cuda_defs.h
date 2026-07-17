@@ -75,17 +75,7 @@ using c_number4 = LR_double4;
 using c_number = double;
 using GPU_quat = double4;
 #else
-#ifdef OXDNA_HIP
-// HIP's float4 (HIP_vector_type) provides built-in arithmetic operators whose
-// operator-= subtracts the 4th component, whereas oxDNA's operators ADD it (the
-// 4th component holds energy). Using a plain struct keeps oxDNA's operators the 
-// only ones while preserving the float4 binary layout.
-typedef struct __align__(16) {
-	float x, y, z, w;
-} c_number4;
-#else
 using c_number4 = float4;
-#endif
 using c_number = float;
 using GPU_quat = float4;
 #endif

@@ -19,6 +19,19 @@
 #include <cstdlib>
 #include <hip/hip_runtime.h>
 
+// oxDNA stores energy in float4::w and deliberately adds it when subtracting
+// force vectors. HIP provides its own vector operators, so customise the
+// operation they use rather than redeclaring CUDA's float4 operators.
+template<>
+__host__ __device__ inline HIP_vector_type<float, 4> &
+HIP_vector_type<float, 4>::operator-=(const HIP_vector_type<float, 4> &other) noexcept {
+	x -= other.x;
+	y -= other.y;
+	z -= other.z;
+	w += other.w;
+	return *this;
+}
+
 // status / types
 #define cudaError_t                 hipError_t
 #define cudaSuccess                 hipSuccess
