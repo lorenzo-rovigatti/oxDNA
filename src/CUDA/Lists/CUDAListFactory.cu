@@ -11,6 +11,7 @@
 #include "CUDANoList.h"
 #include "CUDASimpleVerletList.h"
 #include "CUDABinVerletList.h"
+#include "CUDAEdgeList.h"
 
 CUDABaseList* CUDAListFactory::make_list(input_file &inp) {
 	char list_type[256];
@@ -23,6 +24,9 @@ CUDABaseList* CUDAListFactory::make_list(input_file &inp) {
 	}
 	else if(!strcmp("bin_verlet", list_type)) {
 		return new CUDABinVerletList();
+	}
+	else if(!strcmp("edge", list_type)) {
+		return new CUDAEdgeList();
 	}
 	else {
 		throw oxDNAException("CUDA_list '%s' is not supported", list_type);
