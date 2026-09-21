@@ -415,7 +415,8 @@ if __name__ == '__main__':
         sys.exit(1)
         
     Logger.log("Running tests for level '%s'" % sys.argv[3], Logger.INFO)
-    tm = TestManager(args.folder_list_file, args.executable, args.test_level, threads=args.threads)
+    executable_path = os.path.abspath(args.executable)
+    tm = TestManager(args.folder_list_file, executable_path, args.test_level, threads=args.threads)
     tm.launch()
     tm.finalise()
     

@@ -16,6 +16,9 @@
 *.dylib
 *.dll
 
+# Compiled Metal shader libraries (built by CMake into build_metal*/bin/)
+*.metallib
+
 # Fortran module files
 *.mod
 *.smod
@@ -34,6 +37,9 @@
 # Build directories
 build/
 pybuild/
+build_metal/
+build_cpu/
+Testing/
 cuda/
 docs/oxpy/doctrees
 venv/
@@ -87,9 +93,17 @@ cmake-build-debug
 oxpy/_version.py
 src/oxpy/_version.py
 
+# extra files
+*.log
+energy.dat
+last_conf.dat
+trajectory.dat
+
 # AppleDouble Files
 ._*
 
 # Encoder/Decoder 
 utils/PostSimulationCompression/encode_trj
 utils/PostSimulationCompression/decode_trj
+build_metal_omp/
+build_metal_*/

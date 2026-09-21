@@ -1,13 +1,10 @@
 ####  PROGRAM PARAMETERS  ####
-backend = CPU
-#debug = 1
-#seed = 4982
+backend = Metal
 
 ####    SIM PARAMETERS    ####
-steps = 1e6
-newtonian_steps = 103
+steps = 100
+newtonian_steps = 10
 diff_coeff = 2.50
-#pt = 0.1
 thermostat = john
 
 T = 300K
@@ -23,7 +20,7 @@ log_file = log.dat
 no_stdout_energy = 1
 restart_step_counter = 1
 energy_file = energy.dat
-print_conf_interval = 1e5
-print_energy_every = true 
+print_conf_interval = 10
+print_energy_every = true
 time_scale = linear
 external_forces = 0

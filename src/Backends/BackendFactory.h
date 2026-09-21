@@ -17,8 +17,9 @@
  * parses the input file and builds the right simulation backend.
  *
  * @verbatim
-backend = CPU|CUDA (simulation backend. Defaults to CPU)
+backend = CPU|CUDA|Metal (simulation backend. Defaults to CPU)
 [backend_precision = float|double|mixed (Precision at which calculateions are carried out. The mixed precision is only available on CUDA. Defaults to double.)]
+[backend_precision (Metal) = float|mixed|hardmixed (Apple GPUs have no hardware double precision: 'float' runs everything in float32 on the GPU (fastest); 'mixed' uses double-float emulation in the shader; 'hardmixed' evaluates forces in GPU float and integrates in CPU double. Defaults to float.)]
 [sim_type = MD|MC|VMMC|FFS_MD (Type of the simulation. Supported types are Molecular Dynamics, Monte Carlo, Virtual Move Monte Carlo and Forward Flux Sampling. The first and last ones are also available on CUDA. Defaults to MD.)]
 @endverbatim
  */
