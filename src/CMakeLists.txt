@@ -286,6 +286,7 @@ IF(CUDA)
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
 		CUDA/Lists/CUDABinVerletList.cu
+		CUDA/Lists/CUDAEdgeList.cu
 		CUDA/Thermostats/CUDABaseThermostat.cu
 		CUDA/Thermostats/CUDANoThermostat.cu
 		CUDA/Thermostats/CUDAThermostatFactory.cu
