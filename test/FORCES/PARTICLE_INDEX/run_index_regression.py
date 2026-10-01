@@ -4,6 +4,8 @@
 The stock TestSuite treats a non-zero exit and any log line starting with
 ERROR as a failed simulation, then skips compare checks. Expected rejections
 therefore cannot be ordinary quick_input cases. This driver runs oxDNA itself.
+`make test_quick` and `make test_run` reach it through the ParticleIndex
+entry in quick_compare and run_compare.
 
 A rejection counts only when the process exits non-zero, is not a crash or
 timeout, and the combined stdout, stderr, and log contain every required
