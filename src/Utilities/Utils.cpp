@@ -517,4 +517,12 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle*> &particles
 	return particles_index;
 }
 
+int get_single_particle_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier) {
+	std::vector<int> particles_index = get_particles_from_string(particles, particle_string, identifier);
+	if(particles_index.size() != 1 || particles_index[0] < 0) {
+		throw oxDNAException("%s: expected exactly one particle, got \"%s\"", identifier.c_str(), particle_string.c_str());
+	}
+	return particles_index[0];
+}
+
 }
