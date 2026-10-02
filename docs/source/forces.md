@@ -82,13 +82,15 @@ Please note that the reference particle (`ref_particle` below) will not feel any
 
 A force of this kind is specified with `type = mutual_trap`. The relevant keys are: 
 
-* `particle = <int>`: the particle on which to exert the force.
-* `ref_particle = <int>`: particle to pull towards.
+* `particle = <index>`: the particle on which to exert the force.
+* `ref_particle = <index>`: particle to pull towards.
 * `stiff = <float>`: stiffness of the trap.
 * `r0 = <float>`: equilibrium distance of the trap.
 * `PBC = <bool>`: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.
 * `rate = <float>`: change `r0` by this much every time step.
 * `stiff_rate = <float>`: change `stiff` by this much every time step.
+
+`particle` and `ref_particle` each take one particle expression, using the same syntax as the list-valued `particle` keys on other forces. An integer, `last`, or a range that contains one particle is accepted. `all`, `-1`, a comma-separated list, and a range that contains more than one particle are rejected, as is any token the parser does not recognize. The rejection names the field. These keys are not interpreted by converting the text with `atof`, so an unrecognized token is not silently treated as particle 0.
 
 ````{warning}
 PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.
@@ -115,6 +117,25 @@ Here is an example, extracted from the pseudoknot formation example (`examples/P
 	}
 
 ````
+
+## Constant trap
+
+`constant_trap` pulls one particle toward one reference particle with a constant-magnitude force. `particle` and `ref_particle` use the same single-particle expressions as `mutual_trap`: an integer, `last`, or a range that resolves to one particle. `all`, `-1`, lists, wider ranges, and unrecognized tokens are rejected, and the error names the field.
+
+* `particle = <index>`: the particle on which to exert the force.
+* `ref_particle = <index>`: particle to pull towards.
+* `stiff = <float>`: magnitude of the force.
+* `r0 = <float>`: distance at which the force changes sign.
+* `PBC = <bool>`: if 0, ignore periodic boundary conditions when computing the distance. Defaults to 0.
+
+## Alignment field
+
+`alignment_field` couples one particle's orientation to a fixed direction. `particle` is required. Omitting it is an error (`Mandatory key `particle' not found`); it is not a way to select every particle. The same single-particle expressions are accepted, and the same multi-particle and unrecognized values are rejected.
+
+* `particle = <index>`: the particle whose orientation is used, and the particle the force is attached to.
+* `v_idx = <int>`: which orientation vector to align. 0, 1 and 2 are `v1`, `v2` and `v3`; 3, 4 and 5 are the corresponding rows of the transpose. Must be in `0..5`.
+* `F = <float>`: strength of the alignment potential.
+* `dir = <float>,<float>,<float>`: target direction. The vector is normalised.
 
 ## Harmonic trap
 

@@ -36,3 +36,4 @@ FileExists::energy.dat::True
 * FileExists checks that a file exists. The test expects one mandatory and one optional field: the name of the file and whether it should be checked that the file should be non-empty (defaults to True).
 * ColumnAverage computes the average over a column stored in a file and compares it with a reference value. The test fails if the computed value is outside a tolerance range. The test expects 4 fields: a file name, a column index, a reference value and the associated tolerance.
 * DiffFiles checks whether two files are identical. The test expects 2 fields: the name of the reference file and the name of the data file that should be checked against it.
+* ParticleIndex runs the single-particle force-index regression in `FORCES/PARTICLE_INDEX`. It takes no parameters. The folder's input file only has to be a short successful simulation; the compare check launches oxDNA for the accept and expected-rejection cases.

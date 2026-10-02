@@ -207,6 +207,20 @@ std::string bytes_to_human(llint arg);
 std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier);
 
 /**
+ * @brief Resolves a particle expression to exactly one particle index.
+ *
+ * The expression is interpreted by get_particles_from_string. The result is accepted
+ * only when it contains one index >= 0, so "all", "-1", lists, and ranges that
+ * cover more than one particle are rejected. An unrecognized token is rejected
+ * by get_particles_from_string before this check runs.
+ *
+ * @param particles particle array used to interpret the expression
+ * @param particle_string expression to process
+ * @param identifier field name included in the error message
+ */
+int get_single_particle_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier);
+
+/**
  * @brief Utility function that checks if an integer is a valid particle index, or -1.
  * @param n integer to check.
  * @param N number of particles
