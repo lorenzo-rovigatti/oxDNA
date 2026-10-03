@@ -33,6 +33,7 @@
 
 # Build directories
 build/
+build-*/
 pybuild/
 cuda/
 docs/oxpy/doctrees
@@ -45,6 +46,11 @@ test/**/trajectory.dat
 test/**/time.dat
 test/OXPY/first_nucleotide.dat
 test/OXPY/last_nucleotide.dat
+
+# Outputs from running the GPU example
+examples/CUDA_EXAMPLE/energy.dat
+examples/CUDA_EXAMPLE/trajectory.dat
+examples/CUDA_EXAMPLE/last_conf.dat
 
 **/*pyc
 

@@ -14,6 +14,9 @@
 
 #ifdef NOCUDA
 #define SYNCHRONIZE()
+#elif defined(OXDNA_HIP)
+#include <hip/hip_runtime.h>
+#define SYNCHRONIZE() hipDeviceSynchronize()
 #else
 #include <cuda_runtime_api.h>
 #define SYNCHRONIZE() cudaDeviceSynchronize()

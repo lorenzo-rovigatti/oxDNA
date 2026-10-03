@@ -11,6 +11,7 @@ project(oxDNA LANGUAGES CXX)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
 OPTION(CUDA "Set to ON to compile with CUDA support" OFF)
+OPTION(HIP "Set to ON to compile with ROCm/HIP support (AMD GPUs)" OFF)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
 OPTION(Debug "Set to ON to compile with debug symbols" OFF)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
@@ -206,6 +207,27 @@ if(CUDA)
 		endif()
 	endif()
 endif(CUDA)
+
+if(CUDA AND HIP)
+	message(FATAL_ERROR "CUDA and HIP cannot both be enabled")
+endif()
+
+if(HIP)
+	if(CMAKE_VERSION VERSION_LESS 3.21)
+		message(FATAL_ERROR "HIP support requires CMake >= 3.21")
+	endif()
+	# CMake initialises CMAKE_HIP_ARCHITECTURES from rocm_agent_enumerator (or
+	# the compiler default) when the user does not provide it explicitly.
+	enable_language(HIP)
+	find_package(hip REQUIRED)
+	add_definitions(-DOXDNA_HIP)
+	include_directories(${CMAKE_SOURCE_DIR}/src/CUDA/hip)
+	# rocThrust requires C++17
+	set(USE_CXX17_FOR_CUDA ON)
+	set(CMAKE_HIP_STANDARD 17)
+	set(CMAKE_HIP_STANDARD_REQUIRED ON)
+	message(STATUS "HIP enabled, architectures: ${CMAKE_HIP_ARCHITECTURES}")
+endif()
 
 if(USE_CXX17_FOR_CUDA)
     # CUDA 13+ requires C++17 for CCCL
