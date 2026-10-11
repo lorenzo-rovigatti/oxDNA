@@ -340,6 +340,75 @@ IF(CUDA)
 	endif()
 
 	MESSAGE(STATUS "${CUDA_COMMON_FLAGS}")
+ELSEIF(METAL)
+	# Metal backend for macOS/Apple Silicon
+	IF(NOT APPLE)
+		MESSAGE(FATAL_ERROR "Metal backend is only available on macOS")
+	ENDIF()
+    ADD_DEFINITIONS(-DOXDNA_METAL)
+
+	# Enable Objective-C++ support
+	ENABLE_LANGUAGE(OBJCXX)
+	SET(CMAKE_OBJCXX_STANDARD 14)
+	SET(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -fobjc-arc")
+
+	# Find Metal framework
+	FIND_LIBRARY(METAL_FRAMEWORK Metal REQUIRED)
+	FIND_LIBRARY(FOUNDATION_FRAMEWORK Foundation REQUIRED)
+	FIND_LIBRARY(COREGRAPHICS_FRAMEWORK CoreGraphics REQUIRED)
+
+	MESSAGE(STATUS "Building with Metal GPU support")
+	MESSAGE(STATUS "Metal framework: ${METAL_FRAMEWORK}")
+
+	# Metal source files and configuration
+    ADD_SUBDIRECTORY(Metal)
+	LIST(APPEND common_SOURCES ${metal_common_SOURCES})
+
+	# The Metal backend is always built with single-precision host mirrors:
+	# Apple GPUs have no hardware double precision, so -DMETAL_DOUBLE=ON
+	# cannot work. Higher accuracy is selected at run time with the
+	# `backend_precision` input key (float | mixed | hardmixed).
+	IF(METAL_DOUBLE)
+		MESSAGE(FATAL_ERROR "METAL_DOUBLE=ON is not supported: Apple GPUs have no hardware double precision. Configure with -DMETAL_DOUBLE=OFF (the default) and select accuracy at run time with backend_precision = float | mixed | hardmixed.")
+	ENDIF()
+
+	ADD_DEFINITIONS(-DNOCUDA)
+
+	ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
+	ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
+	ADD_LIBRARY(${lib_name} ${common_SOURCES})
+
+	# Link Metal frameworks
+	TARGET_LINK_LIBRARIES(${lib_name} ${METAL_FRAMEWORKS})
+
+	# Optional OpenMP support (CPU integration loops, thermostats). On macOS
+	# with Apple Clang the OpenMP runtime comes from Homebrew's libomp.
+	IF(USE_OPENMP)
+		IF(APPLE AND EXISTS "/opt/homebrew/opt/libomp")
+			SET(OpenMP_ROOT "/opt/homebrew/opt/libomp")
+		ENDIF()
+		FIND_PACKAGE(OpenMP)
+		IF(OpenMP_CXX_FOUND)
+			MESSAGE(STATUS "Enabling OpenMP: ${OpenMP_CXX_FLAGS}")
+			IF(TARGET OpenMP::OpenMP_CXX)
+				TARGET_LINK_LIBRARIES(${lib_name} OpenMP::OpenMP_CXX)
+			ELSE()
+				INCLUDE_DIRECTORIES(${OpenMP_CXX_INCLUDE_DIRS})
+				TARGET_LINK_LIBRARIES(${lib_name} ${OpenMP_CXX_LIBRARIES})
+				ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
+				SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+			ENDIF()
+			# The OpenMP imported target only covers C/CXX: propagate the
+			# flags, includes and libraries to Objective-C++ (.mm) as well.
+			INCLUDE_DIRECTORIES(${OpenMP_CXX_INCLUDE_DIRS})
+			SET(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+			TARGET_LINK_LIBRARIES(${lib_name} ${OpenMP_CXX_LIBRARIES})
+		ELSE()
+			MESSAGE(WARNING "USE_OPENMP=ON but no OpenMP runtime found: building without OpenMP")
+		ENDIF()
+	ENDIF()
+
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 	SET(common_SOURCES
@@ -350,6 +419,23 @@ ELSE()
 	ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
 	ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
 	ADD_LIBRARY(${lib_name} ${common_SOURCES})
+
+	# Optional OpenMP support for the CPU backends (see the METAL branch
+	# above for details).
+	IF(USE_OPENMP)
+		IF(APPLE AND EXISTS "/opt/homebrew/opt/libomp")
+			SET(OpenMP_ROOT "/opt/homebrew/opt/libomp")
+		ENDIF()
+		FIND_PACKAGE(OpenMP)
+		IF(OpenMP_CXX_FOUND)
+			MESSAGE(STATUS "Enabling OpenMP: ${OpenMP_CXX_FLAGS}")
+			TARGET_LINK_LIBRARIES(${lib_name} ${OpenMP_CXX_LIBRARIES})
+			ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
+			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+		ELSE()
+			MESSAGE(WARNING "USE_OPENMP=ON but no OpenMP runtime found: building without OpenMP")
+		ENDIF()
+	ENDIF()
 ENDIF(CUDA)
 
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})

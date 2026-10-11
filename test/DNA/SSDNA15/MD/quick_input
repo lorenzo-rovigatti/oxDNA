@@ -24,6 +24,6 @@ no_stdout_energy = 1
 restart_step_counter = 1
 energy_file = energy.dat
 print_conf_interval = 1e5
-print_energy_every = 1e3 
+print_energy_every = true 
 time_scale = linear
 external_forces = 0

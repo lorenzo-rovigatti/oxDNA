@@ -14,6 +14,79 @@ The HTML documentation can also be generated locally by running `make html` in t
 
 Installation instructions can be found in the `docs/source/install.md` file or online [here](https://lorenzo-rovigatti.github.io/oxDNA/install.html).
 
+## Metal backend (macOS / Apple Silicon)
+
+oxDNA can be compiled with a Metal backend for Apple GPUs.
+
+### Prerequisites
+
+- macOS with Metal support (Apple Silicon recommended)
+- Xcode + Command Line Tools
+- Metal toolchain binaries available through `xcrun`
+
+If shader compilation fails with a missing Metal toolchain error, install it with:
+
+```bash
+xcodebuild -downloadComponent MetalToolchain
+```
+
+### Build with Metal support
+
+```bash
+cd oxDNA
+cmake -S . -B build_metal -DMETAL=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build_metal -j8
+```
+
+Executables are generated in `build_metal/bin/`:
+
+- `oxDNA`
+- `DNAnalysis`
+- `confGenerator`
+
+Compile-time options:
+
+- `-DMETAL=ON` enables the Metal backend
+- `-DMETAL_DOUBLE=ON` enables double precision for Metal kernels
+
+### Run oxDNA with Metal
+
+In your input file:
+
+```text
+backend = Metal
+backend_precision = float
+Metal_avoid_cpu_calculations = 0
+```
+
+`Metal_avoid_cpu_calculations = 0` is the default correctness-oriented mode.
+Set `Metal_avoid_cpu_calculations = 1` only for native-kernel experimental runs.
+
+Example run:
+
+```bash
+cd test/METAL/SIMPLE_MD
+../../build_metal/bin/oxDNA metal_input
+```
+
+### Validate CPU vs Metal parity
+
+The repository includes a parity runner:
+
+```bash
+comparison_run/validate_metal_forcefields.py \
+  --cpu-bin build_cpu/bin/oxDNA \
+  --metal-bin build_metal/bin/oxDNA \
+  --confgen-bin build_metal/bin/confGenerator \
+  --shader-lib build_metal/bin/shaders.metallib \
+  --tol 1e-3 \
+  --steps 50 \
+  --metal-avoid-cpu-calculations 0 \
+  --keep-temp
+```
+
+For more Metal-specific notes, see `BUILD_METAL.md`.
+
 ## Examples
 
 The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY` and `OXPY_REMD` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).

@@ -1,0 +1,26 @@
+####  PROGRAM PARAMETERS  ####
+backend = Metal
+
+####    SIM PARAMETERS    ####
+steps = 100
+newtonian_steps = 10
+diff_coeff = 2.50
+thermostat = john
+
+T = 300K
+dt = 0.005
+verlet_skin = 0.05
+
+####    INPUT / OUTPUT    ####
+topology = ssdna15.top
+conf_file = init.dat
+trajectory_file = trajectory.dat
+refresh_vel = 1
+log_file = log.dat
+no_stdout_energy = 1
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 10
+print_energy_every = true
+time_scale = linear
+external_forces = 0

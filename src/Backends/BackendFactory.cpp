@@ -21,6 +21,14 @@
 #include "../CUDA/Backends/MD_CUDAMixedBackend.h"
 #include "../CUDA/Backends/FFS_MD_CUDAMixedBackend.h"
 #endif
+#else
+// If CUDA is disabled, check for Metal backend
+#ifdef OXDNA_METAL
+// Forward declaration to avoid including Objective-C++ headers in C++ file
+class SimBackend;
+SimBackend* create_metal_backend();
+#define HAVE_METAL
+#endif
 #endif
 
 #ifdef HAVE_MPI
@@ -78,6 +86,20 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 			}
 #endif
 			OX_LOG(Logger::LOG_INFO, "CUDA backend precision: %s", backend_prec.c_str());
+		}
+#endif
+#ifdef HAVE_METAL
+		else if(backend_opt == "Metal") {
+			if(precision_state == KEY_NOT_FOUND) {
+				backend_prec = "float";
+			}
+			// Apple GPUs have no hardware double precision: fail fast here
+			// with guidance (MD_MetalBackend::get_settings re-validates).
+			if(backend_prec != "float" && backend_prec != "mixed" && backend_prec != "hardmixed") {
+				throw oxDNAException("Backend precision '%s' is not supported by the Metal backend (Apple GPUs have no hardware double precision). Use 'float' (fastest), 'mixed' (double-float emulation in the shader) or 'hardmixed' (GPU float forces, CPU double integration) instead.", backend_prec.c_str());
+			}
+			new_backend = create_metal_backend();
+			OX_LOG(Logger::LOG_INFO, "Metal backend precision: %s", backend_prec.c_str());
 		}
 #endif
 		else {
