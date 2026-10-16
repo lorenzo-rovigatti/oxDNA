@@ -93,3 +93,7 @@ src/oxpy/_version.py
 # Encoder/Decoder 
 utils/PostSimulationCompression/encode_trj
 utils/PostSimulationCompression/decode_trj
+
+# Benchmark artefacts (benchmarks/run_benchmark.sh)
+benchmarks/results/
+benchmarks/oxDNA_performance/
