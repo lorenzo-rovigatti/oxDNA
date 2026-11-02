@@ -393,6 +393,28 @@ void DNANMInteraction::get_settings(input_file &inp){
     if(_protein_protein_electrostatics) {
         ADD_INTERACTION_TO_MAP(PRO_PRO_DH, _protein_protein_debye_huckel);
     }
+    // CUDA kernels do not yet implement screened protein electrostatics.
+    // Reject opt-in rather than silently using an incomplete Hamiltonian.
+    if(_protein_dna_electrostatics || _protein_protein_electrostatics) {
+        std::string selected_backend;
+        if(getInputString(&inp, "backend", selected_backend, 0) == KEY_FOUND) {
+            std::transform(
+                selected_backend.begin(),
+                selected_backend.end(),
+                selected_backend.begin(),
+                [](unsigned char c) {
+                    return static_cast<char>(std::toupper(c));
+                }
+            );
+            if(selected_backend == "CUDA") {
+                throw oxDNAException(
+                    "Screened protein electrostatics for DNANM/DNACT "
+                    "is currently CPU-only; backend=CUDA is unsupported"
+                );
+            }
+        }
+    }
+
     if(_protein_dna_electrostatics ||
        _protein_protein_electrostatics) {
 
