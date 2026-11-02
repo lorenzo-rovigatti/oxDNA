@@ -124,6 +124,8 @@ void CUDASRDThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations, 
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(_d_poss, _d_vels, _d_cells, _d_counters_cells, _d_cells_dp, _d_cell_overflow, this->_d_rand_state, this->_rescale_factor);
 	CUT_CHECK_ERROR("fill_cells (SRD) error");
+	// the kernel is launched asynchronously, so we have to wait for it to finish before reading the (pinned) overflow flag
+	cudaDeviceSynchronize();
 
 	if(_d_cell_overflow[0] == true) throw oxDNAException("An SRD cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
