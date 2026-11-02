@@ -82,8 +82,8 @@ void VerletList::change_box() {
 	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		_list_poss[p->index].x *= fx;
-		_list_poss[p->index].z *= fy;
-		_list_poss[p->index].y *= fz;
+		_list_poss[p->index].y *= fy;
+		_list_poss[p->index].z *= fz;
 
 		if(_list_poss[p->index].sqr_distance(p->pos) > _sqr_skin) _updated = false;
 	}
