@@ -3,6 +3,7 @@
 #include "../Utilities/Utils.h"
 #include "../Particles/DNANucleotide.h"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -980,32 +981,40 @@ void DNA3Interaction::init() {
     // We loop through all bases combinations, and pick the largest cutoff distance possible.
     // Can be made more efficient if we define an SD version and use the right rcut depending on the types of interacting particles,
     // But might not work in VMMC. (Andrea: don't know, might have to check. Also, how much would we gain?).
-    number rcutbase;
-    number rcutback;
-    number rcutbase_max = 0.;
-    number rcutback_max = 0.;
-    // QUESTION: these three arrays are identical... can we avoid the duplication?
-    number pb1[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-    number pb2[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-    number pba[4] = {POS_MM_BACK1_A, POS_MM_BACK1_G, POS_MM_BACK1_C, POS_MM_BACK1_T};
-    for(int i = 0; i < 6; i++) {
-        for(int j = 0; j < 4; j++) {
-            for(int k = 0; k < 4; k++) {
-                for(int l = 0; l < 6; l++) {
-                    for(int m = 0; m < 4; m++) {
-                        for(int n = 0; n < 4; n++) {
-                            rcutback = sqrt((pb1[m]) * (pb1[m]) + (pb2[m]) * (pb2[m])) + sqrt((pb1[n]) * (pb1[n]) + (pb2[n]) * (pb2[n])) + _excl_rc[0](i, j, k, l);
-                            if(rcutback > rcutback_max) rcutback_max = rcutback;
-                            rcutbase = fabs(pba[n]) + fabs(pba[m]) + F1_SD_RCHIGH[0](i, j, k, l);
-                            if(rcutbase > rcutbase_max) rcutbase_max = rcutbase;
-                        }
-                    }
-                }
-            }
-        }
+    // The cutoff should be larger than the range of any nonbonded interaction (excluding DH, which is accounted for below).
+    // We use the maximum distance between the centre of mass and each interaction site, taken over all the nucleotide
+    // types (including the generic one used by btype == 4, see DNANucleotide::set_positions), and the largest
+    // cutoff of each nonbonded term over all the tetramer combinations.
+    number r_back = 0.;
+    number r_stack = 0.;
+    number r_base = 0.;
+    for(size_t t = 0; t < DNANucleotide::all_pos_base.size(); t++) {
+        r_back = fmax(r_back, sqrt(SQR(DNANucleotide::all_pos_mm_back1[t]) + SQR(DNANucleotide::all_pos_mm_back2[t])));
+        r_stack = fmax(r_stack, fabs(DNANucleotide::all_pos_stack[t]));
+        r_base = fmax(r_base, fabs(DNANucleotide::all_pos_base[t]));
     }
 
-    _rcut = fmax(rcutback_max, rcutbase_max);
+    auto table_max = [](const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> &table) {
+        return *std::max_element(table.data, table.data + table.total_size);
+    };
+
+    std::vector<std::pair<std::string, number>> nonbonded_ranges = {
+        {"excluded volume (back-back)", 2. * r_back + table_max(_excl_rc[0])},
+        {"excluded volume (base-base)", 2. * r_base + table_max(_excl_rc[1])},
+        {"excluded volume (back-base)", r_back + r_base + table_max(_excl_rc[2])},
+        {"excluded volume (base-back)", r_back + r_base + table_max(_excl_rc[3])},
+        {"hydrogen bonding", 2. * r_base + table_max(F1_SD_RCHIGH[HYDR_F1])},
+        {"cross stacking", 2. * r_base + table_max(F2_SD_RCHIGH[CRST_F2])},
+        {"cross stacking (33)", 2. * r_base + table_max(F2_SD_RCHIGH[CRST_F2_33])},
+        {"cross stacking (55)", 2. * r_base + table_max(F2_SD_RCHIGH[CRST_F2_55])},
+        {"coaxial stacking", 2. * r_stack + table_max(F2_SD_RCHIGH[CXST_F2])}
+    };
+
+    _rcut = 0.;
+    for(auto &range : nonbonded_ranges) {
+        OX_DEBUG("DNA3 nonbonded range of %s: %lf", range.first.c_str(), range.second);
+        _rcut = fmax(_rcut, range.second);
+    }
     _sqr_rcut = SQR(_rcut);
 
     number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1) / sqrt(_salt_concentration);
