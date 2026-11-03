@@ -14,6 +14,7 @@
 #include "../Particles/ANMParticle.h"
 
 #include "../Utilities/Utils.h"
+#include "NMTopology.h"
 
 #include <sstream>
 #include <unistd.h>
@@ -99,6 +100,24 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
     int N_from_conf = particles.size();
     BaseInteraction::read_topology(N_strands, particles);
 
+    if(NMTopology::is_new_topology(this->_topology_filename)) {
+        int N_nucleotides, N_amino_acids, N_nucleic_strands;
+        auto strands = NMTopology::read(this->_topology_filename, "", N_nucleotides, N_amino_acids, N_nucleic_strands);
+        if(N_amino_acids != N_from_conf) {
+            throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
+        }
+        // as in DNANM, the bonds are the springs of the parameter file
+        NMTopology::fill_particles(strands, particles, 0, false, false);
+        NMTopology::add_spring_bonds(_rknot, particles);
+        for(auto p : particles) {
+            auto *q = static_cast<ANMParticle *>(p);
+            q->mass = masses[q->btype];
+            q->invmass = 1.f / q->mass;
+        }
+        *N_strands = strands.size();
+        return;
+    }
+
     int my_N, my_N_strands;
 
     char line[5120];
@@ -136,8 +155,9 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
         // This sets the format officially to read from N to C Terminus
         // Same format as most pdb files I've seen
 
+        // the neighbour list that may follow is validated but not used: as in DNANM, the bonds are the springs of
+        // the parameter file (see the call to NMTopology::add_spring_bonds below)
         int x;
-        std::set<int> myneighs;
         while(ss.good())
         {
             ss >> x;
@@ -146,8 +166,6 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
                 throw oxDNAException("Line %d of the topology file has an invalid syntax, neighbor has invalid id",
                                      i + 2);
             }
-
-            myneighs.insert(x);
         }
         auto *p = dynamic_cast<ANMParticle*>(particles[i]);
 
@@ -159,20 +177,10 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
             p->invmass = 1.f/p->mass; //this needs to be set manually as well
         }
 
-        // add_bonded_neighbor fills affected vector for us
-        if (nside < 0)
-            p->n3 = P_VIRTUAL;
-        else
-            p->add_bonded_neighbor(particles[nside]);
-        if (cside < 0)
-            p->n5 = P_VIRTUAL;
-        else
-            p->add_bonded_neighbor(particles[cside]);
-
-        for(auto & k : myneighs)
-        {
-            if(p->index < k) p->add_bonded_neighbor(particles[k]);
-        }
+        if(nside >= N_from_conf || cside >= N_from_conf)
+            throw oxDNAException("Line %d of the topology file has an invalid syntax, neighbor has invalid id", i + 2);
+        p->n3 = P_VIRTUAL;
+        p->n5 = P_VIRTUAL;
 
         if(p->type == A_INVALID || p->type == P_INVALID)
             throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, aminoacid);
@@ -192,6 +200,9 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
                 my_N);
 
     topology.close();
+
+    // bonds come from the parameter file, as in DNANM (add_bonded_neighbor also fills the affected vectors)
+    NMTopology::add_spring_bonds(_rknot, particles);
 
     if (my_N != N_from_conf)
         throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");

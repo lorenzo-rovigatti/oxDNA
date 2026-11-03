@@ -119,16 +119,8 @@ void CUDADNANMInteraction::cuda_init(int N) {
     DNANMInteraction::init();
 
 //    Addition of Reading Parameter File -> Moved from get_settings due to needing to fill variables that are filled in the CPU version of DNANMInteraction::read_topology
-    std::fstream top;
-    int tmp1, tmp2;
-    top.open(this->_topology_filename, std::ios::in);
-    if (top.is_open()){
-        top >> tmp1 >> tmp2 >> this->ndna >> this->npro >> this->ndnas;
-        top >> this->_firststrand;
-        top.close();
-    } else {
-        throw oxDNAException("Could not open Topology File");
-    }
+//    ndna, npro, ndnas and _firststrand have already been set by DNANMInteraction::read_topology (which supports
+//    both old- and new-style topologies), since SimBackend::init reads the topology before the CUDA backend calls cuda_init
 
 
     if(this->_firststrand < 0) offset = 0;

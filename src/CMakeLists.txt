@@ -139,6 +139,7 @@ SET(interactions_SOURCES
 	Interactions/ANMInteraction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/RNANMInteraction.cpp
+	Interactions/NMTopology.cpp
 )
 
 SET(move_SOURCES

@@ -13,6 +13,7 @@
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/ANMParticle.h"
 #include "../Utilities/Utils.h"
+#include "NMTopology.h"
 
 #include <sstream>
 #include <fstream>
@@ -119,7 +120,13 @@ void DNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
             while (parameters >> key1 >> key2 >> dist >> potswitch >> potential)
             {
                 valid_spring_params(N, key1, key2, dist, potswitch, potential);
+                if(key1 >= (int) particles.size() || key2 >= (int) particles.size()) {
+                    throw oxDNAException("Invalid Particle ID in Parameter File: spring %d-%d, but there are only %d particles", key1, key2, (int) particles.size());
+                }
                 auto *q = dynamic_cast<ANMParticle *>(particles[key1]);
+                if(q == nullptr || dynamic_cast<ANMParticle *>(particles[key2]) == nullptr) {
+                    throw oxDNAException("The parameter file contains a spring between particles %d and %d, but only amino acids can be connected by springs", key1, key2);
+                }
                 if (key1 < key2) {
                     q->add_bonded_neighbor(particles[key2]);
                 }
@@ -202,6 +209,31 @@ void DNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
 
 
 void DNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
+    if(NMTopology::is_new_topology(this->_topology_filename)) {
+        auto strands = NMTopology::read(this->_topology_filename, "DNA", ndna, npro, ndnas);
+        if(ndna + npro != (int) particles.size()) {
+            throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
+        }
+        _firststrand = (strands.size() > 0 && strands[0].peptide) ? -1 : 1; // must be set prior to allocation of particles
+        allocate_particles(particles);
+        for(auto p : particles) {
+            p->type = P_INVALID;
+            p->strand_id = 0;
+        }
+        // as with old-style topologies, protein bonds come from the parameter file only
+        NMTopology::fill_particles(strands, particles, ndnas, _angular, false);
+        for(auto p : particles) {
+            auto *q = dynamic_cast<ANMParticle *>(p);
+            if(q != nullptr) {
+                q->mass = masses[q->type];
+                q->invmass = 1.f / q->mass;
+            }
+        }
+        *N_strands = strands.size();
+        read_parameter_file(particles);
+        return;
+    }
+
     int my_N, my_N_strands;
 
     char line[5120];
