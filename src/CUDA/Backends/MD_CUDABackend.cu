@@ -143,6 +143,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					MutualTrap *p_force = (MutualTrap *) p->ext_forces[j];
 					init_MutualTrap_from_CPU(&cuda_force->mutual, p_force);
 				}
+				else if(force_type == typeid(SkewTrap)) {
+					SkewTrap *p_force = (SkewTrap *) p->ext_forces[j];
+					init_SkewTrap_from_CPU(&cuda_force->skew, p_force);
+				}
 				else if(force_type == typeid(MovingTrap)) {
 					MovingTrap *p_force = (MovingTrap *) p->ext_forces[j];
 					init_MovingTrap_from_CPU(&cuda_force->moving, p_force);
@@ -216,7 +220,7 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					init_YukawaSphere_from_CPU(&cuda_force->yukawasphere, p_force);
 				}
 				else {
-					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
+					throw oxDNAException("Only ConstantRate, MutualTrap, SkewTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
 							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "
 							"RepulsiveEllipsoid, COMForce and LTCOMTrap"
 							"forces are supported on CUDA at the moment.\n");
