@@ -16,6 +16,227 @@
 
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <cctype>
+#include <cerrno>
+#include <cstdlib>
+#include <map>
+#include <set>
+#include <utility>
+#include <cstring>
+
+
+namespace {
+
+std::string trim_copy(const std::string &value) {
+    std::size_t first = 0;
+    while(first < value.size() &&
+          std::isspace(static_cast<unsigned char>(value[first]))) {
+        first++;
+    }
+
+    std::size_t last = value.size();
+    while(last > first &&
+          std::isspace(static_cast<unsigned char>(value[last - 1]))) {
+        last--;
+    }
+
+    return value.substr(first, last - first);
+}
+
+bool starts_with(const std::string &value, const std::string &prefix) {
+    return value.size() >= prefix.size() &&
+           value.compare(0, prefix.size(), prefix) == 0;
+}
+
+double parse_finite_double_text(
+    const std::string &value,
+    const std::string &what
+) {
+    if(value.empty()) {
+        throw oxDNAException(
+            "%s is empty",
+            what.c_str()
+        );
+    }
+
+    // oxDNA Release builds use -ffast-math, which includes
+    // -ffinite-math-only. Reject NaN/Inf spellings lexically before
+    // conversion rather than relying on floating-point classification.
+    std::string lower_value(value);
+
+    std::transform(
+        lower_value.begin(),
+        lower_value.end(),
+        lower_value.begin(),
+        [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        }
+    );
+
+    std::size_t token_start = 0;
+
+    if(!lower_value.empty() &&
+       (lower_value[0] == '+' || lower_value[0] == '-')) {
+        token_start = 1;
+    }
+
+    const std::string unsigned_value =
+        lower_value.substr(token_start);
+
+    if(unsigned_value == "inf" ||
+       unsigned_value == "infinity" ||
+       starts_with(unsigned_value, "nan")) {
+        throw oxDNAException(
+            "%s is out of range or non-finite (`%s')",
+            what.c_str(),
+            value.c_str()
+        );
+    }
+
+    errno = 0;
+    char *end = nullptr;
+    const char *begin = value.c_str();
+    const double parsed = std::strtod(begin, &end);
+
+    if(end == begin) {
+        throw oxDNAException(
+            "%s has invalid value `%s'",
+            what.c_str(),
+            value.c_str()
+        );
+    }
+
+    while(end != nullptr &&
+          *end != '\0' &&
+          std::isspace(static_cast<unsigned char>(*end))) {
+        end++;
+    }
+
+    if(end == nullptr || *end != '\0') {
+        throw oxDNAException(
+            "%s has invalid trailing characters in value `%s'",
+            what.c_str(),
+            value.c_str()
+        );
+    }
+
+    if(errno == ERANGE) {
+        throw oxDNAException(
+            "%s is out of range or non-finite (`%s')",
+            what.c_str(),
+            value.c_str()
+        );
+    }
+
+    return parsed;
+}
+
+number checked_number_product(
+    number lhs,
+    number rhs,
+    const char *what
+) {
+    const number lhs_abs = std::fabs(lhs);
+    const number rhs_abs = std::fabs(rhs);
+    const number limit = std::numeric_limits<number>::max();
+
+    if(lhs_abs != (number) 0.0 &&
+       rhs_abs > limit / lhs_abs) {
+        throw oxDNAException(
+            "%s overflows the compiled CPU numerical type",
+            what
+        );
+    }
+
+    return lhs * rhs;
+}
+
+number checked_reduced_protein_charge(
+    number protein_charge_scale,
+    double charge_e,
+    number dna_effective_charge_e,
+    int local_index
+) {
+    const double scale = static_cast<double>(protein_charge_scale);
+    const double dna_charge = static_cast<double>(dna_effective_charge_e);
+    const double product_limit = std::numeric_limits<double>::max();
+
+    const double scale_abs = std::fabs(scale);
+    const double charge_abs = std::fabs(charge_e);
+
+    if(scale_abs != 0.0 &&
+       charge_abs > product_limit / scale_abs) {
+        throw oxDNAException(
+            "Reduced protein charge for local index %d overflows while multiplying protein_charge_scale by charge_e",
+            local_index
+        );
+    }
+
+    const double numerator = scale * charge_e;
+    const double numerator_abs = std::fabs(numerator);
+
+    // dna_effective_charge_e is required to be positive. Division can
+    // overflow only when the divisor is below one; the product on the
+    // right remains <= DBL_MAX and therefore cannot overflow here.
+    if(dna_charge < 1.0 &&
+       numerator_abs > product_limit * dna_charge) {
+        throw oxDNAException(
+            "Reduced protein charge for local index %d overflows while dividing by dna_effective_charge_e",
+            local_index
+        );
+    }
+
+    const double reduced = numerator / dna_charge;
+    const double number_limit =
+        static_cast<double>(std::numeric_limits<number>::max());
+
+    if(reduced < -number_limit || reduced > number_limit) {
+        throw oxDNAException(
+            "Reduced protein charge for local index %d is outside the compiled CPU numerical range",
+            local_index
+        );
+    }
+
+    return static_cast<number>(reduced);
+}
+
+bool parse_optional_number_strict(
+    input_file &inp,
+    const char *key,
+    number &dest
+) {
+    std::string raw;
+
+    if(getInputString(&inp, key, raw, 0) != KEY_FOUND) {
+        return false;
+    }
+
+    const std::string value = trim_copy(raw);
+    const std::string what =
+        std::string("Numeric input key `") + key + "'";
+
+    const double parsed =
+        parse_finite_double_text(value, what);
+
+    const double limit =
+        static_cast<double>(std::numeric_limits<number>::max());
+
+    if(parsed < -limit || parsed > limit) {
+        throw oxDNAException(
+            "Numeric input key `%s' is outside the compiled CPU numerical range (`%s')",
+            key,
+            value.c_str()
+        );
+    }
+
+    dest = static_cast<number>(parsed);
+    return true;
+}
+
+} // namespace
 
 DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
 
@@ -41,6 +262,20 @@ DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
     ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
     _parameter_kbkt = false;
+
+    _protein_dna_electrostatics = false;
+    _protein_protein_electrostatics = false;
+    _exclude_intragroup_electrostatics = true;
+
+    _protein_charge_scale = (number) 1.0;
+    _protein_dna_dh_scale = (number) 1.0;
+    _protein_protein_dh_scale = (number) 1.0;
+
+    // Standard oxDNA2 effective backbone charge reference.
+    _dna_effective_charge_e = (number) 0.815;
+
+    _protein_charge_format_version = 0;
+
 
     masses = {{0, 1.f}, {1, 1.f}, {2, 1.f}, {3, 1.f}, {5, 1.f}, {6, 1.f}, //default mass is 1 for everything
               {7, 1.f}, {8, 1.f}, {9, 1.f}, {10, 1.f},{11, 1.f}, {12, 1.f},
@@ -79,6 +314,134 @@ void DNANMInteraction::get_settings(input_file &inp){
     } else {
         OX_LOG(Logger::LOG_INFO, "Using Provided Massfile");
         load_massfile(_massfile);
+    }
+
+    getInputBool(
+        &inp,
+        "protein_dna_electrostatics",
+        &_protein_dna_electrostatics,
+        0
+    );
+
+
+
+    getInputBool(
+        &inp,
+        "exclude_intragroup_electrostatics",
+        &_exclude_intragroup_electrostatics,
+        0
+    );
+
+    parse_optional_number_strict(
+        inp,
+        "protein_charge_scale",
+        _protein_charge_scale
+    );
+
+    parse_optional_number_strict(
+        inp,
+        "protein_dna_dh_scale",
+        _protein_dna_dh_scale
+    );
+
+    parse_optional_number_strict(
+        inp,
+        "protein_protein_dh_scale",
+        _protein_protein_dh_scale
+    );
+
+    parse_optional_number_strict(
+        inp,
+        "dna_effective_charge_e",
+        _dna_effective_charge_e
+    );
+
+    if(_dna_effective_charge_e <= (number) 0.0) {
+        throw oxDNAException(
+            "dna_effective_charge_e must be positive"
+        );
+    }
+
+    if(_protein_charge_scale < (number) 0.0) {
+        throw oxDNAException(
+            "protein_charge_scale must be non-negative"
+        );
+    }
+
+    if(_protein_dna_dh_scale < (number) 0.0) {
+        throw oxDNAException(
+            "protein_dna_dh_scale must be non-negative"
+        );
+    }
+
+    if(_protein_protein_dh_scale < (number) 0.0) {
+        throw oxDNAException(
+            "protein_protein_dh_scale must be non-negative"
+        );
+    }
+
+    if(_protein_dna_electrostatics) {
+        ADD_INTERACTION_TO_MAP(
+            PRO_DNA_DH,
+            _protein_dna_debye_huckel
+        );
+    }
+
+
+
+    getInputBool(&inp, "protein_protein_electrostatics", &_protein_protein_electrostatics, 0);
+    if(_protein_protein_electrostatics) {
+        ADD_INTERACTION_TO_MAP(PRO_PRO_DH, _protein_protein_debye_huckel);
+    }
+    // CUDA kernels do not yet implement screened protein electrostatics.
+    // Reject opt-in rather than silently using an incomplete Hamiltonian.
+    if(_protein_dna_electrostatics || _protein_protein_electrostatics) {
+        std::string selected_backend;
+        if(getInputString(&inp, "backend", selected_backend, 0) == KEY_FOUND) {
+            std::transform(
+                selected_backend.begin(),
+                selected_backend.end(),
+                selected_backend.begin(),
+                [](unsigned char c) {
+                    return static_cast<char>(std::toupper(c));
+                }
+            );
+            if(selected_backend == "CUDA") {
+                throw oxDNAException(
+                    "Screened protein electrostatics for DNANM/DNACT "
+                    "is currently CPU-only; backend=CUDA is unsupported"
+                );
+            }
+        }
+    }
+
+    if(_protein_dna_electrostatics ||
+       _protein_protein_electrostatics) {
+
+        if(getInputString(
+               &inp,
+               "protein_charge_file",
+               _protein_charge_file,
+               0
+           ) != KEY_FOUND) {
+
+            throw oxDNAException(
+                "protein_charge_file is required when protein electrostatics are enabled"
+            );
+        }
+
+        OX_LOG(
+            Logger::LOG_INFO,
+            "Protein electrostatics enabled: PD=%d PP=%d, "
+            "charge scale=%g, PD scale=%g, PP scale=%g, "
+            "oxDNA2 charge-normalisation reference=%g e",
+            (int) _protein_dna_electrostatics,
+            (int) _protein_protein_electrostatics,
+            _protein_charge_scale,
+            _protein_dna_dh_scale,
+            _protein_protein_dh_scale,
+            _dna_effective_charge_e
+        );
     }
 }
 
@@ -335,6 +698,10 @@ void DNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> 
 
     // read parameter file
     read_parameter_file(particles);
+    if(_protein_dna_electrostatics || _protein_protein_electrostatics) {
+        _prepare_protein_charge_topology_metadata(my_N);
+        _load_protein_charge_file(my_N);
+    }
 }
 
 
@@ -400,13 +767,17 @@ number DNANMInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticl
         energy += _debye_huckel(p, q, compute_r, update_forces);
         return energy;
     } else if (interaction_type == 2) { // protein-protein
-        if (rnorm >= _pro_sqr_rcut) return (number) 0.f;
+        if (rnorm >= (_protein_protein_electrostatics ? _pro_pro_sqr_rcut : _pro_sqr_rcut)) return (number) 0.f;
         number energy = _protein_exc_volume(p, q, compute_r, update_forces);
+        if(_protein_protein_electrostatics)
+            energy += _protein_protein_debye_huckel(p, q, false, update_forces);
         return energy;
 //        return 0.f;
     }else if(interaction_type == 1) { //protein-dna
         if (rnorm >= _pro_dna_sqr_rcut) return (number) 0.f;
         number energy = _protein_dna_exc_volume(p, q, compute_r, update_forces);
+        if(_protein_dna_electrostatics)
+            energy += _protein_dna_debye_huckel(p, q, false, update_forces);
         return energy;
     }
 
@@ -531,6 +902,8 @@ void DNANMInteraction::init() {
     _pro_sqr_rcut = 0.12454f; //_rc ^2
 
     _pro_dna_sqr_rcut = 3.0625f; //placeholder test value 1.75^2
+    _pro_pro_sqr_rcut = _pro_sqr_rcut;
+    _update_electrostatic_cutoffs();
 }
 
 //Functions almost Identical to those in ANMInteraction
@@ -696,3 +1069,741 @@ DNANMInteraction::~DNANMInteraction() = default;
 
 
 
+
+
+
+// Optional, strictly opt-in protein screened electrostatics.
+
+void DNANMInteraction::_prepare_protein_charge_topology_metadata(int total_particles) {
+    _protein_local_to_global.clear();
+    _protein_topology_strand.clear();
+    _protein_residue_code.clear();
+    std::ifstream in(_topology_filename);
+    std::string row;
+    if(!in || !std::getline(in, row))
+        throw oxDNAException("Cannot read protein topology for electrostatics");
+    int n = 0, nstrands = 0, dna = 0, pro = 0, dnas = 0;
+    std::istringstream header(row);
+    std::string extra;
+    if(!(header >> n >> nstrands >> dna >> pro >> dnas) ||
+       (header >> extra) || n != total_particles || pro != npro || dna != ndna ||
+       n != dna + pro || pro <= 0)
+        throw oxDNAException("Invalid protein electrostatics topology header");
+    const bool protein_first = (_firststrand < 0);
+    int index = 0;
+    while(std::getline(in, row)) {
+        const std::string line=trim_copy(row);
+        if(line.empty() || line[0]=='#') continue;
+        if(index >= n) throw oxDNAException("Extra topology row in protein charge mapping");
+        std::istringstream fields(line);
+        int strand=0;
+        if(!(fields >> strand) || strand==0)
+            throw oxDNAException("Invalid strand in protein charge mapping at index %d",index);
+        const bool expected_protein=protein_first ? index<pro : index>=dna;
+        if((strand<0)!=expected_protein)
+            throw oxDNAException("Interleaved DNA/protein topology unsupported in protein electrostatics");
+        if(expected_protein) {
+            std::string residue;
+            int n3, n5;
+            if(!(fields >> residue >> n3 >> n5) || residue.size()!=1)
+                throw oxDNAException("Invalid protein topology row at index %d",index);
+            _protein_local_to_global.push_back(index);
+            _protein_topology_strand.push_back(strand);
+            _protein_residue_code.push_back(static_cast<char>(
+                std::toupper(static_cast<unsigned char>(residue[0]))));
+        }
+        ++index;
+    }
+    if(index!=n || static_cast<int>(_protein_local_to_global.size())!=pro)
+        throw oxDNAException("Incorrect number of protein topology rows");
+}
+
+
+void DNANMInteraction::_load_protein_charge_file(int total_particles) {
+    if(!_protein_dna_electrostatics && !_protein_protein_electrostatics) return;
+    if(npro <= 0 || static_cast<int>(_protein_local_to_global.size()) != npro)
+        throw oxDNAException("Invalid protein electrostatic topology mapping");
+    std::ifstream in(_protein_charge_file);
+    if(!in) throw oxDNAException("Cannot open protein charge file '%s'", _protein_charge_file.c_str());
+    struct Entry { int local, strand, group; char residue; double charge; };
+    std::vector<Entry> entries;
+    std::map<std::string, std::string> meta;
+    std::string line;
+    bool header_seen=false, saw_data=false;
+    int version=0, line_no=0;
+    while(std::getline(in,line)) {
+        ++line_no;
+        line=trim_copy(line);
+        if(line.empty()) continue;
+        if(line[0]=='#') {
+            const std::string comment=trim_copy(line.substr(1));
+            if(starts_with(comment,"DNANM_ES_CHARGES")) {
+                if(header_seen || saw_data)
+                    throw oxDNAException("Duplicate or misplaced charge-format header on line %d",line_no);
+                std::istringstream header(comment);
+                std::string magic, trailing;
+                if(!(header>>magic>>version) || magic!="DNANM_ES_CHARGES" ||
+                   (header>>trailing) || version!=1)
+                    throw oxDNAException("Invalid versioned charge header on line %d",line_no);
+                header_seen=true;
+            } else {
+                const auto eq=comment.find('=');
+                if(eq!=std::string::npos) {
+                    const std::string key=trim_copy(comment.substr(0,eq));
+                    const std::string value=trim_copy(comment.substr(eq+1));
+                    if(!meta.emplace(key,value).second)
+                        throw oxDNAException("Duplicate charge metadata '%s'",key.c_str());
+                }
+            }
+            continue;
+        }
+        saw_data=true;
+        const auto hash=line.find('#');
+        if(hash!=std::string::npos) line=trim_copy(line.substr(0,hash));
+        if(line.empty()) continue;
+        Entry r={-1,0,-1,'\0',0.0};
+        std::string residue, charge_text, extra;
+        std::istringstream record(line);
+        if(version==1) {
+            if(!(record>>r.local>>r.strand>>residue>>charge_text>>r.group) ||
+               residue.size()!=1 || (record>>extra))
+                throw oxDNAException("Malformed version-1 charge record on line %d",line_no);
+            r.residue=static_cast<char>(std::toupper(static_cast<unsigned char>(residue[0])));
+        } else {
+            if(!(record>>r.local>>charge_text>>r.group) || (record>>extra))
+                throw oxDNAException("Malformed legacy charge record on line %d",line_no);
+        }
+        r.charge=parse_finite_double_text(charge_text,
+                  "protein charge line "+std::to_string(line_no));
+        entries.push_back(r);
+    }
+    if(in.bad()) throw oxDNAException("I/O error in protein charge file");
+    auto require_meta=[&](const char *key)->std::string {
+        auto it=meta.find(key);
+        if(it==meta.end()) throw oxDNAException("Charge file missing metadata '%s'",key);
+        return it->second;
+    };
+    auto parse_meta_int=[&](const std::string &v, const char *key)->int {
+        std::istringstream ss(v);
+        int n; std::string trailing;
+        if(!(ss>>n) || (ss>>trailing))
+            throw oxDNAException("Invalid integer metadata '%s'",key);
+        return n;
+    };
+    if(version==1) {
+        if(require_meta("index_space")!="protein_local" || require_meta("index_base")!="0")
+            throw oxDNAException("Charge indices must be zero-based protein_local");
+        if(parse_meta_int(require_meta("n_protein_beads"),"n_protein_beads")!=npro)
+            throw oxDNAException("Charge file topology protein count mismatch");
+        _protein_charge_model=meta.count("charge_model") ? meta.at("charge_model") : "unspecified";
+        _protein_charge_source=meta.count("charge_source") ? meta.at("charge_source") : "unspecified";
+    } else {
+        _protein_charge_model="legacy-unspecified";
+        _protein_charge_source="legacy-unspecified";
+        OX_LOG(Logger::LOG_WARNING,"Legacy three-column protein charge format used");
+    }
+    if(static_cast<int>(entries.size())!=npro)
+        throw oxDNAException("Charge file has %d entries, expected %d",(int)entries.size(),npro);
+    std::vector<char> seen(npro,0);
+    _protein_charge_reduced.assign(total_particles,(number)0);
+    _protein_group.assign(total_particles,-1);
+    std::set<int> groups;
+    for(const auto &e:entries) {
+        if(e.local<0 || e.local>=npro || seen[e.local])
+            throw oxDNAException("Duplicate or invalid protein charge local index %d",e.local);
+        if(e.group<0) throw oxDNAException("Negative charge group for protein %d",e.local);
+        if(version==1 && (e.strand!=_protein_topology_strand[e.local] ||
+                         e.residue!=_protein_residue_code[e.local]))
+            throw oxDNAException("Protein charge/topology strand or residue mismatch at %d",e.local);
+        const int global=_protein_local_to_global[e.local];
+        if(global<0 || global>=total_particles)
+            throw oxDNAException("Invalid global charge mapping at %d",e.local);
+        _protein_charge_reduced[global]=checked_reduced_protein_charge(
+            _protein_charge_scale,e.charge,_dna_effective_charge_e,e.local);
+        _protein_group[global]=e.group;
+        seen[e.local]=1;
+        groups.insert(e.group);
+    }
+    if(version==1 && meta.count("n_groups") &&
+       parse_meta_int(meta.at("n_groups"),"n_groups")!=static_cast<int>(groups.size()))
+        throw oxDNAException("Charge metadata n_groups does not match file");
+    _protein_charge_format_version=version;
+    OX_LOG(Logger::LOG_INFO,"Loaded %d protein charges from %s (format=%d)",
+           npro,_protein_charge_file.c_str(),version);
+}
+
+void DNANMInteraction::_update_electrostatic_cutoffs() {
+
+    _pro_pro_sqr_rcut =
+        _pro_sqr_rcut;
+
+    number required_sqr_cut =
+        (number) 0.0;
+
+    if(_protein_protein_electrostatics &&
+       _protein_protein_dh_scale >
+           (number) 0.0) {
+
+        _pro_pro_sqr_rcut =
+            std::max(
+                _pro_pro_sqr_rcut,
+                SQR(_debye_huckel_RC)
+            );
+
+        required_sqr_cut =
+            std::max(
+                required_sqr_cut,
+                _pro_pro_sqr_rcut
+            );
+    }
+
+    if(_protein_dna_electrostatics &&
+       _protein_dna_dh_scale >
+           (number) 0.0) {
+
+        const number backbone_offset =
+            (_grooving)
+            ? sqrt(
+                SQR(POS_MM_BACK1)
+                +
+                SQR(POS_MM_BACK2)
+              )
+            : std::fabs(
+                (number) POS_BACK
+              );
+
+        const number pd_com_cut =
+            backbone_offset
+            +
+            _debye_huckel_RC;
+
+        _pro_dna_sqr_rcut =
+            std::max(
+                _pro_dna_sqr_rcut,
+                SQR(pd_com_cut)
+            );
+
+        required_sqr_cut =
+            std::max(
+                required_sqr_cut,
+                _pro_dna_sqr_rcut
+            );
+    }
+
+    if(required_sqr_cut >
+       (number) 0.0) {
+
+        const number required_cut =
+            sqrt(required_sqr_cut);
+
+        if(required_cut > _rcut) {
+
+            _rcut =
+                required_cut;
+
+            _sqr_rcut =
+                SQR(_rcut);
+        }
+    }
+}
+
+number DNANMInteraction::_scaled_debye_huckel(
+    const LR_vector &r,
+    number charge_product,
+    LR_vector &force,
+    bool update_forces
+) {
+
+    force = LR_vector(0, 0, 0);
+
+    if(charge_product ==
+       (number) 0.0) {
+        return (number) 0.0;
+    }
+
+    const number rmod =
+        r.module();
+
+    if(rmod <=
+           std::numeric_limits<number>::epsilon()
+       ||
+       rmod >=
+           _debye_huckel_RC) {
+
+        return (number) 0.0;
+    }
+
+    number energy;
+
+    if(rmod <
+       _debye_huckel_RHIGH) {
+
+        const number exponential =
+            exp(
+                _minus_kappa *
+                rmod
+            );
+
+        energy =
+            charge_product
+            *
+            exponential
+            *
+            (_debye_huckel_prefactor /
+             rmod);
+
+        if(update_forces) {
+
+            force =
+                (r / rmod)
+                *
+                (
+                    charge_product
+                    *
+                    (
+                        -_debye_huckel_prefactor
+                        *
+                        exponential
+                    )
+                    *
+                    (
+                        _minus_kappa /
+                        rmod
+                        -
+                        (number) 1.0 /
+                        SQR(rmod)
+                    )
+                );
+        }
+    }
+    else {
+
+        energy =
+            charge_product
+            *
+            _debye_huckel_B
+            *
+            SQR(
+                rmod -
+                _debye_huckel_RC
+            );
+
+        if(update_forces) {
+
+            force =
+                -(r / rmod)
+                *
+                (
+                    charge_product
+                    *
+                    (number) 2.0
+                    *
+                    _debye_huckel_B
+                    *
+                    (
+                        rmod -
+                        _debye_huckel_RC
+                    )
+                );
+        }
+    }
+
+    return energy;
+}
+
+number DNANMInteraction::_protein_dna_debye_huckel(
+    BaseParticle *p,
+    BaseParticle *q,
+    bool compute_r,
+    bool update_forces
+) {
+
+    if(!_protein_dna_electrostatics) {
+        return (number) 0.0;
+    }
+
+    BaseParticle *protein = nullptr;
+    BaseParticle *nuc = nullptr;
+
+    LR_vector rcenter =
+        _computed_r;
+
+    const int pid =
+        get_id(p->btype);
+
+    const int qid =
+        get_id(q->btype);
+
+    if(pid == 0 && qid == 1) {
+
+        nuc = p;
+        protein = q;
+    }
+    else if(pid == 1 &&
+            qid == 0) {
+
+        protein = p;
+        nuc = q;
+
+        rcenter =
+            -rcenter;
+    }
+    else {
+        return (number) 0.0;
+    }
+
+    if(protein->index < 0 ||
+       protein->index >=
+           (int) _protein_charge_reduced.size()) {
+
+        throw oxDNAException(
+            "DNANM protein-DNA electrostatics requested for protein particle %d outside charge array of size %d",
+            protein->index,
+            (int) _protein_charge_reduced.size()
+        );
+    }
+
+    // DNA backbone carries negative effective charge.
+    number charge_product =
+        checked_number_product(
+            -_protein_dna_dh_scale,
+            _protein_charge_reduced[
+                protein->index
+            ],
+            "Protein-DNA electrostatic charge factor"
+        );
+
+    if(_debye_huckel_half_charged_ends &&
+       (
+           nuc->n3 == P_VIRTUAL ||
+           nuc->n5 == P_VIRTUAL
+       )) {
+
+        charge_product *=
+            (number) 0.5;
+    }
+
+    const LR_vector rback =
+        rcenter
+        -
+        nuc->int_centers[
+            DNANucleotide::BACK
+        ];
+
+    LR_vector force_on_protein(
+        0,
+        0,
+        0
+    );
+
+    const number energy =
+        _scaled_debye_huckel(
+            rback,
+            charge_product,
+            force_on_protein,
+            update_forces
+        );
+
+    if(update_forces &&
+       energy != (number) 0.0) {
+
+        const LR_vector force_on_nuc =
+            -force_on_protein;
+
+        nuc->force +=
+            force_on_nuc;
+
+        protein->force +=
+            force_on_protein;
+
+        const LR_vector torque_nuc =
+            nuc->int_centers[
+                DNANucleotide::BACK
+            ].cross(
+                force_on_nuc
+            );
+
+        nuc->torque +=
+            nuc->orientationT
+            *
+            torque_nuc;
+
+        // Current upstream particle-aware stress API.
+        // rcenter = protein COM - nucleotide COM.
+        // force_on_protein = force acting on second particle.
+        _update_stress_tensor(
+            nuc,
+            protein,
+            rcenter,
+            force_on_protein
+        );
+    }
+
+    return energy;
+}
+
+number DNANMInteraction::_protein_protein_debye_huckel(
+    BaseParticle *p,
+    BaseParticle *q,
+    bool compute_r,
+    bool update_forces
+) {
+
+    if(!_protein_protein_electrostatics ||
+       get_id(p->btype) != 1 ||
+       get_id(q->btype) != 1) {
+
+        return (number) 0.0;
+    }
+
+    // Direct term API and nonbonded lists must agree: bonded ANM springs
+    // contribute through bonded mechanics, never screened PP DH.
+    if(p->is_bonded(q)) return (number) 0.0;
+    if(p->index < 0 ||
+       q->index < 0 ||
+       p->index >=
+           (int) _protein_charge_reduced.size() ||
+       q->index >=
+           (int) _protein_charge_reduced.size()) {
+
+        throw oxDNAException(
+            "DNANM protein-protein electrostatics requested for particles %d/%d outside charge array of size %d",
+            p->index,
+            q->index,
+            (int) _protein_charge_reduced.size()
+        );
+    }
+
+    if(_exclude_intragroup_electrostatics &&
+       _protein_group[p->index] ==
+       _protein_group[q->index]) {
+
+        return (number) 0.0;
+    }
+
+    const number scaled_p_charge =
+        checked_number_product(
+            _protein_protein_dh_scale,
+            _protein_charge_reduced[p->index],
+            "Protein-protein electrostatic scale/charge product"
+        );
+
+    const number charge_product =
+        checked_number_product(
+            scaled_p_charge,
+            _protein_charge_reduced[q->index],
+            "Protein-protein electrostatic charge product"
+        );
+
+    LR_vector force_on_q(
+        0,
+        0,
+        0
+    );
+
+    const number energy =
+        _scaled_debye_huckel(
+            _computed_r,
+            charge_product,
+            force_on_q,
+            update_forces
+        );
+
+    if(update_forces &&
+       energy != (number) 0.0) {
+
+        p->force -=
+            force_on_q;
+
+        q->force +=
+            force_on_q;
+
+        // Current upstream particle-aware stress API.
+        _update_stress_tensor(
+            p,
+            q,
+            _computed_r,
+            force_on_q
+        );
+    }
+
+    return energy;
+}
+
+number DNANMInteraction::pair_interaction_term(
+    int name,
+    BaseParticle *p,
+    BaseParticle *q,
+    bool compute_r,
+    bool update_forces
+) {
+
+    const int interaction_type =
+        get_id(p->btype)
+        +
+        get_id(q->btype);
+
+    const bool bonded =
+        p->is_bonded(q);
+
+    BaseParticle *left = p;
+    BaseParticle *right = q;
+
+    // A supplied cache is oriented from the caller's p to q. Canonical PP
+    // endpoints require the opposite vector when that order is reversed.
+    // Restore the caller's cache on every return and on exceptions so repeated
+    // term queries cannot alternately flip or silently invalidate its geometry.
+    const bool reverse_cached_r = interaction_type == 2 &&
+        left->index > right->index && !compute_r;
+    struct CachedDisplacementGuard {
+        LR_vector &target;
+        LR_vector saved;
+        bool restore;
+        ~CachedDisplacementGuard() {
+            if(restore) target = saved;
+        }
+    } cached_displacement_guard{
+        _computed_r,
+        reverse_cached_r ? _computed_r : LR_vector(0, 0, 0),
+        reverse_cached_r
+    };
+
+    if(interaction_type == 2 &&
+       left->index > right->index) {
+
+        std::swap(left, right);
+        if(reverse_cached_r) _computed_r = -_computed_r;
+    }
+
+    if(compute_r) {
+        _computed_r =
+            this->_box->min_image(
+                left->pos,
+                right->pos
+            );
+    }
+
+    if(interaction_type == 0) {
+
+        const bool bonded_term =
+            name == BACKBONE
+            ||
+            name == BONDED_EXCLUDED_VOLUME
+            ||
+            name == STACKING;
+
+        const bool nonbonded_term =
+            name == NONBONDED_EXCLUDED_VOLUME
+            ||
+            name == HYDROGEN_BONDING
+            ||
+            name == CROSS_STACKING
+            ||
+            name == COAXIAL_STACKING
+            ||
+            name == DEBYE_HUCKEL;
+
+        if(
+            (bonded && bonded_term)
+            ||
+            (!bonded && nonbonded_term)
+        ) {
+
+            return BaseInteraction::
+                pair_interaction_term(
+                    name,
+                    p,
+                    q,
+                    false,
+                    update_forces
+                );
+        }
+
+        return (number) 0.0;
+    }
+
+    if(interaction_type == 1) {
+
+        if(!bonded &&
+           (
+               name == PRO_DNA_EXC_VOL
+               ||
+               (
+                   name == PRO_DNA_DH
+                   &&
+                   _protein_dna_electrostatics
+               )
+           )) {
+
+            return BaseInteraction::
+                pair_interaction_term(
+                    name,
+                    p,
+                    q,
+                    false,
+                    update_forces
+                );
+        }
+
+        return (number) 0.0;
+    }
+
+    if(interaction_type == 2) {
+
+        if(name == SPRING) {
+            return bonded
+                ? _protein_spring(
+                    left,
+                    right,
+                    false,
+                    update_forces
+                  )
+                : (number) 0.0;
+        }
+
+        if(name == PRO_EXC_VOL) {
+            return _protein_exc_volume(
+                left,
+                right,
+                false,
+                update_forces
+            );
+        }
+
+        if(name == PRO_PRO_DH) {
+
+            if(bonded ||
+               !_protein_protein_electrostatics) {
+
+                return (number) 0.0;
+            }
+
+            return _protein_protein_debye_huckel(
+                left,
+                right,
+                false,
+                update_forces
+            );
+        }
+
+        if(name == PRO_ANG_POT) {
+
+            if(!_angular ||
+               !bonded ||
+               right->index -
+               left->index != 1) {
+
+                return (number) 0.0;
+            }
+
+            return _protein_ang_pot(
+                left,
+                right,
+                false,
+                update_forces
+            );
+        }
+    }
+
+    return (number) 0.0;
+}
