@@ -43,13 +43,13 @@ In molecular dynamics simulations, the two most important parameters, performanc
 
 When running CUDA-powered simulations, the box size has a non-trivial effect on performance, and its interaction with other parameters such as `salt_concentration`, `verlet_skin`, and possibly others, make it hard to come up with a way of automatically set the best options for a given case.
 
-For simulations that use `interaction_type = NA` (DNA, RNA and DNA/RNA hybrid systems) on GPUs, setting `use_edge = true` parallelises the force computation over interacting pairs rather than over nucleotides. In our tests (mixed precision, RTX 3060 Laptop GPU, systems made of DNA and RNA duplexes, overhangs, hairpins and single strands) it makes simulations about 2.5-2.8 times faster than the default per-particle scheme, with the largest gain at the largest sizes we tested (up to about 61 000 nucleotides). As usual, `use_edge` is not available with `backend_precision = double`.
+For simulations that use `interaction_type = NA` (DNA, RNA and DNA/RNA hybrid systems), running on a GPU gives the same results as the CPU code (energies agree to better than 1e-5 in relative terms) and is much faster for large systems. Setting `use_edge = true` on top of that parallelises the force computation over interacting pairs rather than over nucleotides. In our tests (mixed precision, one RTX 3060 Laptop GPU against a single CPU core, thermostatted systems made of DNA and RNA duplexes, overhangs, hairpins and single strands) the GPU was about 2 times faster than the CPU for 179 nucleotides and about 90 times faster for 61 000 nucleotides, and `use_edge = true` made it another 2-3.5 times faster. As usual, `use_edge` is not available with `backend_precision = double`.
 
-```{figure} ./images/cuda_na_use_edge.png
+```{figure} ./images/cuda_na_cpu_gpu.png
 :width: 70%
-:name: cuda_na_use_edge
+:name: cuda_na_cpu_gpu
 
-Time per step of the `NA` interaction on a GPU, with and without `use_edge`, as a function of the number of nucleotides.
+Time per step of the `NA` interaction on a CPU core and on a GPU (with and without `use_edge`), as a function of the number of nucleotides.
 ```
 
 Since there is no dynamic memory on GPUs, in order to avoid crashing simulations oxDNA sets the size of the cells used to build neighbouring lists so that their memory footprint is not too high. If you want to optimise performance is sometimes worth to set `cells_auto_optimisation = false` so that oxDNA uses the smallest possible cells (at the cost of memory consumption). If the resulting memory footprint can be handled by your GPU you'll probably see some (possibly large) performance gains.

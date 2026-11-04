@@ -62,12 +62,23 @@ Obtained on an NVIDIA GeForce RTX 3060 Laptop GPU (compute capability 8.6) with 
 * `pytest test_cuda_na.py`: 5 passed (28 subtests) with `OXDNA_CUDA_PRECISION=mixed` and with `float`. With a `-DCUDA_DOUBLE=ON` build and `OXDNA_CUDA_PRECISION=double`, 4 passed and 1 skipped (the `use_edge` test, which is not available in double precision).
 * `validation/parity.py` (four systems, mixed precision): the per-nucleotide deviations from the CPU code are the same with and without `use_edge = true`, and are due to the interpolated meshes used by the CPU code (see above).
 * Sanity check on a 4 833-nucleotide system: 300 000-step thermostatted runs stay finite, and the potential energy per nucleotide agrees within the noise between the neighbour-matrix kernel and the edge-based one (also with `CUDA_sort_every = 10`).
-* Time per step, mixed precision, systems obtained by tiling the `mixed` system:
+* Accuracy against the CPU code (mixed precision, 300-step NVE runs, `dt = 0.001`, same results with the neighbour-matrix kernel and with `use_edge = true`):
 
-| Nucleotides | `use_edge = false` | `use_edge = true` |
-|---:|---:|---:|
-| 4 833 | 0.23 ms | 0.092 ms |
-| 22 375 | 0.80 ms | 0.286 ms |
-| 61 397 | 2.36 ms | 0.89 ms |
+| System | Relative difference of the potential energy (step 1) | Largest position difference after 300 steps (simulation units) | Total energy per nucleotide after 300 steps (CPU / GPU) |
+|---|---:|---:|---|
+| `dna_duplex` | 8e-7 | 1e-4 | -0.897328 / -0.897349 |
+| `rna_duplex` | 7e-7 | 2e-6 | -1.091487 / -1.091486 |
+| `hybrid_overhang` | 7e-7 | 3e-6 | -1.032886 / -1.032887 |
+| `mixed` | 8e-7 | 1e-5 | -0.928045 / -0.928044 |
 
-These numbers are a reference for regressions, not a benchmark: they come from a single GPU.
+* Time per step on one CPU core (single-threaded oxDNA) and on the GPU, mixed precision, thermostatted (`john`) systems obtained by tiling the `mixed` system (1, 8, 27, 125 and 343 copies), measured as the wall-clock difference between a long and a short run, so that start-up costs are excluded:
+
+| Nucleotides | CPU | GPU, `use_edge = false` | GPU, `use_edge = true` | CPU / GPU (edge) |
+|---:|---:|---:|---:|---:|
+| 179 | 0.38 ms | 0.20 ms | 0.071 ms | 5 |
+| 1 432 | 3.0 ms | 0.20 ms | 0.070 ms | 43 |
+| 4 833 | 10 ms | 0.22 ms | 0.11 ms | 91 |
+| 22 375 | 55 ms | 0.74 ms | 0.26 ms | 210 |
+| 61 397 | ~190 ms | 2.1 ms | 0.6 ms | ~320 |
+
+The CPU timing at 61 397 nucleotides is noisy (188-262 ms in three runs, since the CPU was shared with other jobs), and the GPU one varied between 0.54 and 0.66 ms. These numbers are a reference for regressions, not a benchmark: they come from a single GPU and a single CPU.
