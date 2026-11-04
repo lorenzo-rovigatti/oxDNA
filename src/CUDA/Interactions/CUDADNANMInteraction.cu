@@ -77,6 +77,12 @@ CUDADNANMInteraction::~CUDADNANMInteraction() {
 
 
 void CUDADNANMInteraction::get_settings(input_file &inp) {
+    // the bending/torsion kernel (dnanm_forces_edge_bonded_angular) has not been ported to the edge-based force
+    // computation, so DNACT would run with DNANM dynamics while reporting DNACT energies
+    if(_angular) {
+        throw oxDNAException("DNACT is not supported on CUDA yet (the bending and torsion forces are not implemented on the GPU): use backend = CPU, or interaction_type = DNANM");
+    }
+
     std::string inter_type;
     if (getInputString(&inp, "parfile", _parameterfile, 0) != KEY_FOUND) {
         throw oxDNAException("Key 'parfile' not found. Necessary for Protein sims.");
