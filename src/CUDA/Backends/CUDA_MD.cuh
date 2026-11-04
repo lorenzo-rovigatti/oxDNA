@@ -94,6 +94,15 @@ __global__ void rescale_positions(c_number4 *poss, c_number4 ratio) {
 	poss[IND] = ppos;
 }
 
+// erfcx(x) = exp(x^2) erfc(x) from the CUDA math library, in the precision of c_number
+__device__ __forceinline__ float _skew_erfcx(float x) {
+	return erfcxf(x);
+}
+
+__device__ __forceinline__ double _skew_erfcx(double x) {
+	return erfcx(x);
+}
+
 __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUDA_trap *ext_forces, c_number4 *forces, c_number4 *torques, llint step, int max_ext_forces, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 	// if there are no external forces then just put the force to 0
@@ -135,6 +144,26 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				c_number dr_abs = _module(dr);
 
 				c_number4 force = dr * ((dr_abs - (extF.mutual.r0 + extF.mutual.rate * step)) * (extF.mutual.stiff + (step * extF.mutual.stiff_rate)) / dr_abs);
+
+				F.x += force.x;
+				F.y += force.y;
+				F.z += force.z;
+				break;
+			}
+			case CUDA_TRAP_SKEW: {
+				c_number4 qpos = poss[extF.skew.p_ind];
+
+				c_number4 dr = (extF.skew.PBC) ? box->minimum_image(ppos, qpos) : qpos - ppos;
+				c_number dr_abs = _module(dr);
+				c_number x = dr_abs - (extF.skew.r0 + extF.skew.rate * step);
+
+				// g = exp(-w^2) / erfc(w); on the steep side (w > 0) erfc(w) is tiny, so use erfcx instead
+				c_number w = extF.skew.w_coeff * x;
+				c_number g = (w > (c_number) 0.) ? (c_number) 1. / _skew_erfcx(w) : exp(-w * w) / erfc(w);
+				// -dV/dx, positive values push the particles apart
+				c_number f_mag = (-x + extF.skew.g_coeff * g) * extF.skew.inv_s2;
+
+				c_number4 force = dr * (-f_mag / dr_abs);
 
 				F.x += force.x;
 				F.y += force.y;
