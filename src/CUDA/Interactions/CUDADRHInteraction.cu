@@ -17,7 +17,7 @@ struct CUDAModel;
 void copy_Model_to_CUDAModel(Model &model_from, CUDAModel &model_to);
 
 CUDADRHInteraction::CUDADRHInteraction() {
-
+	_edge_compatible = true;
 }
 
 CUDADRHInteraction::~CUDADRHInteraction() {
@@ -159,6 +159,9 @@ void CUDADRHInteraction::_init_rna_constants(int N) {
 
 void CUDADRHInteraction::_init_hybrid_constants(int N) {
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(cuda_drh::MD_N, &N, sizeof(int)));
+	if(_use_edge) {
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol(cuda_drh::MD_n_forces, &_n_forces, sizeof(int)));
+	}
 
 	cuda_drh::HybridModel hm;
 
@@ -257,10 +260,33 @@ void CUDADRHInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, 
 	params.rna_mbf_finf = RNAInteraction::_mbf_finf;
 	params.hybrid_only = _dump_hybrid_only;
 
-	cuda_drh::drh_forces
-		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, _d_is_rna, params, d_box);
-	CUT_CHECK_ERROR("drh_forces error");
+	if(_use_edge) {
+		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
+			cuda_drh::drh_forces_edge_nonbonded
+				<<<(lists->N_edges - 1) / _launch_cfg.threads_per_block + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, d_bonds, _d_is_rna, params, d_box);
+			CUT_CHECK_ERROR("drh_forces_edge_nonbonded error");
+		}
+		else { // sum required, somewhat slower
+			cuda_drh::drh_forces_edge_nonbonded
+				<<<(lists->N_edges - 1) / _launch_cfg.threads_per_block + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds, _d_is_rna, params, d_box);
+			CUT_CHECK_ERROR("drh_forces_edge_nonbonded error");
+
+			_sum_edge_forces_torques(d_forces, d_torques);
+		}
+
+		cuda_drh::drh_forces_edge_bonded
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _d_is_rna, params);
+		CUT_CHECK_ERROR("drh_forces_edge_bonded error");
+	}
+	else {
+		cuda_drh::drh_forces
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, _d_is_rna, params, d_box);
+		CUT_CHECK_ERROR("drh_forces error");
+	}
 
 	_dump_forces_if_requested(d_poss, d_forces, d_torques);
 }

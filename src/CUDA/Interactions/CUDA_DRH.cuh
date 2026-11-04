@@ -24,6 +24,8 @@ namespace cuda_drh {
 
 /// number of nucleotides
 __constant__ int MD_N[1];
+/// number of force slots per nucleotide (edge_n_forces). Used only if use_edge = true
+__constant__ int MD_n_forces[1];
 
 /**
  * @brief Parameters of the DNA/RNA hybrid interaction. They are stored with the precision of the CUDA backend (c_number) and not as floats as
@@ -607,6 +609,42 @@ struct KernelParameters {
 };
 
 /**
+ * @brief Adds to F and T the contribution of the bonded interactions (FENE, bonded excluded volume, stacking) of the nucleotide whose
+ * bonds are pbonds. Strands are either DNA or RNA. The energy goes to F.w and the torque is in the frame of the nucleotide.
+ */
+__device__ void _drh_bonded_part(const c_number4 *poss, const GPU_quat *orientations, const LR_bonds &pbonds, c_number4 &ppos, c_number4 &a1,
+		c_number4 &a2, c_number4 &a3, bool p_is_rna, const KernelParameters &params, c_number4 &F, c_number4 &T) {
+	if(pbonds.n3 != P_INVALID) {
+		c_number4 qpos = poss[pbonds.n3];
+		c_number4 b1, b2, b3;
+		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
+
+		if(p_is_rna) {
+			cuda_rna::_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, params.average, params.rna_use_mbf, params.rna_mbf_xmax, params.rna_mbf_finf);
+		}
+		else {
+			c_number4 dF = make_c_number4(0, 0, 0, 0);
+			cuda_dna::_bonded_part<true>(qpos - ppos, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, true, true, params.dna_use_mbf, params.dna_mbf_xmax, params.dna_mbf_finf);
+			F += dF;
+		}
+	}
+	if(pbonds.n5 != P_INVALID) {
+		c_number4 qpos = poss[pbonds.n5];
+		c_number4 b1, b2, b3;
+		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
+
+		if(p_is_rna) {
+			cuda_rna::_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, params.average, params.rna_use_mbf, params.rna_mbf_xmax, params.rna_mbf_finf);
+		}
+		else {
+			c_number4 dF = make_c_number4(0, 0, 0, 0);
+			cuda_dna::_bonded_part<false>(ppos - qpos, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, true, true, params.dna_use_mbf, params.dna_mbf_xmax, params.dna_mbf_finf);
+			F += dF;
+		}
+	}
+}
+
+/**
  * @brief Computes forces and torques for the oxNA interaction using neighbour matrices. The nucleotide with index i is DNA if is_rna[i] == 0 and
  * RNA otherwise, where i is the index that the nucleotide has in the topology (i.e. it does not change if particles are sorted).
  */
@@ -626,34 +664,8 @@ __global__ void drh_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
-	// bonded neighbours: strands are either DNA or RNA
-	if(pbonds.n3 != P_INVALID && !params.hybrid_only) {
-		c_number4 qpos = poss[pbonds.n3];
-		c_number4 b1, b2, b3;
-		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
-
-		if(p_is_rna) {
-			cuda_rna::_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, params.average, params.rna_use_mbf, params.rna_mbf_xmax, params.rna_mbf_finf);
-		}
-		else {
-			c_number4 dF = make_c_number4(0, 0, 0, 0);
-			cuda_dna::_bonded_part<true>(qpos - ppos, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, true, true, params.dna_use_mbf, params.dna_mbf_xmax, params.dna_mbf_finf);
-			F += dF;
-		}
-	}
-	if(pbonds.n5 != P_INVALID && !params.hybrid_only) {
-		c_number4 qpos = poss[pbonds.n5];
-		c_number4 b1, b2, b3;
-		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
-
-		if(p_is_rna) {
-			cuda_rna::_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, params.average, params.rna_use_mbf, params.rna_mbf_xmax, params.rna_mbf_finf);
-		}
-		else {
-			c_number4 dF = make_c_number4(0, 0, 0, 0);
-			cuda_dna::_bonded_part<false>(ppos - qpos, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, true, true, params.dna_use_mbf, params.dna_mbf_xmax, params.dna_mbf_finf);
-			F += dF;
-		}
+	if(!params.hybrid_only) {
+		_drh_bonded_part(poss, orientations, pbonds, ppos, a1, a2, a3, p_is_rna, params, F, T);
 	}
 
 	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
@@ -687,6 +699,118 @@ __global__ void drh_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 				F += dF;
 			}
 		}
+	}
+
+	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
+
+	forces[IND] = F;
+	torques[IND] = T;
+}
+
+/**
+ * @brief Non-bonded part of the oxNA interaction for the edge-based approach: each thread handles one pair of nucleotides of the edge list
+ * (which does not contain bonded pairs and contains each pair once). The interaction is evaluated from the point of view of the first nucleotide
+ * of the pair, and the force and torque acting on the second one are obtained from the conservation of linear and angular momentum.
+ *
+ * The torques are accumulated in the lab frame, like the neighbour-matrix kernel does before changing frame: they are converted to the frame of
+ * each nucleotide by drh_forces_edge_bonded(), which has to be called afterwards. Unlike the other edge-based kernels, the energies are accumulated too:
+ * as in drh_forces, each nucleotide receives in the fourth component of the force the energy of each of its pairs, and in the fourth component of the
+ * torque the hydrogen-bonding energy of each of its pairs (each pair is therefore counted twice).
+ */
+__global__ void drh_forces_edge_nonbonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques, const edge_bond __restrict__ *edge_list, int n_edges, const LR_bonds __restrict__ *bonds,
+		const int * __restrict__ is_rna, KernelParameters params, const CUDABox *box) {
+	if(IND >= n_edges) return;
+
+	edge_bond b = edge_list[IND];
+
+	// get info for particle 1
+	c_number4 ppos = poss[b.from];
+	bool p_is_rna = is_rna[get_particle_index(ppos)];
+
+	// get info for particle 2
+	c_number4 qpos = poss[b.to];
+	bool q_is_rna = is_rna[get_particle_index(qpos)];
+
+	if(p_is_rna == q_is_rna && params.hybrid_only) return;
+
+	LR_bonds pbonds = bonds[b.from];
+	LR_bonds qbonds = bonds[b.to];
+	bool p_is_end = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);
+	bool q_is_end = (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID);
+
+	c_number4 a1, a2, a3;
+	get_vectors_from_quat(orientations[b.from], a1, a2, a3);
+	c_number4 b1, b2, b3;
+	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
+
+	c_number4 r = box->minimum_image(ppos, qpos);
+
+	c_number4 dF = make_c_number4(0, 0, 0, 0);
+	c_number4 dT = make_c_number4(0, 0, 0, 0);
+	if(p_is_rna != q_is_rna) {
+		_particle_particle_hybrid_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, p_is_rna, p_is_end, q_is_end);
+	}
+	else if(p_is_rna) {
+		cuda_rna::_particle_particle_RNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, params.average, true, params.mismatch_repulsion, p_is_end, q_is_end);
+	}
+	else {
+		cuda_dna::_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, true, true, true, p_is_end, q_is_end);
+	}
+
+	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
+	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
+
+	// the fourth components are used to store the energies
+	c_number pair_energy = dF.w;
+	c_number hb_energy = dT.w;
+	dF.w = (c_number) 0;
+	dT.w = (c_number) 0;
+
+	if(CUDA_DOT(dT, dT) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
+	dT = -dT; // torque acting on particle q (which also has another contribution if dF > 0)
+
+	if(CUDA_DOT(dF, dF) > (c_number) 0.f) {
+		LR_atomicAddXYZ(&(forces[from_index]), dF);
+
+		// Allen Eq. 6 pag 3:
+		dT += _cross(r, dF);
+
+		LR_atomicAddXYZ(&(forces[to_index]), -dF);
+	}
+
+	// the torque may be different from 0 even if dF == 0
+	if(CUDA_DOT(dT, dT) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
+
+	if(pair_energy != (c_number) 0) {
+		atomicAdd(&(forces[from_index].w), pair_energy);
+		atomicAdd(&(forces[to_index].w), pair_energy);
+	}
+	if(hb_energy != (c_number) 0) {
+		atomicAdd(&(torques[from_index].w), hb_energy);
+		atomicAdd(&(torques[to_index].w), hb_energy);
+	}
+}
+
+/**
+ * @brief Bonded part of the oxNA interaction for the edge-based approach. It also changes the frame of the torques from the one of the lab
+ * (which is the one in which drh_forces_edge_nonbonded() accumulates them) to the one of each nucleotide.
+ */
+__global__ void drh_forces_edge_bonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques, const LR_bonds __restrict__ *bonds, const int * __restrict__ is_rna, KernelParameters params) {
+	if(IND >= MD_N[0]) return;
+
+	c_number4 F = forces[IND];
+	c_number4 T = torques[IND];
+	c_number4 ppos = poss[IND];
+	LR_bonds pbonds = bonds[IND];
+	bool p_is_rna = is_rna[get_particle_index(ppos)];
+
+	c_number4 a1, a2, a3;
+	get_vectors_from_quat(orientations[IND], a1, a2, a3);
+
+	if(!params.hybrid_only) {
+		_drh_bonded_part(poss, orientations, pbonds, ppos, a1, a2, a3, p_is_rna, params, F, T);
 	}
 
 	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);

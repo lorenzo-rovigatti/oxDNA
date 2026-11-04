@@ -13,8 +13,9 @@
  *
  * It is selected with interaction_type = NA. Both DNA and RNA strands can be present in the same system.
  *
- * The following options are not supported and make the code exit with an error: use_edge = true, the update of the stress tensor
- * (CUDA_update_stress_tensor_every, CUDA_update_particle_stress_tensor) and FFS.
+ * It is compatible with use_edge = true (forces are then computed by looping over the list of interacting pairs). The following options
+ * are not supported and make the code exit with an error: the update of the stress tensor (CUDA_update_stress_tensor_every,
+ * CUDA_update_particle_stress_tensor) and FFS.
  */
 class CUDADRHInteraction: public CUDABaseInteraction, public DRHInteraction {
 public:
