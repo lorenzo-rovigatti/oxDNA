@@ -54,3 +54,20 @@ export NA_VALIDATION_DATA=$PWD NA_VALIDATION_RUNS=/some/scratch/dir
 * `thermo_summary.py`: run from the directory that contains `res/thermo/`, it averages the runs of `thermo_run.py` over seeds and gives the deviation of each CUDA precision from the CPU in units of the standard error.
 
 The `CUDA_dump_file`, `CUDA_dump_call` and `CUDA_NA_dump_hybrid_only` options used by `parity.py` are meant for debugging and validation only.
+
+## Reference results
+
+Obtained on an NVIDIA GeForce RTX 3060 Laptop GPU (compute capability 8.6) with a Release build of this branch.
+
+* `pytest test_cuda_na.py`: 5 passed (28 subtests) with `OXDNA_CUDA_PRECISION=mixed` and with `float`. With a `-DCUDA_DOUBLE=ON` build and `OXDNA_CUDA_PRECISION=double`, 4 passed and 1 skipped (the `use_edge` test, which is not available in double precision).
+* `validation/parity.py` (four systems, mixed precision): the per-nucleotide deviations from the CPU code are the same with and without `use_edge = true`, and are due to the interpolated meshes used by the CPU code (see above).
+* Sanity check on a 4 833-nucleotide system: 300 000-step thermostatted runs stay finite, and the potential energy per nucleotide agrees within the noise between the neighbour-matrix kernel and the edge-based one (also with `CUDA_sort_every = 10`).
+* Time per step, mixed precision, systems obtained by tiling the `mixed` system:
+
+| Nucleotides | `use_edge = false` | `use_edge = true` |
+|---:|---:|---:|
+| 4 833 | 0.23 ms | 0.092 ms |
+| 22 375 | 0.80 ms | 0.286 ms |
+| 61 397 | 2.36 ms | 0.89 ms |
+
+These numbers are a reference for regressions, not a benchmark: they come from a single GPU.

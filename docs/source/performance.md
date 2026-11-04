@@ -43,6 +43,15 @@ In molecular dynamics simulations, the two most important parameters, performanc
 
 When running CUDA-powered simulations, the box size has a non-trivial effect on performance, and its interaction with other parameters such as `salt_concentration`, `verlet_skin`, and possibly others, make it hard to come up with a way of automatically set the best options for a given case.
 
+For simulations that use `interaction_type = NA` (DNA, RNA and DNA/RNA hybrid systems) on GPUs, setting `use_edge = true` parallelises the force computation over interacting pairs rather than over nucleotides. In our tests (mixed precision, RTX 3060 Laptop GPU, systems made of DNA and RNA duplexes, overhangs, hairpins and single strands) it makes simulations about 2.5-2.8 times faster than the default per-particle scheme, with the largest gain at the largest sizes we tested (up to about 61 000 nucleotides). As usual, `use_edge` is not available with `backend_precision = double`.
+
+```{figure} ./images/cuda_na_use_edge.png
+:width: 70%
+:name: cuda_na_use_edge
+
+Time per step of the `NA` interaction on a GPU, with and without `use_edge`, as a function of the number of nucleotides.
+```
+
 Since there is no dynamic memory on GPUs, in order to avoid crashing simulations oxDNA sets the size of the cells used to build neighbouring lists so that their memory footprint is not too high. If you want to optimise performance is sometimes worth to set `cells_auto_optimisation = false` so that oxDNA uses the smallest possible cells (at the cost of memory consumption). If the resulting memory footprint can be handled by your GPU you'll probably see some (possibly large) performance gains.
 
 There are some heuristics that attempt to limit the memory consumption of CUDA simulations. First of all, the given combination of parameters is used to evaluate the minimum size of the cells required to build neighbouring lists, $r_m$. In turn, $r_m$ is used to compute the number of cells along each coordinate $i$ (where $i = x, y, z$) as
