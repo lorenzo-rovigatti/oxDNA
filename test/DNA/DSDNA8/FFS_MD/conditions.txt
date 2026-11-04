@@ -1,0 +1,7 @@
+action = stop_or
+
+# The duplex has eight base pairs, so n_bonds can never reach 100 and the
+# simulation always runs to completion.
+condition1 = {
+n_bonds >= 100
+}

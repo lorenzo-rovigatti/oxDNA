@@ -23,8 +23,12 @@ MutualTrap::MutualTrap() :
 std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp) {
 	BaseForce::init(inp);
 
-	getInputInt(&inp, "particle", &_particle, 1);
-	getInputInt(&inp, "ref_particle", &_ref_id, 1);
+	std::string particle_string;
+	std::string ref_particle_string;
+	getInputString(&inp, "particle", particle_string, 1);
+	getInputString(&inp, "ref_particle", ref_particle_string, 1);
+	_particle = Utils::get_single_particle_from_string(CONFIG_INFO->particles(), particle_string, "MutualTrap particle");
+	_ref_id = Utils::get_single_particle_from_string(CONFIG_INFO->particles(), ref_particle_string, "MutualTrap ref_particle");
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputBool(&inp, "PBC", &PBC, 0);
@@ -33,18 +37,7 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp) {
 	_stiff_rate = 0.f; //default stiff_rate is 0
 	getInputNumber(&inp, "stiff_rate", &_stiff_rate, 0);
 
-	int N = CONFIG_INFO->particles().size();
-	if(_ref_id < 0 || _ref_id >= N) {
-		throw oxDNAException("Invalid reference particle %d for Mutual Trap", _ref_id);
-	}
 	_p_ptr = CONFIG_INFO->particles()[_ref_id];
-
-	if(_particle >= N || N < -1) {
-		throw oxDNAException("Trying to add a MutualTrap on non-existent particle %d. Aborting", _particle);
-	}
-	if(_particle == -1) {
-		throw oxDNAException("Cannot apply MutualTrap to all particles. Aborting");
-	}
 
 	std::string description = Utils::sformat("MutualTrap (stiff=%g, stiff_rate=%g, r0=%g, rate=%g, ref_particle=%d, PBC=%d)", _stiff, _stiff_rate, _r0, _rate, _ref_id, PBC);
 

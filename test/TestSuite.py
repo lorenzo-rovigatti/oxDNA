@@ -8,6 +8,7 @@ import subprocess as sp
 import math
 import difflib
 import distutils
+import importlib.util
 
 from multiprocessing import Lock
 
@@ -202,8 +203,40 @@ class ColumnAverage(BaseTest):
         spl_line[4] = error
         
         return "::".join(str(x) for x in spl_line)
-    
-    
+
+
+class ParticleIndex(BaseTest):
+    """Runs the single-particle force-index regression.
+
+    The suite treats a non-zero oxDNA exit as a failed simulation and then
+    skips compare checks, so expected rejections cannot be ordinary inputs.
+    quick_input / run_input are short successful simulations that let the
+    suite reach this check. The check itself launches oxDNA for each case.
+    """
+
+    def parse_parameters(self):
+        if len(self.parameters) != 1:
+            Logger.log("%s ParticleIndex takes no parameters" % self.log_prefix, Logger.WARNING)
+            self.error = True
+
+    def test(self):
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "FORCES", "PARTICLE_INDEX", "run_index_regression.py")
+        spec = importlib.util.spec_from_file_location("particle_index_regression", script)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        results = module.run_suite(BaseTest.executable, module.TIMEOUT_SECONDS)
+        failed = [result for result in results if not result["passed"]]
+        for result in failed:
+            Logger.log("%s %s: %s" % (self.log_prefix, result["name"], result["detail"]), Logger.WARNING)
+        if not failed:
+            Logger.log("%s particle-index checks passed (%d)" % (self.log_prefix, len(results)), Logger.INFO)
+        return len(failed) == 0
+
+    def generate_compare_line(self):
+        return "ParticleIndex"
+
+
 class Analyser(object):
     def __init__(self, folder, level):
         self.log_prefix = "Analyser '%s':" % folder
@@ -323,6 +356,7 @@ class TestManager(object):
         
         self.executable = executable
         self.executable_name = os.path.basename(self.executable)
+        BaseTest.executable = os.path.abspath(self.executable)
         self.level = level
         self.systems = []
         self.threads = threads

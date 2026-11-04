@@ -244,6 +244,13 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
 	_interaction->begin_energy_computation();
 
+	// Reset the force and torque accumulators. This backend does not go
+	// through MD_CPUBackend::_compute_forces(), which is where the reset is
+	// performed, so without this loop forces would build up across steps.
+	for(auto p: _particles) {
+		p->set_initial_forces(current_step(), _box.get());
+	}
+
 	_U = (number) 0;
 	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();

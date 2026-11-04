@@ -20,7 +20,9 @@ AlignmentField::AlignmentField() :
 std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp) {
 	BaseForce::init(inp);
 
-	getInputInt(&inp, "particle", &_particle, 0);
+	std::string particle_string;
+	getInputString(&inp, "particle", particle_string, 1);
+	_particle = Utils::get_single_particle_from_string(CONFIG_INFO->particles(), particle_string, "AlignmentField particle");
 	getInputInt(&inp, "v_idx", &_v_idx, 1);
 	getInputNumber(&inp, "F", &_F, 1);
 	if(_v_idx < 0 || _v_idx >= 6) throw oxDNAException("(AlignmentField.cpp) v_idx must be >= 0 and <= 5, got %d. Aborting", _v_idx);
@@ -38,8 +40,6 @@ std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp) 
 
 	std::vector<BaseParticle *> &particles = CONFIG_INFO->particles();
 
-	int N = particles.size();
-	if(_particle >= N || N < 0) throw oxDNAException("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);
 	switch(_v_idx) {
 	case 0:
 		_v_ptr = &(particles[_particle]->orientation.v1);

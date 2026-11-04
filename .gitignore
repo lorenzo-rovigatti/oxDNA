@@ -52,6 +52,11 @@ test/**/time.dat
 test/OXPY/first_nucleotide.dat
 test/OXPY/last_nucleotide.dat
 
+examples/**/*energy*.dat
+examples/**/last_conf.dat
+examples/**/trajectory.dat
+examples/**/*log.dat
+
 **/*pyc
 
 # Distribution / packaging
