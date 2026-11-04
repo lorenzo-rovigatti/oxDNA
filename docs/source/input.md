@@ -187,6 +187,8 @@ The following options control the behaviour of MC simulations.
 * `[seq_dep_file_RNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 * `[seq_dep_file_NA = <path>]`: path to the location of the file containing the DNA-RNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 
+The `NA` interaction can be run on GPUs (`backend = CUDA`), with DNA, RNA and hybrid DNA/RNA systems, with all the options listed above and in the `DNA2` and `RNA2` sections (including `salt_concentration`, `use_average_seq`, `max_backbone_force` and `mismatch_repulsion`), and with the thermostats and external forces available on CUDA. The following options are not supported by the CUDA implementation of `NA`, which exits with an error if they are used: `use_edge = true`, the computation of the stress tensor (`CUDA_update_stress_tensor_every` and `CUDA_update_particle_stress_tensor`) and FFS simulations. Note that `DNA_enable_*` options, which are ignored by the CPU implementation of `NA`, are ignored on CUDA too.
+
 
 ## Options for `LJ` (Lennard-Jones) simulations
 
