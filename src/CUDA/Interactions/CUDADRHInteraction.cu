@@ -28,6 +28,10 @@ CUDADRHInteraction::~CUDADRHInteraction() {
 
 void CUDADRHInteraction::get_settings(input_file &inp) {
 	DRHInteraction::get_settings(inp);
+
+	getInputString(&inp, "CUDA_NA_dump_file", _dump_file, 0);
+	getInputInt(&inp, "CUDA_NA_dump_call", &_dump_call, 0);
+	getInputBool(&inp, "CUDA_NA_dump_hybrid_only", &_dump_hybrid_only, 0);
 }
 
 void CUDADRHInteraction::_init_dna_constants(int N) {
@@ -253,9 +257,33 @@ void CUDADRHInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, 
 	params.rna_use_mbf = RNAInteraction::_use_mbf;
 	params.rna_mbf_xmax = RNAInteraction::_mbf_xmax;
 	params.rna_mbf_finf = RNAInteraction::_mbf_finf;
+	params.hybrid_only = _dump_hybrid_only;
 
 	cuda_drh::drh_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 		(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, _d_is_rna, params, d_box);
 	CUT_CHECK_ERROR("drh_forces error");
+
+	if(!_dump_file.empty() && _n_calls == _dump_call) {
+		_dump(d_poss, d_forces, d_torques);
+	}
+	_n_calls++;
+}
+
+void CUDADRHInteraction::_dump(c_number4 *d_poss, c_number4 *d_forces, c_number4 *d_torques) {
+	std::vector<c_number4> h_poss(_N), h_forces(_N), h_torques(_N);
+	CUDA_SAFE_CALL(cudaMemcpy(h_poss.data(), d_poss, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(h_forces.data(), d_forces, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(h_torques.data(), d_torques, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+
+	FILE *fp = fopen(_dump_file.c_str(), "w");
+	if(fp == nullptr) {
+		throw oxDNAException("CUDADRHInteraction: cannot open the file '%s' to dump the forces", _dump_file.c_str());
+	}
+	fprintf(fp, "# index force.x force.y force.z energy torque.x torque.y torque.z hb_energy (torques in the frame of the nucleotide)\n");
+	for(int i = 0; i < _N; i++) {
+		fprintf(fp, "%d %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g\n", get_particle_index_host(h_poss[i]), (double) h_forces[i].x, (double) h_forces[i].y,
+				(double) h_forces[i].z, (double) h_forces[i].w, (double) h_torques[i].x, (double) h_torques[i].y, (double) h_torques[i].z, (double) h_torques[i].w);
+	}
+	fclose(fp);
 }

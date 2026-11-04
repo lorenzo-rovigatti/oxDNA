@@ -611,6 +611,8 @@ struct KernelParameters {
 	c_number dna_mbf_xmax, dna_mbf_finf;
 	bool rna_use_mbf;
 	c_number rna_mbf_xmax, rna_mbf_finf;
+	/// testing aid: only the DNA/RNA interactions are computed
+	bool hybrid_only;
 };
 
 /**
@@ -634,7 +636,7 @@ __global__ void drh_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
 	// bonded neighbours: strands are either DNA or RNA
-	if(pbonds.n3 != P_INVALID) {
+	if(pbonds.n3 != P_INVALID && !params.hybrid_only) {
 		c_number4 qpos = poss[pbonds.n3];
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
@@ -648,7 +650,7 @@ __global__ void drh_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 			F += dF;
 		}
 	}
-	if(pbonds.n5 != P_INVALID) {
+	if(pbonds.n5 != P_INVALID && !params.hybrid_only) {
 		c_number4 qpos = poss[pbonds.n5];
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
@@ -681,6 +683,9 @@ __global__ void drh_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 
 			if(p_is_rna != q_is_rna) {
 				_particle_particle_hybrid_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, p_is_rna, p_is_end, q_is_end);
+			}
+			else if(params.hybrid_only) {
+				continue;
 			}
 			else if(p_is_rna) {
 				cuda_rna::_particle_particle_RNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, params.average, true, params.mismatch_repulsion, p_is_end, q_is_end);
