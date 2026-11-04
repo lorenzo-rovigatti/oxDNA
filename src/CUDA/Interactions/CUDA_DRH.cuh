@@ -71,15 +71,6 @@ __constant__ F4Parameters CXST_THETA1 = { (c_number) DRH_CXST_THETA1_T0_OXDNA, (
 __constant__ F4Parameters CXST_THETA4 = DRH_F4_PARAMETERS(DRH_CXST_THETA4);
 __constant__ F4Parameters CXST_THETA5 = DRH_F4_PARAMETERS(DRH_CXST_THETA5);
 
-__forceinline__ __device__ c_number _hybrid_module(const c_number4 &v) {
-	return sqrt(CUDA_DOT(v, v));
-}
-
-/// acos that is safe against arguments that are slightly outside [-1, 1]
-__forceinline__ __device__ c_number _acos(c_number x) {
-	return (x >= (c_number) 1) ? (c_number) 0 : (x <= (c_number) -1) ? (c_number) PI : acos(x);
-}
-
 __forceinline__ __device__ c_number _f4(c_number t, const F4Parameters &p) {
 	c_number val = 0;
 	t = fabs(t - p.t0);
@@ -110,7 +101,7 @@ __forceinline__ __device__ c_number _f4Dsin(c_number t, const F4Parameters &p) {
 
 /// f4 and its derivative with respect to cos(t), as a function of cos(t)
 __forceinline__ __device__ void _f4_of_cos(c_number cost, const F4Parameters &p, c_number &f4, c_number &df4_dcos) {
-	c_number t = _acos(cost);
+	c_number t = CUDA_LRACOS(cost);
 	f4 = _f4(t, p);
 	df4_dcos = -_f4Dsin(t, p);
 }
@@ -331,7 +322,7 @@ __device__ void _particle_particle_hybrid_interaction(const c_number4 &r, const 
 	F += Ftmp;
 
 	// DEBYE-HUCKEL
-	c_number rbackmod = _hybrid_module(rbackbone);
+	c_number rbackmod = _module(rbackbone);
 	if(rbackmod < m.dh_rc) {
 		c_number4 rbackdir = rbackbone / rbackmod;
 		if(rbackmod < m.dh_rhigh) {
@@ -504,13 +495,13 @@ __device__ void _particle_particle_hybrid_interaction(const c_number4 &r, const 
 		// angles involved in the CXST interaction
 		c_number cost5 = CUDA_DOT(a3, rstackdir);
 		c_number cost6 = -CUDA_DOT(b3, rstackdir);
-		c_number t1 = _acos(-CUDA_DOT(a1, b1));
-		c_number t4 = _acos(CUDA_DOT(a3, b3));
-		c_number t5 = _acos(cost5);
-		c_number t6 = _acos(cost6);
+		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
+		c_number t5 = CUDA_LRACOS(cost5);
+		c_number t6 = CUDA_LRACOS(cost6);
 
 		c_number4 rbackbone_cxst = r + qpos_back - ppos_back;
-		c_number rbackmod_cxst = _hybrid_module(rbackbone_cxst);
+		c_number rbackmod_cxst = _module(rbackbone_cxst);
 		c_number4 rbackbonedir = rbackbone_cxst / rbackmod_cxst;
 		c_number cosphi3 = CUDA_DOT(rstackdir, _cross(rbackbonedir, a1));
 		c_number cosphi4 = CUDA_DOT(rstackdir, _cross(rbackbonedir, b1));
