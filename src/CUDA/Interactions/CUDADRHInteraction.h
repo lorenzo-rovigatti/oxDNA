@@ -39,16 +39,11 @@ protected:
 	/// copies the parameters of the DNA/RNA hybrid terms to the GPU
 	void _init_hybrid_constants(int N);
 
-	/// writes forces, torques and energies to the file specified by CUDA_NA_dump_file (debugging and testing tool)
-	void _dump(c_number4 *d_poss, c_number4 *d_forces, c_number4 *d_torques);
-
 	/// device array whose i-th element is 1 if the i-th nucleotide of the topology is RNA and 0 if it is DNA
 	int *_d_is_rna = nullptr;
 
-	std::string _dump_file;
-	int _dump_call = 0;
+	/// testing aid (CUDA_NA_dump_hybrid_only): only the DNA/RNA interactions are computed
 	bool _dump_hybrid_only = false;
-	int _n_calls = 0;
 };
 
 #endif /* CUDADRHINTERACTION_H_ */

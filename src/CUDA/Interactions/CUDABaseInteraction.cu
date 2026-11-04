@@ -98,6 +98,36 @@ void CUDABaseInteraction::get_cuda_settings(input_file &inp) {
 
 	// note that the same key is read independently by BaseInteraction
 	getInputBool(&inp, "stress_tensor_no_kinetic_part", &_st_no_kinetic_part, 0);
+
+	getInputString(&inp, "CUDA_dump_file", _dump_file, 0);
+	getInputInt(&inp, "CUDA_dump_call", &_dump_call, 0);
+}
+
+void CUDABaseInteraction::_dump_forces_if_requested(c_number4 *d_poss, c_number4 *d_forces, c_number4 *d_torques) {
+	if(_dump_file.empty()) {
+		return;
+	}
+
+	int call = _n_force_calls++;
+	if(call != _dump_call) {
+		return;
+	}
+
+	std::vector<c_number4> h_poss(_N), h_forces(_N), h_torques(_N);
+	CUDA_SAFE_CALL(cudaMemcpy(h_poss.data(), d_poss, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(h_forces.data(), d_forces, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(h_torques.data(), d_torques, sizeof(c_number4) * _N, cudaMemcpyDeviceToHost));
+
+	FILE *fp = fopen(_dump_file.c_str(), "w");
+	if(fp == nullptr) {
+		throw oxDNAException("Cannot open the file '%s' (CUDA_dump_file) to dump the forces", _dump_file.c_str());
+	}
+	fprintf(fp, "# index force.x force.y force.z energy torque.x torque.y torque.z torque.w (torques in the frame of the particle)\n");
+	for(int i = 0; i < _N; i++) {
+		fprintf(fp, "%d %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g\n", get_particle_index_host(h_poss[i]), (double) h_forces[i].x, (double) h_forces[i].y,
+				(double) h_forces[i].z, (double) h_forces[i].w, (double) h_torques[i].x, (double) h_torques[i].y, (double) h_torques[i].z, (double) h_torques[i].w);
+	}
+	fclose(fp);
 }
 
 void CUDABaseInteraction::cuda_init(int N) {

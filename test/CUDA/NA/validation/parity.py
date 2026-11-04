@@ -2,7 +2,7 @@
 """CPU versus CUDA parity of the NA interaction on one or more configurations.
 
 CPU reference: oxpy (cpu_ref.py), forces, body-frame torques and energies per nucleotide from a loop over all pairs.
-GPU: oxDNA built with CUDA, with CUDA_NA_dump_file set, which dumps the same per-nucleotide quantities after the first
+GPU: oxDNA built with CUDA, with CUDA_dump_file set, which dumps the same per-nucleotide quantities after the first
 force evaluation (the energy of a nucleotide is the sum over its pairs, each pair is counted twice, as in the CPU loop).
 
 Usage: parity.py --bin <CUDA oxDNA> --precision float|mixed|double --oxpy <dir with oxpy> --systems a,b,c [--frames N] [--salt x]
@@ -82,7 +82,7 @@ def make_input(system, conf, backend, args, workdir, dump=None):
     if backend == "CUDA":
         if args.hybrid_only:
             lines += ["CUDA_NA_dump_hybrid_only = true"]
-        lines += ["backend_precision = %s" % args.precision, "CUDA_device = %d" % args.gpu, "CUDA_sort_every = 0", "CUDA_NA_dump_file = %s" % dump, "threads_per_block = 64"]
+        lines += ["backend_precision = %s" % args.precision, "CUDA_device = %d" % args.gpu, "CUDA_sort_every = 0", "CUDA_dump_file = %s" % dump, "threads_per_block = 64"]
     for kv in args.set or []:
         lines.append(kv)
     return "\n".join(lines) + "\n"
