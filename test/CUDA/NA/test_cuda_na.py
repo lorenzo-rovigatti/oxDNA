@@ -7,6 +7,8 @@ run on a GPU the tests are skipped. Usage:
 
     python3 test_cuda_na.py /path/to/oxDNA [-v]
 
+or, with pytest, OXDNA_BIN=/path/to/oxDNA pytest test_cuda_na.py
+
 The precision of the CUDA backend (float, mixed or double) can be chosen with the OXDNA_CUDA_PRECISION environment variable (defaults to mixed).
 For double precision the binary has to be compiled with -DCUDA_DOUBLE=ON.
 
@@ -26,7 +28,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 CASES = ["dna_duplex", "rna_duplex", "hybrid_overhang", "mixed"]
 
-OXDNA = None
+OXDNA = os.path.abspath(os.environ["OXDNA_BIN"]) if os.environ.get("OXDNA_BIN") else None
 PRECISION = os.environ.get("OXDNA_CUDA_PRECISION", "mixed")
 # the CPU code uses interpolated meshes for the angular modulations, the GPU code the analytic functions: the energies of the two codes
 # differ by ~1e-5, and the forces by up to ~5e-3 of the largest force (also in double precision) because of the meshes
@@ -169,6 +171,4 @@ class CUDANATest(unittest.TestCase):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         OXDNA = os.path.abspath(sys.argv.pop(1))
-    elif os.environ.get("OXDNA_BIN"):
-        OXDNA = os.path.abspath(os.environ["OXDNA_BIN"])
     unittest.main()
