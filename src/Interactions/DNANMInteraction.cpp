@@ -42,6 +42,8 @@ DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
     ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
     _parameter_kbkt = false;
+    ndna = npro = ndnas = 0;
+    _firststrand = 0;
 
     masses = {{0, 1.f}, {1, 1.f}, {2, 1.f}, {3, 1.f}, {5, 1.f}, {6, 1.f}, //default mass is 1 for everything
               {7, 1.f}, {8, 1.f}, {9, 1.f}, {10, 1.f},{11, 1.f}, {12, 1.f},
@@ -211,6 +213,33 @@ void DNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
     }
 }
 
+
+void DNANMInteraction::read_topology_counts() {
+    if(NMTopology::is_new_topology(this->_topology_filename)) {
+        auto strands = NMTopology::read(this->_topology_filename, "DNA", ndna, npro, ndnas);
+        _firststrand = (strands.size() > 0 && strands[0].peptide) ? -1 : 1;
+        return;
+    }
+
+    std::ifstream topology(this->_topology_filename, std::ios::in);
+    if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+
+    std::string line;
+    std::getline(topology, line);
+    std::stringstream head(line);
+    int my_N, my_N_strands;
+    head >> my_N >> my_N_strands >> ndna >> npro >> ndnas;
+    if(head.fail()) throw oxDNAException("Invalid topology header for DNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <ndna> <npro> <ndnas>'.");
+
+    // the strand id of the first particle tells whether proteins (< 0) or nucleotides (> 0) come first
+    _firststrand = 0;
+    while(std::getline(topology, line)) {
+        if(line.empty() || line[0] == '#') continue;
+        std::stringstream ss(line);
+        ss >> _firststrand;
+        break;
+    }
+}
 
 void DNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
     if(NMTopology::is_new_topology(this->_topology_filename)) {

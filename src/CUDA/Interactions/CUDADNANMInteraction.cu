@@ -119,8 +119,9 @@ void CUDADNANMInteraction::cuda_init(int N) {
     DNANMInteraction::init();
 
 //    Addition of Reading Parameter File -> Moved from get_settings due to needing to fill variables that are filled in the CPU version of DNANMInteraction::read_topology
-//    ndna, npro, ndnas and _firststrand have already been set by DNANMInteraction::read_topology (which supports
-//    both old- and new-style topologies), since SimBackend::init reads the topology before the CUDA backend calls cuda_init
+//    this object is not the one whose read_topology is called by the backend, so ndna, npro, ndnas and _firststrand
+//    have to be read here (old- or new-style topology)
+    this->read_topology_counts();
 
 
     if(this->_firststrand < 0) offset = 0;

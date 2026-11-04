@@ -75,6 +75,7 @@ void RNANMInteraction::get_settings(input_file &inp){
         }
     }
 
+    if(!_angular) _parameterfile[0] = '\0'; // stays empty if the key is missing
     getInputString(&inp, "parfile", _parameterfile, 0);
     //Addition of Reading Parameter File
 
@@ -176,6 +177,9 @@ void RNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
                         "Invalid Parameter File Format, global kb and kt values have been set in Inputfile");
         } else if (spring_connection_num == 1 && N > 2) throw oxDNAException("Invalid Parameter File Format, cannot use a DNACT Parameter File");
     } else {
+        if(npro > 0) {
+            throw oxDNAException("The topology contains %d amino acids, but no parameter file was given: set 'parfile' to the file that contains the protein springs", npro);
+        }
         OX_LOG(Logger::LOG_INFO, "Parfile: NONE, No protein parameters were filled");
     }
 }

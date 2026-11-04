@@ -68,6 +68,9 @@ public:
     void allocate_particles(std::vector<BaseParticle *> &particles) override;
     void read_topology(int *N_strands, std::vector<BaseParticle *> &particles) override;
     void read_parameter_file(std::vector<BaseParticle *> &particles);
+    /// sets ndna, npro, ndnas and _firststrand from the topology file (old or new style) without building the particles.
+    /// Used by the CUDA interaction, which is a different object from the one whose read_topology is called by the backend
+    void read_topology_counts();
 
     number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
     number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
