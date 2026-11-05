@@ -91,7 +91,7 @@ class TestReadStructure:
         assert np.allclose(s.coords, kdpg.coords)
         assert np.allclose(s.bfactors, kdpg.bfactors)
         assert np.allclose(s.com_vectors, kdpg.com_vectors)
-        assert np.allclose(s.allatom_com_vectors, kdpg.allatom_com_vectors)
+        assert np.allclose(s.n_vectors, kdpg.n_vectors, equal_nan=True) and np.allclose(s.c_vectors, kdpg.c_vectors, equal_nan=True)
 
     def test_models(self, kdpg, tmp_path):
         atoms = [l for l in open(KDPG_PDB) if l.startswith('ATOM')]
@@ -206,9 +206,8 @@ class TestANMT:
         """The analytic Hessian of the engine's _protein_ang_pot, with frame rotations theta (da = theta x a)."""
         n = 6
         x = kdpg.coords[:n]
-        a1 = kdpg.allatom_com_vectors[:n] / np.linalg.norm(kdpg.allatom_com_vectors[:n], axis=1)[:, None]
-        a3 = np.cross(a1, [1., 0., 0.])
-        a3 /= np.linalg.norm(a3, axis=1)[:, None]
+        from oxDNA_analysis_tools.anm_fluctuation_solver import orientation_vectors
+        a1, a3 = (v[:n] for v in orientation_vectors(kdpg))
         kb, kt = 2., 3.
         hxx, hxt, htt = angular_hessian(x, np.arange(n - 1), a1, a3, kb, kt)
         full = np.block([[hxx, hxt], [hxt.T, htt]])
@@ -273,17 +272,48 @@ class TestANMT:
         xyz = {l[12:16].strip(): np.array([float(l[30:38]), float(l[38:46]), float(l[46:54])]) for l in res}
         com = np.mean([v for k, v in xyz.items() if k not in ('N', 'C', 'O')], axis=0)
         assert np.allclose(a1[0], (com - xyz['CA']) / np.linalg.norm(com - xyz['CA']))
-        allatom = np.mean(list(xyz.values()), axis=0) - xyz['CA']
-        legacy_a1, legacy_a3 = orientation_vectors(kdpg, legacy_frames=True)
-        assert np.allclose(legacy_a1[0], allatom / np.linalg.norm(allatom))
-        assert np.linalg.norm(legacy_a3, axis=1).min() < 0.9  # models.py did not normalise a3
-        # glycines have no side chain: a1 is normal to the plane of the C-alpha and its neighbours
+        # a3 is the N -> C direction of the residue, made perpendicular to a1
+        nc = xyz['C'] - xyz['N']
+        nc_perp = nc - np.dot(nc, a1[0]) * a1[0]
+        assert np.allclose(a3[0], nc_perp / np.linalg.norm(nc_perp))
+        # and therefore it follows the chain: it points towards the next C-alpha
+        x = kdpg.coords
+        chain = np.repeat(np.arange(len(kdpg.sequences)), [len(q) for q in kdpg.sequences])
+        same = chain[1:] == chain[:-1]
+        along = np.einsum('ij,ij->i', a3[:-1][same], x[1:][same] - x[:-1][same])
+        assert np.all(along > 0)
+        # glycines have no side chain: a1 points to the ideal C-beta, which is close to where the real C-beta of the
+        # other residues is
         seq = ''.join(kdpg.sequences)
-        gly = [r for r in range(1, 201) if seq[r] == 'G']
+        gly = [r for r in range(kdpg.n_residues) if seq[r] == 'G']
         assert len(gly) > 0
         for r in gly:
-            x = kdpg.coords
-            assert abs(np.dot(a1[r], x[r + 1] - x[r])) < 1e-8 and abs(np.dot(a1[r], x[r - 1] - x[r])) < 1e-8
+            nv, cv = kdpg.n_vectors[r], kdpg.c_vectors[r]
+            assert np.dot(a1[r], np.cross(-nv, cv)) < 0  # the C-beta is on the opposite side of the N-CA-C normal
+        ideal = []
+        for r in range(kdpg.n_residues):
+            if seq[r] != 'G':
+                b, c = -kdpg.n_vectors[r], kdpg.c_vectors[r]
+                cb = -0.58273431 * np.cross(b, c) + 0.56802827 * b - 0.54067466 * c
+                ideal.append(np.dot(cb / np.linalg.norm(cb), a1[r]))
+        assert np.median(ideal) > 0.8  # the side chain points roughly the way of the C-beta
+
+    def test_frames_do_not_depend_on_the_input_orientation(self, kdpg):
+        # rotating the structure must rotate the frames with it and leave every parameter unchanged
+        from dataclasses import replace
+        rng = np.random.default_rng(7)
+        q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
+        if np.linalg.det(q) < 0:
+            q[:, 0] *= -1
+        rotated = replace(kdpg, coords=kdpg.coords @ q.T + np.array([3., -7., 11.]), com_vectors=kdpg.com_vectors @ q.T,
+                          n_vectors=kdpg.n_vectors @ q.T, c_vectors=kdpg.c_vectors @ q.T)
+        a = anm_fluctuation_solver(kdpg, model='anmt', spring_constant=5.)
+        b = anm_fluctuation_solver(rotated, model='anmt', spring_constant=5.)
+        assert np.allclose(b.a1s, a.a1s @ q.T, atol=1e-10) and np.allclose(b.a3s, a.a3s @ q.T, atol=1e-10)
+        assert np.allclose(b.angles, a.angles, atol=1e-10)
+        # the B-factors only differ by round-off, amplified (up to ~3e-5) by the nearly singular rotation block
+        assert np.allclose(b.r0, a.r0) and np.allclose(b.pred_bfactors, a.pred_bfactors, rtol=1e-4)
+        assert np.median(np.abs(b.pred_bfactors / a.pred_bfactors - 1)) < 1e-7
 
     def test_anmt_fit(self, kdpg):
         anm = anm_fluctuation_solver(kdpg, model='anm')
@@ -314,7 +344,7 @@ class TestReference:
 
     @pytest.mark.parametrize("model,ref", [("anm", "kdpg_ref.par.gz"), ("anmt", "kdpgt_ref.par.gz")])
     def test_reference_par(self, kdpg, tmp_path, model, ref):
-        net = anm_fluctuation_solver(kdpg, model=model, cutoff=13., temperature=300., fit='grid', legacy_frames=True)
+        net = anm_fluctuation_solver(kdpg, model=model, cutoff=13., temperature=300., fit='grid')
         assert net.gamma == pytest.approx(0.424)
         out = tmp_path / "out.par"
         write_par(str(out), net)
@@ -331,10 +361,10 @@ class TestReference:
         assert np.allclose(out_num[:, 0], ref_num[:, 0], rtol=1e-5)
         assert np.allclose(out_num[:, 1], ref_num[:, 1], rtol=1e-12)
         if model == 'anmt':
-            ref_ang = np.array([[float(x) for x in r[5:]] for r in ref_rows if len(r) > 5])
+            # the cosines are not compared: the bead frames are not those of models.py (see orientation_vectors)
             out_ang = np.array([[float(x) for x in r[5:]] for r in out_rows if len(r) > 5])
             assert len(out_ang) == 602  # every j == i + 1 spring (the chain ends are too far apart for a spring)
-            assert np.allclose(out_ang, ref_ang, atol=1e-5)
+            assert np.all(np.abs(out_ang) <= 1)
 
     def test_linear_fit_matches_models_py(self, kdpg):
         # values from models.py ANM.calc_ANM_unitary() (linear fit) on the same structure.  models.py used
@@ -420,16 +450,6 @@ class TestCLI:
         assert np.allclose(_engine_cosines(conf, bb[:, 0], bb[:, 1]), written, atol=1e-8)
 
         assert plot.exists() and plot.stat().st_size > 10000
-
-    def test_legacy_a3_is_inconsistent_with_engine(self, kdpg):
-        # models.py did not normalise a3, so its d0 does not match what the engine computes from the configuration
-        net = anm_fluctuation_solver(kdpg, model='anmt', fit='grid', legacy_frames=True)
-        from oxDNA_analysis_tools.UTILS.data_structures import Configuration
-        conf = Configuration(0, np.ones(3), np.zeros(3), kdpg.coords, net.a1s, net.a3s)
-        bb = np.where(net.j == net.i + 1)[0]
-        dev = np.abs(_engine_cosines(conf, net.i[bb], net.j[bb]) - net.angles)
-        assert np.allclose(dev[:, :3], 0, atol=1e-8)
-        assert dev[:, 3].max() > 0.1
 
     def test_fixed_spring_constant_and_bfactor_file(self, kdpg, tmp_path):
         bfile = tmp_path / "b.txt"

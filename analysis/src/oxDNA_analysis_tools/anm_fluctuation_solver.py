@@ -74,7 +74,8 @@ class ProteinStructure:
             coords (np.ndarray) : (N, 3) C-alpha positions in Angstrom
             bfactors (np.ndarray) : (N,) C-alpha B-factors from the structure file
             com_vectors (np.ndarray) : (N, 3) vector from each C-alpha to the center of mass of the residue without its backbone N, C and O atoms (Angstrom), used to orient the beads for ANMT. Zero for glycine.
-            allatom_com_vectors (np.ndarray) : (N, 3) vector from each C-alpha to the center of mass of all atoms of the residue, the definition models.py used in practice (see orientation_vectors)
+            n_vectors (np.ndarray) : (N, 3) vector from each C-alpha to the backbone N of the residue (Angstrom), NaN if the atom is missing
+            c_vectors (np.ndarray) : (N, 3) vector from each C-alpha to the backbone C of the residue (Angstrom), NaN if the atom is missing
     """
     chain_ids : List[str]
     sequences : List[str]
@@ -82,7 +83,8 @@ class ProteinStructure:
     coords : np.ndarray
     bfactors : np.ndarray
     com_vectors : np.ndarray
-    allatom_com_vectors : np.ndarray
+    n_vectors : np.ndarray
+    c_vectors : np.ndarray
 
     @property
     def n_residues(self) -> int:
@@ -144,7 +146,7 @@ def _select_models(residues:dict, order:list) -> List[_ResidueBuilder]:
 
 
 def _residues_to_structure(residues:List[_ResidueBuilder], source:str) -> ProteinStructure:
-    chain_ids, sequences, residue_ids, coords, bfactors, com_vectors, allatom_com_vectors = [], [], [], [], [], [], []
+    chain_ids, sequences, residue_ids, coords, bfactors, com_vectors, n_vectors, c_vectors = [], [], [], [], [], [], [], []
     group = None
     for r in residues:
         aa = _one_letter(r.resname)
@@ -164,14 +166,15 @@ def _residues_to_structure(residues:List[_ResidueBuilder], source:str) -> Protei
         coords.append(ca)
         bfactors.append(ca_b)
         com_vectors.append(np.mean([a[1] for name, a in r.atoms.items() if name not in _BACKBONE_ATOMS], axis=0) - ca)
-        allatom_com_vectors.append(np.mean([a[1] for a in r.atoms.values()], axis=0) - ca)
+        n_vectors.append(r.atoms['N'][1] - ca if 'N' in r.atoms else np.full(3, np.nan))
+        c_vectors.append(r.atoms['C'][1] - ca if 'C' in r.atoms else np.full(3, np.nan))
 
     if len(coords) == 0:
         raise RuntimeError(f"No amino acids with a CA atom were found in {source}")
 
     return ProteinStructure(chain_ids, sequences, residue_ids, np.array(coords, dtype=float),
                             np.array(bfactors, dtype=float), np.array(com_vectors, dtype=float),
-                            np.array(allatom_com_vectors, dtype=float))
+                            np.array(n_vectors, dtype=float), np.array(c_vectors, dtype=float))
 
 
 def _read_pdb(text:str, source:str) -> ProteinStructure:
@@ -534,50 +537,103 @@ def fit_spring_constant(msf:np.ndarray, exp_bfactors:np.ndarray, method:str='lin
     return float(1. / slope), used
 
 
-def orientation_vectors(structure:ProteinStructure, legacy_frames:bool=False) -> Tuple[np.ndarray, np.ndarray]:
-    """
-        Body-frame vectors of each bead, used by the ANMT bending and torsion potentials.
+def _perpendicular_unit(v:np.ndarray, ref:np.ndarray) -> np.ndarray:
+    """Unit vector along the component of v perpendicular to the unit vector ref, or None if it is (nearly) parallel to it."""
+    if v is None or not np.all(np.isfinite(v)):
+        return None
+    p = v - np.dot(v, ref) * ref
+    norm = np.linalg.norm(p)
+    if norm < 1e-3 * max(np.linalg.norm(v), 1e-12):
+        return None
+    return p / norm
 
-        a1 points from the C-alpha to the center of mass of the side chain (all atoms except the backbone N, C and O, CA included).
-        For glycine (and any residue without side-chain atoms) a1 is the normal to the plane of the C-alpha and its two
-        neighbours in the chain, or a vector perpendicular to the bond for chain ends.  a3 is a unit vector perpendicular to a1.
+
+def _any_perpendicular(v:np.ndarray) -> np.ndarray:
+    """A unit vector perpendicular to v (last resort: it depends on the orientation of the input coordinates)."""
+    axis = np.zeros(3)
+    axis[np.argmin(np.abs(v))] = 1.
+    p = np.cross(v, axis)
+    return p / np.linalg.norm(p)
+
+
+def orientation_vectors(structure:ProteinStructure) -> Tuple[np.ndarray, np.ndarray]:
+    """
+        Body-frame vectors of each bead, used by the ANMT bending and torsion potentials. Both are defined by the residue
+        itself, so the parameters do not depend on how the structure is oriented in the input file.
+
+        a1 points from the C-alpha to the center of mass of the side chain (all atoms except the backbone N, C and O, CA
+        included). For glycine (and any residue without side-chain atoms) it points to the ideal position of the C-beta,
+        computed from the backbone N, CA and C atoms, or, if they are missing, along the normal to the plane of the C-alpha
+        and its two neighbours in the chain.
+
+        a3 points along the backbone, from the N to the C atom of the residue (or from the previous to the next C-alpha if
+        they are missing), made perpendicular to a1. As for nucleotides, it follows the direction of the chain.
+
         The frames are orthonormal, so the engine (which orthonormalises them when it reads the configuration) sees the same vectors.
 
         Parameters:
             structure (ProteinStructure) : The protein
-            legacy_frames (bool) : Reproduce the frames of models.py: a1 from the center of mass of all atoms (models.py meant to exclude N, C and O, but its test ``id != 'N' or id != 'C' or ...`` is always true) and a3 not normalised.  The engine normalises a3 when it reads the configuration, so the torsion equilibrium (d0) of such files is inconsistent with the starting configuration.  Only useful to reproduce old parameter files.
 
         Returns:
             (np.ndarray, np.ndarray) : (N, 3) a1 and a3 vectors
     """
-    a1s = (structure.allatom_com_vectors if legacy_frames else structure.com_vectors).copy()
-    norms = np.linalg.norm(a1s, axis=1)
-    # Residues whose center of mass is on the C-alpha: use the normal to the backbone instead
-    chain = np.repeat(np.arange(len(structure.sequences)), [len(s) for s in structure.sequences])
-    x = structure.coords
     n = structure.n_residues
-    for r in np.where(norms < 1e-8)[0]:
-        prev_ok = r > 0 and chain[r - 1] == chain[r]
-        next_ok = r < n - 1 and chain[r + 1] == chain[r]
-        v = np.zeros(3)
-        if prev_ok and next_ok:
-            v = np.cross(x[r + 1] - x[r], x[r - 1] - x[r])
-        elif prev_ok or next_ok:
-            bond = x[r + 1] - x[r] if next_ok else x[r - 1] - x[r]
-            v = np.cross(bond, [1., 0., 0.])
-            if np.linalg.norm(v) < 1e-8 * np.linalg.norm(bond):
-                v = np.cross(bond, [0., 1., 0.])
-        a1s[r] = v if np.linalg.norm(v) > 1e-8 else np.array([1., 0., 0.])
-    a1s /= np.linalg.norm(a1s, axis=1)[:, None]
+    x = structure.coords
+    chain = np.repeat(np.arange(len(structure.sequences)), [len(s) for s in structure.sequences])
+    a1s = np.zeros((n, 3))
+    a3s = np.zeros((n, 3))
+    arbitrary = 0
 
-    # a3 = a1 x e_x, or a1 x e_y when a1 is (anti)parallel to e_x
-    parallel = np.abs(a1s[:, 0]) > 1 - 1e-3 if not legacy_frames else a1s[:, 0] > 1 - 1e-3
-    ref = np.zeros_like(a1s)
-    ref[~parallel, 0] = 1.
-    ref[parallel, 1] = 1.
-    a3s = np.cross(a1s, ref)
-    if not legacy_frames:
-        a3s /= np.linalg.norm(a3s, axis=1)[:, None]
+    def neighbours(r):
+        prev_r = r - 1 if r > 0 and chain[r - 1] == chain[r] else None
+        next_r = r + 1 if r < n - 1 and chain[r + 1] == chain[r] else None
+        return prev_r, next_r
+
+    for r in range(n):
+        prev_r, next_r = neighbours(r)
+        nv, cv = structure.n_vectors[r], structure.c_vectors[r]
+        has_nc = np.all(np.isfinite(nv)) and np.all(np.isfinite(cv))
+
+        # a1: towards the side chain
+        a1 = structure.com_vectors[r].copy()
+        if np.linalg.norm(a1) < 1e-8:
+            if has_nc:
+                # ideal C-beta position (the coefficients of trRosetta/AlphaFold)
+                b = -nv  # CA - N
+                c = cv  # C - CA
+                a1 = -0.58273431 * np.cross(b, c) + 0.56802827 * b - 0.54067466 * c
+            elif prev_r is not None and next_r is not None:
+                a1 = np.cross(x[next_r] - x[r], x[prev_r] - x[r])
+        if np.linalg.norm(a1) < 1e-8:
+            bond = x[next_r] - x[r] if next_r is not None else (x[r] - x[prev_r] if prev_r is not None else np.array([0., 0., 1.]))
+            a1 = _any_perpendicular(bond)
+            arbitrary += 1
+        a1 = a1 / np.linalg.norm(a1)
+
+        # a3: along the backbone, perpendicular to a1
+        candidates = []
+        if has_nc:
+            candidates.append(cv - nv)
+        if prev_r is not None and next_r is not None:
+            candidates.append(x[next_r] - x[prev_r])
+        if next_r is not None:
+            candidates.append(x[next_r] - x[r])
+        if prev_r is not None:
+            candidates.append(x[r] - x[prev_r])
+        a3 = None
+        for v in candidates:
+            a3 = _perpendicular_unit(v, a1)
+            if a3 is not None:
+                break
+        if a3 is None:
+            a3 = _any_perpendicular(a1)
+            arbitrary += 1
+
+        a1s[r] = a1
+        a3s[r] = a3
+
+    if arbitrary > 0:
+        log(f"{arbitrary} bead orientation vectors could not be defined from the structure (missing backbone atoms and chain neighbours) and were chosen arbitrarily", level='warning')
     return a1s, a3s
 
 
@@ -644,7 +700,7 @@ def _engine_frames(a1s:np.ndarray, a3s:np.ndarray) -> Tuple[np.ndarray, np.ndarr
 def anm_fluctuation_solver(structure:ProteinStructure, model:str='anm', cutoff:float=13., temperature:float=300.,
                            bfactors:Optional[np.ndarray]=None, spring_constant:Optional[float]=None, fit:str='linear',
                            max_deviations:float=2., bmax:float=10000., kb:float=50., kt:float=50., write_kbkt:bool=False,
-                           method:str='auto', legacy_frames:bool=False) -> ANMNetwork:
+                           method:str='auto') -> ANMNetwork:
     """
         Build an ANM or ANMT network for a protein and fit its spring constant to experimental B-factors.
 
@@ -664,7 +720,6 @@ def anm_fluctuation_solver(structure:ProteinStructure, model:str='anm', cutoff:f
             kb, kt (float) : ANMT only. Bending and torsion constants in oxDNA units (default 50, 50). They must match the values used in the simulation.
             write_kbkt (bool) : ANMT only. Write kb and kt on every backbone line of the parameter file; otherwise set bending_k and torsion_k in the input file (default False)
             method (str) : Linear algebra used for the fluctuations, see mean_square_fluctuations
-            legacy_frames (bool) : ANMT only. Reproduce the bead frames of models.py (all-atom a1, unnormalised a3), see orientation_vectors
 
         Returns:
             ANMNetwork : The fitted network
@@ -692,7 +747,7 @@ def anm_fluctuation_solver(structure:ProteinStructure, model:str='anm', cutoff:f
     if n_comp > 1:
         log(f"The network has {n_comp} disconnected parts, consider increasing the cutoff", level='warning')
 
-    a1s, a3s = orientation_vectors(structure, legacy_frames)
+    a1s, a3s = orientation_vectors(structure)
     spring_hessian = build_hessian(xyz, i, j)  # gamma = 1 N/m
     msf_springs = mean_square_fluctuations(spring_hessian, xyz, temperature, method, components)
 
