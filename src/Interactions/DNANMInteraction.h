@@ -24,6 +24,7 @@
 #define DNANM_INTERACTION_H
 
 #include "DNA2Interaction.h"
+#include "../Utilities/ANMTopology.h"
 
 
 class DNANMInteraction: public DNA2Interaction {
@@ -40,6 +41,9 @@ protected:
     std::map<std::pair<int, int>, double> _rknot; //Both maps used just as they are in ACInteraction
     std::map<std::pair<int, int>, std::pair<char, double> > _potential;
     std::map<int, number> masses;
+
+    /// sets ndna, npro, ndnas and _firststrand
+    void _set_topology_counts(const ANMTopology::Topology &topology);
     bool _parameter_kbkt; //Controls whether kb/kt values are global or read from parameter file
     std::map<int, std::pair<double, double> > _ang_stiff; // Stores per particle pair, kb kt values
     number _k_bend, _k_tor;
@@ -68,6 +72,9 @@ public:
     void allocate_particles(std::vector<BaseParticle *> &particles) override;
     void read_topology(int *N_strands, std::vector<BaseParticle *> &particles) override;
     void read_parameter_file(std::vector<BaseParticle *> &particles);
+    /// sets ndna, npro, ndnas and _firststrand from the topology file (old or new style) without building the particles.
+    /// Used by the CUDA interaction, which is a different object from the one whose read_topology is called by the backend
+    void read_topology_counts();
 
     number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
     number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;

@@ -77,6 +77,12 @@ CUDADNANMInteraction::~CUDADNANMInteraction() {
 
 
 void CUDADNANMInteraction::get_settings(input_file &inp) {
+    // the bending/torsion kernel (dnanm_forces_edge_bonded_angular) has not been ported to the edge-based force
+    // computation, so DNACT would run with DNANM dynamics while reporting DNACT energies
+    if(_angular) {
+        throw oxDNAException("DNACT is not supported on CUDA yet (the bending and torsion forces are not implemented on the GPU): use backend = CPU, or interaction_type = DNANM");
+    }
+
     std::string inter_type;
     if (getInputString(&inp, "parfile", _parameterfile, 0) != KEY_FOUND) {
         throw oxDNAException("Key 'parfile' not found. Necessary for Protein sims.");
@@ -119,16 +125,9 @@ void CUDADNANMInteraction::cuda_init(int N) {
     DNANMInteraction::init();
 
 //    Addition of Reading Parameter File -> Moved from get_settings due to needing to fill variables that are filled in the CPU version of DNANMInteraction::read_topology
-    std::fstream top;
-    int tmp1, tmp2;
-    top.open(this->_topology_filename, std::ios::in);
-    if (top.is_open()){
-        top >> tmp1 >> tmp2 >> this->ndna >> this->npro >> this->ndnas;
-        top >> this->_firststrand;
-        top.close();
-    } else {
-        throw oxDNAException("Could not open Topology File");
-    }
+//    this object is not the one whose read_topology is called by the backend, so ndna, npro, ndnas and _firststrand
+//    have to be read here (old- or new-style topology)
+    this->read_topology_counts();
 
 
     if(this->_firststrand < 0) offset = 0;
@@ -175,8 +174,8 @@ void CUDADNANMInteraction::cuda_init(int N) {
         };
 
         auto valid_spring_params = [](int num_particles, int x, int y, double d, char s, double k){
-            if(x < 0 || x > num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File", x);
-            if(y < 0 || y > num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File", y);
+            if(x < 0 || x >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, num_particles);
+            if(y < 0 || y >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, num_particles);
             if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
             if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
             if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);

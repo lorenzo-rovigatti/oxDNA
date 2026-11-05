@@ -18,4 +18,8 @@ RNA/FORCE_FIELD/SEQ_DEP
 DNA_RNA/FORCE_FIELD/AVG_SEQ
 DNA_RNA/FORCE_FIELD/SEQ_DEP
 DNANM/hybrid_cage
+DNANM/new_topology/hybrid_cage
+DNANM/new_topology/kdpg_DNACT
+DNANM/new_topology/kdpg_AC
+DNANM/new_topology/kdpg_RNACT
 FORCES/PARTICLE_INDEX
