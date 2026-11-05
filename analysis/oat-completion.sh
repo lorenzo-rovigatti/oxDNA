@@ -5,7 +5,7 @@
 
 _oat_completions(){
 	local opts
-    opts="align anm_parameterize backbone_flexibility bond_analysis centroid clustering config contact_map db2forces decimate deviations distance duplex_angle_plotter duplex_finder file_info forces2pairs generate_forces mean minify multidimensional_scaling_mean output_bonds oxDNA_PDB pairs2db pca persistence_length plot_energy subset_trajectory superimpose"
+    opts="align anm_fluctuation_solver anm_parameterize backbone_flexibility bond_analysis centroid clustering config contact_map db2forces decimate deviations distance duplex_angle_plotter duplex_finder file_info forces2pairs generate_forces mean minify multidimensional_scaling_mean output_bonds oxDNA_PDB pairs2db pca persistence_length plot_energy subset_trajectory superimpose"
 
     if [ -n "$ZSH_VERSION" ]; then
         # For zsh, use compadd directly
