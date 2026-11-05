@@ -86,6 +86,7 @@ void ANMHybridInteraction<NucleicInteraction>::read_topology(int *N_strands, std
 	*N_strands = _anm_topology.N_strands;
 	// protein bonds come from the parameter file only
 	_anm.read_parameter_file(particles, _anm_topology.N_amino_acids);
+	_anm.unlink_unbonded_neighbours(particles);
 }
 
 template<class NucleicInteraction>

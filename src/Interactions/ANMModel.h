@@ -65,6 +65,14 @@ public:
 	 */
 	void read_parameter_file(std::vector<BaseParticle *> &particles, int N_amino_acids);
 
+	/**
+	 * @brief With ANMT, removes the n3/n5 links between consecutive amino acids that are not connected by a spring.
+	 *
+	 * The bending and torsion terms act only on spring-connected backbone neighbours, so the links are not needed, and
+	 * SimBackend rejects particles with links but no bonded interactions (e.g. a protein next to a networked one).
+	 */
+	void unlink_unbonded_neighbours(std::vector<BaseParticle *> &particles);
+
 	/// parses the parameter file without touching the particles (used by the CUDA interactions)
 	void parse_parameter_file(int N_particles);
 

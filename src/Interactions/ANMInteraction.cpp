@@ -50,6 +50,7 @@ void ANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	*N_strands = topology.N_strands;
 	// the bonds are the springs of the parameter file
 	_anm.read_parameter_file(particles, topology.N_amino_acids);
+	_anm.unlink_unbonded_neighbours(particles);
 }
 
 number ANMInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

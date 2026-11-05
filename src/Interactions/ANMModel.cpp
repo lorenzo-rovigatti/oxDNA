@@ -148,6 +148,21 @@ void ANMModel::read_parameter_file(std::vector<BaseParticle *> &particles, int N
 	});
 }
 
+void ANMModel::unlink_unbonded_neighbours(std::vector<BaseParticle *> &particles) {
+	for(auto p : particles) {
+		auto *aa = dynamic_cast<ANMParticle *>(p);
+		if(aa == nullptr) {
+			continue;
+		}
+		if(aa->n3 != P_VIRTUAL && !aa->is_bonded(aa->n3)) {
+			aa->n3 = P_VIRTUAL;
+		}
+		if(aa->n5 != P_VIRTUAL && !aa->is_bonded(aa->n5)) {
+			aa->n5 = P_VIRTUAL;
+		}
+	}
+}
+
 void ANMModel::parse_parameter_file(int N_particles) {
 	if(!_parameter_file.empty()) {
 		_parse_parameter_file(N_particles, [](int, int) {});
