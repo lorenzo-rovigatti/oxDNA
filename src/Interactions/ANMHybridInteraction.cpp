@@ -155,9 +155,9 @@ number ANMHybridInteraction<NucleicInteraction>::_protein_nucleotide_excluded_vo
 	}
 	// r is the position of the amino acid relative to the nucleotide
 	if(_is_protein(p)) {
-		return _anm.nucleotide_excluded_volume(p, q, -this->_computed_r, update_forces, p);
+		return _anm.nucleotide_excluded_volume(p, q, -this->_computed_r, update_forces);
 	}
-	return _anm.nucleotide_excluded_volume(q, p, this->_computed_r, update_forces, p);
+	return _anm.nucleotide_excluded_volume(q, p, this->_computed_r, update_forces);
 }
 
 template<class NucleicInteraction>

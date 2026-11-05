@@ -336,7 +336,7 @@ number ANMModel::angular(BaseParticle *p, BaseParticle *q, const LR_vector &r, b
 	return energy;
 }
 
-number ANMModel::nucleotide_excluded_volume(BaseParticle *protein, BaseParticle *nuc, const LR_vector &r, bool update_forces, BaseParticle *torque_frame) {
+number ANMModel::nucleotide_excluded_volume(BaseParticle *protein, BaseParticle *nuc, const LR_vector &r, bool update_forces) {
 	// the BACK and BASE sites have the same indices in DNANucleotide and RNANucleotide
 	static const int BACK = 0;
 	static const int BASE = 2;
@@ -358,7 +358,7 @@ number ANMModel::nucleotide_excluded_volume(BaseParticle *protein, BaseParticle 
 			if(_torsion) {
 				r_to_back.normalize();
 				// point of contact on the amino acid relative to its centre
-				protein->torque += torque_frame->orientationT * (-r_to_back * _protein_lj.sigma * 0.5f).cross(force);
+				protein->torque += protein->orientationT * (-r_to_back * _protein_lj.sigma * 0.5f).cross(force);
 			}
 		}
 	}
@@ -372,7 +372,7 @@ number ANMModel::nucleotide_excluded_volume(BaseParticle *protein, BaseParticle 
 			protein->force += force;
 			if(_torsion) {
 				r_to_base.normalize();
-				protein->torque += torque_frame->orientationT * (-r_to_base * _protein_lj.sigma * 0.5f).cross(force);
+				protein->torque += protein->orientationT * (-r_to_base * _protein_lj.sigma * 0.5f).cross(force);
 			}
 		}
 	}

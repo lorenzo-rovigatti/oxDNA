@@ -137,9 +137,8 @@ public:
 	 * @brief Excluded volume between an amino acid and the backbone and base sites of a nucleotide.
 	 *
 	 * @param r position of the amino acid relative to the centre of the nucleotide
-	 * @param torque_frame particle whose orientation is used to express the torque on the amino acid (FIXME: this should always be the amino acid)
 	 */
-	number nucleotide_excluded_volume(BaseParticle *protein, BaseParticle *nucleotide, const LR_vector &r, bool update_forces, BaseParticle *torque_frame);
+	number nucleotide_excluded_volume(BaseParticle *protein, BaseParticle *nucleotide, const LR_vector &r, bool update_forces);
 
 	/// the cosines in the parameter file must be in [-1, 1]
 	static void check_cosines(const std::array<double, 4> &cosines);
