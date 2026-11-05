@@ -37,7 +37,7 @@ These are the options that control the overall behaviour of the simulation and o
 * `time_scale = linear/log_lin`: a linear time_scale will make oxDNA print linearly-spaced configurations. a log_lin will make it print linearly-spaced cycles of logarithmically-spaced configurations.
 * `print_conf_interval = <int>`: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.
 * `print_energy_every = <int>`: number of time steps between the outputing of the energy (and of the other default observables such as acceptance ratios in Monte Carlo simulations).
-* `[interaction_type = DNA|DNA2|RNA|RNA2|NA|LJ|...]`: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to `DNA`.
+* `[interaction_type = DNA|DNA2|RNA|RNA2|NA|AC|DNANM|RNANM|NANM|LJ|...]`: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to `DNA`.
 * `[max_io = <float>]`: the maximum rate at which the output is printed, in MB/s. This is a useful option to avoid filling up the disk too quickly. Increase the default value (1 MB/s) at your own risk! 
 * `[fix_diffusion = <bool>]`: if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to `true`.
 * `[fix_diffusion_every = <int>]`: number of time steps every which the diffusion is fixed. Used only if `fix_diffusion = true`, defaults to 100000 ({math}`10^5`).
@@ -191,6 +191,25 @@ The following options control the behaviour of MC simulations.
 
 The `NA` interaction can be run on GPUs (`backend = CUDA`), with DNA, RNA and hybrid DNA/RNA systems, with all the options listed above and in the `DNA2` and `RNA2` sections (including `salt_concentration`, `use_average_seq`, `max_backbone_force` and `mismatch_repulsion`), and with the thermostats and external forces available on CUDA. The edge-based force computation (`use_edge = true`, see the [CUDA options](#cuda-options)) is supported, in single and mixed precision. The following options are not supported by the CUDA implementation of `NA`, which exits with an error if they are used: the computation of the stress tensor (`CUDA_update_stress_tensor_every` and `CUDA_update_particle_stress_tensor`) and FFS simulations. Note that `DNA_enable_*` options, which are ignored by the CPU implementation of `NA`, are ignored on CUDA too.
 
+
+## Options for protein (ANM) simulations
+
+Proteins are modelled at the amino acid level with an anisotropic network model (ANM): each amino acid is a sphere and the protein structure is maintained by harmonic springs listed in a parameter file, with an excluded volume between all amino acids and between amino acids and the backbone and base sites of nucleotides. The ANMT variants add bending and torsion terms between consecutive amino acids, which make the amino acids rigid bodies and are needed to keep small peptides folded.
+
+| Interaction | Nucleic acids | Proteins |
+|-------------|---------------|----------|
+| `AC`, `ACT` | none | ANM, ANMT |
+| `DNANM`, `DNACT` | DNA (oxDNA2) | ANM, ANMT |
+| `RNANM`, `RNACT` | RNA (oxRNA2) | ANM, ANMT |
+| `NANM`, `NACT` | DNA, RNA and DNA/RNA hybrids (oxNA, see `NA`) | ANM, ANMT |
+
+Nucleotides interact exactly as with the corresponding nucleic acid interaction, whose options are all supported. Topologies can be in the new format, where protein strands have `type=peptide` (`NANM`/`NACT` require it, with `type=DNA` or `type=RNA` for every nucleic acid strand), or in the legacy format (header `<N> <N_strands> <N_nucleotides> <N_amino_acids> <N_nucleic_strands>`, or `<N> <N_strands>` for `AC`/`ACT`; amino acid lines are `<negative strand id> <amino acid> <N-side neighbour> <C-side neighbour>`). Amino acids and nucleotides must be listed in two separate blocks.
+
+* `parfile = <path>`: parameter file with the protein springs. Its first line is the number of amino acids, followed by one `<i> <j> <r0> s <k>` line per spring, where `i` and `j` are particle indices, `r0` the equilibrium distance and `k` the stiffness. With the ANMT interactions, the line of each pair of consecutive amino acids (`j = i + 1`) also contains the equilibrium values of the four cosines of the bending and torsion terms, followed by the bending and torsion stiffnesses if `bending_k` and `torsion_k` are not set. Optional (or `none`) for `DNANM`, `RNANM` and `NANM` simulations without proteins, mandatory otherwise. Parameter files can be generated with `oat anm_fluctuation_solver` or with oxView.
+* `[bending_k = <float>]`, `[torsion_k = <float>]`: ANMT only, the bending and torsion stiffnesses of all the pairs of consecutive amino acids. If they are not set, each pair takes them from the parameter file.
+* `[massfile = <path>]`: file with the mass of each particle type. Note that the masses are currently not used by the integrators.
+
+On GPUs (`backend = CUDA`), only `DNANM` is currently supported, and it requires `use_edge = true`.
 
 ## Options for `LJ` (Lennard-Jones) simulations
 

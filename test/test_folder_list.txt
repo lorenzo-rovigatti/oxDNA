@@ -22,4 +22,8 @@ DNANM/new_topology/hybrid_cage
 DNANM/new_topology/kdpg_DNACT
 DNANM/new_topology/kdpg_AC
 DNANM/new_topology/kdpg_RNACT
+DNANM/new_topology/kdpg_ACT
+DNANM/NANM/cage_DNA
+DNANM/NANM/cage_mixed
+DNANM/NANM/kdpg_NACT
 FORCES/PARTICLE_INDEX
