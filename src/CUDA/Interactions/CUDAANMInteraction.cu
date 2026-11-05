@@ -238,9 +238,6 @@ void CUDAANMInteraction<CPUInteraction>::cuda_init(int N) {
 	if(_update_st) {
 		throw oxDNAException("The protein (ANM) interactions do not support the calculation of the stress tensor on CUDA (CUDA_update_stress_tensor_every and CUDA_update_particle_stress_tensor)");
 	}
-	if(!_use_edge) {
-		throw oxDNAException("The protein (ANM) interactions require use_edge = true on CUDA");
-	}
 
 	CPUInteraction::init();
 	this->read_topology_counts();
@@ -259,6 +256,17 @@ void CUDAANMInteraction<CPUInteraction>::_on_T_update() {
 template<class CPUInteraction>
 void CUDAANMInteraction<CPUInteraction>::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
 	cuda_drh::KernelParameters &params = kernel_parameters<CPUInteraction>();
+
+	if(!_use_edge) {
+		cuda_anm::anm_forces
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, _d_species, params,
+				_d_spring_start, _d_spring_neighbour, _d_spring_k, _d_spring_r0, _d_angular_cosines, _d_angular_k, d_box);
+		CUT_CHECK_ERROR("anm_forces error");
+
+		_dump_forces_if_requested(d_poss, d_forces, d_torques);
+		return;
+	}
 
 	if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
 		cuda_anm::anm_forces_edge_nonbonded

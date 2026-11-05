@@ -24,7 +24,8 @@ struct NAConstants;
  * NA interaction (CUDA_DRH.cuh), which contains oxDNA2, oxRNA2 and the DNA/RNA hybrid terms, and the amino acids through the code
  * of CUDA_ANM.cuh, which mirrors ANMModel.
  *
- * It requires use_edge = true and CUDA_sort_every = 0 (the default), and does not support the stress tensor.
+ * It supports both use_edge = true (pair-based kernels) and false (neighbour matrices; the only option in double precision). It requires
+ * CUDA_sort_every = 0 (the default) and does not support the stress tensor.
  */
 template<class CPUInteraction>
 class CUDAANMInteraction: public CUDABaseInteraction, public CPUInteraction {

@@ -209,7 +209,7 @@ Nucleotides interact exactly as with the corresponding nucleic acid interaction,
 * `[bending_k = <float>]`, `[torsion_k = <float>]`: ANMT only, the bending and torsion stiffnesses of all the pairs of consecutive amino acids. If they are not set, each pair takes them from the parameter file.
 * `[massfile = <path>]`: file with the mass of each particle type. Note that the masses are currently not used by the integrators.
 
-On GPUs (`backend = CUDA`), `DNANM`, `DNACT`, `RNANM`, `RNACT`, `NANM` and `NACT` are supported (`AC` and `ACT` are not: use `DNANM`/`DNACT` with a protein-only topology, which is equivalent). They require `use_edge = true` and `CUDA_sort_every = 0` (the default), and do not support the computation of the stress tensor. Nucleotides interact through the same GPU code as the `NA` interaction.
+On GPUs (`backend = CUDA`), `DNANM`, `DNACT`, `RNANM`, `RNACT`, `NANM` and `NACT` are supported (`AC` and `ACT` are not: use `DNANM`/`DNACT` with a protein-only topology, which is equivalent). They work with `use_edge = true` and `false` (only the latter is available in double precision), require `CUDA_sort_every = 0` (the default), and do not support the computation of the stress tensor. Nucleotides interact through the same GPU code as the `NA` interaction.
 
 ## Options for `LJ` (Lennard-Jones) simulations
 
