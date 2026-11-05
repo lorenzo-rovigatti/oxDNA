@@ -15,7 +15,7 @@
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/ANMParticle.h"
 #include "../Utilities/Utils.h"
-#include "NMTopology.h"
+#include "ANMTopology.h"
 #include "../model.h"
 
 #include <sstream>
@@ -91,9 +91,11 @@ void RNANMInteraction::get_settings(input_file &inp){
 
 void RNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles){
     //Addition of Reading Parameter File
-    auto valid_spring_params = [](int N, int x, int y, double d, char s, double k){
-        if(x < 0 || x > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", x);
-        if(y < 0 || y > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", y);
+    // N_particles is the total number of particles: the first line of the parameter file is the number of amino acids,
+    // which is not an upper bound for their indices when nucleotides come first in the topology
+    auto valid_spring_params = [](int N_particles, int x, int y, double d, char s, double k){
+        if(x < 0 || x >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, N_particles);
+        if(y < 0 || y >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, N_particles);
         if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
         if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
         if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);
@@ -123,11 +125,8 @@ void RNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
         int spring_connection_num = 0;
         if (parameters.is_open()) {
             while (parameters >> key1 >> key2 >> dist >> potswitch >> potential) {
-                valid_spring_params(N, key1, key2, dist, potswitch, potential);
+                valid_spring_params((int) particles.size(), key1, key2, dist, potswitch, potential);
                 // the springs of the parameter file are the protein bonds, as in DNANM
-                if(key1 >= (int) particles.size() || key2 >= (int) particles.size()) {
-                    throw oxDNAException("Invalid Particle ID in Parameter File: spring %d-%d, but there are only %d particles", key1, key2, (int) particles.size());
-                }
                 auto *q = dynamic_cast<ANMParticle *>(particles[key1]);
                 if(q == nullptr || dynamic_cast<ANMParticle *>(particles[key2]) == nullptr) {
                     throw oxDNAException("The parameter file contains a spring between particles %d and %d, but only amino acids can be connected by springs", key1, key2);
@@ -215,158 +214,25 @@ void RNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
 
 
 void RNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-    if(NMTopology::is_new_topology(this->_topology_filename)) {
-        auto strands = NMTopology::read(this->_topology_filename, "RNA", nrna, npro, nrnas);
-        if(nrna + npro != (int) particles.size()) {
-            throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
-        }
-        _firststrand = (strands.size() > 0 && strands[0].peptide) ? -1 : 1; // must be set prior to allocation of particles
-        allocate_particles(particles);
-        for(auto p : particles) {
-            p->type = P_INVALID;
-            p->strand_id = 0;
-        }
-        // as with old-style topologies, protein bonds come from the parameter file only
-        NMTopology::fill_particles(strands, particles, nrnas, _angular, false);
-        for(auto p : particles) {
-            auto *q = dynamic_cast<ANMParticle *>(p);
-            if(q != nullptr) {
-                q->mass = masses[q->type];
-                q->invmass = 1.f / q->mass;
-            }
-        }
-        *N_strands = strands.size();
-        read_parameter_file(particles);
-        return;
-    }
-
-    int my_N, my_N_strands;
-
-    char line[5120];
-    std::ifstream topology;
-    topology.open(this->_topology_filename, std::ios::in);
-
-    if (!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting",this->_topology_filename);
-
-    topology.getline(line, 5120);
-    std::stringstream head(line);
-
-    head >> my_N >> my_N_strands >> nrna >> npro >>nrnas;
-    if (head.fail()) throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
-
-    if(my_N_strands < 0 || my_N_strands > my_N || nrna > my_N || nrna < 0 || npro > my_N || npro < 0 || nrnas < 0 || nrnas > my_N) {
-        throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
-    }
-
-
-    int strand, i = 0;
-    while (topology.good()) {
-        topology.getline(line, 5120);
-        if (strlen(line) == 0 || line[0] == '#')
-            continue;
-        if (i == my_N)
-            throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", my_N);
-
-        std::stringstream ss(line);
-        ss >> strand;
-        if (i == 0) {
-            _firststrand = strand; //Must be set prior to allocation of particles
-            allocate_particles(particles);
-            for (int j = 0; j < my_N; j++) {
-                particles[j]->index = j;
-                particles[j]->type = P_INVALID;
-                particles[j]->strand_id = 0;
-            }
-        }
-
-        // Amino Acid
-        if (strand < 0) {
-            auto *p = static_cast<ANMParticle*>(particles[i]); //Subho
-            char aminoacid[256];
-            int nside, cside;
-            ss >> aminoacid >> nside >> cside;
-
-            int x;
-            std::set<int> myneighs;
-            if (nside >= 0) {
-                myneighs.insert(nside);
-                if(_angular) p->n3 = particles[nside];
-            }
-            if (cside >= 0) {
-                myneighs.insert(cside);
-                if(_angular) p->n5 = particles[cside];
-            }
-            while (ss.good()) {
-                ss >> x;
-                if (x < 0 || x >= my_N) {
-                    throw oxDNAException("Line %d of the topology file has an invalid syntax, neighbor has invalid id", i + 2);
-                }
-                myneighs.insert(x);
-            }
-
-            if (strlen(aminoacid) == 1) {
-                p->type = Utils::decode_aa(aminoacid[0]);
-                p->btype = Utils::decode_aa(aminoacid[0]);
-            }
-
-            p->mass = masses[p->type];
-            p->invmass = 1.f/p->mass;
-
-            p->strand_id = abs(strand) + nrnas - 1;
-            p->index = i;
-
-            i++;
-        }
-        if (strand > 0) {
-            char base[256];
-            int tmpn3, tmpn5;
-            ss >> base >> tmpn3 >> tmpn5;
-
-            auto *p = dynamic_cast<RNANucleotide *> (particles[i]);
-
-            if (tmpn3 < 0) p->n3 = P_VIRTUAL;
-            else p->n3 = particles[tmpn3];
-            if (tmpn5 < 0) p->n5 = P_VIRTUAL;
-            else p->n5 = particles[tmpn5];
-
-
-            p->strand_id = strand - 1;
-
-            // the base can be either a char or an integer
-            if (strlen(base) == 1) {
-                p->type = Utils::decode_base(base[0]);
-                p->btype = Utils::decode_base(base[0]);
-
-            } else {
-                throw oxDNAException("Only RNA Base Characters Permitted in RNA Strand in Topology");
-            }
-
-            if (p->type == P_INVALID) throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-
-            p->index = i;
-            i++;
-
-            // here we fill the affected vector
-            if (p->n3 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p->n3, p));
-            if (p->n5 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p, p->n5));
-
-        }
-        if (strand == 0) throw oxDNAException("No strand 0 should be present please check topology file");
-
-    }
-
-
-    if (i < my_N)
-        throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", my_N);
-
-    topology.close();
-
-    if (my_N != (int) particles.size())
+    auto topology = ANMTopology::read(this->_topology_filename, "RNA");
+    if(topology.N != (int) particles.size()) {
         throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
-
-    *N_strands = my_N_strands;
-
-    // read parameter file
+    }
+    nrna = topology.N_nucleotides;
+    npro = topology.N_amino_acids;
+    nrnas = topology.N_nucleic_strands;
+    _firststrand = topology.protein_first ? -1 : 1; // must be set prior to allocation of particles
+    allocate_particles(particles);
+    // protein bonds come from the parameter file only
+    ANMTopology::fill_particles(topology, particles, _angular);
+    for(auto p : particles) {
+        auto *q = dynamic_cast<ANMParticle *>(p);
+        if(q != nullptr) {
+            q->mass = masses[q->type];
+            q->invmass = 1.f / q->mass;
+        }
+    }
+    *N_strands = topology.N_strands;
     read_parameter_file(particles);
 }
 

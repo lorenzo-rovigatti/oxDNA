@@ -174,8 +174,8 @@ void CUDADNANMInteraction::cuda_init(int N) {
         };
 
         auto valid_spring_params = [](int num_particles, int x, int y, double d, char s, double k){
-            if(x < 0 || x > num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File", x);
-            if(y < 0 || y > num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File", y);
+            if(x < 0 || x >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, num_particles);
+            if(y < 0 || y >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, num_particles);
             if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
             if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
             if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);
