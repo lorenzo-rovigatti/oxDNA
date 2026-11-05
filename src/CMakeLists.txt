@@ -284,6 +284,7 @@ IF(CUDA)
 		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Interactions/CUDADNANMInteraction.cu
+		CUDA/Interactions/CUDADRHInteraction.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
