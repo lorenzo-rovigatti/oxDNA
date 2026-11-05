@@ -24,7 +24,7 @@
 #define DNANM_INTERACTION_H
 
 #include "DNA2Interaction.h"
-#include "ANMTopology.h"
+#include "../Utilities/ANMTopology.h"
 
 
 class DNANMInteraction: public DNA2Interaction {

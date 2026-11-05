@@ -14,7 +14,7 @@
 #include "../Particles/ANMParticle.h"
 
 #include "../Utilities/Utils.h"
-#include "ANMTopology.h"
+#include "../Utilities/ANMTopology.h"
 
 #include <sstream>
 #include <unistd.h>

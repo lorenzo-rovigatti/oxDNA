@@ -139,7 +139,6 @@ SET(interactions_SOURCES
 	Interactions/ANMInteraction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/RNANMInteraction.cpp
-	Interactions/ANMTopology.cpp
 )
 
 SET(move_SOURCES
@@ -212,6 +211,7 @@ SET(common_SOURCES
 	Utilities/LR_vector.cpp
 	Utilities/LR_matrix.cpp
 	Utilities/Utils.cpp
+	Utilities/ANMTopology.cpp
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp

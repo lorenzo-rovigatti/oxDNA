@@ -9,8 +9,8 @@
 
 #include "../Particles/BaseParticle.h"
 #include "../Particles/ANMParticle.h"
-#include "../Utilities/TopologyParser.h"
-#include "../Utilities/Utils.h"
+#include "TopologyParser.h"
+#include "Utils.h"
 
 #include <fstream>
 #include <set>
