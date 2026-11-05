@@ -241,13 +241,22 @@ class TestANMT:
         ref = hs + hxx - hxt @ np.linalg.pinv(htt, rcond=1e-12, hermitian=True) @ hxt.T
         assert np.allclose(heff, ref, atol=1e-8 * np.abs(ref).max())
 
-    def test_oxview_reference(self):
-        """Fluctuations computed by the oxView solver (finite-difference Hessian, sim units) for a 213-residue chain."""
-        with open(RESOURCES / "oxview_comb_ref.json") as f:
+    def test_oxview_reference(self, kdpg):
+        """
+        Fluctuations computed independently by the oxView solver's reference script for chain A of KDPG (202 beads, frames
+        from orientation_vectors): H = sum k g g^T with central-difference gradients, rotations eliminated with a pseudo-inverse.
+        """
+        from oxDNA_analysis_tools.anm_fluctuation_solver import orientation_vectors
+        with open(RESOURCES / "oxview_kdpgA_ref.json") as f:
             ref = json.load(f)
         x = np.array(ref['coords']).reshape(-1, 3) * 8.518
         a1 = np.array(ref['a1']).reshape(-1, 3)
-        a3 = np.array(ref['a3']).reshape(-1, 3)  # as used by the reference (not normalised)
+        a3 = np.array(ref['a3']).reshape(-1, 3)
+        n = len(x)
+        # the reference uses the frames of this module
+        oat_a1, oat_a3 = orientation_vectors(kdpg)
+        assert np.allclose(x, kdpg.coords[:n], atol=1e-6)
+        assert np.allclose(a1, oat_a1[:n], atol=1e-12) and np.allclose(a3, oat_a3[:n], atol=1e-12)
         i, j = contact_pairs(x, 13.)
         assert np.array_equal(i, ref['p1']) and np.array_equal(j, ref['p2'])
         backbone = np.array([p for p, _ in ref['pairs']])
@@ -259,8 +268,10 @@ class TestANMT:
         angular = eliminate_rotations(hxx, hxt, htt)
         for scale, key in ((1., 'msf_anmt_1'), (3.7, 'msf_anmt_37')):
             msf = mean_square_fluctuations(springs * scale + angular, x, 300.)
-            # the reference Hessian is a finite difference with h = 1e-5
-            assert np.allclose(msf, ref[key], rtol=5e-4)
+            # the frames that follow the backbone give soft rotational modes (~1e-10 of the largest), which a large
+            # regularisation of H_tt would stiffen: with the smallest shift the two solvers agree to ~1e-5
+            assert np.allclose(msf, ref[key], rtol=2e-5)
+            assert np.median(np.abs(msf / np.array(ref[key]) - 1)) < 1e-7
 
     def test_orientation_vectors(self, kdpg):
         from oxDNA_analysis_tools.anm_fluctuation_solver import orientation_vectors

@@ -377,8 +377,10 @@ def eliminate_rotations(hxx:np.ndarray, hxt:np.ndarray, htt:np.ndarray) -> np.nd
 
         H_tt is singular: rotating every frame of a chain about its own a1 only changes the N-1 torsion (a3.a3)
         terms, which leaves one zero mode per chain.  These modes do not couple to the positions (the energy is
-        invariant), so they are regularised with a diagonal shift of 1e-12 * max(diag H_tt), which changes the
-        result by ~1e-7 relative.  If the factorisation still fails, a thresholded pseudo-inverse is used.
+        invariant), so they are regularised with a diagonal shift.  With frames that follow the backbone, consecutive
+        a3 vectors are nearly parallel and H_tt also has genuine soft modes (~1e-10 of its largest eigenvalue), which a
+        large shift would stiffen, so the smallest shift that allows the factorisation is used (1e-14 * max(diag H_tt),
+        then 1e-12 and 1e-10).  If the factorisation still fails, a thresholded pseudo-inverse is used.
 
         Parameters:
             hxx, hxt, htt (np.ndarray) : (3N, 3N) blocks of the full Hessian
@@ -400,14 +402,24 @@ def eliminate_rotations(hxx:np.ndarray, hxt:np.ndarray, htt:np.ndarray) -> np.nd
         banded = np.zeros((bw + 1, len(active)))
         for k in range(bw + 1):
             banded[bw - k, k:] = np.diagonal(htt, k)
-        banded[bw] += 1e-12 * banded[bw].max()
-        chol = sla.cholesky_banded(banded, lower=False, check_finite=False)
+        diag_max = banded[bw].max()
+        chol = None
+        for shift in (1e-14, 1e-12, 1e-10):
+            shifted = banded.copy()
+            shifted[bw] += shift * diag_max
+            try:
+                chol = sla.cholesky_banded(shifted, lower=False, check_finite=False)
+                break
+            except np.linalg.LinAlgError:
+                continue
+        if chol is None:
+            raise np.linalg.LinAlgError("the rotational block is not positive definite")
         # H_tt = U^T U, so H_xt H_tt^-1 H_tx = Z^T Z with Z = U^-T H_tx
         z = _banded_upper_solve_transpose(chol, bw, htx)
     except np.linalg.LinAlgError:
         log("Using a pseudo-inverse for the rotational degrees of freedom", level='warning')
         w, v = np.linalg.eigh(htt)
-        keep = w > 1e-12 * w[-1]
+        keep = w > 1e-15 * w[-1]
         z = (v[:, keep].T @ htx) / np.sqrt(w[keep])[:, None]
     return hxx - z.T @ z
 
