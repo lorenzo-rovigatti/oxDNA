@@ -53,6 +53,39 @@ decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
 .. autofunction:: oxDNA_analysis_tools.anm_parameterize.anm_parameterize
 ```
 
+## ANM fluctuation solver
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    anm_fluctuation_solver.anm_fluctuation_solver
+    anm_fluctuation_solver.read_structure
+    anm_fluctuation_solver.write_par
+    anm_fluctuation_solver.ANMNetwork
+
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.anm_fluctuation_solver
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.read_structure
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.read_bfactor_file
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.contact_pairs
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.build_hessian
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.mean_square_fluctuations
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.fit_spring_constant
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.orientation_vectors
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.write_par
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.get_old_top_string
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.protein_system
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.protein_configuration
+.. autofunction:: oxDNA_analysis_tools.anm_fluctuation_solver.plot_bfactors
+.. autoclass:: oxDNA_analysis_tools.anm_fluctuation_solver.ProteinStructure
+.. autoclass:: oxDNA_analysis_tools.anm_fluctuation_solver.ANMNetwork
+```
+
 ## Backbone flexibility
 
 ```{eval-rst}
