@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 ANMModel::ANMModel(bool torsion) :
 				_torsion(torsion) {
@@ -178,36 +179,93 @@ void ANMModel::_parse_parameter_file(int N_particles, const std::function<void(i
 		throw oxDNAException("ParameterFile Could Not Be Opened");
 	}
 
-	// the first line is the number of amino acids. Spring indices are particle indices, so they are not bounded by it
-	// when the nucleotides come first in the topology
-	int N;
-	parameters >> N;
+	const char *ANMT_NAMES = "ACT, DNACT, RNACT or NACT";
+	std::string line;
+	int line_number = 0;
+	bool header_read = false;
+	while(std::getline(parameters, line)) {
+		line_number++;
+		auto first = line.find_first_not_of(" \t\r");
+		if(first == std::string::npos || line[first] == '#') {
+			continue;
+		}
+		std::stringstream ss(line);
 
-	int key1, key2;
-	char potswitch;
-	double potential, dist;
-	int spring_connection_num = 0;
-	while(parameters >> key1 >> key2 >> dist >> potswitch >> potential) {
-		if(key1 < 0 || key1 >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", key1, N_particles);
-		if(key2 < 0 || key2 >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", key2, N_particles);
-		if(dist < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", dist);
-		if(potswitch != 's') throw oxDNAException("Potential Type %c Not Supported", potswitch);
-		if(potential < 0) throw oxDNAException("Spring Constant %f Not Supported", potential);
+		// the first line is the number of amino acids. Spring indices are particle indices, so they are not bounded by
+		// it when the nucleotides come first in the topology
+		if(!header_read) {
+			int N;
+			if(!(ss >> N)) {
+				throw oxDNAException("Parameter file, line %d: the first line should contain the number of amino acids", line_number);
+			}
+			header_read = true;
+			continue;
+		}
 
-		on_spring(key1, key2);
+		int key1, key2;
+		std::string potswitch;
+		double potential, dist;
+		if(!(ss >> key1 >> key2 >> dist >> potswitch >> potential)) {
+			throw oxDNAException("Parameter file, line %d: invalid syntax, expected '<i> <j> <r0> s <k>'", line_number);
+		}
+		std::vector<double> extras;
+		std::string token;
+		while(ss >> token) {
+			try {
+				extras.push_back(std::stod(token));
+			}
+			catch(std::exception &e) {
+				throw oxDNAException("Parameter file, line %d: invalid value '%s'", line_number, token.c_str());
+			}
+		}
 
-		spring_connection_num += 1;
+		if(key1 < 0 || key1 >= N_particles) throw oxDNAException("Parameter file, line %d: invalid particle index %d (there are %d particles)", line_number, key1, N_particles);
+		if(key2 < 0 || key2 >= N_particles) throw oxDNAException("Parameter file, line %d: invalid particle index %d (there are %d particles)", line_number, key2, N_particles);
+		if(key1 == key2) throw oxDNAException("Parameter file, line %d: a particle cannot be connected to itself", line_number);
+		if(dist < 0) throw oxDNAException("Parameter file, line %d: invalid equilibrium distance %lf", line_number, dist);
+		if(potswitch != "s") throw oxDNAException("Parameter file, line %d: potential type '%s' not supported (only 's', harmonic springs, is)", line_number, potswitch.c_str());
+		if(potential < 0) throw oxDNAException("Parameter file, line %d: invalid spring constant %lf", line_number, potential);
+		if(key1 > key2) {
+			if(!extras.empty()) {
+				throw oxDNAException("Parameter file, line %d: the bending/torsion parameters of the pair %d-%d should be on a line that starts with %d %d", line_number, key2, key1, key2, key1);
+			}
+			std::swap(key1, key2);
+		}
+		auto key = std::make_pair(key1, key2);
+		if(_springs.count(key) > 0) {
+			throw oxDNAException("Parameter file, line %d: the spring %d-%d is listed more than once", line_number, key1, key2);
+		}
 
-		if(_torsion && key2 - key1 == 1) {
+		bool backbone = (key2 - key1 == 1);
+		if(!_torsion) {
+			if(!extras.empty()) {
+				throw oxDNAException("Parameter file, line %d: found %d columns instead of 5. Bending and torsion parameters are only used by the ANMT interactions (%s): use one of them, or remove the extra columns", line_number, (int) extras.size() + 5, ANMT_NAMES);
+			}
+		}
+		else if(!backbone) {
+			if(!extras.empty()) {
+				throw oxDNAException("Parameter file, line %d: found %d columns instead of 5. Bending and torsion parameters can only be given for consecutive amino acids (j = i + 1)", line_number, (int) extras.size() + 5);
+			}
+		}
+		else {
+			int expected = _per_pair_stiffness ? 6 : 4;
+			if((int) extras.size() != expected) {
+				if(_per_pair_stiffness) {
+					throw oxDNAException("Parameter file, line %d: the spring between consecutive amino acids %d and %d should be followed by 4 cosines and the bending and torsion stiffnesses (or set bending_k and torsion_k in the input file), found %d values", line_number, key1, key2, (int) extras.size());
+				}
+				throw oxDNAException("Parameter file, line %d: the spring between consecutive amino acids %d and %d should be followed by 4 cosines (since bending_k and torsion_k are set in the input file, per-pair stiffnesses are not allowed), found %d values", line_number, key1, key2, (int) extras.size());
+			}
+
 			Angular ang;
-			parameters >> ang.cosines[0] >> ang.cosines[1] >> ang.cosines[2] >> ang.cosines[3];
+			for(int i = 0; i < 4; i++) {
+				ang.cosines[i] = extras[i];
+			}
 			check_cosines(ang.cosines);
 			ang.k_bend = ang.k_tor = -1;
 			if(_per_pair_stiffness) {
-				number kb, kt;
-				parameters >> kb >> kt;
+				number kb = extras[4], kt = extras[5];
 				if(kb < 0 || kt < 0) {
-					throw oxDNAException("Invalid pairwise kb/kt Value Declared in Parameter File");
+					throw oxDNAException("Parameter file, line %d: invalid bending/torsion stiffness", line_number);
 				}
 				ang.k_bend = kb;
 				ang.k_tor = kt;
@@ -215,19 +273,12 @@ void ANMModel::_parse_parameter_file(int N_particles, const std::function<void(i
 			_angular[key1] = ang;
 		}
 
-		_springs[std::make_pair(key1, key2)] = Spring { dist, potential };
+		on_spring(key1, key2);
+		_springs[key] = Spring { dist, potential };
 	}
 
-	if(_torsion) {
-		if(spring_connection_num == 1 && N > 2 && _per_pair_stiffness) {
-			throw oxDNAException("Invalid Parameter File Format, pairwise kb and kt values incorrectly formatted or missing");
-		}
-		if(spring_connection_num == 1 && N > 2 && !_per_pair_stiffness) {
-			throw oxDNAException("Invalid Parameter File Format, global kb and kt values have been set in Inputfile");
-		}
-	}
-	else if(spring_connection_num == 1 && N > 2) {
-		throw oxDNAException("Invalid Parameter File Format, cannot use a DNACT Parameter File");
+	if(!header_read) {
+		throw oxDNAException("The parameter file '%s' is empty", _parameter_file.c_str());
 	}
 }
 
