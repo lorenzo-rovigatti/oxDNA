@@ -9,7 +9,6 @@ This folder contains DNANM/DNACT example inputs that are not part of the automat
   - `ac.par`, `acc2.top`, `acc2_relaxed.dat`, `acforceponly.txt`: input data used by the hybrid cage setup.
 - `KDPG/`
   - Manual DNANM/DNACT CPU/CUDA input variants and associated topology/parameter files.
-    DNACT is currently CPU-only (its bending/torsion forces are not implemented on the GPU), so `input_cudact` stops with an error.
 
 ## Run
 

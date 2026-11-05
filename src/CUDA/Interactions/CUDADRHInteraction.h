@@ -17,7 +17,13 @@
  * are not supported and make the code exit with an error: the update of the stress tensor (CUDA_update_stress_tensor_every,
  * CUDA_update_particle_stress_tensor) and FFS.
  */
+namespace {
+struct NAConstants;
+}
+
 class CUDADRHInteraction: public CUDABaseInteraction, public DRHInteraction {
+	friend struct NAConstants;
+
 public:
 	CUDADRHInteraction();
 	virtual ~CUDADRHInteraction();
