@@ -15,6 +15,7 @@
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/ANMParticle.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/ANMTopology.h"
 #include "../model.h"
 
 #include <sstream>
@@ -74,6 +75,7 @@ void RNANMInteraction::get_settings(input_file &inp){
         }
     }
 
+    if(!_angular) _parameterfile[0] = '\0'; // stays empty if the key is missing
     getInputString(&inp, "parfile", _parameterfile, 0);
     //Addition of Reading Parameter File
 
@@ -84,9 +86,16 @@ void RNANMInteraction::get_settings(input_file &inp){
         load_massfile(_massfile);
     }
 
-    auto valid_spring_params = [](int N, int x, int y, double d, char s, double k){
-        if(x < 0 || x > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", x);
-        if(y < 0 || y > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", y);
+}
+
+
+void RNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles){
+    //Addition of Reading Parameter File
+    // N_particles is the total number of particles: the first line of the parameter file is the number of amino acids,
+    // which is not an upper bound for their indices when nucleotides come first in the topology
+    auto valid_spring_params = [](int N_particles, int x, int y, double d, char s, double k){
+        if(x < 0 || x >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, N_particles);
+        if(y < 0 || y >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, N_particles);
         if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
         if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
         if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);
@@ -104,7 +113,7 @@ void RNANMInteraction::get_settings(input_file &inp){
     };
 
     char n[5] = "none";
-    if(strcmp(_parameterfile, n) != 0) {
+    if(strcmp(_parameterfile, n) != 0 && strcmp(_parameterfile, "") != 0) {
         int key1, key2;
         char potswitch;
         double potential, dist;
@@ -116,7 +125,16 @@ void RNANMInteraction::get_settings(input_file &inp){
         int spring_connection_num = 0;
         if (parameters.is_open()) {
             while (parameters >> key1 >> key2 >> dist >> potswitch >> potential) {
-                valid_spring_params(N, key1, key2, dist, potswitch, potential);
+                valid_spring_params((int) particles.size(), key1, key2, dist, potswitch, potential);
+                // the springs of the parameter file are the protein bonds, as in DNANM
+                auto *q = dynamic_cast<ANMParticle *>(particles[key1]);
+                if(q == nullptr || dynamic_cast<ANMParticle *>(particles[key2]) == nullptr) {
+                    throw oxDNAException("The parameter file contains a spring between particles %d and %d, but only amino acids can be connected by springs", key1, key2);
+                }
+                if (key1 < key2) {
+                    q->add_bonded_neighbor(particles[key2]);
+                }
+
                 spring_connection_num += 1;
 
                 // RNACT
@@ -158,6 +176,9 @@ void RNANMInteraction::get_settings(input_file &inp){
                         "Invalid Parameter File Format, global kb and kt values have been set in Inputfile");
         } else if (spring_connection_num == 1 && N > 2) throw oxDNAException("Invalid Parameter File Format, cannot use a DNACT Parameter File");
     } else {
+        if(npro > 0) {
+            throw oxDNAException("The topology contains %d amino acids, but no parameter file was given: set 'parfile' to the file that contains the protein springs", npro);
+        }
         OX_LOG(Logger::LOG_INFO, "Parfile: NONE, No protein parameters were filled");
     }
 }
@@ -193,156 +214,39 @@ void RNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
 
 
 void RNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-    int my_N, my_N_strands;
-
-    char line[5120];
-    std::ifstream topology;
-    topology.open(this->_topology_filename, std::ios::in);
-
-    if (!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting",this->_topology_filename);
-
-    topology.getline(line, 5120);
-    std::stringstream head(line);
-
-    head >> my_N >> my_N_strands >> nrna >> npro >>nrnas;
-    if (head.fail()) throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
-
-    if(my_N_strands < 0 || my_N_strands > my_N || nrna > my_N || nrna < 0 || npro > my_N || npro < 0 || nrnas < 0 || nrnas > my_N) {
-        throw oxDNAException("Invalid topology header for RNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <nrna> <npro> <nrnas>'.");
-    }
-
-
-    int strand, i = 0;
-    while (topology.good()) {
-        topology.getline(line, 5120);
-        if (strlen(line) == 0 || line[0] == '#')
-            continue;
-        if (i == my_N)
-            throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", my_N);
-
-        std::stringstream ss(line);
-        ss >> strand;
-        if (i == 0) {
-            _firststrand = strand; //Must be set prior to allocation of particles
-            allocate_particles(particles);
-            for (int j = 0; j < my_N; j++) {
-                particles[j]->index = j;
-                particles[j]->type = P_INVALID;
-                particles[j]->strand_id = 0;
-            }
-        }
-
-        // Amino Acid
-        if (strand < 0) {
-            auto *p = static_cast<ANMParticle*>(particles[i]); //Subho
-            char aminoacid[256];
-            int nside, cside;
-            ss >> aminoacid >> nside >> cside;
-
-            int x;
-            std::set<int> myneighs;
-            if (nside >= 0) {
-                myneighs.insert(nside);
-                if(_angular) p->n3 = particles[nside];
-            }
-            if (cside >= 0) {
-                myneighs.insert(cside);
-                if(_angular) p->n5 = particles[cside];
-            }
-            while (ss.good()) {
-                ss >> x;
-                if (x < 0 || x >= my_N) {
-                    throw oxDNAException("Line %d of the topology file has an invalid syntax, neighbor has invalid id", i + 2);
-                }
-                myneighs.insert(x);
-            }
-
-            auto *q = dynamic_cast<ANMParticle *>(p);
-            for(auto & k : myneighs){
-                if (p->index < k) {
-                    q->add_bonded_neighbor(particles[k]);
-                }
-            }
-
-            if (strlen(aminoacid) == 1) {
-                p->type = Utils::decode_aa(aminoacid[0]);
-                p->btype = Utils::decode_aa(aminoacid[0]);
-            }
-
-            p->mass = masses[p->btype];
-            p->invmass = 1.f/p->mass;
-
-            p->strand_id = abs(strand) + nrnas - 1;
-            p->index = i;
-
-            i++;
-        }
-        if (strand > 0) {
-            char base[256];
-            int tmpn3, tmpn5;
-            ss >> base >> tmpn3 >> tmpn5;
-
-            auto *p = dynamic_cast<RNANucleotide *> (particles[i]);
-
-            if (tmpn3 < 0) p->n3 = P_VIRTUAL;
-            else p->n3 = particles[tmpn3];
-            if (tmpn5 < 0) p->n5 = P_VIRTUAL;
-            else p->n5 = particles[tmpn5];
-
-
-            p->strand_id = strand - 1;
-
-            // the base can be either a char or an integer
-            if (strlen(base) == 1) {
-                p->type = Utils::decode_base(base[0]);
-                p->btype = Utils::decode_base(base[0]);
-
-            } else {
-                if (atoi(base) > 0) p->type = atoi(base) % 4;
-                else p->type = 3 - ((3 - atoi(base)) % 4);
-                p->btype = atoi(base);
-            }
-
-            if (p->type == P_INVALID) throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-
-            p->index = i;
-            i++;
-
-            // here we fill the affected vector
-            if (p->n3 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p->n3, p));
-            if (p->n5 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p, p->n5));
-
-        }
-        if (strand == 0) throw oxDNAException("No strand 0 should be present please check topology file");
-
-    }
-
-
-    if (i < my_N)
-        throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", my_N);
-
-    topology.close();
-
-    if (my_N != (int) particles.size())
+    auto topology = ANMTopology::read(this->_topology_filename, "RNA");
+    if(topology.N != (int) particles.size()) {
         throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
-
-    *N_strands = my_N_strands;
-
+    }
+    nrna = topology.N_nucleotides;
+    npro = topology.N_amino_acids;
+    nrnas = topology.N_nucleic_strands;
+    _firststrand = topology.protein_first ? -1 : 1; // must be set prior to allocation of particles
+    allocate_particles(particles);
+    // protein bonds come from the parameter file only
+    ANMTopology::fill_particles(topology, particles, _angular);
+    for(auto p : particles) {
+        auto *q = dynamic_cast<ANMParticle *>(p);
+        if(q != nullptr) {
+            q->mass = masses[q->type];
+            q->invmass = 1.f / q->mass;
+        }
+    }
+    *N_strands = topology.N_strands;
+    read_parameter_file(particles);
 }
 
 
 
 number RNANMInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
-    if (p->btype < 4 && q->btype < 4){
+    int interaction_type = get_id(p->btype) + get_id(q->btype);
+
+    if (interaction_type == 0 || interaction_type == 2){
         if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
         else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
     }
-    if ((p->btype < 4 && q->btype > 4) || (p->btype > 4 && q->btype < 4)) return this->pair_interaction_nonbonded(p, q, compute_r, update_forces);
+    if (interaction_type == 1) return this->pair_interaction_nonbonded(p, q, compute_r, update_forces);
 
-    if (p->btype > 4 && q->btype > 4){
-        if (p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-        else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
-    }
     return 0.f;
 }
 
@@ -352,13 +256,16 @@ number RNANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *
         if (q != P_VIRTUAL && p != P_VIRTUAL)
             _computed_r = this->_box->min_image(p->pos, q->pos);
 
-    if (p->btype < 4 && q->btype < 4){
+    int interaction_type = get_id(p->btype) + get_id(q->btype);
+    if (interaction_type == 0){ // rna-rna
         if(!this->_check_bonded_neighbour(&p, &q, compute_r)) return (number) 0;
+        // _check_bonded_neighbour may have swapped p and q, so r has to be recomputed (as in RNAInteraction::pair_interaction_bonded)
+        if(compute_r) _computed_r = this->_box->min_image(p->pos, q->pos);
         number energy = _backbone(p, q, false, update_forces);
         energy += _bonded_excluded_volume(p, q, false, update_forces);
         energy += _stacking(p, q, false, update_forces);
         return energy;
-    } else if (p->btype > 4 && q->btype > 4){
+    } else if (interaction_type == 2){ // protein-protein
         if(_angular){
             if (!p->is_bonded(q)) return 0.f;
             number energy = _protein_spring(p, q, compute_r, update_forces);
@@ -375,7 +282,6 @@ number RNANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *
         return 0.f;
 
     // Expect Topology to not contain Bonds b/t protein & RNA
-    //if ((p->btype >= 0 && q->btype <0) ||(p->btype <0 && q->btype >=0)) return 0.f;
 }
 
 
@@ -384,16 +290,19 @@ number RNANMInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticl
         _computed_r = this->_box->min_image(p->pos, q->pos);
 
     number rnorm = _computed_r.norm();
-    if (p->btype < 4 && q->btype < 4) { //RNA-RNA Interaction
+
+    int interaction_type = get_id(p->btype) + get_id(q->btype);
+
+    if (interaction_type == 0) { //RNA-RNA Interaction
         if (rnorm >= _sqr_rcut) return (number) 0.f;
+        // RNA2Interaction::pair_interaction_nonbonded already includes the Debye-Huckel term
         number energy = RNA2Interaction::pair_interaction_nonbonded(p, q, false, update_forces);
-        energy += _debye_huckel(p, q, false, update_forces);
         return energy;
-    } else if (p->btype > 4 && q->btype > 4) { // protein-protein
+    } else if (interaction_type == 2) { // protein-protein
         if (rnorm >= _pro_sqr_rcut) return (number) 0.f;
         number energy = _protein_exc_volume(p, q, compute_r, update_forces);
         return energy;
-    }else if((p->btype < 4 && q->btype > 4) || (p->btype > 4 && q->btype < 4)) { //protein-dna
+    }else if(interaction_type == 1) { //protein-rna
         if (rnorm >= _pro_rna_sqr_rcut) return (number) 0.f;
         number energy = _protein_rna_exc_volume(p, q, compute_r, update_forces);
         return energy;
@@ -409,13 +318,15 @@ number RNANMInteraction::_protein_rna_exc_volume(BaseParticle *p, BaseParticle *
 
     LR_vector force(0, 0, 0);
     LR_vector rcenter = _computed_r;
+    int pid = get_id(p->btype);
+    int qid = get_id(q->btype);
 
-    if(p->btype < 4 && q->btype > 4) {
+    if(pid == 0 && qid == 1) {
         //rcenter = -rcenter;
         protein = q;
         nuc = p;
     }
-    else if (p->btype > 4 && q->btype < 4) {
+    else if (pid == 1 && qid == 0) {
         rcenter = -rcenter;
         protein = p;
         nuc = q;
@@ -672,5 +583,9 @@ void RNANMInteraction::load_massfile(std::string &filename) {
 RNANMInteraction::~RNANMInteraction() = default;
 
 
-
-
+int RNANMInteraction::get_id(int btype){
+    // takes btype return whether rna or protein
+    // 0 is rna
+    // >=5 is protein
+    return (btype <= 4) ? 0: 1;
+}

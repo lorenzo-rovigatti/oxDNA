@@ -60,13 +60,14 @@ public:
     std::string _massfile;
     bool _angular;
 
-    explicit RNANMInteraction(bool btp);
+    int get_id(int btype);
+    explicit RNANMInteraction(bool btp); //btp controls whether bending/torsion potential is applied
     virtual void load_massfile(std::string &filename);
     virtual ~RNANMInteraction();
     void get_settings(input_file &inp) override;
     void allocate_particles(std::vector<BaseParticle *> &particles) override;
     void read_topology(int *N_strands, std::vector<BaseParticle *> &particles) override;
-//    void load_masses(std::string &massfile);
+    void read_parameter_file(std::vector<BaseParticle *> &particles);
     number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
     number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
     number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) override;
