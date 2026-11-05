@@ -13,7 +13,6 @@
 CUDADNANMInteraction::CUDADNANMInteraction(bool btp) : DNANMInteraction(btp), CUDABaseInteraction() {
     
     _read_par = false;
-    _angular = btp;
     //Not copied over to device memory
     _spring_potential = NULL;
     _spring_eqdist = NULL;
@@ -79,22 +78,12 @@ CUDADNANMInteraction::~CUDADNANMInteraction() {
 void CUDADNANMInteraction::get_settings(input_file &inp) {
     // the bending/torsion kernel (dnanm_forces_edge_bonded_angular) has not been ported to the edge-based force
     // computation, so DNACT would run with DNANM dynamics while reporting DNACT energies
-    if(_angular) {
+    if(this->_anm.torsion()) {
         throw oxDNAException("DNACT is not supported on CUDA yet (the bending and torsion forces are not implemented on the GPU): use backend = CPU, or interaction_type = DNANM");
     }
 
-    std::string inter_type;
-    if (getInputString(&inp, "parfile", _parameterfile, 0) != KEY_FOUND) {
-        throw oxDNAException("Key 'parfile' not found. Necessary for Protein sims.");
-    }
-
-    char s[5] = "none";
-    if(strcmp(this->_parameterfile, s) != 0) _read_par = true;
-
-    if (!getInputString(&inp, "topology", this->_topology_filename, 0) == KEY_FOUND){
-        throw oxDNAException("Key 'topology_file' not found.");
-    }
     DNANMInteraction::get_settings(inp);
+    _read_par = this->_anm.has_parameter_file();
 
     _use_debye_huckel = true;
     _use_oxDNA2_coaxial_stacking = true;
@@ -128,211 +117,89 @@ void CUDADNANMInteraction::cuda_init(int N) {
 //    this object is not the one whose read_topology is called by the backend, so ndna, npro, ndnas and _firststrand
 //    have to be read here (old- or new-style topology)
     this->read_topology_counts();
+    _n_nucleotides = this->_anm_topology.N_nucleotides;
+    _n_amino_acids = this->_anm_topology.N_amino_acids;
+    // the spring arrays are indexed by the index of the amino acid within the protein block
+    offset = this->_anm_topology.protein_first ? 0 : _n_nucleotides;
 
 
-    if(this->_firststrand < 0) offset = 0;
-    else if(this->_firststrand > 0) offset = this->ndna;
-    else throw oxDNAException("No Strand should have an ID of 0");
+    if(_read_par) {
+        // the parameter file is parsed by the CPU protein model; here the springs are stored in a compressed format:
+        // the springs of the amino acid with local index i (i.e. particle index - offset) are those in
+        // [_h_affected_indx[i], _h_affected_indx[i + 1]), sorted by the local index of the other amino acid
+        this->_anm.parse_parameter_file(N);
+        const auto &springs = this->_anm.springs();
+        int n_pro = _n_amino_acids;
 
+        std::vector<std::vector<std::pair<int, const ANMModel::Spring *>>> per_residue(n_pro);
+        for(auto &spring : springs) {
+            int i = spring.first.first - offset;
+            int j = spring.first.second - offset;
+            if(i < 0 || i >= n_pro || j < 0 || j >= n_pro) {
+                throw oxDNAException("The parameter file contains a spring between particles %d and %d, but only amino acids can be connected by springs", spring.first.first, spring.first.second);
+            }
+            per_residue[i].emplace_back(j, &spring.second);
+            per_residue[j].emplace_back(i, &spring.second);
+        }
+        int n_entries = 2 * springs.size();
 
-    if(_read_par){
-        //Initalizing Some Host and Device Arrays for Spring Parameters
-        _spring_param_size_number = sizeof(c_number) * (this->npro*this->npro);
-        _ang_param_size = sizeof(c_number) * (this->npro*4);
-
-        _spring_potential = new c_number[this->npro*this->npro]();
-        _spring_eqdist = new c_number[this->npro*this->npro]();
-
-        if(_angular) { // only need for anmt
-            //Initializing Host and Device Arrays for Angular Parameters
-            _h_ang_params = new c_number[this->npro*4]();
-            CUDA_SAFE_CALL( cudaMalloc(&_d_ang_params, _ang_param_size));
-            if (this->_parameter_kbkt) {
-                _h_ang_kbkt = new c_number[this->npro * 4]();
-                CUDA_SAFE_CALL(cudaMalloc(&_d_ang_kbkt, sizeof(c_number) * (this->npro * 2)));
+        _h_affected_indx = new int[n_pro + 1]();
+        _h_affected = new int[n_entries]();
+        _h_aff_gamma = new c_number[n_entries]();
+        _h_aff_eqdist = new c_number[n_entries]();
+        int idx = 0;
+        for(int i = 0; i < n_pro; i++) {
+            auto &neighs = per_residue[i];
+            std::sort(neighs.begin(), neighs.end(), [](const std::pair<int, const ANMModel::Spring *> &a, const std::pair<int, const ANMModel::Spring *> &b) {
+                return a.first < b.first;
+            });
+            _h_affected_indx[i] = idx;
+            for(auto &neigh : neighs) {
+                _h_affected[idx] = neigh.first;
+                _h_aff_gamma[idx] = (c_number) neigh.second->k;
+                _h_aff_eqdist[idx] = (c_number) neigh.second->r0;
+                idx++;
             }
         }
+        _h_affected_indx[n_pro] = idx;
 
-        char potswitch = 'x';
-        c_number potential = 0.f;
-        c_number dist = 0.f;
-        //initializing array members
-        for(int i = 0; i< (this->npro*this->npro); i++){
-            _spring_eqdist[i] = dist;
-            _spring_potential[i] = potential;
-            if(_angular) if(i < (this->npro *4 )) _h_ang_params[i] = dist;
-        }
+        CUDA_SAFE_CALL(cudaMalloc(&_d_affected, n_entries * sizeof(int)));
+        CUDA_SAFE_CALL(cudaMemcpy(_d_affected, _h_affected, n_entries * sizeof(int), cudaMemcpyHostToDevice));
+        CUDA_SAFE_CALL(cudaMalloc(&_d_aff_gamma, n_entries * sizeof(c_number)));
+        CUDA_SAFE_CALL(cudaMemcpy(_d_aff_gamma, _h_aff_gamma, n_entries * sizeof(c_number), cudaMemcpyHostToDevice));
+        CUDA_SAFE_CALL(cudaMalloc(&_d_aff_eqdist, n_entries * sizeof(c_number)));
+        CUDA_SAFE_CALL(cudaMemcpy(_d_aff_eqdist, _h_aff_eqdist, n_entries * sizeof(c_number), cudaMemcpyHostToDevice));
+        CUDA_SAFE_CALL(cudaMalloc(&_d_affected_indx, (n_pro + 1) * sizeof(int)));
+        CUDA_SAFE_CALL(cudaMemcpy(_d_affected_indx, _h_affected_indx, (n_pro + 1) * sizeof(int), cudaMemcpyHostToDevice));
 
-        //Checkers as Lambdas
-        auto valid_angles = [](double a, double b, double c, double d)
-        {
-            double anglemin = std::min({a, b, c, d});
-            double anglemax = std::max({a, b, c, d});
-            if (anglemin < -1.0 || anglemax > 1.0){
-                throw oxDNAException("Cos of Angle in Parameter File not in Valid bounds");
+        if(this->_anm.torsion()) {
+            // bending/torsion parameters of the pair (i, i + 1), stored with the local index of i
+            _ang_param_size = sizeof(c_number) * n_pro * 4;
+            _h_ang_params = new c_number[n_pro * 4]();
+            if(this->_anm.per_pair_stiffness()) {
+                _h_ang_kbkt = new c_number[n_pro * 2]();
             }
-        };
-
-        auto valid_spring_params = [](int num_particles, int x, int y, double d, char s, double k){
-            if(x < 0 || x >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, num_particles);
-            if(y < 0 || y >= num_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, num_particles);
-            if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
-            if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
-            if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);
-        };
-
-
-
-        //Reading Parameter File
-        int key1, key2 = 0;
-        c_number a0, b0, c0, d0;
-        std::string carbons;
-
-        //total connections
-        int spring_connection_num = 0;
-
-        //allocate and declare affected_len vector
-        _affected_len = new int[this->npro]();
-        for(int i = 0; i < this->npro; i++) _affected_len[i] = 0;
-
-        std::fstream parameters;
-        parameters.open(this->_parameterfile, std::ios::in);
-        getline (parameters,carbons);
-        //Read Parameter File
-        if (parameters.is_open())
-        {
-            while (parameters >> key1 >> key2 >> dist >> potswitch >> potential)
-            {
-                valid_spring_params(N, key1, key2, dist, potswitch, potential);
-                spring_connection_num += 1;
-
-                if(offset != 0) {
-                    key1 -= offset;
-                    key2 -= offset;
+            for(auto &ang : this->_anm.angular_parameters()) {
+                int i = ang.first - offset;
+                for(int k = 0; k < 4; k++) {
+                    _h_ang_params[i * 4 + k] = (c_number) ang.second.cosines[k];
                 }
-
-                _affected_len[key1] += 1;
-                _affected_len[key2] += 1;
-                //potswitch is currently unused but may be later
-
-                if(_angular) {
-                    if (key2 - key1 == 1) {
-                        //Angular Parameters
-                        parameters >> a0 >> b0 >> c0 >> d0;
-                        valid_angles(a0, b0, c0, d0);
-                        _h_ang_params[key1 * 4] = a0;
-                        _h_ang_params[key1 * 4 + 1] = b0;
-                        _h_ang_params[key1 * 4 + 2] = c0;
-                        _h_ang_params[key1 * 4 + 3] = d0;
-
-
-                        if (this->_parameter_kbkt) {
-                            parameters >> _kbend >> _ktor;
-                            if (_kbend < 0 || _ktor < 0)
-                                throw oxDNAException("Invalid pairwise kb/kt Value Declared in Parameter File. Check Par Formatting");
-                            _h_ang_kbkt[key1 * 2] = _kbend;
-                            _h_ang_kbkt[key1 * 2 + 1] = _ktor;
-                        }
-                    }
-                }
-
-                _spring_potential[key1*this->npro + key2] = potential;
-                _spring_eqdist[key1*this->npro + key2] = dist;
-
-                _spring_potential[key2*this->npro + key1] = potential;
-                _spring_eqdist[key2*this->npro + key1] = dist;
-
-            }
-            parameters.close();
-        } else {
-            throw oxDNAException("ParameterFile Could Not Be Opened");
-        }
-
-        //Compressed Parameter Initialization
-        _h_affected_indx = new int[this->npro + 1]();
-        _h_affected = new int[spring_connection_num*2]();
-        _h_aff_gamma = new c_number[spring_connection_num*2]();
-        _h_aff_eqdist = new c_number[spring_connection_num*2]();
-        auto zero = (c_number) 0.f;
-        for(int i = 0; i < this->npro+1; i++) _h_affected_indx[i] = 0;
-        for(int i = 0; i < spring_connection_num*2; i++){
-            _h_affected[i] = 0;
-            _h_aff_gamma[i] = zero;
-            _h_aff_eqdist[i] = zero;
-        }
-
-        //Compressed Index
-        int param_indx = 0;
-        //For each residue
-        for(int i = 0; i < this->npro; i++){
-            //Fill _h_affected filtering through larger arrays filled in parameter file reading
-            for(int j = i*this->npro; j < i*this->npro+this->npro; j++){
-                if(_spring_eqdist[j] != 0.f){
-                    //Affected List, Access is controlled with indices in _h_affected_indx
-                    _h_affected[param_indx] = j % this->npro;
-                    //Stored in same way for easy access, spring constants
-                    _h_aff_gamma[param_indx] = _spring_potential[j];
-                    //eq_distance
-                    _h_aff_eqdist[param_indx] = _spring_eqdist[j];
-                    param_indx += 1;
+                if(_h_ang_kbkt != nullptr) {
+                    _h_ang_kbkt[i * 2] = (c_number) ang.second.k_bend;
+                    _h_ang_kbkt[i * 2 + 1] = (c_number) ang.second.k_tor;
                 }
             }
-        }
-
-        //Don't need Larger arrays anymore, safe to delete
-        if(_spring_eqdist != NULL) delete[] _spring_eqdist;
-        _spring_eqdist = NULL; //Otherwise dangling Pointer
-        if(_spring_potential != NULL) delete[] _spring_potential;
-        _spring_potential = NULL;
-
-        //Allocation and Copying of Compressed Parameters
-        CUDA_SAFE_CALL(cudaMalloc(&_d_affected, 2 * spring_connection_num * sizeof(int)));
-        CUDA_SAFE_CALL(cudaMemcpy(_d_affected, _h_affected, 2 * spring_connection_num * sizeof(int), cudaMemcpyHostToDevice));
-
-        CUDA_SAFE_CALL(cudaMalloc(&_d_aff_gamma, 2 * spring_connection_num * sizeof(int)));
-        CUDA_SAFE_CALL(cudaMemcpy(_d_aff_gamma, _h_aff_gamma, 2 * spring_connection_num * sizeof(int), cudaMemcpyHostToDevice));
-
-        CUDA_SAFE_CALL(cudaMalloc(&_d_aff_eqdist, 2 * spring_connection_num * sizeof(int)));
-        CUDA_SAFE_CALL(cudaMemcpy(_d_aff_eqdist, _h_aff_eqdist, 2 * spring_connection_num * sizeof(int), cudaMemcpyHostToDevice));
-
-        int ind = 0;
-        _h_affected_indx[0] = 0;
-        //make indx access list where: _h_affected_indx[i] lower bound of i's parameters, _h_affected_indx[i+1] upper bound of i's parameters
-        for(int i = 0; i < this->npro; i++){
-            ind += _affected_len[i];
-            _h_affected_indx[i+1] += ind;
-        }
-
-        //Don't need this anymore
-        if(_affected_len != NULL) delete[] _affected_len;
-        _affected_len = NULL;
-
-        //Allocation and copying of Indice List for accessing compressed parameters
-        CUDA_SAFE_CALL(cudaMalloc(&_d_affected_indx, (this->npro+1)*sizeof(int)));
-        CUDA_SAFE_CALL(cudaMemcpy(_d_affected_indx, _h_affected_indx, (this->npro+1)*sizeof(int), cudaMemcpyHostToDevice));
-
-        if(_angular) {
-            //Parameters for Bending/Torsional, _h_ang_params is filled in parameter file reading
+            CUDA_SAFE_CALL(cudaMalloc(&_d_ang_params, _ang_param_size));
             CUDA_SAFE_CALL(cudaMemcpy(_d_ang_params, _h_ang_params, _ang_param_size, cudaMemcpyHostToDevice));
-            if (this->_parameter_kbkt) {
-                CUDA_SAFE_CALL(cudaMemcpy(_d_ang_kbkt, _h_ang_kbkt, sizeof(c_number) * (this->npro * 2),
-                                          cudaMemcpyHostToDevice));
+            if(_h_ang_kbkt != nullptr) {
+                CUDA_SAFE_CALL(cudaMalloc(&_d_ang_kbkt, sizeof(c_number) * n_pro * 2));
+                CUDA_SAFE_CALL(cudaMemcpy(_d_ang_kbkt, _h_ang_kbkt, sizeof(c_number) * n_pro * 2, cudaMemcpyHostToDevice));
             }
-            float param_memory_mb;
-            //Memory Used by Parameters
-            if (this->_parameter_kbkt) {
-                param_memory_mb =
-                        (spring_connection_num * 2 * sizeof(int) + 2 * spring_connection_num * 2 * sizeof(c_number)
-                         + (this->npro + 1) * sizeof(int) + 6 * this->npro * sizeof(c_number)) / SQR(1024);
-            } else {
-                param_memory_mb =
-                        (spring_connection_num * 2 * sizeof(int) + 2 * spring_connection_num * 2 * sizeof(c_number)
-                         + (this->npro + 1) * sizeof(int) + 4 * this->npro * sizeof(c_number)) / SQR(1024);
-            }
-            OX_LOG(Logger::LOG_INFO, "Spring Parameters Size: %.2f MB", param_memory_mb);
         }
 
-    } else OX_LOG(Logger::LOG_INFO, "Parfile: NONE, No protein parameters were filled");
+        OX_LOG(Logger::LOG_INFO, "Spring Parameters Size: %.2f MB", (n_entries * (sizeof(int) + 2 * sizeof(c_number)) + (n_pro + 1) * sizeof(int) + _ang_param_size) / (float) SQR(1024));
+    }
+    else OX_LOG(Logger::LOG_INFO, "Parfile: NONE, No protein parameters were filled");
 
     float f_copy = this->_hb_multiplier;
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)) );
@@ -431,10 +298,10 @@ void CUDADNANMInteraction::cuda_init(int N) {
     _pro_rcut = 0.352894;
     _pro_sqr_rcut = 0.12454f; //_rc ^2
 
-    if(_angular) {
-        if (!this->_parameter_kbkt) {
-            _kbend = this->_k_bend;
-            _ktor = this->_k_tor;
+    if(this->_anm.torsion()) {
+        if (!this->_anm.per_pair_stiffness()) {
+            _kbend = this->_anm.global_k_bend();
+            _ktor = this->_anm.global_k_tor();
 
             //kb and kt Parameters
             CUDA_SAFE_CALL(cudaMemcpyToSymbol(_kb, &_kbend, sizeof(float)));
@@ -463,8 +330,8 @@ void CUDADNANMInteraction::cuda_init(int N) {
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dna_sqr_rcut, &this->_sqr_rcut, sizeof(float)) );
 
     //Parameters for DNANM book keeping
-    CUDA_SAFE_CALL( cudaMemcpyToSymbol(_ndna, &this->ndna, sizeof(int)) );
-    CUDA_SAFE_CALL( cudaMemcpyToSymbol(_npro, &this->npro, sizeof(int)) );
+    CUDA_SAFE_CALL( cudaMemcpyToSymbol(_ndna, &_n_nucleotides, sizeof(int)) );
+    CUDA_SAFE_CALL( cudaMemcpyToSymbol(_npro, &_n_amino_acids, sizeof(int)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(_offset, &this->offset, sizeof(int)) );
 }
 

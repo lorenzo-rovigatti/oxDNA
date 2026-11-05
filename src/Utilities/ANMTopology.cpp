@@ -37,18 +37,26 @@ Topology read_new(const std::string &filename, const std::string &nucleic_type) 
 		std::string type;
 		if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND && type == "peptide") {
 			strand.peptide = true;
+			strand.kind = 'P';
 			top.N_amino_acids += strand.sequence.size();
 		}
 		else {
 			if(nucleic_type.empty()) {
 				throw oxDNAException("topology file, strand %d (line %d): this interaction only supports type=peptide strands", ns, ns + 2);
 			}
-			if(!type.empty() && type != nucleic_type) {
+			if(nucleic_type == "NA") {
+				if(type != "DNA" && type != "RNA") {
+					throw oxDNAException("topology file, strand %d (line %d): nucleic acid strands must have type=DNA or type=RNA with this interaction", ns, ns + 2);
+				}
+			}
+			else if(!type.empty() && type != nucleic_type) {
 				throw oxDNAException("topology file, strand %d (line %d): this interaction only supports type=peptide and type=%s strands, found type=%s", ns, ns + 2, nucleic_type.c_str(), type.c_str());
 			}
+			strand.kind = (nucleic_type == "NA") ? type[0] : nucleic_type[0];
 			top.N_nucleotides += strand.sequence.size();
 			top.N_nucleic_strands++;
 		}
+		top.kinds.insert(top.kinds.end(), strand.sequence.size(), strand.kind);
 
 		top.strands.push_back(strand);
 		ns++;
@@ -77,6 +85,9 @@ Topology read_new(const std::string &filename, const std::string &nucleic_type) 
 }
 
 Topology read_old(const std::string &filename, const std::string &nucleic_type) {
+	if(nucleic_type == "NA") {
+		throw oxDNAException("Topologies that contain both DNA and RNA must be in the new (5->3) format, where each strand has type=DNA, type=RNA or type=peptide");
+	}
 	bool mixed = !nucleic_type.empty();
 
 	std::ifstream file(filename, std::ios::in);
@@ -148,6 +159,7 @@ Topology read_old(const std::string &filename, const std::string &nucleic_type) 
 		p.line = line_number;
 		last_strand = p.strand;
 		top.old_particles.push_back(p);
+		top.kinds.push_back(p.peptide ? 'P' : nucleic_type[0]);
 	}
 
 	if((int) top.old_particles.size() < top.N) {
@@ -299,10 +311,20 @@ bool is_new_topology(const std::string &filename) {
 }
 
 Topology read(const std::string &filename, const std::string &nucleic_type) {
-	if(is_new_topology(filename)) {
-		return read_new(filename, nucleic_type);
+	Topology top = is_new_topology(filename) ? read_new(filename, nucleic_type) : read_old(filename, nucleic_type);
+
+	// amino acids and nucleotides must form two blocks
+	int changes = 0;
+	for(uint i = 1; i < top.kinds.size(); i++) {
+		if((top.kinds[i] == 'P') != (top.kinds[i - 1] == 'P')) {
+			changes++;
+		}
 	}
-	return read_old(filename, nucleic_type);
+	if(changes > 1) {
+		throw oxDNAException(INTERLEAVED_ERROR);
+	}
+
+	return top;
 }
 
 void fill_particles(const Topology &top, std::vector<BaseParticle *> &particles, bool protein_n3n5) {

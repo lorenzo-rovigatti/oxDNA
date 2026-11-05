@@ -52,6 +52,7 @@ public:
     int *_h_affected, *_d_affected;
     int *_affected_len, *_h_affected_indx, *_d_affected_indx;
 
+    int _n_nucleotides = 0, _n_amino_acids = 0;
     int offset; //Will only come into play if proteins are after dna in topology file (particle id wise). Adjusts proteins index for the spring parameter arrays
     explicit CUDADNANMInteraction(bool btp);
     virtual ~CUDADNANMInteraction();

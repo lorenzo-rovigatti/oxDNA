@@ -136,9 +136,12 @@ SET(interactions_SOURCES
 	Interactions/KFInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
+	Interactions/ANMModel.cpp
+	Interactions/ANMHybridInteraction.cpp
 	Interactions/ANMInteraction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/RNANMInteraction.cpp
+	Interactions/NANMInteraction.cpp
 )
 
 SET(move_SOURCES

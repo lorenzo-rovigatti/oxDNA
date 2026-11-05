@@ -21,6 +21,7 @@ namespace ANMTopology {
 /// one line of a new-style topology
 struct Strand {
 	bool peptide = false;
+	char kind = 'P'; // 'P' (peptide), 'D' (DNA) or 'R' (RNA)
 	bool circular = false;
 	std::string sequence;
 };
@@ -43,6 +44,8 @@ struct Topology {
 	int N_nucleic_strands = 0;
 	bool protein_first = false; // true if the first particle is an amino acid
 
+	/// one entry per particle: 'P' for amino acids, 'D' for DNA and 'R' for RNA nucleotides
+	std::vector<char> kinds;
 	std::vector<Strand> strands; // filled for new-style topologies
 	std::vector<OldParticle> old_particles; // filled for old-style topologies
 };
@@ -53,8 +56,11 @@ bool is_new_topology(const std::string &filename);
 /**
  * @brief Reads an old- or new-style topology.
  *
- * nucleic_type ("DNA" or "RNA") is the type of the nucleic acids supported by the interaction. Pass an empty string
- * if the interaction supports proteins only (AC).
+ * nucleic_type ("DNA" or "RNA") is the type of the nucleic acids supported by the interaction. Pass "NA" if the
+ * interaction supports both DNA and RNA (only new-style topologies, where each nucleic acid strand must have type=DNA
+ * or type=RNA), or an empty string if the interaction supports proteins only (AC).
+ *
+ * Amino acids and nucleotides must be listed in two separate blocks.
  *
  * New-style topologies have one strand per line, a sequence followed by key=value pairs; strands with type=peptide are
  * proteins. The header may contain the optional "<N_nucleotides> <N_amino_acids> <N_nucleic_strands>" integers before
