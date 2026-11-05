@@ -1,0 +1,35 @@
+backend = Metal
+backend_precision = float          # float | mixed | hardmixed (run-time choice, see BUILD_METAL.md)
+Metal_avoid_cpu_calculations = 1   # native GPU kernels for DNA/DNA2
+Metal_list = verlet                # verlet | edge | no
+interaction_type = DNA
+salt_concentration = 1.0
+seed = 19382
+debug = 1
+
+verlet_skin = 0.05
+
+T = 300K
+dt = 0.001
+thermostat = brownian
+diff_coeff = 0.5
+newtonian_steps = 53
+max_backbone_force = 10.0
+max_density_multiplier = 20.0
+cells_auto_optimisation = 0
+
+steps = 2000
+# steps = 200000
+
+refresh_vel = 1
+print_conf_interval = 1000
+print_energy_every = 1
+conf_file = init.conf
+topology = init.top
+trajectory_file = trajectory.dat
+energy_file = energy.dat
+restart_step_counter = 1
+print_energy_every = 500
+time_scale = linear
+timings_filename = timings_1_0.001
+print_timings = yes

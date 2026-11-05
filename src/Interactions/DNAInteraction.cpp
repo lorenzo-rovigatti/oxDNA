@@ -1222,9 +1222,11 @@ number DNAInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 		return (number) 0;
 	}
 
-	number energy = _backbone(p, q, false, update_forces);
-	energy += _bonded_excluded_volume(p, q, false, update_forces);
-	energy += _stacking(p, q, false, update_forces);
+	number en_back = _backbone(p, q, false, update_forces);
+	number en_exc = _bonded_excluded_volume(p, q, false, update_forces);
+	number en_stack = _stacking(p, q, false, update_forces);
+
+	number energy = en_back + en_exc + en_stack;
 
 	return energy;
 }
@@ -1238,7 +1240,9 @@ number DNAInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 		return (number) 0;
 	}
 
-	number energy = _nonbonded_excluded_volume(p, q, false, update_forces);
+	number en_exc = _nonbonded_excluded_volume(p, q, false, update_forces);
+
+	number energy = en_exc;
 	energy += _hydrogen_bonding(p, q, false, update_forces);
 	energy += _cross_stacking(p, q, false, update_forces);
 	energy += _coaxial_stacking(p, q, false, update_forces);
