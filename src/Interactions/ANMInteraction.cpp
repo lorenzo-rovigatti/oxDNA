@@ -61,7 +61,8 @@ number ANMInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 
 number ANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r && (q != P_VIRTUAL && p != P_VIRTUAL)) {
-		_computed_r = q->pos - p->pos;
+		// configurations can have bonded amino acids on opposite sides of the periodic box
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	number energy = _anm.spring(p, q, _computed_r, update_forces);
