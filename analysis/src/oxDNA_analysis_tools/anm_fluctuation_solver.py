@@ -480,6 +480,8 @@ def mean_square_fluctuations(hessian:np.ndarray, coords:np.ndarray, temperature:
         # If the network has no other zero modes, H + c Q Q^T is positive definite.
         c = np.trace(hessian) / (3 * n)
         a = hessian + c * (q @ q.T)
+        # Gershgorin upper bound of the largest eigenvalue (computed before dpotrf overwrites a)
+        lambda_max = np.abs(a).sum(axis=1).max()
         try:
             chol, info = sla.lapack.dpotrf(a, lower=1, overwrite_a=1, clean=1)
             if info != 0:
@@ -488,7 +490,13 @@ def mean_square_fluctuations(hessian:np.ndarray, coords:np.ndarray, temperature:
             if info != 0:
                 raise np.linalg.LinAlgError("triangular inversion failed")
             # diag(A^-1) = squared column norms of L^-1
-            diag = np.einsum('ij,ij->j', linv, linv) - np.einsum('ij,ij->i', q, q) / c
+            inv_diag = np.einsum('ij,ij->j', linv, linv)
+            # An extra zero mode can leave a tiny positive pivot through round-off (BLAS dependent), so
+            # dpotrf succeeds. lambda_min(A) <= 1 / max diag(A^-1): treat A as singular if that bound is
+            # below 1e-6 lambda_max, the same threshold as the eigendecomposition below
+            if inv_diag.max() * lambda_max > 1e6:
+                raise np.linalg.LinAlgError("matrix is numerically singular")
+            diag = inv_diag - np.einsum('ij,ij->i', q, q) / c
             return BOLTZMANN * temperature * diag.reshape(n, 3).sum(axis=1)
         except np.linalg.LinAlgError:
             if method == 'cholesky':

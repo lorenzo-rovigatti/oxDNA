@@ -174,6 +174,12 @@ class TestNormalModes:
             mean_square_fluctuations(hess, coords, method='cholesky')
         auto = mean_square_fluctuations(hess, coords, method='auto')
         assert np.allclose(auto, mean_square_fluctuations(hess, coords, method='eigh'))
+        # whether round-off leaves the zero mode slightly positive depends on the BLAS; a tiny shift makes the
+        # factorisation succeed everywhere, and the singular matrix must still be detected
+        shifted = hess + 1e-13 * np.trace(hess) / len(hess) * np.eye(len(hess))
+        with pytest.raises(np.linalg.LinAlgError):
+            mean_square_fluctuations(shifted, coords, method='cholesky')
+        assert np.allclose(mean_square_fluctuations(shifted, coords, method='auto'), auto)
 
     def test_linear_fit(self):
         rng = np.random.default_rng(1)
