@@ -1,6 +1,11 @@
 from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
-from multiprocessing import Pool
+import multiprocessing
+import sys
 from typing import Callable, NamedTuple
+
+# fork() is unsafe in a process that already runs threads (numpy's BLAS, zstd, ...): Python >= 3.12 warns about it
+# and Python 3.14 no longer uses it by default on Linux. macOS and Windows already default to spawn.
+_START_METHOD = 'forkserver' if sys.platform.startswith('linux') else None
 
 def get_chunk_size():
     from oxDNA_analysis_tools.UTILS.constants import CHUNKSIZE
@@ -23,7 +28,7 @@ def oat_multiprocesser(nconfs:int, ncpus:int, function:Callable, callback:Callab
     """
     chunk_size = get_chunk_size()
 
-    pool = Pool(ncpus)
+    pool = multiprocessing.get_context(_START_METHOD).Pool(ncpus)
 
     # Figure out how many jobs we need to run
     nchunks = int(nconfs / chunk_size + (1 if nconfs % chunk_size else 0))

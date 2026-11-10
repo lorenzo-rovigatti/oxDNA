@@ -224,7 +224,7 @@ class TestRoundTripConversion:
 class TestMixedRoundTrip:
     """Round-trip test for structures containing both protein and nucleic acid."""
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def mixed_cif_path(self, test_resources):
         return test_resources / "1L1V_0.cif"
 
