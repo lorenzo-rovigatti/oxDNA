@@ -150,9 +150,17 @@ if(CUDA)
 			)
 		endif()
 
+		# architectures given on the command line (e.g. -DCMAKE_CUDA_ARCHITECTURES=75) take precedence. This has to be
+		# checked before enable_language(CUDA), which sets a default value
+		if(DEFINED CMAKE_CUDA_ARCHITECTURES)
+			set(USER_CUDA_ARCHITECTURES ON)
+		endif()
+
 		enable_language(CUDA)
 
-		if(CUDA_COMMON_ARCH)
+		if(USER_CUDA_ARCHITECTURES)
+			message(STATUS "Using the CUDA architectures given by CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
+		elseif(CUDA_COMMON_ARCH)
 			# Query NVCC for supported architectures
 			execute_process(
 				COMMAND ${CMAKE_CUDA_COMPILER} --list-gpu-arch
