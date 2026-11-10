@@ -7,10 +7,19 @@
  * their own namespaces so that their (identically named) constants and helper functions do not clash. Only the terms that
  * act between a DNA and an RNA nucleotide (excluded volume, hydrogen bonding, cross stacking, coaxial stacking and
  * Debye-Huckel), which in the CPU code are implemented by DRHInteraction, are new and live in namespace cuda_drh.
+ *
+ * This file is included by more than one translation unit (CUDADRHInteraction.cu and CUDAANMInteraction.cu), so everything
+ * is in an anonymous namespace: each of them gets its own copy of the kernels and of the constants, which it initialises
+ * itself (see CUDA_NA_constants.cuh). Without it the host stubs of the kernels are defined twice and the library does not link.
  */
+
+#ifndef CUDA_DRH_CUH_
+#define CUDA_DRH_CUH_
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 #include "../../Interactions/drh_model.h"
+
+namespace {
 
 namespace cuda_rna {
 #include "CUDA_RNA.cuh"
@@ -820,3 +829,7 @@ __global__ void drh_forces_edge_bonded(const c_number4 __restrict__ *poss, const
 }
 
 } // namespace cuda_drh
+
+} // anonymous namespace
+
+#endif /* CUDA_DRH_CUH_ */
