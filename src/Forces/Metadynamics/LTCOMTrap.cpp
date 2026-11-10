@@ -105,10 +105,10 @@ number LTCOMTrap::potential(llint step, LR_vector &pos) {
 		my_potential = meta::interpolate_potential(x, dX, xmin, potential_grid);
 	}
 
+	// the bias is a single collective term shared by several force instances (one per mode), so we assign it
+	// only to the particles of the first group to avoid counting it once per mode
 	if(_mode == 1) {
 		return my_potential / (number) _p1a_ptr.size();
 	}
-	else {
-		return my_potential / ((number) _p2a_ptr.size());
-	}
+	return 0.;
 }

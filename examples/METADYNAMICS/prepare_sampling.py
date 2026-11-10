@@ -18,7 +18,7 @@ LINES = {
     "conf_file" : ["last_conf.dat", "init_conf.dat"],
     "log_file" : ["oxDNA_log.txt", ""],
     "no_stdout_energy" : ["true", ""],
-    "print_conf_interval" : ["1e11", "1e5"],
+    "print_conf_interval" : ["1e11", "1e7"],
     "restart_step_counter" : ["", "true"],
     "seed" : ["*", ""]
 }

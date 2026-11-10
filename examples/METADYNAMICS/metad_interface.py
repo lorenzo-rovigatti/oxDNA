@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 import os, shutil, sys
 from copy import copy
@@ -12,8 +10,8 @@ import random
 
 try:
     import oxpy
-except ImportError:
-    print("CRITICAL: oxpy is required to run this script.")
+except ImportError as e:
+    print("CRITICAL: oxpy is required to run this script.", e)
     exit(1)
 
 OP_FILE = "op.dat"
@@ -155,6 +153,7 @@ class COMTrapHandler(IForceHandler):
     col_2 = {{
         type = force_energy
         print_group = metadynamics
+        per_particle = false
     }}
 }}'''
     
@@ -199,6 +198,7 @@ class COM2DTrapHandler(IForceHandler):
     col_3 = {{
         type = force_energy
         print_group = metadynamics
+        per_particle = false
     }}
 }}'''
 
@@ -247,6 +247,7 @@ class AtanCOMTrapHandler(IForceHandler):
     col_3 = {{
         type = force_energy
         print_group = metadynamics
+        per_particle = false
     }}
 }}'''
     
@@ -298,6 +299,7 @@ class AngleCOMTrapHandler(IForceHandler):
     col_4 = {{
         type = force_energy
         print_group = metadynamics
+        per_particle = false
     }}
 }}'''
 
@@ -399,7 +401,7 @@ class Estimator():
             self.handler = AngleCOMTrapHandler(args.p_fname, args.xmin, args.xmax, args.dX)
         elif coordination:
             additional_args = {}
-            for key in "coordination_type", "mixed_weight", "d0", "r0", "n": # optional arguments for the coordination CV
+            for key in "coordination_type", "mixed_weight", "hb_energy_cutoff", "hb_transition_width", "d0", "r0", "n": # optional arguments for the coordination CV
                 if key in kw_args:
                     additional_args[key] = kw_args[key]
             self.handler = CoordinationHandler(args.p_fname, args.xmin, args.xmax, args.dX, **additional_args)
@@ -607,44 +609,35 @@ class Estimator():
         # save the last bias and the free-energy profile in text format as well for easier visualization
         x = self.handler.xmin + self.handler.dx * np.arange(self.handler.N_grid)
         last_bias = self.potential_grid * self.T
-        beta_free_energy = -self.potential_grid * (self.T + self.dT) / self.dT
+        # potential_grid stores beta * V and dT = Delta T / T is dimensionless (see the well-tempered
+        # prefactor in do_metadynamics_iteration), so that beta * F = -(1 + dT) / dT * beta * V
+        beta_free_energy = -self.potential_grid * (1 + self.dT) / self.dT
         beta_free_energy -= beta_free_energy.min()
         np.savetxt(f"{Estimator.BIAS_DIR}/last_bias.dat", np.vstack((x, last_bias)).T)
         np.savetxt(f"last_beta_fe.dat", np.vstack((x, beta_free_energy)).T)
         np.savetxt(f"last_fe.dat", np.vstack((x, beta_free_energy * self.T)).T)
 
+    def _left_index(self, x):
+        # grid points are located at xmin + i * dx. The index is clamped so that values that fall outside of the grid 
+        # are linearly extrapolated from the first (or last) cell rather than giving rise to out-of-bounds accesses
+        ix = int(np.floor((x - self.handler.xmin) / self.handler.dx))
+        return min(max(ix, 0), self.handler.N_grid - 2)
+
     def interpolatePotential1D(self, x, potential_grid):
-        x_left = self.handler.dx * np.floor(x / self.handler.dx)
-        x_right = x_left + self.handler.dx
-        ix_left = np.floor((x - self.handler.xmin) / self.handler.dx)
-        ix_right = ix_left + 1
-        f1 = potential_grid[int(ix_left)]
-        f2 = potential_grid[int(ix_right)]
-        fx = (x_right - x) / self.handler.dx * f1 + (x - x_left) / self.handler.dx * f2
-        return fx
+        ix_left = self._left_index(x)
+        w_right = (x - (self.handler.xmin + ix_left * self.handler.dx)) / self.handler.dx
+        return (1 - w_right) * potential_grid[ix_left] + w_right * potential_grid[ix_left + 1]
 
     def interpolatePotential2D(self, x, y, potential_grid):
-        dX = self.handler.dx
-        xmin = self.handler.xmin
-        x_left = dX * np.floor(x / dX)
-        y_left = dX * np.floor(y / dX)
-        x_right = x_left + dX
-        y_right = y_left + dX
+        # the grid is square, and the same xmin and dx are used for both dimensions
+        ix_left = self._left_index(x)
+        iy_left = self._left_index(y)
+        wx_right = (x - (self.handler.xmin + ix_left * self.handler.dx)) / self.handler.dx
+        wy_right = (y - (self.handler.xmin + iy_left * self.handler.dx)) / self.handler.dx
 
-        ix_left = int((x - xmin) / dX)
-        iy_left = int((y - xmin) / dX)
-        ix_right = ix_left + 1
-        iy_right = iy_left + 1
-
-        f11 = potential_grid[ix_left, iy_left]
-        f12 = potential_grid[ix_left, iy_right]
-        f21 = potential_grid[ix_right, iy_left]
-        f22 = potential_grid[ix_right, iy_right]
-
-        fxy1 = (x_right - x) / dX * f11 + (x - x_left) / dX * f21 
-        fxy2 = (x_right - x) / dX * f12 + (x - x_left) / dX * f22
-        local_potential = (y_right - y) / dX * fxy1 + (y - y_left) / dX * fxy2
-        return local_potential
+        fxy1 = (1 - wx_right) * potential_grid[ix_left, iy_left] + wx_right * potential_grid[ix_left + 1, iy_left]
+        fxy2 = (1 - wx_right) * potential_grid[ix_left, iy_left + 1] + wx_right * potential_grid[ix_left + 1, iy_left + 1]
+        return (1 - wy_right) * fxy1 + wy_right * fxy2
 
     def get_metad_potential(self, x, cx):
         U = self.A * np.exp(-((x - cx) ** 2) / (2 * self.sigma ** 2))

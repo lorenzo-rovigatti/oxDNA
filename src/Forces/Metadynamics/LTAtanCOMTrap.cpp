@@ -5,21 +5,20 @@
 #include "../../Boxes/BaseBox.h"
 
 #include <tuple>
+#include <algorithm>
 #include <string>
 #include <iostream>
 
 inline number interpolatePotential2(number a, number dX, number xmin, const std::vector<number> &potential_grid) {
-	number a_left = dX * std::floor(a / dX);
-	number a_right = a_left + dX;
+	// grid points are located at xmin + i * dX. The index of the left point is clamped so that the stencils
+	// used to compute the forces (a +- dX / 5) never go out of the grid boundaries (in which case the
+	// potential is linearly extrapolated from the first or last cell)
+	const int N = potential_grid.size();
+	const int ia_left = std::max(0, std::min((int) std::floor((a - xmin) / dX), N - 2));
+	const number a_left = xmin + ia_left * dX;
+	const number w_right = (a - a_left) / dX;
 
-	number ia_left = std::floor((a - xmin) / dX);
-	number ia_right = ia_left + 1;
-
-	number f1 = potential_grid[ia_left];
-	number f2 = potential_grid[ia_right];
-
-	number f = (a_right - a) / dX * f1 + (a - a_left) / dX * f2;
-	return f;
+	return (1. - w_right) * potential_grid[ia_left] + w_right * potential_grid[ia_left + 1];
 }
 
 inline number get_x_force2(const number x, const number y, const number dX, const number xmin, const std::vector<number> &potential_grid) {
@@ -156,7 +155,7 @@ number LTAtanCOMTrap::potential(llint step, LR_vector &pos) {
 
 	number my_x = dra.module();
 	number my_y = drb.module();
-	number angle = my_y / my_x;
+	number angle = std::atan(my_y / my_x);
 	int ix_left = std::floor((angle - xmin) / dX);
 	int ix_right = ix_left + 1;
 
@@ -171,16 +170,10 @@ number LTAtanCOMTrap::potential(llint step, LR_vector &pos) {
 
 	my_potential = interpolatePotential2(a, dX, xmin, potential_grid);
 
+	// the bias is a single collective term shared by several force instances (one per mode), so we assign it
+	// only to the particles of the first group to avoid counting it once per mode
 	if(_mode == 1) {
-		return my_potential / _p1a.size();
+		return my_potential / (number) _p1a.size();
 	}
-	else if(_mode == 2) {
-		return my_potential / _p2a.size();
-	}
-	else if(_mode == 3) {
-		return my_potential / _p1b.size();
-	}
-	else {
-		return my_potential / _p2b.size();
-	}
+	return 0.;
 }

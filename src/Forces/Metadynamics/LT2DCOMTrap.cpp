@@ -5,28 +5,27 @@
 #include "../../Boxes/BaseBox.h"
 
 #include <string>
+#include <algorithm>
 #include <iostream>
 
 number interpolatePotential2(number x, number y, number dX, number xmin, const std::vector<std::vector<number> > &potential_grid) {
-	number x_left = dX * std::floor(x / dX);
-	number y_left = dX * std::floor(y / dX);
-	number x_right = x_left + dX;
-	number y_right = y_left + dX;
+	// the grid is square, with points located at (xmin + i * dX, xmin + j * dX). The indexes of the bottom-left
+	// point are clamped so that the stencils used to compute the forces (x +- dX / 5, y +- dX / 5) never go out of
+	// the grid boundaries (in which case the potential is linearly extrapolated from the closest cell).
+	// Note that we use the size of the first row since the parsing of the grid may add an empty trailing row
+	const int N = potential_grid[0].size();
+	const int ix_left = std::max(0, std::min((int) std::floor((x - xmin) / dX), N - 2));
+	const int iy_left = std::max(0, std::min((int) std::floor((y - xmin) / dX), N - 2));
+	const int ix_right = ix_left + 1;
+	const int iy_right = iy_left + 1;
 
-	number ix_left = std::floor((x - xmin) / dX);
-	number iy_left = std::floor((y - xmin) / dX);
-	number ix_right = ix_left + 1;
-	number iy_right = iy_left + 1;
+	const number wx_right = (x - (xmin + ix_left * dX)) / dX;
+	const number wy_right = (y - (xmin + iy_left * dX)) / dX;
 
-	number f11 = potential_grid[ix_left][iy_left];
-	number f12 = potential_grid[ix_left][iy_right];
-	number f21 = potential_grid[ix_right][iy_left];
-	number f22 = potential_grid[ix_right][iy_right];
+	const number fxy1 = (1. - wx_right) * potential_grid[ix_left][iy_left] + wx_right * potential_grid[ix_right][iy_left];
+	const number fxy2 = (1. - wx_right) * potential_grid[ix_left][iy_right] + wx_right * potential_grid[ix_right][iy_right];
 
-	number fxy1 = (x_right - x) / dX * f11 + (x - x_left) / dX * f21;
-	number fxy2 = (x_right - x) / dX * f12 + (x - x_left) / dX * f22;
-	number local_potential = (y_right - y) / dX * fxy1 + (y - y_left) / dX * fxy2;
-	return local_potential;
+	return (1. - wy_right) * fxy1 + wy_right * fxy2;
 }
 
 inline number get_x_force2(const number x, const number y, const number dX, const number xmin, const std::vector<std::vector<number> > &potential_grid) {
@@ -116,10 +115,7 @@ LR_vector LT2DCOMTrap::force(llint step, LR_vector &pos) {
 	number meta_Fx = 0;
 	number meta_Fy = 0;
 
-	if((ix_left < 0) || (ix_right > N_grid - 1)) {
-		std::cout << "off grid!" << std::endl;
-	}
-	if((iy_left < 0) || (iy_right > N_grid - 1)) {
+	if((ix_left < 0) || (ix_right > N_grid - 1) || (iy_left < 0) || (iy_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
 	}
 
@@ -162,10 +158,7 @@ number LT2DCOMTrap::potential(llint step, LR_vector &pos) {
 	int iy_left = std::floor((my_y - xmin) / dX);
 	int iy_right = iy_left + 1;
 
-	if((ix_left < 0) || (ix_right > N_grid - 1)) {
-		std::cout << "off grid!" << std::endl;
-	}
-	if((iy_left < 0) || (iy_right > N_grid - 1)) {
+	if((ix_left < 0) || (ix_right > N_grid - 1) || (iy_left < 0) || (iy_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
 	}
 
@@ -173,16 +166,10 @@ number LT2DCOMTrap::potential(llint step, LR_vector &pos) {
 
 	my_potential = interpolatePotential2(my_x, my_y, dX, xmin, potential_grid);
 
+	// the bias is a single collective term shared by several force instances (one per mode), so we assign it
+	// only to the particles of the first group to avoid counting it once per mode
 	if(_mode == 1) {
-		return my_potential / _p1a.size();
+		return my_potential / (number) _p1a.size();
 	}
-	else if(_mode == 2) {
-		return my_potential / _p2a.size();
-	}
-	else if(_mode == 3) {
-		return my_potential / _p1b.size();
-	}
-	else {
-		return my_potential / _p2b.size();
-	}
+	return 0.;
 }
