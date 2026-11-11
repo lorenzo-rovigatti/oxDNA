@@ -77,7 +77,8 @@ These options control the behaviour of MD simulations.
 * `dt`: the simulation time step. The higher this value, the longer time a simulation of a given number of time steps will correspond to. However, a value that is too large will result in numerical instabilities. Typical values range between 0.001 and 0.005.
 * `refresh_vel = <bool>`: if `true` the velocities of the particles in the initial configuration will be randomly sampled from a Boltzmann distribution corresponding to `T`. If `false`, the velocities in the `conf_file` will be used (or an error will be thrown if the `conf_file` doesn't include initialized velocities).
 * `[reset_initial_com_momentum = <bool>]`: if `true` the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to `false` to enforce the reproducibility of the trajectory.
-* `[reset_com_momentum = <bool>]`: if `true` the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to `false` to enforce the reproducibility of the trajectory
+* `[reset_com_momentum = <bool>]`: if `true` the momentum of the centre of mass will be set to 0 each time `fix_diffusion` is performed. Defaults to `false` to enforce the reproducibility of the trajectory.
+* `[stress_tensor_no_kinetic_part = <bool>]`. The kinetic contribution will not be included in the stress tensor, which is used by observables such as `pressure` or `stress_autocorrelation`. Defaults to `false`.
 
 ### Constant-temperature simulations
 
@@ -113,6 +114,8 @@ The following options require `backend = CUDA`.
 * `[CUDA_avoid_cpu_calculations = <bool>]`: Do not run any computations on the CPU. If set to `true`, the energy will not be printed. It may speed up the simulation of very large systems. Defaults to `false`.
 * `[CUDA_barostat_always_refresh = <bool>]`: Refresh the momenta of all particles after a successful volume move. Used only if `use_barostat = true`, defaults to `false`.
 * `[CUDA_print_energy = <bool>]`: print the potential energy as computed on the GPU to the standard output. Useful for debugging purposes, since the "regular" potential energy is computed on the CPU.
+* `[CUDA_update_stress_tensor_every = <int>]`: copy the value of the stress computed on the GPU to the CPU every this number of steps, so that it can be consumed by observables. Defaults to 0, which means "never copy".
+* `[CUDA_update_particle_stress_tensor = <bool>]`: copy the per-particle stress-tensors in addition to the total stress tensor, also every `CUDA_update_stress_tensor_every` steps. Defaults to `false`.
 
 ## Monte Carlo options
 

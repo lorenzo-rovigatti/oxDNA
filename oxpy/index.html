@@ -118,7 +118,7 @@
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
 	<span class="c1"># init the manager with the given input file</span>
-	<span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+	<span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
 	
 	<span class="c1"># run 1k steps</span>
 	<span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
@@ -132,12 +132,12 @@
 	<span class="c1"># do some computation with the current configuration</span>
 	<span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
 	
-	<span class="c1"># compute the average position of the particles&#39; backbones</span>
+	<span class="c1"># compute the average position of the particles' backbones</span>
 	<span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">backbone_site</span><span class="p">(),</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average final position:&quot;</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">"Average final position:"</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
 	
 	<span class="c1"># and the interaction energy between the first two particles</span>
-	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">"Interaction energy between particle 0 and particle 1:"</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -145,7 +145,7 @@
 <p>There is a known issue that makes the code segfault whenever multiple <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">oxpy.Context()</span></code> are used in a single script. In these cases a simple workaround is to add a <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">manager</span></code> instruction at the end of the <code class="docutils literal notranslate"><span class="pre">with</span></code> code block, like this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_sims</span><span class="p">):</span>
    <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
-      <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+      <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
       <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">N_steps</span><span class="p">)</span>
       <span class="k">del</span> <span class="n">manager</span> <span class="c1"># &lt;-- if you comment this line the script will segfault</span>
 </pre></div>
@@ -153,9 +153,9 @@
 </div>
 <p>If you want, you can initialise the input file yourself and change some of the options before initialising the manager:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
-<span class="n">my_input</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
-<span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;backend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;CUDA&quot;</span>
-<span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;steps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1e9&quot;</span>
+<span class="n">my_input</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
+<span class="n">my_input</span><span class="p">[</span><span class="s2">"backend"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"CUDA"</span>
+<span class="n">my_input</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1e9"</span>
 <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="n">my_input</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -190,13 +190,13 @@
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
-    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
     <span class="c1"># this object will make it possible to access the trajectory data</span>
     <span class="n">backend</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">AnalysisBackend</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
 
     <span class="c1"># loop over all the configurations stored in the trajectory file</span>
     <span class="k">while</span> <span class="n">backend</span><span class="o">.</span><span class="n">read_next_configuration</span><span class="p">():</span>
-        <span class="c1"># you can access the particles&#39; details from BaseParticle instances</span>
+        <span class="c1"># you can access the particles' details from BaseParticle instances</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
         <span class="c1"># or from the flattened_conf object, which exposes the simulation data as vectors that can be converted to numpy arrays</span>
         <span class="n">numpy_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">flattened_conf</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>

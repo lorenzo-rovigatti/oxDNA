@@ -142,8 +142,8 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">describe</span><span class="p">,</span> <span class="n">get_confs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.mean</span><span class="w"> </span><span class="kn">import</span> <span class="n">mean</span>
 
-<span class="n">top</span> <span class="o">=</span> <span class="s1">&#39;topology.top&#39;</span>
-<span class="n">traj</span> <span class="o">=</span> <span class="s1">&#39;trajectory.dat&#39;</span>
+<span class="n">top</span> <span class="o">=</span> <span class="s1">'topology.top'</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="s1">'trajectory.dat'</span>
 
 <span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span> <span class="o">=</span> <span class="n">describe</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
 
@@ -319,7 +319,7 @@ Instead of modifying an existing input file, you can also simply provide the ent
 <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
-        <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+        <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
 
         <span class="c1"># Modify inputfile at runtime</span>
         <span class="c1"># all input parameters provided to oxDNA need to be strings </span>
@@ -343,9 +343,9 @@ For this example, we set the number of steps and print intervals to be smaller s
 <span class="c1"># You can pass modifications to a default input file as dict of key : value pairs</span>
 <span class="c1"># Both key and values must be strings</span>
 <span class="n">input_mods</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;steps&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e6&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;print_conf_interval&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e4&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;print_energy_every&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e4&quot;</span>
+    <span class="s2">"steps"</span> <span class="p">:</span> <span class="s2">"1e6"</span><span class="p">,</span>
+    <span class="s2">"print_conf_interval"</span> <span class="p">:</span> <span class="s2">"1e4"</span><span class="p">,</span>
+    <span class="s2">"print_energy_every"</span> <span class="p">:</span> <span class="s2">"1e4"</span>
 <span class="p">}</span>
 
 <span class="c1"># Run a simulation and obtain a reference to the background process</span>
@@ -355,7 +355,7 @@ For this example, we set the number of steps and print intervals to be smaller s
 <span class="c1"># so make it again so we have access to it for analysis</span>
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
-    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">"input"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">input_mods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
         <span class="n">inp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 </pre></div>
@@ -371,8 +371,8 @@ For this example, we set the number of steps and print intervals to be smaller s
 <span class="kn">from</span><span class="w"> </span><span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">describe</span>
 
 <span class="c1"># Get the trajectory and topology file names from the oxpy.InputFile object</span>
-<span class="n">top</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;topology&quot;</span><span class="p">]</span>
-<span class="n">traj</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;trajectory_file&quot;</span><span class="p">]</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">"topology"</span><span class="p">]</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">"trajectory_file"</span><span class="p">]</span>
 <span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span> <span class="o">=</span> <span class="n">describe</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
 
 <span class="c1"># Compute the mean structure and RMSFs</span>
@@ -380,7 +380,7 @@ For this example, we set the number of steps and print intervals to be smaller s
 <span class="n">RMSDs</span><span class="p">,</span> <span class="n">RMSFs</span> <span class="o">=</span> <span class="n">deviations</span><span class="p">(</span><span class="n">traj_info</span><span class="p">,</span> <span class="n">top_info</span><span class="p">,</span> <span class="n">mean_conf</span><span class="p">,</span> <span class="n">ncpus</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
 <span class="c1">#They come out as numpy arrays, need to be a dict with a list for visualization</span>
-<span class="n">RMSFs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;RMSF&quot;</span><span class="p">:</span> <span class="n">RMSFs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
+<span class="n">RMSFs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"RMSF"</span><span class="p">:</span> <span class="n">RMSFs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
 </pre></div>
 </div>
 <p><strong>oxView iframes can be embedded in Jupyter Notebooks with <code class="docutils literal notranslate"><span class="pre">oat</span></code>’s oxView lib</strong></p>

@@ -60,6 +60,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#string">String</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mutual-trap">Mutual Trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#skew-trap">Skew trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#constant-trap">Constant trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alignment-field">Alignment field</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#harmonic-trap">Harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rotating-harmonic-trap">Rotating harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsion-plane">Repulsion plane</a></li>
@@ -126,21 +129,21 @@
 <p class="admonition-title">Note</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">external_forces_as_JSON</span> <span class="pre">=</span> <span class="pre">true</span></code>, the external forces file will be parsed as <a class="reference external" href="https://www.json.org/">JSON</a>. This can be useful when using tools that automatise the generation of the force file. Here is a working example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-   <span class="s2">&quot;force_1&quot;</span><span class="p">:{</span>
-      <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;trap&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;particle&quot;</span><span class="p">:</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;stiff&quot;</span><span class="p">:</span><span class="s2">&quot;1.00&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;pos0&quot;</span><span class="p">:</span><span class="s2">&quot;46.3113780977, 11.1604626391, 26.8730311801&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;rate&quot;</span><span class="p">:</span><span class="s2">&quot;0.0&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;dir&quot;</span><span class="p">:</span><span class="s2">&quot;0.,0.,-1.&quot;</span>
+   <span class="s2">"force_1"</span><span class="p">:{</span>
+      <span class="s2">"type"</span><span class="p">:</span><span class="s2">"trap"</span><span class="p">,</span>
+      <span class="s2">"particle"</span><span class="p">:</span><span class="s2">"0"</span><span class="p">,</span>
+      <span class="s2">"stiff"</span><span class="p">:</span><span class="s2">"1.00"</span><span class="p">,</span>
+      <span class="s2">"pos0"</span><span class="p">:</span><span class="s2">"46.3113780977, 11.1604626391, 26.8730311801"</span><span class="p">,</span>
+      <span class="s2">"rate"</span><span class="p">:</span><span class="s2">"0.0"</span><span class="p">,</span>
+      <span class="s2">"dir"</span><span class="p">:</span><span class="s2">"0.,0.,-1."</span>
    <span class="p">},</span>
-   <span class="s2">&quot;force_2&quot;</span><span class="p">:{</span>
-      <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;trap&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;particle&quot;</span><span class="p">:</span><span class="s2">&quot;99&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;pos0&quot;</span><span class="p">:</span><span class="s2">&quot;83.1532046751, 15.950789638, 37.3071701142&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;stiff&quot;</span><span class="p">:</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;rate&quot;</span><span class="p">:</span><span class="s2">&quot;0.0&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;dir&quot;</span><span class="p">:</span><span class="s2">&quot;0.,0.,1.&quot;</span>
+   <span class="s2">"force_2"</span><span class="p">:{</span>
+      <span class="s2">"type"</span><span class="p">:</span><span class="s2">"trap"</span><span class="p">,</span>
+      <span class="s2">"particle"</span><span class="p">:</span><span class="s2">"99"</span><span class="p">,</span>
+      <span class="s2">"pos0"</span><span class="p">:</span><span class="s2">"83.1532046751, 15.950789638, 37.3071701142"</span><span class="p">,</span>
+      <span class="s2">"stiff"</span><span class="p">:</span><span class="s2">"1.0"</span><span class="p">,</span>
+      <span class="s2">"rate"</span><span class="p">:</span><span class="s2">"0.0"</span><span class="p">,</span>
+      <span class="s2">"dir"</span><span class="p">:</span><span class="s2">"0.,0.,1."</span>
    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -188,17 +191,18 @@ dir = 0., 0., 1.
 </div>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">mutual_trap</span></code>. The relevant keys are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: the particle on which to exert the force.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: particle to pull towards.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: the particle on which to exert the force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: particle to pull towards.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the trap.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: equilibrium distance of the trap.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PBC</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PBC</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: (default: 0) If 0, calculate the distance between particles without considering periodic boundary conditions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: change <code class="docutils literal notranslate"><span class="pre">r0</span></code> by this much every time step.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stiff_rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: change <code class="docutils literal notranslate"><span class="pre">stiff</span></code> by this much every time step.</p></li>
 </ul>
+<p><code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> each take one particle expression, using the same syntax as the list-valued <code class="docutils literal notranslate"><span class="pre">particle</span></code> keys on other forces. An integer, <code class="docutils literal notranslate"><span class="pre">last</span></code>, or a range that contains one particle is accepted. <code class="docutils literal notranslate"><span class="pre">all</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>, a comma-separated list, and a range that contains more than one particle are rejected, as is any token the parser does not recognize. The rejection names the field. These keys are not interpreted by converting the text with <code class="docutils literal notranslate"><span class="pre">atof</span></code>, so an unrecognized token is not silently treated as particle 0.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.</p>
+<p>PBC should almost always be set explicitly to 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.</p>
 </div>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
@@ -221,6 +225,70 @@ r0 = 1.2
 </pre></div>
 </div>
 </div>
+</section>
+<section id="skew-trap">
+<h2>Skew trap<a class="headerlink" href="#skew-trap" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">skew_trap</span></code> is an asymmetric version of the mutual trap: it pulls one particle toward a reference particle, but is softer on one side of <code class="docutils literal notranslate"><span class="pre">r0</span></code> than on the other. Its most common usage is to mimic small-molecule linkers with non-normal end-to-end length distributions. The potential is minus the logarithm of a <a class="reference external" href="https://en.wikipedia.org/wiki/Skew_normal_distribution">skew-normal distribution</a>. With <span class="math notranslate nohighlight">\(x = r - r_0\)</span>, where <span class="math notranslate nohighlight">\(r\)</span> is the distance between the two particles, the potential is</p>
+<div class="math notranslate nohighlight">
+\[
+V(x) = -\ln\left[\frac{1}{\sqrt{2\pi}\,\sigma} e^{-x^2/2\sigma^2}\left(1 + \mathrm{erf}\left(\frac{\alpha x}{\sigma\sqrt{2}}\right)\right)\right].
+\]</div>
+<p><span class="math notranslate nohighlight">\(\alpha\)</span> sets the asymmetry. For <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span>, the potential is soft for <span class="math notranslate nohighlight">\(r &gt; r_0\)</span> and steep for <span class="math notranslate nohighlight">\(r &lt; r_0\)</span> and reversed for <span class="math notranslate nohighlight">\(\alpha &lt; 0\)</span>. With <span class="math notranslate nohighlight">\(\alpha = 0\)</span> it would reduce to a mutual trap with <code class="docutils literal notranslate"><span class="pre">stiff</span></code> <span class="math notranslate nohighlight">\(= 1/\sigma^2\)</span>, but that value is rejected; use <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code> instead.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: the particle on which to exert the force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: particle to pull towards.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: reference distance of the trap. Because of the skew, the potential minimum is not at <code class="docutils literal notranslate"><span class="pre">r0</span></code>: it is shifted toward the soft side, by an amount that grows with <code class="docutils literal notranslate"><span class="pre">stdev</span></code> and <span class="math notranslate nohighlight">\(|\alpha|\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdev</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: scale parameter <span class="math notranslate nohighlight">\(\sigma\)</span>, which sets the trap stiffness. Must be positive. The stiffness <span class="math notranslate nohighlight">\(V''(x)\)</span> always lies between <span class="math notranslate nohighlight">\(1/\sigma^2\)</span> and <span class="math notranslate nohighlight">\((1+\alpha^2)/\sigma^2\)</span>. Far out on the soft side it tends to <span class="math notranslate nohighlight">\(1/\sigma^2\)</span>, so there the trap behaves like a <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code> with <code class="docutils literal notranslate"><span class="pre">stiff</span></code> <span class="math notranslate nohighlight">\(= 1/\sigma^2\)</span>. Far out on the steep side it tends to <span class="math notranslate nohighlight">\((1+\alpha^2)/\sigma^2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shape</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: shape parameter <span class="math notranslate nohighlight">\(\alpha\)</span>. Must be non-zero. Positive means <span class="math notranslate nohighlight">\(r &gt; r_0\)</span> is soft, reversed for negative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PBC</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: (default: 0) if 0, ignore periodic boundary conditions when computing the distance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: (default: 0) change <code class="docutils literal notranslate"><span class="pre">r0</span></code> by this much every time step.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> accept the same single-particle expressions as <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>PBC should almost always be set explicitly to 1.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">stdev</span></code> and <code class="docutils literal notranslate"><span class="pre">shape</span></code> describe the shape of the potential, not the distance distribution you will measure. The sampled distribution is proportional to <span class="math notranslate nohighlight">\(e^{-V/k_BT}\)</span>, so it matches the skew-normal with these parameters only at <span class="math notranslate nohighlight">\(k_BT = 1\)</span> (about 3000 K). At room temperature (<span class="math notranslate nohighlight">\(k_BT \approx 0.1\)</span>), the spread around the minimum is at most about <span class="math notranslate nohighlight">\(\sigma\sqrt{k_BT} \approx 0.3\,\sigma\)</span>, and smaller on the steep side. Choose <code class="docutils literal notranslate"><span class="pre">stdev</span></code> as you would choose <code class="docutils literal notranslate"><span class="pre">stiff</span></code> for a <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code> (<span class="math notranslate nohighlight">\(\sigma = 1/\sqrt{\mathrm{stiff}}\)</span>); a small <code class="docutils literal notranslate"><span class="pre">stdev</span></code> makes a very stiff trap, which can make the simulation unstable.</p>
+<p>As with <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code>, it is usually best to add a second force with <code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> swapped.</p>
+</div>
+<div class="admonition-example-of-a-skew-trip-mimicking-a-dbco-azide-linker admonition">
+<p class="admonition-title">Example of a skew trip mimicking a DBCO-Azide linker</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = skew_trap
+particle = 0
+ref_particle = 15612
+r0 = 2.35
+stdev = 3
+shape = -15
+PBC = 1
+rate = 0
+}
+</pre></div>
+</div>
+</div>
+</section>
+<section id="constant-trap">
+<h2>Constant trap<a class="headerlink" href="#constant-trap" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">constant_trap</span></code> pulls one particle toward one reference particle with a constant-magnitude force. <code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> use the same single-particle expressions as <code class="docutils literal notranslate"><span class="pre">mutual_trap</span></code>: an integer, <code class="docutils literal notranslate"><span class="pre">last</span></code>, or a range that resolves to one particle. <code class="docutils literal notranslate"><span class="pre">all</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>, lists, wider ranges, and unrecognized tokens are rejected, and the error names the field.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: the particle on which to exert the force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: particle to pull towards.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: magnitude of the force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: distance at which the force changes sign.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PBC</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: if 0, ignore periodic boundary conditions when computing the distance. Defaults to 0.</p></li>
+</ul>
+</section>
+<section id="alignment-field">
+<h2>Alignment field<a class="headerlink" href="#alignment-field" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">alignment_field</span></code> couples one particle’s orientation to a fixed direction. <code class="docutils literal notranslate"><span class="pre">particle</span></code> is required. Omitting it is an error (<code class="docutils literal notranslate"><span class="pre">Mandatory</span> <span class="pre">key</span> </code>particle’ not found`); it is not a way to select every particle. The same single-particle expressions are accepted, and the same multi-particle and unrecognized values are rejected.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;index&gt;</span></code>: the particle whose orientation is used, and the particle the force is attached to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v_idx</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: which orientation vector to align. 0, 1 and 2 are <code class="docutils literal notranslate"><span class="pre">v1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2</span></code> and <code class="docutils literal notranslate"><span class="pre">v3</span></code>; 3, 4 and 5 are the corresponding rows of the transpose. Must be in <code class="docutils literal notranslate"><span class="pre">0..5</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: strength of the alignment potential.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: target direction. The vector is normalised.</p></li>
+</ul>
 </section>
 <section id="harmonic-trap">
 <h2>Harmonic trap<a class="headerlink" href="#harmonic-trap" title="Permalink to this heading"></a></h2>
@@ -438,7 +506,7 @@ particle = &lt;int&gt;
 [stiff = &lt;float&gt;]
     stiffness of the repulsion. Defaults to 1.
 [sigma = &lt;float&gt;]
-    &quot;Diameter&quot; of the wall. It effectively rescales the distance between
+    "Diameter" of the wall. It effectively rescales the distance between
     particle and wall. Defaults to 1.
 [n = &lt;int&gt;]
     Exponent of the 2n-n generalized Lennard-Jones expression. Defaults to
@@ -497,7 +565,7 @@ particle = &lt;int&gt;
     index of the particle on which the force shall be applied. If -1, the
     force will be exerted on all the particles.
 [sigma = &lt;float&gt;]
-    &quot;Diameter&quot; of the wall. It effectively rescales the distance between
+    "Diameter" of the wall. It effectively rescales the distance between
     particle and wall. Defaults to 1.
 </pre></div>
 </div>

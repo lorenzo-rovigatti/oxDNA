@@ -76,6 +76,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pressure">Pressure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stress-autocorrelation">Stress autocorrelation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#particle-stress">Particle stress</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pitch">Pitch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#coaxial-stacking-related-quantities">Coaxial-stacking-related quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#structure-factor">Structure factor</a></li>
@@ -168,28 +169,28 @@
 <h2>External observable file<a class="headerlink" href="#external-observable-file" title="Permalink to this heading"></a></h2>
 <p>Output files and observables can also be specified in an external <a class="reference external" href="https://www.json.org/">JSON</a> file by setting the non-mandatory option <code class="docutils literal notranslate"><span class="pre">observables_file</span></code> in the <a class="reference internal" href="input.html#core-options"><span class="std std-ref">main input file</span></a>. The following snippet shows an example of such a file:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
-  &quot;output_1&quot; : {
-    &quot;print_every&quot; : &quot;10000&quot;,
-    &quot;name&quot; : &quot;hb_energy.dat&quot;,
-    &quot;cols&quot; : [
+  "output_1" : {
+    "print_every" : "10000",
+    "name" : "hb_energy.dat",
+    "cols" : [
       {
-        &quot;type&quot; : &quot;step&quot;,
-        &quot;units&quot; : &quot;MD&quot;
+        "type" : "step",
+        "units" : "MD"
       },
       {
-        &quot;type&quot; : &quot;hb_energy&quot;
+        "type" : "hb_energy"
       }
     ]
   },
-  &quot;output_2&quot; : {
-    &quot;print_every&quot; : &quot;1000&quot;,
-    &quot;name&quot; : &quot;pot_energy.dat&quot;,
-    &quot;cols&quot; : [
+  "output_2" : {
+    "print_every" : "1000",
+    "name" : "pot_energy.dat",
+    "cols" : [
       {
-        &quot;type&quot; : &quot;step&quot;
+        "type" : "step"
       },
       {
-        &quot;type&quot; : &quot;potential_energy&quot;
+        "type" : "potential_energy"
       }
     ]
   }
@@ -366,6 +367,13 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: size of the average used by the algorithm. Defaults to 2.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[p</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: The size of the coarse-grained levels used by the algorithm. Defaults to 16.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[serialise</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, every time the observable is printed, also generate files that can be used to recreate the observable’s data structures. This makes it possible to restart simulations that keep accumulating statistics for the autocorrelation. Note that if this is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, then the observable will look for these files to reload the data upon restarting. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+</ul>
+</section>
+<section id="particle-stress">
+<h2>Particle stress<a class="headerlink" href="#particle-stress" title="Permalink to this heading"></a></h2>
+<p>Print the per-particle stress tensor (one line per particle, with this ordering: <span class="math notranslate nohighlight">\(\sigma_{xx}, \sigma_{yy}, \sigma_{zz}, \sigma_{xy}, \sigma_{xz}, \sigma_{yz}\)</span>). For each pair interaction, the stress is split evenly between the two involved particles.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[print_coordinates</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the coordinates of each particle are also printed following the stress tensor.</p></li>
 </ul>
 </section>
 <section id="pitch">
