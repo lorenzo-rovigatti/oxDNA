@@ -10,6 +10,10 @@
  * (CUDA_sort_every = 0).
  *
  * As on the CPU, the force of a pair term is the force acting on the second particle (the head of r = q - p).
+ *
+ * Energies: as in the other CUDA interactions, the w component of the force on a particle is the sum of the full energies of all the
+ * terms it takes part in, so that every pair is counted twice and the total energy is the sum over the particles divided by two
+ * (MD_CUDABackend with CUDA_print_energy). Each of the two particles of a pair therefore gets the whole pair energy.
  */
 
 namespace cuda_anm {
@@ -233,8 +237,8 @@ __global__ void anm_forces_edge_nonbonded(const c_number4 __restrict__ *poss, co
 			}
 		}
 		if(energy != (c_number) 0) {
-			atomicAdd(&(forces[from_index].w), energy / 2);
-			atomicAdd(&(forces[to_index].w), energy / 2);
+			atomicAdd(&(forces[from_index].w), energy);
+			atomicAdd(&(forces[to_index].w), energy);
 		}
 		return;
 	}
@@ -277,8 +281,8 @@ __global__ void anm_forces_edge_nonbonded(const c_number4 __restrict__ *poss, co
 	if(CUDA_DOT(T_nucleotide, T_nucleotide) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[nucleotide_index]), T_nucleotide);
 	if(CUDA_DOT(T_protein, T_protein) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[protein_index]), T_protein);
 	if(energy != (c_number) 0) {
-		atomicAdd(&(forces[protein_index].w), energy / 2);
-		atomicAdd(&(forces[nucleotide_index].w), energy / 2);
+		atomicAdd(&(forces[protein_index].w), energy);
+		atomicAdd(&(forces[nucleotide_index].w), energy);
 	}
 }
 
@@ -300,7 +304,7 @@ __forceinline__ __device__ void _anm_protein_bonded(const c_number4 *poss, const
 		c_number disp = d - spring_r0[i];
 		// force on p (the CPU code computes the force on q, -k * disp / d * r)
 		c_number4 dF = r * (spring_k[i] * disp / d);
-		dF.w = (c_number) 0.25f * spring_k[i] * SQR(disp); // half of the energy of the pair
+		dF.w = (c_number) 0.5f * spring_k[i] * SQR(disp);
 		F += dF;
 	}
 
@@ -314,7 +318,7 @@ __forceinline__ __device__ void _anm_protein_bonded(const c_number4 *poss, const
 			c_number energy = force.w;
 			force.w = (c_number) 0.f;
 			F -= force;
-			F.w += energy / 2;
+			F.w += energy;
 			T += _cross(r * (c_number) 0.5f, -force);
 		}
 
@@ -333,7 +337,7 @@ __forceinline__ __device__ void _anm_protein_bonded(const c_number4 *poss, const
 			c_number energy = Fq.w;
 			Fq.w = (c_number) 0.f;
 			F -= Fq;
-			F.w += energy / 2;
+			F.w += energy;
 			T += Tp;
 		}
 
@@ -353,7 +357,7 @@ __forceinline__ __device__ void _anm_protein_bonded(const c_number4 *poss, const
 			c_number energy = Fq.w;
 			Fq.w = (c_number) 0.f;
 			F += Fq;
-			F.w += energy / 2;
+			F.w += energy;
 			T += Tq;
 		}
 	}
@@ -462,7 +466,7 @@ __global__ void anm_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 			c_number energy = force.w;
 			force.w = (c_number) 0.f;
 			F -= force;
-			F.w += energy / 2;
+			F.w += energy;
 			if(anm_params.torsion) {
 				T += _cross(r * (c_number) 0.5f, -force);
 			}
@@ -476,7 +480,7 @@ __global__ void anm_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 				c_number energy = F_protein.w;
 				F_protein.w = (c_number) 0.f;
 				F += F_protein;
-				F.w += energy / 2;
+				F.w += energy;
 				T += T_protein;
 			}
 			else {
@@ -484,7 +488,7 @@ __global__ void anm_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 				c_number energy = F_protein.w;
 				F_protein.w = (c_number) 0.f;
 				F -= F_protein;
-				F.w += energy / 2;
+				F.w += energy;
 				T += T_nucleotide;
 			}
 		}

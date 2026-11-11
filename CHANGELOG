@@ -2,6 +2,7 @@ unreleased
 	- Protein (ANM) models: AC/DNANM/RNANM and their ANMT variants now share the same protein code, read new-style (5->3) topologies, and give clear errors on malformed topologies and parameter files
 	- CUDA: support DNACT, RNANM/RNACT and NANM/NACT on GPUs, with one implementation shared with the NA interaction (fixes the protein-nucleotide excluded volume, which was twice as stiff as on the CPU)
 	- Add the NANM/NACT interactions (oxNA DNA, RNA and DNA/RNA hybrids with ANM/ANMT proteins) and ACT (protein-only ANMT)
+	- CUDA: fix the energy of the protein terms of DNANM, which the GPU counted only once per pair instead of twice, so the CUDA_print_energy output and the energy changes used by the CUDA barostat had half the protein energy
 	- Fix AC springs between amino acids on opposite sides of the periodic box
 	- Fix ANMT runs aborting when an amino acid has backbone neighbours but no springs
 	- Fix parameter files of DNA/RNA-first hybrid systems being rejected
