@@ -9,8 +9,8 @@ parallel, sinchronize them, attempt exchanges, etc.
 
 
 COMPILING
-this backend requires MPI, so it only gets compiled when using "make MPI=1". In
-beetween compilations with and without MPI, a "make clean" is required.
+this backend requires MPI, so it only gets compiled when oxDNA is compiled with
+MPI support, i.e. by passing "-DMPI=ON" to cmake.
 
 USAGE:
 To use the backend, the key "sim_type" in the input file should be set to
