@@ -2,7 +2,8 @@
  * DNANMInteraction.cpp
  *
  *  Created on: Feb 2026
- *  Author: jonah,subhajit
+ *  Updated Nov 2026
+ *  Author: jonah, subhajit, erik
  *  Inherits from the DNA2Interaction Class
  *  Uses DNA2 Model and ANM Protein Model
  */
@@ -13,6 +14,7 @@
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/ANMParticle.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/ANMTopology.h"
 
 #include <sstream>
 #include <fstream>
@@ -41,6 +43,8 @@ DNANMInteraction::DNANMInteraction(bool btp) : DNA2Interaction() {
     ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
     _parameter_kbkt = false;
+    ndna = npro = ndnas = 0;
+    _firststrand = 0;
 
     masses = {{0, 1.f}, {1, 1.f}, {2, 1.f}, {3, 1.f}, {5, 1.f}, {6, 1.f}, //default mass is 1 for everything
               {7, 1.f}, {8, 1.f}, {9, 1.f}, {10, 1.f},{11, 1.f}, {12, 1.f},
@@ -72,6 +76,7 @@ void DNANMInteraction::get_settings(input_file &inp){
         }
     }
 
+    if(!_angular) _parameterfile[0] = '\0'; // stays empty if the key is missing
     getInputString(&inp, "parfile", _parameterfile, 0); //parameter file
 
     if(getInputString(&inp, "massfile", _massfile, 0) == KEY_NOT_FOUND) { // variable mass file
@@ -85,9 +90,11 @@ void DNANMInteraction::get_settings(input_file &inp){
 
 void DNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles){
     //Addition of Reading Parameter File
-    auto valid_spring_params = [](int N, int x, int y, double d, char s, double k){
-        if(x < 0 || x > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", x);
-        if(y < 0 || y > N) throw oxDNAException("Invalid Particle ID %d in Parameter File", y);
+    // N_particles is the total number of particles: the first line of the parameter file is the number of amino acids,
+    // which is not an upper bound for their indices when nucleotides come first in the topology
+    auto valid_spring_params = [](int N_particles, int x, int y, double d, char s, double k){
+        if(x < 0 || x >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", x, N_particles);
+        if(y < 0 || y >= N_particles) throw oxDNAException("Invalid Particle ID %d in Parameter File (there are %d particles)", y, N_particles);
         if(d < 0) throw oxDNAException("Invalid Eq Distance %d in Parameter File", d);
         if(s != 's') throw oxDNAException("Potential Type %c Not Supported", s);
         if(k < 0) throw oxDNAException("Spring Constant %f Not Supported", k);
@@ -118,8 +125,11 @@ void DNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
         {
             while (parameters >> key1 >> key2 >> dist >> potswitch >> potential)
             {
-                valid_spring_params(N, key1, key2, dist, potswitch, potential);
+                valid_spring_params((int) particles.size(), key1, key2, dist, potswitch, potential);
                 auto *q = dynamic_cast<ANMParticle *>(particles[key1]);
+                if(q == nullptr || dynamic_cast<ANMParticle *>(particles[key2]) == nullptr) {
+                    throw oxDNAException("The parameter file contains a spring between particles %d and %d, but only amino acids can be connected by springs", key1, key2);
+                }
                 if (key1 < key2) {
                     q->add_bonded_neighbor(particles[key2]);
                 }
@@ -166,6 +176,9 @@ void DNANMInteraction::read_parameter_file(std::vector<BaseParticle*> &particles
                         "Invalid Parameter File Format, global kb and kt values have been set in Inputfile");
         } else if (spring_connection_num == 1 && N > 2) throw oxDNAException("Invalid Parameter File Format, cannot use a DNACT Parameter File");
     } else {
+        if(npro > 0) {
+            throw oxDNAException("The topology contains %d amino acids, but no parameter file was given: set 'parfile' to the file that contains the protein springs", npro);
+        }
         OX_LOG(Logger::LOG_INFO, "Parfile: NONE, No protein parameters were filled");
     }
 }
@@ -201,139 +214,34 @@ void DNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles)
 }
 
 
+void DNANMInteraction::_set_topology_counts(const ANMTopology::Topology &topology) {
+    ndna = topology.N_nucleotides;
+    npro = topology.N_amino_acids;
+    ndnas = topology.N_nucleic_strands;
+    _firststrand = topology.protein_first ? -1 : 1; // must be set prior to allocation of particles
+}
+
+void DNANMInteraction::read_topology_counts() {
+    _set_topology_counts(ANMTopology::read(this->_topology_filename, "DNA"));
+}
+
 void DNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-    int my_N, my_N_strands;
-
-    char line[5120];
-    std::ifstream topology;
-    topology.open(this->_topology_filename, std::ios::in);
-
-    if (!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting",this->_topology_filename);
-
-    topology.getline(line, 5120);
-    std::stringstream head(line);
-
-    head >> my_N >> my_N_strands >> ndna >> npro >>ndnas;
-    if (head.fail()) throw oxDNAException("Invalid topology header for DNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <ndna> <npro> <ndnas>'.");
-
-    if(my_N_strands < 0 || my_N_strands > my_N || ndna > my_N || ndna < 0 || npro > my_N || npro < 0 || ndnas < 0 || ndnas > my_N) {
-        throw oxDNAException("Invalid topology header for DNANM. This interaction currently supports the mixed legacy format: '<N> <N_strands> <ndna> <npro> <ndnas>'.");
-    }
-
-
-    int strand, i = 0;
-    while (topology.good()) {
-        topology.getline(line, 5120);
-        if (strlen(line) == 0 || line[0] == '#')
-            continue;
-        if (i == my_N)
-            throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", my_N);
-
-        std::stringstream ss(line);
-        ss >> strand;
-        if (i == 0) {
-            _firststrand = strand; //Must be set prior to allocation of particles
-            allocate_particles(particles);
-            for (int j = 0; j < my_N; j++) {
-                particles[j]->index = j;
-                particles[j]->type = P_INVALID;
-                particles[j]->strand_id = 0;
-            }
-        }
-
-        // Amino Acid
-        if (strand < 0) {
-            auto *p = static_cast<ANMParticle*>(particles[i]); //Subho
-            char aminoacid[256];
-            int nside, cside;
-            ss >> aminoacid >> nside >> cside;
-
-            int x;
-            std::set<int> myneighs;
-            if (nside >= 0) {
-                myneighs.insert(nside);
-                if(_angular) p->n3 = particles[nside];
-            }
-            if (cside >= 0) {
-                myneighs.insert(cside);
-                if(_angular) p->n5 = particles[cside];
-            }
-            while (ss.good()) {
-                ss >> x;
-                if (x < 0 || x >= my_N) {
-                    throw oxDNAException("Line %d of the topology file has an invalid syntax, neighbor has invalid id", i + 2);
-                }
-                myneighs.insert(x);
-            }
-
-            if (strlen(aminoacid) == 1) {
-                p->type = Utils::decode_aa(aminoacid[0]);
-                p->btype = Utils::decode_aa(aminoacid[0]);; // btype of 1 means AA
-            }
-
-            p->mass = masses[p->type];
-            p->invmass = 1.f/p->mass;
-
-            p->strand_id = abs(strand) + ndnas - 1;
-            p->index = i;
-
-            i++;
-        }
-        if (strand > 0) {
-            char base[256];
-            int tmpn3, tmpn5;
-            ss >> base >> tmpn3 >> tmpn5;
-
-            auto *p = dynamic_cast<DNANucleotide *> (particles[i]);
-
-            if (tmpn3 < 0) p->n3 = P_VIRTUAL;
-            else p->n3 = particles[tmpn3];
-            if (tmpn5 < 0) p->n5 = P_VIRTUAL;
-            else p->n5 = particles[tmpn5];
-
-
-            p->strand_id = strand - 1;
-
-            // the base can be either a char or an integer
-            if (strlen(base) == 1) {
-                p->type = Utils::decode_base(base[0]);
-                p->btype = Utils::decode_base(base[0]);
-
-            } else {
-                throw oxDNAException("Only DNA Base Characters Permitted in DNA Strand in Topology");
-                //if (atoi(base) > 0) p->type = atoi(base) % 4;
-                //else p->type = 3 - ((3 - atoi(base)) % 4);
-                //p->btype = atoi(base);
-            }
-
-            if (p->type == P_INVALID) throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-
-            // p->mass = 1.f; //subho not needed as DNA is 1 by default
-            // p->invmass = 1.f;
-
-            p->index = i;
-            i++;
-
-            // here we fill the affected vector
-            if (p->n3 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p->n3, p));
-            if (p->n5 != P_VIRTUAL) p->affected.emplace_back(ParticlePair(p, p->n5));
-
-        }
-        if (strand == 0) throw oxDNAException("No strand 0 should be present please check topology file");
-    }
-
-
-    if (i < my_N)
-        throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", my_N);
-
-    topology.close();
-
-    if (my_N != (int) particles.size())
+    auto topology = ANMTopology::read(this->_topology_filename, "DNA");
+    if(topology.N != (int) particles.size()) {
         throw oxDNAException("Number of lines in the configuration file and number of particles in the topology files don't match. Aborting");
-
-    *N_strands = my_N_strands;
-
-    // read parameter file
+    }
+    _set_topology_counts(topology);
+    allocate_particles(particles);
+    // protein bonds come from the parameter file only
+    ANMTopology::fill_particles(topology, particles, _angular);
+    for(auto p : particles) {
+        auto *q = dynamic_cast<ANMParticle *>(p);
+        if(q != nullptr) {
+            q->mass = masses[q->type];
+            q->invmass = 1.f / q->mass;
+        }
+    }
+    *N_strands = topology.N_strands;
     read_parameter_file(particles);
 }
 

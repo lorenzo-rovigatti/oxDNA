@@ -1,0 +1,27 @@
+# Checks that DNANM reads new-style (5->3) topologies: the step-0 potential energy must match
+# the value obtained with the equivalent old-style topology shipped in examples/DNANM
+backend = CPU
+backend_precision = double
+interaction_type = DNANM
+salt_concentration = 1.0
+sim_type = MD
+steps = 0
+thermostat = john
+T = 300K
+dt = 0.001
+verlet_skin = 0.05
+diff_coeff = 2.5
+newtonian_steps = 103
+parfile = ../../../../examples/DNANM/hybrid_cage/ac.par
+topology = cage_new.top
+conf_file = cage_new.dat
+trajectory_file = trajectory.dat
+lastconf_file = last_conf.dat
+refresh_vel = 1
+seed = 1
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1000
+print_energy_every = 1000
+time_scale = linear
+

@@ -212,6 +212,7 @@ SET(common_SOURCES
 	Utilities/LR_vector.cpp
 	Utilities/LR_matrix.cpp
 	Utilities/Utils.cpp
+	Utilities/ANMTopology.cpp
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
