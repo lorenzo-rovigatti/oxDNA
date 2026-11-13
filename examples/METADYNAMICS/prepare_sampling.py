@@ -35,7 +35,7 @@ def build_parser():
     parser.add_argument("--config", type=str, required=True, help="Path to the TOML configuration file printed by the metadynamics interface.")
     parser.add_argument("--force", "-f", action="store_true", help="Whether to overwrite the sampling folder if it already exists.")
     parser.add_argument("--seed", "-s", type=int, default=random.randint(0, 2**32 - 1), help="The seed to use for the oxDNA simulation. If not given, the seed will be chosen randomly.")
-    parser.add_argument("--rescale_bias", action="store_true", help="Multiply the final bias by (1 + dT) / dT, so that the sampling simulation is biased by (minus) the free-energy estimate. Without this option the well-tempered bias compensates only a fraction dT / (1 + dT) of the free energy, leaving a residual landscape F / (1 + dT).")
+    parser.add_argument("--raw_bias", action="store_true", help="Do not rescale the final bias by (1 + dT) / dT. With this option the well-tempered bias compensates only a fraction dT / (1 + dT) of the free energy, leaving a residual landscape F / (1 + dT).")
 
     return parser
 
@@ -69,9 +69,9 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config_data = toml.load(f)
 
-    if args.rescale_bias:
+    if not args.raw_bias:
         if "dT" not in config_data:
-            print(f"The configuration file {args.config} does not contain the dT key, which is required by --rescale_bias. Use the metad_PID.toml file printed by the metadynamics interface.")
+            print(f"The configuration file {args.config} does not contain the dT key, which is required, unless --raw_bias is used. Use the metad_PID.toml file printed by the metadynamics interface.")
             exit(1)
         bias_factor = (1 + config_data["dT"]) / config_data["dT"]
 
@@ -121,6 +121,6 @@ if __name__ == "__main__":
         dst = os.path.join(args.sampling_dir, f_new)
         shutil.copy(src, dst)
 
-    if args.rescale_bias:
+    if not args.raw_bias:
         N_grids = rescale_potential_grids(os.path.join(args.sampling_dir, FILES["ext_meta.txt"]), bias_factor)
         print(f"The bias has been multiplied by (1 + dT) / dT = {bias_factor:.6f} (dT = {config_data['dT']}, {N_grids} potential grids rescaled)")
