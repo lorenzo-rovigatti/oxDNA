@@ -241,7 +241,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 			_coaxial_stacking_type = COAXIAL_STACKING::OXDNA2;
 		}
 
-		std::vector<std::string> DH_inter = {"DNA2", "DNA2_nomesh", "RNA", "RNA2", "DNA2ModInteraction", "DNA2SD", "DNA3", "NA"};
+		std::vector<std::string> DH_inter = {"DNA2", "DNA2_nomesh", "RNA2", "DNA2ModInteraction", "DNA2SD", "DNA3", "NA"};
 		_has_debye_huckel = std::find(DH_inter.begin(), DH_inter.end(), inter) != DH_inter.end();
 	}
 
