@@ -157,8 +157,17 @@ The following options control the behaviour of MC simulations.
 * `[max_backbone_force = <float>]`: specify the maximum force (in reduced units) that the FENE bonds will exert. After the separation corresponding to the specified value, the potential has a form {math}`A x + B \log(x)`, where *A* and *B* are computed automatically to obtain a continuous, differentiable and monotonically increasing potential. The computation involves the value of `max_backbone_force` as well as the value of `max_backbone_force_far`, below. It should be larger than 0.
 * `[max_backbone_force_far = <float>]`: limit the value of the force exerted by the bonded interactions for large separations, in reduced units. Used in the computation of the *A* and *B* constants (see above). The default value is set to be very weak (0.04 = ~2pN), so that two neighbours will eventually get close without ever breaking base pairs. Only used if `max_backbone_force` is set, should be larger than 0.
 
+````{note}
+Default sequence-dependent parameters can be found in the oxDNA root directory
+```
+/path/to/oxDNA/DNA2_sequence_dependent_parameters.txt
+/path/to/oxDNA/rna_sequence_dependent_parameters.txt
+```
+````
+
 ## Common options for `DNA2` and `RNA2` simulations
 
+* `salt_concentration = <float>`: the salt concentration in molar (M).
 * `[dh_lambda = <float>]`: the value that lambda, which is a function of temperature (T) and salt concentration (I), should take when T = 300K and I = 1M. Defaults to the value from Debye-Huckel theory, 0.3616455.
 * `[debye_huckel_rhigh]`: the distance at which the smoothing of the Debye-Hucker repulsion begins. Defaults to three times the Debye screening length.
 * `[dh_strength = <float>]`: the value that scales the overall strength of the Debye-Huckel interaction. Defaults to 0.0543.
@@ -168,9 +177,6 @@ The following options control the behaviour of MC simulations.
 
 * `[hb_multiplier = <float>]`: hydrogen-bond interaction multiplier applied to all the nucleotides having a custom numbered base whose magnitude is > 300, defaults to 1.0.
 
-## Options for `DNA2` simulations
-
-* `salt_concentration = <float>`: the salt concentration in molar (M).
 
 ## Options for `RNA` and `RNA2` simulations
 
@@ -178,38 +184,47 @@ The following options control the behaviour of MC simulations.
         
 ## Options for `RNA2` simulations
 
-* `[salt = <float>]`: the salt concentration in molar (M). Defaults to 1.
 * `[mismatch_repulsion = <bool>]`: if `true`, add a repulsion between mismatches. Defaults to `false`.
 * `[mismatch_repulsion_strength = <float>]`: set the strength of the repulsion between mismatches. Used only if `mismatch_repulsion = true`, defaults to `1`.
 
 ## Options for `NA` simulations
 
-* `[use_average_seq = <bool>]`: use the average-sequence parameters. Defaults to `true`.
+NA requires separate sequence-dependent parameters for DNA-DNA, RNA-RNA, and DNA-RNA interactions.
 * `[seq_dep_file_DNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 * `[seq_dep_file_RNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 * `[seq_dep_file_NA = <path>]`: path to the location of the file containing the DNA-RNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 
-The `NA` interaction can be run on GPUs (`backend = CUDA`), with DNA, RNA and hybrid DNA/RNA systems, with all the options listed above and in the `DNA2` and `RNA2` sections (including `salt_concentration`, `use_average_seq`, `max_backbone_force` and `mismatch_repulsion`), and with the thermostats and external forces available on CUDA. The edge-based force computation (`use_edge = true`, see the [CUDA options](#cuda-options)) is supported, in single and mixed precision. The following options are not supported by the CUDA implementation of `NA`, which exits with an error if they are used: the computation of the stress tensor (`CUDA_update_stress_tensor_every` and `CUDA_update_particle_stress_tensor`) and FFS simulations. Note that `DNA_enable_*` options, which are ignored by the CPU implementation of `NA`, are ignored on CUDA too.
+````{note}
+Default sequence-dependent parameters can be found in the oxDNA root directory
+```
+/path/to/oxDNA/DNA2_sequence_dependent_parameters.txt
+/path/to/oxDNA/rna_sequence_dependent_parameters.txt
+/path/to/oxDNA/NA_sequence_dependent_parameters.txt
+```
+````
 
+````{warning}
+Note that `DNA_enable_*` options are ignored by `NA`.
+````
 
 ## Options for protein (ANM) simulations
 
-Proteins are modelled at the amino acid level with an anisotropic network model (ANM): each amino acid is a sphere and the protein structure is maintained by harmonic springs listed in a parameter file, with an excluded volume between all amino acids and between amino acids and the backbone and base sites of nucleotides. The ANMT variants add bending and torsion terms between consecutive amino acids, which make the amino acids rigid bodies and are needed to keep small peptides folded.
+Proteins are modelled at the amino acid level with an anisotropic network model (ANM): each amino acid is a sphere and the protein structure is maintained by harmonic springs listed in a parameter file, with an excluded volume between all amino acids and between amino acids and the backbone and base sites of nucleotides. The ANMT variants add bending and torsion terms between consecutive amino acids, which make the amino acids rigid bodies and are needed to keep small peptides folded. For more information, see the [ANM publication](https://doi.org/10.1039/d0sm01639j).
 
 | Interaction | Nucleic acids | Proteins |
 |-------------|---------------|----------|
 | `AC`, `ACT` | none | ANM, ANMT |
-| `DNANM`, `DNACT` | DNA (oxDNA2) | ANM, ANMT |
-| `RNANM`, `RNACT` | RNA (oxRNA2) | ANM, ANMT |
-| `NANM`, `NACT` | DNA, RNA and DNA/RNA hybrids (oxNA, see `NA`) | ANM, ANMT |
+| `DNANM`, `DNACT` | DNA2 | ANM, ANMT |
+| `RNANM`, `RNACT` | RNA2 | ANM, ANMT |
+| `NANM`, `NACT` | NA | ANM, ANMT |
 
-Nucleotides interact exactly as with the corresponding nucleic acid interaction, whose options are all supported (with `use_average_seq = false`, `NANM` and `NACT` read `seq_dep_file_DNA`, `seq_dep_file_RNA` and `seq_dep_file_NA`, like `NA`). Topologies can be in the new format, where protein strands have `type=peptide` (`NANM`/`NACT` require it, with `type=DNA` or `type=RNA` for every nucleic acid strand), or in the legacy format (header `<N> <N_strands> <N_nucleotides> <N_amino_acids> <N_nucleic_strands>`, or `<N> <N_strands>` for `AC`/`ACT`; amino acid lines are `<negative strand id> <amino acid> <N-side neighbour> <C-side neighbour>`). Amino acids and nucleotides must be listed in two separate blocks.
+Nucleotides interact with the corresponding nucleic acid interaction, whose options are all supported. In new-style topologies, proteins have `type=peptide`. `NANM`/`NACT` require new-style topologies, with `type=DNA` or `type=RNA` for every nucleic acid strand.
 
-* `parfile = <path>`: parameter file with the protein springs. Its first line is the number of amino acids, followed by one `<i> <j> <r0> s <k>` line per spring, where `i` and `j` are particle indices, `r0` the equilibrium distance and `k` the stiffness. With the ANMT interactions, the line of each pair of consecutive amino acids (`j = i + 1`) also contains the equilibrium values of the four cosines of the bending and torsion terms, followed by the bending and torsion stiffnesses if `bending_k` and `torsion_k` are not set. Optional (or `none`) for `DNANM`, `RNANM` and `NANM` simulations without proteins, mandatory otherwise. Parameter files can be generated with `oat anm_fluctuation_solver` or with oxView.
+* `parfile = <path>`: parameter file with the protein springs. Its first line is the number of amino acids, followed by one `<i> <j> <r0> s <k>` line per spring, where `i` and `j` are particle indices, `r0` the equilibrium distance and `k` the stiffness. With the ANMT interactions, the line of each pair of consecutive amino acids (`j = i + 1`) also contains the equilibrium values of the four cosines of the bending and torsion terms, followed by the bending and torsion stiffnesses if `bending_k` and `torsion_k` are not set. Optional (or `none`) for `DNANM`, `RNANM` and `NANM` simulations without proteins, mandatory otherwise. Parameter files can be generated with [oat anm_fluctuation_solver](oat/cli.md#anm-fluctuation-solver) or with oxView.
 * `[bending_k = <float>]`, `[torsion_k = <float>]`: ANMT only, the bending and torsion stiffnesses of all the pairs of consecutive amino acids. If they are not set, each pair takes them from the parameter file.
-* `[massfile = <path>]`: file with the mass of each particle type. Note that the masses are currently not used by the integrators.
+.. * `[massfile = <path>]`: file with the mass of each particle type. Note that the masses are currently not used by the integrators.
 
-On GPUs (`backend = CUDA`), `DNANM`, `DNACT`, `RNANM`, `RNACT`, `NANM` and `NACT` are supported (`AC` and `ACT` are not: use `DNANM`/`DNACT` with a protein-only topology, which is equivalent). They work with `use_edge = true` and `false` (only the latter is available in double precision), require `CUDA_sort_every = 0` (the default), and do not support the computation of the stress tensor. Nucleotides interact through the same GPU code as the `NA` interaction.
+On GPUs (`backend = CUDA`), `DNANM`, `DNACT`, `RNANM`, `RNACT`, `NANM` and `NACT` are supported (`AC` and `ACT` are not: use `DNANM`/`DNACT` with a protein-only topology, which is equivalent).
 
 ## Options for `LJ` (Lennard-Jones) simulations
 
