@@ -12,6 +12,7 @@
 #include "../Lists/CUDABaseList.h"
 #include "../cuda_utils/CUDABox.h"
 
+#include <string>
 #include <vector>
 
 /**
@@ -39,8 +40,26 @@ protected:
 	c_number4 *_d_edge_forces = nullptr;
 	c_number4 *_d_edge_torques = nullptr;
 
+	/// file where forces, torques and energies are dumped (CUDA_dump_file). Empty if the dump has not been requested
+	std::string _dump_file;
+	/// index (starting from 0) of the call to compute_forces() after which the dump is performed (CUDA_dump_call)
+	int _dump_call = 0;
+	int _n_force_calls = 0;
+
 	virtual void _sum_edge_forces(c_number4 *d_forces);
 	virtual void _sum_edge_forces_torques(c_number4 *d_forces, c_number4 *d_torques);
+
+	/**
+	 * @brief Debugging and validation tool: writes per-particle forces, torques and energies to CUDA_dump_file after the CUDA_dump_call-th
+	 * force evaluation.
+	 *
+	 * Interactions that want to support it have to call this method at the end of compute_forces(). It does nothing if CUDA_dump_file
+	 * was not set. Each line of the file contains the topology index of the particle, the three components of the force, the energy
+	 * (the fourth component of the force: the energy of a particle is the sum over its pairs, which means that each pair is counted
+	 * twice), and the four components of the torque (in the frame of the particle; the fourth one is interaction-specific, for
+	 * instance it is the hydrogen-bonding energy for DNA/RNA-like models).
+	 */
+	void _dump_forces_if_requested(c_number4 *d_poss, c_number4 *d_forces, c_number4 *d_torques);
 public:
 	CUDABaseInteraction();
 	virtual ~CUDABaseInteraction();

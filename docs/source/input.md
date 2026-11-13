@@ -114,6 +114,8 @@ The following options require `backend = CUDA`.
 * `[CUDA_avoid_cpu_calculations = <bool>]`: Do not run any computations on the CPU. If set to `true`, the energy will not be printed. It may speed up the simulation of very large systems. Defaults to `false`.
 * `[CUDA_barostat_always_refresh = <bool>]`: Refresh the momenta of all particles after a successful volume move. Used only if `use_barostat = true`, defaults to `false`.
 * `[CUDA_print_energy = <bool>]`: print the potential energy as computed on the GPU to the standard output. Useful for debugging purposes, since the "regular" potential energy is computed on the CPU.
+* `[CUDA_dump_file = <path>]`: write to this file the force, the energy and the torque of each particle, as computed on the GPU after the force evaluation selected by `CUDA_dump_call`. Useful to compare the CUDA and CPU implementations of an interaction. Currently it is available only for the `NA` interaction.
+* `[CUDA_dump_call = <int>]`: index (starting from `0`) of the force evaluation after which `CUDA_dump_file` is written. Defaults to `0`, which is the evaluation performed before the first step.
 * `[CUDA_update_stress_tensor_every = <int>]`: copy the value of the stress computed on the GPU to the CPU every this number of steps, so that it can be consumed by observables. Defaults to 0, which means "never copy".
 * `[CUDA_update_particle_stress_tensor = <bool>]`: copy the per-particle stress-tensors in addition to the total stress tensor, also every `CUDA_update_stress_tensor_every` steps. Defaults to `false`.
 
@@ -186,6 +188,8 @@ The following options control the behaviour of MC simulations.
 * `[seq_dep_file_DNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 * `[seq_dep_file_RNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
 * `[seq_dep_file_NA = <path>]`: path to the location of the file containing the DNA-RNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
+
+The `NA` interaction can be run on GPUs (`backend = CUDA`), with DNA, RNA and hybrid DNA/RNA systems, with all the options listed above and in the `DNA2` and `RNA2` sections (including `salt_concentration`, `use_average_seq`, `max_backbone_force` and `mismatch_repulsion`), and with the thermostats and external forces available on CUDA. The edge-based force computation (`use_edge = true`, see the [CUDA options](#cuda-options)) is supported, in single and mixed precision. The following options are not supported by the CUDA implementation of `NA`, which exits with an error if they are used: the computation of the stress tensor (`CUDA_update_stress_tensor_every` and `CUDA_update_particle_stress_tensor`) and FFS simulations. Note that `DNA_enable_*` options, which are ignored by the CPU implementation of `NA`, are ignored on CUDA too.
 
 
 ## Options for `LJ` (Lennard-Jones) simulations
