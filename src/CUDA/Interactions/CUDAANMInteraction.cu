@@ -53,6 +53,27 @@ void init_rna(I &, int, cuda_drh::HybridModel &, cuda_drh::KernelParameters &, s
 
 }
 
+// the maximum backbone force can change with the step (max_backbone_rate)
+template<class I>
+void update_dna_mbf(I &inter, cuda_drh::KernelParameters &params, std::true_type) {
+	NAConstants::update_dna_mbf(inter, params);
+}
+
+template<class I>
+void update_dna_mbf(I &, cuda_drh::KernelParameters &, std::false_type) {
+
+}
+
+template<class I>
+void update_rna_mbf(I &inter, cuda_drh::KernelParameters &params, std::true_type) {
+	NAConstants::update_rna_mbf(inter, params);
+}
+
+template<class I>
+void update_rna_mbf(I &, cuda_drh::KernelParameters &, std::false_type) {
+
+}
+
 template<class I>
 void init_hybrid(I &inter, int N, const cuda_drh::HybridModel &hm, bool use_edge, int n_forces, std::true_type) {
 	NAConstants::hybrid(inter, N, use_edge, n_forces);
@@ -256,6 +277,8 @@ void CUDAANMInteraction<CPUInteraction>::_on_T_update() {
 template<class CPUInteraction>
 void CUDAANMInteraction<CPUInteraction>::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
 	cuda_drh::KernelParameters &params = kernel_parameters<CPUInteraction>();
+	update_dna_mbf(*this, params, has_dna<CPUInteraction>());
+	update_rna_mbf(*this, params, has_rna<CPUInteraction>());
 
 	if(!_use_edge) {
 		cuda_anm::anm_forces

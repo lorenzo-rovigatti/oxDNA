@@ -35,6 +35,8 @@ external_forces_file = YOURFILE.force
 If only small local structural changes are required, this first stage may be sufficient to produce a configuration that is suitable as a starting point for an MD simulation. The aim of the second stage is to remove issues that require larger scale displacements of the nucleotides. In this stage, an MD simulation is run with the modified backbone potential; a typical duration might be $10^6$ MD steps,
 but this will depend on the extent of the displacements required. To deal with the potentially large forces, it is also advantageous to increase the damping compared to a standard oxDNA MD simulation (by reducing the `diff_coeff` parameter). For large DNA structures, this more computationally demanding step is ideally performed on GPU-based architectures (CUDA).
 
+A maximum backbone force that is soft enough to relax a very stressed structure may leave some backbone bonds stretched at the end of the run. With `max_backbone_rate` the maximum force grows with the number of steps, so that the bonds are soft at the beginning of the relaxation and stiff at the end: for instance, `max_backbone_force = 5` and `max_backbone_rate = 1e-4` give a maximum force of 105 after $10^6$ steps (with `restart_step_counter = true`). Note that the maximum force keeps growing for as long as the simulation runs.
+
 The most important options that are linked to this type of relaxation are listed below:
 
 ```

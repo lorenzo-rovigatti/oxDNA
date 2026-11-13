@@ -95,7 +95,12 @@ void RNAInteraction::get_settings(input_file &inp) {
 		if(_mbf_fmax < 0.f) {
 			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
 		}
-		_mbf_xmax = (-model->RNA_FENE_EPS + sqrt(model->RNA_FENE_EPS * model->RNA_FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * model->RNA_FENE_DELTA2)) / (2.f * _mbf_fmax);
+		getInputNumber(&inp, "max_backbone_rate", &_mbf_rate, 0);
+		if(_mbf_rate < (number) 0.) {
+			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_rate");
+		}
+		_mbf_fmax_initial = _mbf_fmax;
+		_set_mbf_fmax(_mbf_fmax);
 		if(getInputNumber(&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) {
 			_mbf_finf = 0.04f; // roughly 2pN, very weak but still there
 		}
@@ -106,6 +111,24 @@ void RNAInteraction::get_settings(input_file &inp) {
 	}
 
 	RNANucleotide::set_model(model);
+}
+
+void RNAInteraction::_set_mbf_fmax(number fmax) {
+	_mbf_fmax = fmax;
+	_mbf_xmax = (-model->RNA_FENE_EPS + sqrt(model->RNA_FENE_EPS * model->RNA_FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * model->RNA_FENE_DELTA2)) / (2.f * _mbf_fmax);
+}
+
+bool RNAInteraction::_update_mbf() {
+	if(!_use_mbf || _mbf_rate == (number) 0.) {
+		return false;
+	}
+	llint step = CONFIG_INFO->curr_step;
+	if(step == _mbf_step) {
+		return false;
+	}
+	_mbf_step = step;
+	_set_mbf_fmax(_mbf_fmax_initial + _mbf_rate * step);
+	return true;
 }
 
 void RNAInteraction::init() {
@@ -394,6 +417,9 @@ void RNAInteraction::init() {
 
 	if(_use_mbf) {
 		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
+		if(_mbf_rate > (number) 0.) {
+			OX_LOG(Logger::LOG_INFO, "The maximum backbone force grows by %g per step (max_backbone_rate)", _mbf_rate);
+		}
 	}
 }
 
@@ -435,6 +461,7 @@ number RNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
+	_update_mbf();
 
 	LR_vector rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	number rbackmod = rback.module();

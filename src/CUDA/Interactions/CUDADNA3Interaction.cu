@@ -171,6 +171,11 @@ void CUDADNA3Interaction::_init_strand_ends(LR_bonds *d_bonds) {
 }
 
 void CUDADNA3Interaction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+    // the maximum backbone force can change with the step (max_backbone_rate): copy the new sequence-dependent distances
+    if(_update_mbf()) {
+        std::vector<float> xmax = _convert_param_array(&this->_mbf_xmax_SD, 1);
+        CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_mbf_xmax_SD, xmax.data(), xmax.size() * sizeof(float)));
+    }
     if(_d_is_strand_end == nullptr) {
         _init_strand_ends(d_bonds);
     }

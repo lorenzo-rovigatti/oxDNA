@@ -75,6 +75,10 @@ void CUDADRHInteraction::_on_T_update() {
 }
 
 void CUDADRHInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
+	// the maximum backbone force can change with the step (max_backbone_rate)
+	DNAInteraction::_update_mbf();
+	RNAInteraction::_update_mbf();
+
 	cuda_drh::KernelParameters params;
 	params.average = RNAInteraction::_average;
 	params.mismatch_repulsion = RNA2Interaction::_mismatch_repulsion;

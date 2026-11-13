@@ -163,6 +163,7 @@ void CUDADNAInteraction::_init_strand_ends(LR_bonds *d_bonds) {
 }
 
 void CUDADNAInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	_update_mbf(); // the maximum backbone force can change with the step (max_backbone_rate)
 	if(_d_is_strand_end == nullptr) {
 		_init_strand_ends(d_bonds);
 	}

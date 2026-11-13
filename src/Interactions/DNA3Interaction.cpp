@@ -963,11 +963,12 @@ void DNA3Interaction::init() {
     // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
 
     if(_use_mbf) {
+        _mbf_xmax_SD_ready = true;
+        _set_mbf_fmax(_mbf_fmax);
         for(int i = 0; i < TETRAMER_DIM_A; i++) {
             for(int j = 0; j < TETRAMER_DIM_B; j++) {
                 for(int k = 0; k < TETRAMER_DIM_B; k++) {
                     for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                        _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
                         // if we use mbf, we should tell the user
                         OX_LOG(Logger::LOG_INFO, "Overwriting mbf_xmax %c %c %c %c to %g", Utils::encode_base(i), Utils::encode_base(k), Utils::encode_base(l), Utils::encode_base(j), _mbf_xmax_SD(i, j, k, l));
                     }
@@ -1236,10 +1237,27 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
     return energy;
 }
 
+void DNA3Interaction::_set_mbf_fmax(number fmax) {
+    DNA2Interaction::_set_mbf_fmax(fmax);
+    if(!_mbf_xmax_SD_ready) {
+        return;
+    }
+    for(int i = 0; i < TETRAMER_DIM_A; i++) {
+        for(int j = 0; j < TETRAMER_DIM_B; j++) {
+            for(int k = 0; k < TETRAMER_DIM_B; k++) {
+                for(int l = 0; l < TETRAMER_DIM_A; l++) {
+                    _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
+                }
+            }
+        }
+    }
+}
+
 number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(!_check_bonded_neighbour(&p, &q, compute_r)) {
         return (number)0.f;
     }
+    _update_mbf();
 
     if(compute_r) {
         _computed_r = q->pos - p->pos;
