@@ -239,7 +239,10 @@ void CUDAANMInteraction<CPUInteraction>::cuda_init(int N) {
 		throw oxDNAException("The protein (ANM) interactions do not support the calculation of the stress tensor on CUDA (CUDA_update_stress_tensor_every and CUDA_update_particle_stress_tensor)");
 	}
 
-	CPUInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		CPUInteraction::init();
+	}
 	this->read_topology_counts();
 
 	_init_constants(N);

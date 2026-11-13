@@ -21,6 +21,8 @@ private:
 protected:
 	bool _average;
 	std::string _seq_filename;
+	/// false when a derived interaction (NA) logs the sequence-dependent files itself
+	bool _log_seq_dep_file = true;
 	number _T;
 	number _hb_multiplier = 1.0;
 	int _grooving;

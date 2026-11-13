@@ -291,7 +291,10 @@ void CUDATEPInteraction::get_settings(input_file &inp) {
 
 void CUDATEPInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	TEPInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		TEPInteraction::init();
+	}
 
 	std::vector<BaseParticle *> particles(N);
 	int my_N_strands;

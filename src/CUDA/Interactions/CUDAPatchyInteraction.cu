@@ -27,7 +27,10 @@ void CUDAPatchyInteraction::get_settings(input_file &inp) {
 
 void CUDAPatchyInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	PatchyInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		PatchyInteraction::init();
+	}
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches, sizeof(int)));

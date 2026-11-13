@@ -47,7 +47,10 @@ void CUDADRHInteraction::cuda_init(int N) {
 		throw oxDNAException("The NA interaction does not support the calculation of the stress tensor on CUDA (CUDA_update_stress_tensor_every and CUDA_update_particle_stress_tensor)");
 	}
 
-	DRHInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		DRHInteraction::init();
+	}
 
 	_init_dna_constants(N);
 	_init_rna_constants(N);

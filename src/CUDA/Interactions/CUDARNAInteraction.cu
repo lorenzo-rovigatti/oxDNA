@@ -277,7 +277,10 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 
 void CUDARNAInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	RNAInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		RNAInteraction::init();
+	}
 
 	float f_copy = 1.0; //_hb_multiplier;
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));

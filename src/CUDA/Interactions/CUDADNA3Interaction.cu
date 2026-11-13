@@ -48,9 +48,10 @@ std::vector<float> CUDADNA3Interaction::_convert_param_array(const MultiDimArray
 
 void CUDADNA3Interaction::cuda_init(int N) {
     CUDABaseInteraction::cuda_init(N);
-	Logger::instance()->disable_log("CUDADNA3Interaction");
-    DNA3Interaction::init();
-	Logger::instance()->enable_log("CUDADNA3Interaction");
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		DNA3Interaction::init();
+	}
 
     float f_copy = this->_hb_multiplier;
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));

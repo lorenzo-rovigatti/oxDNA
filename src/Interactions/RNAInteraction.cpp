@@ -64,7 +64,9 @@ void RNAInteraction::get_settings(input_file &inp) {
 				getInputString(&inp, "seq_dep_file", _seq_filename, 1);
 			}
 
-			OX_LOG(Logger::LOG_INFO, "Using sequence dependent parameters from file %s ",_seq_filename);
+			if(_log_seq_dep_file) {
+				OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename);
+			}
 		}
 	}
 

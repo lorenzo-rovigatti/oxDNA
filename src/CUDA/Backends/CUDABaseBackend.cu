@@ -127,8 +127,14 @@ void CUDABaseBackend::get_settings(input_file &inp) {
 		_sqr_verlet_skin = SQR(verlet_skin);
 	}
 
-	_cuda_interaction = CUDAInteractionFactory::make_interaction(inp);
-	_cuda_interaction->get_settings(inp);
+	{
+		// the CUDA interaction derives from the CPU interaction that SimBackend has already built and configured
+		// from the same input, so its constructor and get_settings would print the same messages again.
+		// GPU-specific messages belong in get_cuda_settings and cuda_init, which are not muted
+		ScopedLogMute mute("CUDA interaction settings");
+		_cuda_interaction = CUDAInteractionFactory::make_interaction(inp);
+		_cuda_interaction->get_settings(inp);
+	}
 	_cuda_interaction->get_cuda_settings(inp);
 
 	_cuda_lists = CUDAListFactory::make_list(inp);

@@ -25,7 +25,10 @@ void CUDALJInteraction::get_settings(input_file &inp) {
 
 void CUDALJInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
-	LJInteraction::init();
+	{
+		ScopedLogMute mute("CUDA interaction init"); // the CPU interaction has already printed these messages
+		LJInteraction::init();
+	}
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_LJ_n, &this->_n, 3 * sizeof(int)));

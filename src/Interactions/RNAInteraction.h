@@ -51,6 +51,8 @@ protected:
 	number _mbf_finf;
 
 	char _seq_filename[512];
+	/// false when a derived interaction (NA) logs the sequence-dependent files itself
+	bool _log_seq_dep_file = true;
 
 	Model *model;
     number _T;

@@ -12,6 +12,10 @@
 #include <cfloat>
 
 DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
+	// the three sequence-dependent files are logged together at the end of get_settings
+	DNA2Interaction::_log_seq_dep_file = false;
+	RNA2Interaction::_log_seq_dep_file = false;
+
 	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
 	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
 	ADD_INTERACTION_TO_MAP(STACKING, _stacking);
@@ -142,7 +146,9 @@ void DRHInteraction::get_settings(input_file &inp) {
 
 	if(!DNA2Interaction::_average) {
 		getInputString(&inp, "seq_dep_file_NA", _seq_filename, 1);
-		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent NA values", _seq_filename.c_str());
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DNA values", DNA2Interaction::_seq_filename.c_str());
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent RNA values", RNA2Interaction::_seq_filename);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DNA/RNA (hybrid) values", _seq_filename.c_str());
 	}
 }
 

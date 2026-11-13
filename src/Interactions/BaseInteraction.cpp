@@ -96,7 +96,10 @@ void BaseInteraction::get_settings(input_file &inp) {
 	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
 	if(_generate_consider_bonded_interactions) {
 		getInputNumber(&inp, "generate_bonded_cutoff", &_generate_bonded_cutoff, 0);
-		OX_LOG(Logger::LOG_INFO, "The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than %lf", _generate_bonded_cutoff);
+		if(!_generator_settings_logged) {
+			OX_LOG(Logger::LOG_INFO, "The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than %lf", _generate_bonded_cutoff);
+			_generator_settings_logged = true;
+		}
 	}
 
 	// note that the same key is read independently by CUDABaseInteraction

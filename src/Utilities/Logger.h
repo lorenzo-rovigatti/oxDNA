@@ -13,6 +13,7 @@
 
 #include <cstdarg>
 #include <memory>
+#include <string>
 
 #include "parse_input/parse_input.h"
 
@@ -113,6 +114,28 @@ public:
 	static std::shared_ptr<Logger> instance();
 
 	virtual ~Logger();
+};
+
+/**
+ * @brief Silences the logger while in scope.
+ *
+ * Used where an object repeats work whose messages have already been printed, e.g. the GPU copy of the
+ * interaction, which reads the same input as the CPU one. The logger is re-enabled when the guard goes out
+ * of scope, also if an exception is thrown. Nested guards are fine: only the outermost one re-enables it.
+ */
+class ScopedLogMute {
+public:
+	explicit ScopedLogMute(const std::string &who) : _who(who) {
+		Logger::instance()->disable_log(_who);
+	}
+	~ScopedLogMute() {
+		Logger::instance()->enable_log(_who);
+	}
+	ScopedLogMute(const ScopedLogMute &) = delete;
+	ScopedLogMute &operator=(const ScopedLogMute &) = delete;
+
+private:
+	std::string _who;
 };
 
 #endif /* LOGGER_H_ */

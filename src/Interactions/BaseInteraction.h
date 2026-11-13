@@ -39,6 +39,8 @@ protected:
 	bool _generate_consider_bonded_interactions;
 	/// This controls the maximum at which bonded neighbours should be randomly placed to speed-up generation. Used by generator functions.
 	number _generate_bonded_cutoff;
+	/// get_settings can run more than once on the same object (NA calls it through both its DNA and RNA parts)
+	bool _generator_settings_logged = false;
 
 	number _rcut, _sqr_rcut;
 
