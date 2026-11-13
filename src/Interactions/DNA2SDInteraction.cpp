@@ -608,7 +608,21 @@ void DNA2SDInteraction::init() {
 		}
 						
 	}
-	
+
+	// _rcut has been computed by DNA2Interaction::init() with the default parameters, so we make sure that it also covers
+	// the ranges of the sequence-dependent nonbonded terms (DNA2SD always uses the generic POS_BASE offset)
+	for(int i = 0; i < 5; i++) {
+		for(int j = 0; j < 5; j++) {
+			number range = 2. * fabs(POS_BASE) + fmax(F1_SD_RCHIGH[HYDR_F1][i][j], F2_SD_RCHIGH[CRST_F2][i][j]);
+			if(range > _rcut) {
+				_rcut = range;
+				_sqr_rcut = SQR(_rcut);
+			}
+		}
+	}
+
+	OX_DEBUG("DNA2SD nonbonded cutoff: %lf", _rcut);
+
 	//std::cout << "DNA2SD initialisation done" << std::endl;
 	
 }

@@ -1,6 +1,6 @@
 # oxDNA
 
-oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by [T. E. Ouldridge, J. P. K. Doye and A. A. Louis](http://dx.doi.org/10.1063/1.3552946). It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations of different kinds on both single CPU cores and NVIDIA GPUs.
+oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by [T. E. Ouldridge, J. P. K. Doye and A. A. Louis](http://dx.doi.org/10.1063/1.3552946). It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, hybrid DNA/RNA, protein (through anisotropic network models), Lennard-Jones and patchy particle simulations of different kinds on both single CPU cores and NVIDIA GPUs.
 
 The development of this software has been partially supported by the European Commission through the Marie Skłodowska−Curie Fellowship No.702298-DELTAS, and ONR grant N000142012094.
 
@@ -16,7 +16,7 @@ Installation instructions can be found in the `docs/source/install.md` file or o
 
 ## Examples
 
-The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY` and `OXPY_REMD` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).
+The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY`, `OXPY_FFS`, `OXPY_Jupyter`, `OXPY_REMD` and `BOILERPLATE_Jupyter` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).
 
 The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools`, a suite of command line Python tools for performing generic structural analyses of oxDNA simulations.
 
@@ -28,7 +28,7 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 
 **Q: Can oxDNA be run on multiple CPU cores or GPUs?**
 
-**A:** No, oxDNA can run simulations on single cores or single GPUs only. However, the Python bindings (`oxpy`) can be used to implement parallel algorithms on top of `oxDNA`. See for instance `examples/METADYNAMICS` and `examples/OXPY_REMD`.
+**A:** In general, no: oxDNA can run simulations on single cores or single GPUs only. However, the Python bindings (`oxpy`) can be used to implement parallel algorithms on top of `oxDNA`. See for instance `examples/METADYNAMICS` and `examples/OXPY_REMD`.
 
 **Q: How is the oxDNA force field defined?**
 
@@ -38,6 +38,7 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 * [oxDNA2](https://pubs.aip.org/aip/jcp/article-abstract/142/23/234901/193554/Introducing-improved-structural-properties-and?redirectedFrom=fulltext)
 * [oxRNA](https://pubs.aip.org/aip/jcp/article-abstract/140/23/235102/73414/A-nucleotide-level-coarse-grained-model-of-RNA?redirectedFrom=fulltext)
 * [oxNA](https://pubs.aip.org/aip/jcp/article/160/11/115101/3275728)
+* [ANM proteins and their coupling with oxDNA](https://doi.org/10.1039/D0SM01639J)
 
 ## Citing oxDNA
 
@@ -50,11 +51,11 @@ Please cite these publications for any work that uses the oxDNA simulation packa
 - for the CUDA-powered code:
   * [L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)](https://doi.org/10.1002/jcc.23763)
 - for oxDNA analysis tools:
-  * [E. Poppleton et al., Nucleic Acids Research e72 (2020)](https://doi.org/10.1093/nar/gkab324)
+  * [E. Poppleton et al., Nucleic Acids Research 48, e72 (2020)](https://doi.org/10.1093/nar/gkaa417)
     
 ## Acknowledgements
 
-oxDNA depends on a minimum number of external libraries (a c++-14-compliant standard library and NVIDIA's CUDA if the user wishes to enable it).
+oxDNA depends on a minimum number of external libraries (a c++-14-compliant standard library, or c++-17-compliant if compiling with CUDA >= 13, NVIDIA's CUDA if the user wishes to enable it, and optionally [zstd](https://github.com/facebook/zstd), which is automatically downloaded if compression support is requested but the library is not found).
 
 Internally, oxDNA uses the following libraries, which are included in the source tree:
 

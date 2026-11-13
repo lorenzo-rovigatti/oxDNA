@@ -209,8 +209,6 @@ void CUDABaseBackend::init_cuda() {
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox)));
 	CUDA_SAFE_CALL(cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault));
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size));
-
 	CUDA_SAFE_CALL(cudaMemset(_d_list_poss, 0, _vec_size));
 
 	// CPU memory allocations

@@ -1,0 +1,41 @@
+# Compiles oxDNA with CUDA support in the nvidia/cuda containers
+# GitHub runners have no GPU, so this only checks that the CUDA code compiles and links; it does not run it
+# Runs on every commit and on pull requests to master
+
+name: Linux CUDA Build
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: CUDA ${{ matrix.cuda }} (${{ matrix.precision }})
+    runs-on: ubuntu-latest
+    container: nvidia/cuda:${{ matrix.cuda }}-devel-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 12.x builds with C++14, 13.x with C++17 (CCCL); ubuntu22.04 also covers CMake < 3.24
+        cuda: ["12.4.1", "13.5.0"]
+        precision: [mixed, double]
+        include:
+          - cuda: "12.4.1"
+            os: ubuntu22.04
+          - cuda: "13.5.0"
+            os: ubuntu24.04
+    steps:
+    - name: Install build tools
+      run: |
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential cmake git ca-certificates
+    - uses: actions/checkout@v4
+    - name: Configure
+      # a single architecture keeps the build short (CUDA_COMMON_ARCH would compile every file for ~10 architectures);
+      # 75 is the oldest one supported by CUDA 13
+      run: |
+        cmake -B build -DCUDA=ON -DCUDA_DOUBLE=${{ matrix.precision == 'double' && 'ON' || 'OFF' }} -DCMAKE_CUDA_ARCHITECTURES=75
+    - name: Build
+      run: |
+        cmake --build build -j4

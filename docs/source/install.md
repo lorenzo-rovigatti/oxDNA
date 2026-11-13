@@ -2,11 +2,11 @@
 
 ## Requirements
 
-The code requires [CMake](https://cmake.org/) and a c++-14-compliant `g++` (any version >= 4.9 *should* work). Compilation works with current versions (14.0) of Apple `clang` but this has not been thoroughly tested. The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
+The code requires [CMake](https://cmake.org/) >= 3.15 and a c++-14-compliant `g++` (any version >= 4.9 *should* work). Compilation works with current versions (14.0) of Apple `clang` but this has not been thoroughly tested. The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
 
 ### CUDA
 
-Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
+Compiling with CUDA support requires CMake >= 3.17 and a CUDA toolkit >= 10. CMake >= 3.18 is strongly recommended, since older versions fall back to CMake's deprecated `FindCUDA` module. Compiling with CUDA >= 13 requires a c++-17-compliant compiler (*e.g.* `g++` >= 7), since the C++17 standard is enabled automatically when such a CUDA version is detected. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
 
 ### Python bindings
 
