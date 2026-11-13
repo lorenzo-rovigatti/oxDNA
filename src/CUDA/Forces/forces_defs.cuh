@@ -28,6 +28,7 @@
 #define CUDA_REPULSIVE_SPHERE_MOVING 17
 #define CUDA_REPULSIVE_KEPLER_POINSOT 18
 #define CUDA_LR_COORDINATION 19
+#define CUDA_TRAP_SKEW 20
 
 #include "../../Forces/COMForce.h"
 #include "../../Forces/ConstantRateForce.h"
@@ -36,6 +37,7 @@
 #include "../../Forces/LowdimMovingTrap.h"
 #include "../../Forces/MovingTrap.h"
 #include "../../Forces/MutualTrap.h"
+#include "../../Forces/SkewTrap.h"
 #include "../../Forces/RepulsionPlane.h"
 #include "../../Forces/RepulsionPlaneMoving.h"
 #include "../../Forces/RepulsiveSphere.h"
@@ -95,6 +97,31 @@ void init_MutualTrap_from_CPU(mutual_trap *cuda_force, MutualTrap *cpu_force) {
 	cuda_force->r0 = cpu_force->_r0;
 	cuda_force->p_ind = cpu_force->_p_ptr->index;
 	cuda_force->PBC = cpu_force->PBC;
+}
+
+/**
+ * @brief CUDA version of a SkewTrap. See SkewTrap.h for the meaning of the precomputed coefficients.
+ */
+struct skew_trap {
+	int type;
+	int p_ind;
+	bool PBC;
+	c_number r0;
+	c_number rate;
+	c_number inv_s2;
+	c_number w_coeff;
+	c_number g_coeff;
+};
+
+void init_SkewTrap_from_CPU(skew_trap *cuda_force, SkewTrap *cpu_force) {
+	cuda_force->type = CUDA_TRAP_SKEW;
+	cuda_force->p_ind = cpu_force->_p_ptr->index;
+	cuda_force->PBC = cpu_force->PBC;
+	cuda_force->r0 = cpu_force->_r0;
+	cuda_force->rate = cpu_force->_rate;
+	cuda_force->inv_s2 = cpu_force->_inv_s2;
+	cuda_force->w_coeff = cpu_force->_w_coeff;
+	cuda_force->g_coeff = cpu_force->_g_coeff;
 }
 
 /**
@@ -491,6 +518,7 @@ union CUDA_trap {
 	int type;
 	constant_rate_force constant;
 	mutual_trap mutual;
+	skew_trap skew;
 	moving_trap moving;
 	lowdim_moving_trap lowdim;
 	repulsion_plane repulsionplane;

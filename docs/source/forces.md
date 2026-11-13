@@ -86,14 +86,14 @@ A force of this kind is specified with `type = mutual_trap`. The relevant keys a
 * `ref_particle = <index>`: particle to pull towards.
 * `stiff = <float>`: stiffness of the trap.
 * `r0 = <float>`: equilibrium distance of the trap.
-* `PBC = <bool>`: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.
+* `PBC = <bool>`: (default: 0) If 0, calculate the distance between particles without considering periodic boundary conditions.
 * `rate = <float>`: change `r0` by this much every time step.
 * `stiff_rate = <float>`: change `stiff` by this much every time step.
 
 `particle` and `ref_particle` each take one particle expression, using the same syntax as the list-valued `particle` keys on other forces. An integer, `last`, or a range that contains one particle is accepted. `all`, `-1`, a comma-separated list, and a range that contains more than one particle are rejected, as is any token the parser does not recognize. The rejection names the field. These keys are not interpreted by converting the text with `atof`, so an unrecognized token is not silently treated as particle 0.
 
 ````{warning}
-PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.
+PBC should almost always be set explicitly to 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.
 ````
 
 ````{admonition} Example
@@ -115,6 +115,51 @@ Here is an example, extracted from the pseudoknot formation example (`examples/P
 	stiff = 1.
 	r0 = 1.2
 	}
+
+````
+
+## Skew trap
+
+`skew_trap` is an asymmetric version of the mutual trap: it pulls one particle toward a reference particle, but is softer on one side of `r0` than on the other. Its most common usage is to mimic small-molecule linkers with non-normal end-to-end length distributions. The potential is minus the logarithm of a [skew-normal distribution](https://en.wikipedia.org/wiki/Skew_normal_distribution). With $x = r - r_0$, where $r$ is the distance between the two particles, the potential is
+
+$$
+V(x) = -\ln\left[\frac{1}{\sqrt{2\pi}\,\sigma} e^{-x^2/2\sigma^2}\left(1 + \mathrm{erf}\left(\frac{\alpha x}{\sigma\sqrt{2}}\right)\right)\right].
+$$
+
+$\alpha$ sets the asymmetry. For $\alpha > 0$, the potential is soft for $r > r_0$ and steep for $r < r_0$ and reversed for $\alpha < 0$. With $\alpha = 0$ it would reduce to a mutual trap with `stiff` $= 1/\sigma^2$, but that value is rejected; use `mutual_trap` instead.
+
+* `particle = <index>`: the particle on which to exert the force.
+* `ref_particle = <index>`: particle to pull towards.
+* `r0 = <float>`: reference distance of the trap. Because of the skew, the potential minimum is not at `r0`: it is shifted toward the soft side, by an amount that grows with `stdev` and $|\alpha|$.
+* `stdev = <float>`: scale parameter $\sigma$, which sets the trap stiffness. Must be positive. The stiffness $V''(x)$ always lies between $1/\sigma^2$ and $(1+\alpha^2)/\sigma^2$. Far out on the soft side it tends to $1/\sigma^2$, so there the trap behaves like a `mutual_trap` with `stiff` $= 1/\sigma^2$. Far out on the steep side it tends to $(1+\alpha^2)/\sigma^2$. 
+* `shape = <float>`: shape parameter $\alpha$. Must be non-zero. Positive means $r > r_0$ is soft, reversed for negative. 
+* `PBC = <bool>`: (default: 0) if 0, ignore periodic boundary conditions when computing the distance.
+* `rate = <float>`: (default: 0) change `r0` by this much every time step.
+
+`particle` and `ref_particle` accept the same single-particle expressions as `mutual_trap`.
+
+````{warning}
+PBC should almost always be set explicitly to 1. 
+````
+
+````{note}
+`stdev` and `shape` describe the shape of the potential, not the distance distribution you will measure. The sampled distribution is proportional to $e^{-V/k_BT}$, so it matches the skew-normal with these parameters only at $k_BT = 1$ (about 3000 K). At room temperature ($k_BT \approx 0.1$), the spread around the minimum is at most about $\sigma\sqrt{k_BT} \approx 0.3\,\sigma$, and smaller on the steep side. Choose `stdev` as you would choose `stiff` for a `mutual_trap` ($\sigma = 1/\sqrt{\mathrm{stiff}}$); a small `stdev` makes a very stiff trap, which can make the simulation unstable. 
+
+As with `mutual_trap`, it is usually best to add a second force with `particle` and `ref_particle` swapped.
+````
+
+````{admonition} Example of a skew trip mimicking a DBCO-Azide linker
+
+    {
+    type = skew_trap
+    particle = 0
+    ref_particle = 15612
+    r0 = 2.35
+    stdev = 3
+    shape = -15
+    PBC = 1
+    rate = 0
+    }
 
 ````
 

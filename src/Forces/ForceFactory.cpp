@@ -15,6 +15,7 @@
 #include "LowdimMovingTrap.h"
 #include "MovingTrap.h"
 #include "MutualTrap.h"
+#include "SkewTrap.h"
 #include "RepulsionPlane.h"
 #include "RepulsionPlaneMoving.h"
 #include "LJWall.h"
@@ -77,6 +78,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("attraction_plane") == 0) extF = std::make_shared<AttractionPlane>();
 	else if(type_str.compare("repulsion_plane_moving") == 0) extF = std::make_shared<RepulsionPlaneMoving>();
 	else if(type_str.compare("mutual_trap") == 0) extF = std::make_shared<MutualTrap>();
+	else if(type_str.compare("skew_trap") == 0) extF = std::make_shared<SkewTrap>();
 	else if(type_str.compare("lowdim_trap") == 0) extF = std::make_shared<LowdimMovingTrap>();
 	else if(type_str.compare("constant_trap") == 0) extF = std::make_shared<ConstantTrap>();
 	else if(type_str.compare("sphere") == 0) extF = std::make_shared<RepulsiveSphere>();

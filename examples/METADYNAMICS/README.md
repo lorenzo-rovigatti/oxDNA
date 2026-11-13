@@ -2,30 +2,53 @@
 
 The `metad_interface.py` script provides a minimal interface to run well-tempered metadynamics simulations with the oxDNA software package.
 
-The script is heavily based on the code developed by [Kaufhold *et al.*](https://zenodo.org/record/6326800) (see [References](#references)). However, differently from their code this interface uses oxpy, oxDNA's Python bindings, which allows for a much greater flexibility. In addition, directly accessing (and manipulating) oxDNA's data structures can sizeably improve performances, especially when simulations are run on GPUs.
+The script is heavily based on the code developed by [Kaufhold *et al.*](https://zenodo.org/record/6326800) (see [References](#references)). However, differently from their code this interface uses oxpy, oxDNA's Python bindings, which allows for a much greater flexibility. In addition, directly accessing (and manipulating) oxDNA's data structures can sizeably improve performances, especially when simulations are run on GPUs: the bias potential is updated directly in the memory of the running simulations, without having to restart them or to re-read any input file.
 
-Available collective variables are the distance between two clusters of nucleotides (either in one or two dimensions), or the tangent of the ratio of two distances.
+Available collective variables (CVs) are the distance between the centres of mass of two clusters of nucleotides (either in one or two dimensions), the arctangent of the ratio of two such distances, the angle formed by the centres of mass of three clusters, and a continuous coordination number that counts hydrogen bonds (see [below](#supported-collective-variables)).
 Multi-walker metadynamics, P. Raiteri et al. (https://doi.org/10.1021/jp054359r), is also supported.
 
 Please note that the interface is still under active development.
 
 ## Requirements
 
-The interface requires the `oxpy` lib (which can be compiled and installed by issuing the `-DPython=On` option when running `cmake` and then running `make install` after the usual oxDNA compilation), pandas and numpy.
+The interface requires the `oxpy` lib (which can be compiled and installed by issuing the `-DPython=On` option when running `cmake` and then running `make install` after the usual oxDNA compilation), numpy and toml.
 
 ## Usage
 
-Run the script without any arguments to see the list of supported options. The only mandatory argument is a folder which contains the oxDNA files (at least the input, topology and configuration files) required to run an unbiased simulation of the system that one wishes to study. The only other required file is a file containing the indexes of the particles whose coordinates are used to build the collective variables that will be used to bias the simulations. The name of this file, which by default is `locs.meta`, can be optionally specified with the `--p_fname` switch.
+Run the script with `--help` to see the list of supported options. The only mandatory argument is a folder which contains the oxDNA files (at least the input, topology and configuration files) required to run an unbiased simulation of the system that one wishes to study. The only other required file is a file containing the indexes of the particles whose coordinates are used to build the collective variables that will be used to bias the simulations. The name of this file, which by default is `locs.meta`, can be optionally specified with the `--p_fname` switch. Its format depends on the chosen CV:
 
-Note that rather than passing the options as arguments, it is also possible to put them in a toml file and pass it to the interface with the `--config FILENAME` switch.
+* For the CVs based on centres of mass, each line has the form `name: idx1, idx2, ...`, where `name` is one of `p1a`, `p2a`, `p1b`, `p2b`, `p3a` (see the description of each CV for the names that are required) and the indexes can be given as for the [external forces](https://lorenzo-rovigatti.github.io/oxDNA/forces.html) (*e.g.* `p1a: 0, 1, 2` or `p1a: 0-2`). See `SINGLE_HELIX_BENDING/locs.meta` for an example.
+* For the coordination number, each line contains a pair of comma-separated indexes of nucleotides that can form a hydrogen bond (*e.g.* `0, 11`). See `DS6/locs.meta` for an example.
+
+By default the CV is the distance between two clusters. Other CVs are selected with the `--dim 2`, `--ratio`, `--angle`, or `--coordination` switches.
+
+Note that rather than passing the options as arguments, it is also possible to put them in a toml file and pass it to the interface with the `--config FILENAME` switch (see `DS6/metad_details.toml` for an example).
 
 All the options used to run the simulation are dumped in a `metad_PID.toml` file, where `PID` is the process ID, at the beginning of each run.
 
-Once launched, the script runs a certain number of metadynamics simulations that can be controlled by the `--Niter` switch and defaults to 10000. After each metadynamics iteration the current bias is saved to the `bias` folder by using [`pickle.dump`](https://docs.python.org/3/library/pickle.html#pickle.dump) and therefore can be loaded back as a `numpy` array with [`pickle.load`](https://docs.python.org/3/library/pickle.html#pickle.load).
+Once launched, the script runs `N_walkers` simulations (walkers), each in its own `run-meta_i` folder, that share the same bias potential. The script performs a certain number of metadynamics iterations, which can be controlled by the `--Niter` switch and defaults to 10000. In each iteration, every walker is run for `tau` MD steps, after which the current value of the CV of each walker is used to deposit a new Gaussian on the bias, which is then sent to all the walkers. Every `save_hills` iterations the current bias is saved to the `bias` folder by using [`pickle.dump`](https://docs.python.org/3/library/pickle.html#pickle.dump) and therefore can be loaded back as a `numpy` array with [`pickle.load`](https://docs.python.org/3/library/pickle.html#pickle.load). A run can be restarted from the last saved bias with the `--continue_run` switch.
 
 When used on CUDA-powered simulations, by default the interface launches the processes without any indication about the device that should be used, and in fact will honour the `CUDA_device` key if found in the base input file. Therefore, if GPUs are not set to run in compute mode "EXCLUSIVE_PROCESS", all the walkers will use the same GPU (the one specified by `CUDA_device` or, if this is not present in the base input file, the first available GPU). The `--use_sequential_GPUs` switch can be used to tell each walker to run on a distinct GPU: walker 0 will run on device 0, walker 1 on device 1, *etc.*
 
 Note that reproducible results (at least on CPU) can be obtained by using a seed, which can be specified with the `--seed` switch, or by using a `seed` key in the TOML configuration file. Any seed found in the base input file will be overwritten.
+
+### Parameters and units
+
+The bias $V(s)$ is stored on a regular grid of spacing `dX` that spans the `[xmin, xmax]` interval (for the 2D CV the same grid is used along both dimensions). Every `tau` steps, each walker deposits a Gaussian of width `sigma` (in units of the CV) and height
+
+$$
+A \exp\left(-\frac{\beta V(s)}{\delta}\right),
+$$
+
+where $\beta = 1 / k_BT$, `A` is the initial height **in units of $k_BT$**, and $\delta$ is set by the `dT` option. Note that `dT` is **dimensionless**: it is the ratio $\Delta T / T$, where $\Delta T$ is the usual well-tempered "bias temperature". The corresponding bias factor is $\gamma = 1 + \delta$.
+
+Every `save_hills` iterations the interface also writes
+
+* `bias/last_bias.dat`: the current bias, in oxDNA energy units;
+* `last_beta_fe.dat`: the current estimate of the free-energy profile in units of $k_BT$, $\beta F(s) = -\frac{1 + \delta}{\delta} \beta V(s)$, shifted so that its minimum is zero;
+* `last_fe.dat`: the same profile, in oxDNA energy units.
+
+Note that the pickled `bias/bias_N` files contain $\beta V$, *i.e.* the bias in units of $k_BT$.
 
 ## Supported collective variables
 
@@ -37,7 +60,7 @@ $$
 
 Sets are specified by using comma-separated lists of indices (as commonly done when specifying [external forces](https://lorenzo-rovigatti.github.io/oxDNA/forces.html)).
 
-For each CV we also provide a list of options that can be specified in the external forces file. Note that these are automatically written by the metadynamics interface, so you probably won't need to edit those by hand.
+Each CV is implemented in oxDNA as an external force that stores the bias on a grid and evaluates it (and its derivatives) by linear interpolation. For each CV we also provide a list of the options that are used in the external forces file. Note that these are automatically written by the metadynamics interface, so you probably won't need to edit those by hand. The CVs based on centres of mass require one force per set of nucleotides, which is selected through the `mode` option.
 
 ### Distance between two clusters (1D)
 
@@ -49,15 +72,15 @@ $$
 
 Usage (brief):
 
-- Required: two particle sets (A,B) whose centres of mass define the distance.
+- Required: two particle sets, `p1a` (A) and `p2a` (B), whose centres of mass define the distance.
 - Supported on CPU and GPU.
-- Important config keys:
+- Important options:
 
-```toml
+```
 type = meta_com_trap
 p1a = comma-separated list    # indices for set A
 p2a = comma-separated list    # indices for set B
-mode = 1
+mode = 1                      # 1 or 2: the set the force acts on
 PBC = false
 xmin = 0.0
 xmax = 50.0
@@ -75,21 +98,23 @@ $$
 
 Usage (brief):
 
-- Required: two independent pairs of sets, (A,B) and (C,D).
-- Note: this is currently the only supported 2D OP and is CPU-only.
-- Important config keys:
+- Required: two independent pairs of sets, (`p1a`, `p2a`) and (`p1b`, `p2b`). Selected with `--dim 2`.
+- Note: this is currently the only supported 2D CV and is CPU-only.
+- Important options:
 
-```toml
+```
 type = meta_2D_com_trap
 p1a = comma-separated list
 p2a = comma-separated list
 p1b = comma-separated list
 p2b = comma-separated list
 PBC = false
-mode = 1   # choose which pair receives the force in this instance
+mode = 1   # 1 to 4: the set the force acts on
 N_grid = 64
 xmin = 0.0
 xmax = 50.0
+ymin = 0.0
+ymax = 50.0
 # potential_grid is given as rows separated by '|' and values comma-separated:
 potential_grid = v11,v12,...|v21,v22,...|...
 ```
@@ -99,25 +124,27 @@ potential_grid = v11,v12,...|v21,v22,...|...
 For two distances $s_1 = \lVert\mathbf{r}_B - \mathbf{r}_A\rVert$ and $s_2 = \lVert\mathbf{r}_D - \mathbf{r}_C\rVert$, the CV is the arctangent of their ratio
 
 $$
-\alpha = \operatorname{atan}\left(\frac{s_2}{s_1}\right).
+\alpha = \operatorname{atan}\left(\frac{s_2}{s_1}\right),
 $$
+
+which takes values in $[0, \pi/2]$.
 
 Usage (brief):
 
-- Required: two distances computed from two pairs of sets (A,B) and (C,D).
+- Required: two distances computed from two pairs of sets, (`p1a`, `p2a`) and (`p1b`, `p2b`). Selected with `--ratio`.
 - CPU-only.
-- Important config keys:
+- Important options:
 
-```toml
+```
 type = meta_atan_com_trap
 p1a = comma-separated list
 p2a = comma-separated list
 p1b = comma-separated list
 p2b = comma-separated list
 PBC = false
-mode = 1
-xmin = -1.57   # angle grid min (radians)
-xmax =  1.57   # angle grid max (radians)
+mode = 1        # 1 to 4: the set the force acts on
+xmin = 0.0      # angle grid min (radians)
+xmax = 1.5708   # angle grid max (radians)
 N_grid = 101
 potential_grid = comma-separated values
 ```
@@ -128,26 +155,26 @@ Given three sets A,B,C with centres $\mathbf{r}_A,\mathbf{r}_B,\mathbf{r}_C$, de
 
 $$
 \mathbf{u} = \mathbf{r}_A - \mathbf{r}_B, \qquad \mathbf{v} = \mathbf{r}_C - \mathbf{r}_B.
-$$ 
+$$
 
 The CV is the angle between $\mathbf{u}$ and $\mathbf{v}$
 
 $$
-	heta = \arccos\left(\frac{\mathbf{u}\cdot\mathbf{v}}{\lVert\mathbf{u}\rVert\,\lVert\mathbf{v}\rVert}\right).
+\theta = \arccos\left(\frac{\mathbf{u}\cdot\mathbf{v}}{\lVert\mathbf{u}\rVert\,\lVert\mathbf{v}\rVert}\right).
 $$
 
 Usage (brief):
 
-- Required: three sets A,B,C (B is the vertex of the angle).
+- Required: three sets, `p1a` (A), `p2a` (B, the vertex of the angle), and `p3a` (C). Selected with `--angle`.
 - CPU-only.
-- Important config keys:
+- Important options:
 
-```toml
+```
 type = meta_com_angle_trap
 p1a = comma-separated list
 p2a = comma-separated list  # central set
 p3a = comma-separated list
-mode = 1
+mode = 1                    # 1 to 3: the set the force acts on
 PBC = false
 xmin = 0.0
 xmax = 3.1416
@@ -162,14 +189,14 @@ in two ways:
 
 1. If $U_{HB}(i,j)$ is the pair energy contribution due to hydrogen bonding between $i$ and $j$, then a smooth coordination number can be defined as
 $$
-C_{HB} = \sum_{(j, j)} \frac{1}{2} \left[ 1 + \tanh{\left( \frac{U_{\rm cut} - U_{HB}(i, j)}{U_w} \right)} \right],
+C_{HB} = \sum_{(i, j)} \frac{1}{2} \left[ 1 + \tanh{\left( \frac{U_{\rm cut} - U_{HB}(i, j)}{U_w} \right)} \right],
 $$
-where $U_{\rm cut}$ and $U_w$ are two parameters that can be set with the `hb_energy_cutoff` and `hb_transition_width` TOML keys and whose values default to $-0.2$ and $0.1$, respectively. This CV can be set with `coordination_type = "hb_energy"`.
+where $U_{\rm cut}$ and $U_w$ are two parameters that can be set with the `hb_energy_cutoff` and `hb_transition_width` TOML keys and whose values default to $-0.2$ and $0.1$, respectively. This CV, which is the default, can be selected with `coordination_type = "hb_cutoff"`.
 2. Defining $r_{ij}$ as the distance between the HB sites of $i$ and $j$, a smooth coordination number can be defined as
 $$
 C_{sw} = \sum_{(i,j)} \frac{1}{1 + \left(\dfrac{r_{ij} - d_0}{r_0}\right)^n},
 $$
-where $d_0$, $r_0$, and $n$ are parameters controlling the switching function (see example configuration). This CV is continuous and bounded, and is the basis for the coordination-based metadynamics example. This CV can be selected by setting `coordination_type = "switching_function"` in the TOML input file. The default values for the $d_0$, $r_0$, and $n$ parameters are $0.4$, $0.5$, and $6$ (as in the example below), but different values can be used by setting the `d0`, `r0`, and `n` keys in the metadynamics TOML file.
+where $d_0$, $r_0$, and $n$ are parameters controlling the switching function. This CV is continuous and bounded, and can be selected by setting `coordination_type = "switching_function"` in the TOML input file. The default values for the $d_0$, $r_0$, and $n$ parameters are $0.4$, $0.5$, and $6$, but different values can be used by setting the `d0`, `r0`, and `n` keys in the metadynamics TOML file. Note that $n$ must be an even integer.
 
 It is also possible to use a coordination number that is a combination of the two by setting `coordination_type = "mixed"`:
 
@@ -181,15 +208,18 @@ where $w \in [0, 1]$ is set with the `mixed_weight` option and defaults to $0.7$
 
 Usage (brief):
 
-- Required: an order-parameter file describing hydrogen-bond candidate pairs (see `op_file` in the examples).
-- CPU-only.
-- Important config keys:
+- Required: the list of hydrogen-bond candidate pairs. Selected with `--coordination`.
+- Supported on CPU and GPU.
+- Each nucleotide can appear in at most one pair.
+- Important options:
 
-```toml
+```
 type = meta_coordination
-op_file = "path/to/op_file"   # order-parameter file listing hb pairs
-coordination_type = "mixed"
-hb_energy_cutoff = -0.1
+op_file = path/to/op_file   # order-parameter file listing the HB pairs
+coordination_type = mixed
+hb_energy_cutoff = -0.2
+hb_transition_width = 0.1
+mixed_weight = 0.7
 d0 = 0.4
 r0 = 0.5
 n = 6
@@ -199,7 +229,7 @@ N_grid = 121
 potential_grid = comma-separated values
 ```
 
-The `op_file` must contain the hydrogen-bond definitions; the code will extract the list of pairs and compute the continuous coordination number using the switching parameters `d0`, `r0` and exponent `n`. Note that 
+The `op_file` is a standard oxDNA order-parameter file that must contain a single hydrogen-bond order parameter listing the pairs that contribute to the coordination number. Note that when using the metadynamics interface you do not need to write this file yourself: the interface generates it (`op_coordination.dat`) from the list of pairs contained in the `p_fname` file. The grid boundaries are set with the usual `xmin` and `xmax` options of the interface.
 
 ## Set up a metadynamics simulation
 
@@ -208,17 +238,19 @@ In order to launch a metadynamics simulation you will need
 * A working oxDNA simulation of the system you want to study
 * A collective variable you want to use as the order parameter
 
-First you need to prepare a folder that contains all the input files required to launch an unbias (*i.e.* regular) oxDNA simulation. The input file **must** be called `input`. Then you need to prepare a `p_fname` file that contains the list of nucleotides that will be used to compute the collective variables. Finally, you run `metad_interface.py` with appropriate arguments.
+First you need to prepare a folder that contains all the input files required to launch an unbiased (*i.e.* regular) oxDNA simulation. The input file **must** be called `input`. Then you need to prepare a `p_fname` file that contains the list of nucleotides that will be used to compute the collective variables. Finally, you run `metad_interface.py` with appropriate arguments.
 
 ## Prepare a "sampling" folder
 
-Although you can use `last_beta_fe.dat` and `last_fe.dat` as the free-energy profiles, it is usually better to run one or more sampling simulations biased with the biasing potential obtained at the end of the metadynamics simulations. The `prepare_sampling.py` can be used to prepare a "sampling" folder as follows:
+Although you can use `last_beta_fe.dat` and `last_fe.dat` as the free-energy profiles, it is usually better to run one or more sampling simulations biased with the (now static) biasing potential obtained at the end of the metadynamics simulations. The `prepare_sampling.py` script, which should be launched from the folder where the metadynamics simulation has been run, can be used to prepare a "sampling" folder as follows:
 
 ```
 python3 /path/to/prepare_sampling.py --config metad_details.toml SAMPLING
 ```
 
-where `metad_details.toml` is either the toml file you used to run the metadynamics simulations, or the toml file printed by the interface, and `SAMPLING` is the name of the sampling folder. Note that the script will also copy the `metad_details.toml` file to the new folder, renaming it to `original_metad_config.toml`. You can then step in the sampling folder and run a regular oxDNA simulations:
+where `metad_details.toml` is either the toml file you used to run the metadynamics simulations, or the toml file printed by the interface, and `SAMPLING` is the name of the sampling folder. The sampling simulation starts from the last configuration of the first walker.
+
+By default the sampling simulation is biased with the final metadynamics bias $V(s)$. Note that, by construction, the well-tempered bias compensates only a fraction $\delta / (1 + \delta)$ of the free energy, so that the sampling simulation still experiences a residual free-energy landscape $F(s) / (1 + \delta)$, where $\delta$ is the value of `dT`. This is harmless if the free-energy differences are small, but it can prevent the sampling of systems with large free-energy differences (*e.g.* the binding of large structures). If the `--rescale_bias` option is given, the bias is multiplied by $(1 + \delta) / \delta$, so that the sampling simulation is biased by the free-energy estimate itself (with its sign changed) and, if the metadynamics simulation has converged, its free-energy landscape is flat. In both cases, `unbias_sampling.py` (see below) reweights the samples with the bias that has actually been applied. Note that the script will also copy the `metad_details.toml` file to the new folder, renaming it to `original_metad_config.toml`. You can then step in the sampling folder and run a regular oxDNA simulation:
 
 ```
 /path/to/oxDNA input
@@ -226,13 +258,15 @@ where `metad_details.toml` is either the toml file you used to run the metadynam
 
 ### Unbias the results
 
-You can obtain the unbiased free energy by using another accompanying script, `unbias_sampling.py`, which requires as its only parameter the metad configuration file:
+You can obtain the unbiased free energy by using another accompanying script, `unbias_sampling.py`, which should be run in the sampling folder and requires as its only parameter the metad configuration file:
 
 ```
 /path/to/unbias_sampling.py --config original_metad_config.toml
 ```
 
-At the end of the analysis, you will find the `biased_beta_FE.dat` and `unbiased_beta_FE.dat` files. If you used the continuous coordination OP, then the script will also generate an `unbiased_hb_beta_FE.dat` file.
+The script reweights each sampled value of the CV by $e^{\beta V(s)}$, where $V(s)$ is the bias energy printed in the `op.dat` file. At the end of the analysis, you will find the `biased_beta_FE.dat` and `unbiased_beta_FE.dat` files, which contain the free-energy profiles in units of $k_BT$. If you used the continuous coordination CV, then the script will also generate the `biased_hb_beta_FE.dat` and `unbiased_hb_beta_FE.dat` files, which contain the free-energy profiles as a function of the (integer) number of hydrogen bonds, as defined by oxDNA's standard hydrogen-bond order parameter.
+
+Note that `unbias_sampling.py` currently supports only the one-dimensional distance and the coordination CVs.
 
 ## Examples
 
@@ -244,11 +278,12 @@ The example can be run on CPUs or GPUs with the `do.run_CPU.sh` and `do.run_CUDA
 
 ### `DS6`
 
-The system contains a hexamer (*i.e.* a double strand of length six). The order parameter is a continuous coordination number that can be used to extract free energy profiles that are function of the number of hydrogen bonds. The example can be run with `python3 path/to/metad_interface.py --config metad_details.toml base`.
+The system contains a hexamer (*i.e.* a double strand of length six). The CV is the continuous coordination number (with the default `hb_cutoff` definition) built from the six native base pairs listed in `locs.meta`, which can be used to extract free-energy profiles that are function of the number of hydrogen bonds. The example can be run with `python3 path/to/metad_interface.py --config metad_details.toml`.
 
 ## References
 
-* Original metadyamics paper: [https://doi.org/10.1073/pnas.202427399](https://doi.org/10.1073/pnas.202427399)
+* Original metadynamics paper: [https://doi.org/10.1073/pnas.202427399](https://doi.org/10.1073/pnas.202427399)
+* Well-tempered metadynamics paper: [https://doi.org/10.1103/PhysRevLett.100.020603](https://doi.org/10.1103/PhysRevLett.100.020603)
 * Multi-walker metadynamics paper: [https://doi.org/10.1021/jp054359r](https://doi.org/10.1021/jp054359r)
 * Kaufhold *et al.*'s paper: [https://arxiv.org/abs/2110.01477](https://arxiv.org/abs/2110.01477)
 * Kaufhold *et al.*'s code: [https://zenodo.org/record/6326800](https://zenodo.org/record/6326800)
