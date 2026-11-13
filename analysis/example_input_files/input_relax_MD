@@ -30,7 +30,6 @@ max_backbone_force = 5
 # the maximum backbone force grows from 5 to 1000 over the run: (1000 - 5) / steps
 # (keep in sync with steps; ${} expressions are rounded to 6 decimals, too few for this value)
 max_backbone_rate = 9.95e-6
-max_backbone_far = 10
 external_forces = 1
 external_forces_file = external_forces.txt
 use_average_seq = 1
