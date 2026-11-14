@@ -75,6 +75,26 @@ where $f_\rho$ is a factor that can be set with the `max_density_multiplier` opt
 On newer versions of oxDNA (> 3.6.1), setting `debug = true` will report in the log file (or on screen if `log_file` is not set) the amount of memory that is requested by each allocation on the GPU.
 :::
 
+#### Edge lists
+
+Setting `use_edge = true` makes oxDNA parallelise force computations over interacting pairs rather than over particles, which often results in a sizeable speed-up. By default (`CUDA_list = verlet`), however, oxDNA first builds the usual per-particle Verlet neighbour matrix, whose size scales as the number of nucleotides times the maximum number of neighbours per particle, and then compresses it into a list of unique pairs. The matrix is thus allocated even if it is only used as an intermediate step.
+
+Setting `CUDA_list = edge` (together with `use_edge = true`) builds the list of unique pairs directly from the cells, without ever allocating the per-particle matrix. In our tests (DNA2, `backend_precision = mixed`, RTX 3060 Laptop GPU) it runs at the same speed as `CUDA_list = verlet` with `use_edge = true`, while its GPU memory footprint is the same as that of plain `CUDA_list = verlet`. The saving grows with the system size: for the largest system we tested (65 536 nucleotides) the peak extra memory drops from 484 MB to 296 MB (about 40% less) with respect to `CUDA_list = verlet` with `use_edge = true`. The list is particularly useful for large systems, or when the memory of the GPU is the limiting factor. Note that, like `use_edge`, `CUDA_list = edge` is not compatible with `backend_precision = double`.
+
+```{figure} ./images/cuda_edge_list_throughput.png
+:width: 70%
+:name: cuda_edge_list_throughput
+
+Simulation speed of the different CUDA lists, as a function of the number of nucleotides.
+```
+
+```{figure} ./images/cuda_edge_list_memory.png
+:width: 70%
+:name: cuda_edge_list_memory
+
+Peak extra GPU memory used by the different CUDA lists, as a function of the number of nucleotides.
+```
+
 ## Monte Carlo
 
 When running Monte Carlo simulations the efficiency of the sampling depends on specific moves employed during the simulation. For regular Monte Carlo and VMMC simulations, the most important options are `delta_translation` and `delta_rotation`, which set the maximum displacement for translations and rotations. Optimal values depend very much on the system at hand, so it is hard to provide some guidelines, although often values around `0.1` given decent performance. Sometimes it may be worth to set [`adjust_moves = true` (together with `equilibration_steps > 0`)](input.md#monte-carlo-options) to let the code look for optimal values.
