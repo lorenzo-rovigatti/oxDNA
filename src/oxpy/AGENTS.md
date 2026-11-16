@@ -16,7 +16,7 @@ This file provides guidance to coding agents working on `src/oxpy/`, the pybind1
 - `vector_matrix_casters.h`: type casters that convert `LR_vector`/`LR_matrix` to and from numpy arrays.
 - `__init__.py`, `utils.py`: the pure-Python part of the package (`oxpy.utils` helpers such as `generate_default_input`, `Kelvin_to_oxDNA`). `__init__.py` loads the extension with `RTLD_GLOBAL` so that plugins can see the engine's symbols: don't remove it.
 - `pyproject_cmake.toml`: the `pyproject.toml` of the package installed by `make install` (the version is substituted from the git tag). The top-level `pyproject.toml` builds the same package with scikit-build-core (`pip install .` from the repository root).
-- `pybind11/`: a vendored copy of pybind11. Do not modify it; update it only as a whole, in a dedicated pull request.
+- `pybind11/`: a vendored copy of pybind11. Do not modify it; update it only as a whole, in a dedicated pull request after extensive testing with multiple compiler and Python versions.
 
 ## Build and test
 
