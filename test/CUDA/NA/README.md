@@ -57,7 +57,7 @@ The `CUDA_dump_file`, `CUDA_dump_call` and `CUDA_NA_dump_hybrid_only` options us
 
 ## Reference results
 
-Obtained on an NVIDIA GeForce RTX 3060 Laptop GPU (compute capability 8.6) with a Release build of this branch.
+Obtained on an NVIDIA GeForce RTX 3060 Laptop GPU (compute capability 8.6).
 
 * `pytest test_cuda_na.py`: 5 passed (28 subtests) with `OXDNA_CUDA_PRECISION=mixed` and with `float`. With a `-DCUDA_DOUBLE=ON` build and `OXDNA_CUDA_PRECISION=double`, 4 passed and 1 skipped (the `use_edge` test, which is not available in double precision).
 * `validation/parity.py` (four systems, mixed precision): the per-nucleotide deviations from the CPU code are the same with and without `use_edge = true`, and are due to the interpolated meshes used by the CPU code (see above).
@@ -71,7 +71,7 @@ Obtained on an NVIDIA GeForce RTX 3060 Laptop GPU (compute capability 8.6) with 
 | `hybrid_overhang` | 7e-7 | 3e-6 | -1.032886 / -1.032887 |
 | `mixed` | 8e-7 | 1e-5 | -0.928045 / -0.928044 |
 
-* Time per step on one CPU core (single-threaded oxDNA) and on the GPU, mixed precision, thermostatted (`john`) systems obtained by tiling the `mixed` system (1, 8, 27, 125 and 343 copies), measured as the wall-clock difference between a long and a short run, so that start-up costs are excluded:
+* Time per step on one CPU core (single-threaded oxDNA) and on the GPU, mixed precision, thermostatted (`brownian`) systems obtained by tiling the `mixed` system (1, 8, 27, 125 and 343 copies), measured as the wall-clock difference between a long and a short run, so that start-up costs are excluded:
 
 | Nucleotides | CPU | GPU, `use_edge = false` | GPU, `use_edge = true` | CPU / GPU (edge) |
 |---:|---:|---:|---:|---:|
