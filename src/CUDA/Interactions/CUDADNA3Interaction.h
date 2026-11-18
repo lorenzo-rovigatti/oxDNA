@@ -63,7 +63,7 @@ public:
 	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_qorientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 
 protected:
-	std::vector<float> _convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays);
+	std::vector<c_number> _convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays);
 	void _on_T_update() override;
 	void _init_strand_ends(LR_bonds *d_bonds);
 };

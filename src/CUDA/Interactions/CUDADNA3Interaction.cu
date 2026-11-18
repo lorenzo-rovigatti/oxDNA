@@ -37,11 +37,12 @@ void CUDADNA3Interaction::get_settings(input_file &inp) {
 	Logger::instance()->enable_log("CUDADNA3Interaction");
 }
 
-std::vector<float> CUDADNA3Interaction::_convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays) {
-    std::vector<float> data(src[0].total_size * N_arrays);
+// the device arrays (OxDNA3Params) hold c_number, i.e. float in mixed precision and double in double precision
+std::vector<c_number> CUDADNA3Interaction::_convert_param_array(const MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> *src, int N_arrays) {
+    std::vector<c_number> data(src[0].total_size * N_arrays);
     for(int i = 0; i < N_arrays; i++) {
         int offset = i * src[0].total_size;
-        std::transform(src[i].data, src[i].data + src[i].total_size, data.begin() + offset, [](number v) { return static_cast<float>(v); });
+        std::transform(src[i].data, src[i].data + src[i].total_size, data.begin() + offset, [](number v) { return static_cast<c_number>(v); });
     }
     return data;
 }
@@ -60,87 +61,87 @@ void CUDADNA3Interaction::cuda_init(int N) {
     // oxDNA3
 
     // FENE
-    std::vector<float> params = _convert_param_array(&this->_fene_r0_SD, 1);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_fene_r0_SD, params.data(), params.size() * sizeof(float)));
+    std::vector<c_number> params = _convert_param_array(&this->_fene_r0_SD, 1);
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_fene_r0_SD, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(&this->_fene_delta2_SD, 1);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_fene_delta2_SD, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_fene_delta2_SD, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(&this->_mbf_xmax_SD, 1);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_mbf_xmax_SD, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_mbf_xmax_SD, params.data(), params.size() * sizeof(params[0])));
     COPY_NUMBER_TO_FLOAT(MD_fene_eps, this->_fene_eps);
 
     // excluded volume
     params = _convert_param_array(this->_excl_s, 7);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_s, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_s, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(this->_excl_r, 7);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_r, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_r, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(this->_excl_b, 7);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_b, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_b, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(this->_excl_rc, 7);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_rc, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_excl_rc, params.data(), params.size() * sizeof(params[0])));
 
     params = _convert_param_array(F1_SD_EPS, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_EPS, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_EPS, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_A, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_A, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_A, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_RC, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RC, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RC, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_R0, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_R0, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_R0, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_BLOW, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_BLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_BLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_BHIGH, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_BHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_BHIGH, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_RLOW, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_RHIGH, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RHIGH, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_RCLOW, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RCLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RCLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_RCHIGH, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RCHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_RCHIGH, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F1_SD_SHIFT, 2);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_SHIFT, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F1_SD_SHIFT, params.data(), params.size() * sizeof(params[0])));
 
     params = _convert_param_array(F2_SD_K, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_K_SYMM, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K_SYMM, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_K_SYMM, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_RC, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RC, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RC, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_R0, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_R0, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_R0, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_BLOW, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_BLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_BLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_RLOW, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_RCLOW, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RCLOW, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RCLOW, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_BHIGH, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_BHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_BHIGH, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_RCHIGH, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RCHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RCHIGH, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F2_SD_RHIGH, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RHIGH, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F2_SD_RHIGH, params.data(), params.size() * sizeof(params[0])));
 
     params = _convert_param_array(F4_SD_THETA_A, 21);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_A, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_A, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F4_SD_THETA_B, 21);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_B, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_B, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F4_SD_THETA_T0, 21);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_T0, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_T0, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F4_SD_THETA_TS, 21);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_TS, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_TS, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F4_SD_THETA_TC, 21);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_TC, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F4_SD_THETA_TC, params.data(), params.size() * sizeof(params[0])));
 
     params = _convert_param_array(F5_SD_PHI_A, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_A, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_A, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F5_SD_PHI_B, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_B, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_B, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F5_SD_PHI_XC, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_XC, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_XC, params.data(), params.size() * sizeof(params[0])));
     params = _convert_param_array(F5_SD_PHI_XS, 4);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_XS, params.data(), params.size() * sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_F5_SD_PHI_XS, params.data(), params.size() * sizeof(params[0])));
 
     // end oxDNA3
 
