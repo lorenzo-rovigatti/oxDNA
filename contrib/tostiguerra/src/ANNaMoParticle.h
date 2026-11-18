@@ -33,7 +33,7 @@ public:
 		}
 	}
 
-	bool is_rigid_body() override {
+	bool is_rigid_body() const override {
 		return true;
 	}
 

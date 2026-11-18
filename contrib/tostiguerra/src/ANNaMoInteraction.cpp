@@ -1,6 +1,8 @@
 #include "ANNaMoInteraction.h"
 
 #include <Particles/Molecule.h>
+#include <Utilities/ConfigInfo.h>
+#include <Utilities/Utils.h>
 #include <fstream>
 
 using namespace std;
