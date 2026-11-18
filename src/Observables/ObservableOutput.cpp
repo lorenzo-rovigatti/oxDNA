@@ -12,6 +12,7 @@
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/CompressedFileHeader.h"
 
 #include <sstream>
 #include <iostream>
@@ -145,18 +146,8 @@ void ObservableOutput::_open_output() {
 
 #ifdef ZSTD_ENABLED
 		if(_use_zstd && write_zstd_header) {
-			// 8-byte magic header
-			uint8_t header[8];
-			header[0] = 'O';
-			header[1] = 'X';
-			header[2] = 'D';
-			header[3] = 0x01;        // "oxDNA" magic with compatibility byte
-			header[4] = 0x01;        // header version
-			header[5] = _zstd_level; // compression level
-			header[6] = 0x00;        // reserved
-			header[7] = 0x00;        // reserved
-
-			_output->write(reinterpret_cast<char*>(header), 8);
+			CompressedFileHeader::Header header = CompressedFileHeader::make(_zstd_level);
+			_output->write(reinterpret_cast<const char *>(header.data()), header.size());
 			_output->flush();
 		}
 #endif
@@ -172,22 +163,25 @@ bool ObservableOutput::_continues_existing_file() {
 	if(!existing.good()) {
 		return false;
 	}
-	char header[8];
-	existing.read(header, 8);
-	std::streamsize n_read = existing.gcount();
+	char header[CompressedFileHeader::SIZE];
+	existing.read(header, CompressedFileHeader::SIZE);
+	std::size_t n_read = existing.gcount();
 	if(n_read == 0) {
 		return false; // an empty file is written from scratch
 	}
 
-	bool is_compressed = n_read >= 4 && header[0] == 'O' && header[1] == 'X' && header[2] == 'D' && header[3] == 0x01;
+	bool is_compressed = CompressedFileHeader::has_magic(header, n_read);
 	if(_use_zstd && !is_compressed) {
 		throw oxDNAException("Cannot append compressed output to '%s', which is not empty and is not a compressed oxDNA file: remove it, or set restart_step_counter = true to overwrite it", _output_name.c_str());
 	}
 	if(!_use_zstd && is_compressed) {
 		throw oxDNAException("Cannot append uncompressed output to '%s', which is a compressed oxDNA file: enable compression for this output, remove the file, or set restart_step_counter = true to overwrite it", _output_name.c_str());
 	}
-	if(_use_zstd && (n_read < 8 || header[4] != 0x01)) {
-		throw oxDNAException("Cannot append compressed output to '%s': its header is incomplete or has an unsupported version", _output_name.c_str());
+	if(_use_zstd && n_read < CompressedFileHeader::SIZE) {
+		throw oxDNAException("Cannot append compressed output to '%s': its header is incomplete", _output_name.c_str());
+	}
+	if(_use_zstd && CompressedFileHeader::version(header) != CompressedFileHeader::VERSION) {
+		throw oxDNAException("Cannot append compressed output to '%s': its header has version %d, but this version of oxDNA writes version %d", _output_name.c_str(), CompressedFileHeader::version(header), CompressedFileHeader::VERSION);
 	}
 	return true;
 }

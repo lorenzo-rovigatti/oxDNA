@@ -12,6 +12,7 @@
 #include "SimBackend.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
+#include "../Utilities/CompressedFileHeader.h"
 #include "../Interactions/InteractionFactory.h"
 #include "../Observables/ObservableFactory.h"
 #include "../Forces/ForceFactory.h"
@@ -294,22 +295,21 @@ void SimBackend::init() {
 	if(_zstd_configurations) {
 		_zstd_read_buffer.clear();
 #ifdef ZSTD_ENABLED
-		uint8_t header[8];
-		_conf_input.read(reinterpret_cast<char*>(header), 8);
-		if(_conf_input.gcount() != 8) {
+		CompressedFileHeader::Header header;
+		_conf_input.read(reinterpret_cast<char *>(header.data()), header.size());
+		if((std::size_t) _conf_input.gcount() != header.size()) {
 			throw oxDNAException("Could not read zstd compression header from configuration file");
 		}
 
-		// Validate the magic
-		if(header[0] != 'O' || header[1] != 'X' || header[2] != 'D' || header[3] != 0x01) {
+		if(!CompressedFileHeader::has_magic(header.data(), header.size())) {
 			throw oxDNAException("Invalid zstd compression header: expected 'OXD' magic with compatibility byte 0x01");
 		}
 
-		if(header[4] != 0x01) {
-			throw oxDNAException("Unsupported zstd header version: %d (only version 1 is supported)", header[4]);
+		if(CompressedFileHeader::version(header.data()) != CompressedFileHeader::VERSION) {
+			throw oxDNAException("Unsupported zstd header version: %d (only version %d is supported)", CompressedFileHeader::version(header.data()), CompressedFileHeader::VERSION);
 		}
 
-		OX_LOG(Logger::LOG_INFO, "Configuration file uses zstd compression with level %d", header[5]);
+		OX_LOG(Logger::LOG_INFO, "Configuration file uses zstd compression with level %d", CompressedFileHeader::compression_level(header.data()));
 
 		// Initialize the decompression context
 		zstd_header_found = true;
@@ -339,7 +339,7 @@ void SimBackend::init() {
 
 	// Skip the zstd header again if it was read
 	if(_zstd_configurations && zstd_header_found) {
-		_conf_input.seekg(8, ios::beg);
+		_conf_input.seekg(CompressedFileHeader::SIZE, ios::beg);
 	}
 
 	// we need to skip a certain number of lines, depending on how many
