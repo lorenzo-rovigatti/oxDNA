@@ -30,6 +30,7 @@ if(CUDA)
 		set_target_properties(${target} PROPERTIES PREFIX "")
 	endfunction()
 
-	cuda_add_library_no_prefix(CUDANNaMoInteraction src/CUDANNaMoInteraction.cu src/ANNaMoInteraction.cpp)
-	ADD_DEPENDENCIES(tostiguerra CUDANNaMoInteraction)
+	# the CUDA factory loads interaction_type = X from the plugin CUDAX
+	cuda_add_library_no_prefix(CUDAANNaMoInteraction src/CUDANNaMoInteraction.cu src/ANNaMoInteraction.cpp)
+	ADD_DEPENDENCIES(tostiguerra CUDAANNaMoInteraction)
 endif(CUDA)

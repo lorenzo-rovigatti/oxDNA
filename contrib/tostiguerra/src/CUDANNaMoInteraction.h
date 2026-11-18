@@ -43,4 +43,9 @@ extern "C" BaseInteraction *make_CUDACGNucleicAcidsInteraction() {
 	return new CUDACGNucleicAcidsInteraction();
 }
 
+/// the entry point used by the CUDA factory for interaction_type = ANNaMoInteraction
+extern "C" BaseInteraction *make_CUDAANNaMoInteraction() {
+	return new CUDACGNucleicAcidsInteraction();
+}
+
 #endif /* CUDACGNUCLEICACIDSINTERACTION_H_ */
