@@ -34,7 +34,7 @@ Code uses tabs for indentation.
 Minimum Python version is 3.11 but oxpy and oat must also work with the latest Python release.
 Maintain good software hygiene. File parsing and shared functions go in src/Utilities/ not individual files. Files should implement what their name suggests and nothing more.
 Look for existing implementations of functions before implementing them.
-The code must always be backwards-compatible (except in very extreme cases). A new feature must not change how a structure run with a specific parameter set in the previous version would behave. All breaking changes must be documented in `breaking_changes.md`. Bug fixes may change results, but this must be stated explicitly in the PR description and in `CHANGELOG`, together with how the old behaviour was wrong.
+The code must always be backwards-compatible (except in very extreme cases). A new feature must not change how a structure run with a specific parameter set in the previous version would behave. All breaking changes must be documented in `breaking_changes.md`. Bug fixes may change results, but this must be stated explicitly in the PR description, together with how the old behaviour was wrong.
 Keep dependencies minimal. Any external C++ libraries beyond the standard library must be under optional flags and either packaged with oxDNA (like Pybind11) or with automatic build instructions in the CmakeLists.txt (like Zstd).
 All Python dependencies must be installable with a basic pip/conda installation command.
 The code is expected to compile on Linux and MacOS using gcc or clang. Windows is not explicitly supported, although it has been reported to work with some setups.
@@ -145,11 +145,12 @@ oxpy bindings are in `src/oxpy/bindings_includes/` (one header per exposed class
 
 - The `pre-commit` script (link into `.git/hooks/`) enforces that `#define RELEASE` in `src/defs.h` matches `git describe --tags`, and rejects whitespace errors.
 - External libraries are in `src/extern/`: nlohmann JSON, TinyExpr++, fast_double_parser, zstdpp.
-- `CHANGELOG` lists user-facing changes per release; `breaking_changes.md` documents past C++ API changes (e.g. `number` is a compile-time float/double, CUDA uses `c_number`/`c_number4`, plugins need a single `make_<Name>` entry point).
+- `CHANGELOG` lists user-facing changes per release and is written by the maintainer (see [Pull requests](#pull-requests)); `breaking_changes.md` documents past C++ API changes (e.g. `number` is a compile-time float/double, CUDA uses `c_number`/`c_number4`, plugins need a single `make_<Name>` entry point).
 
 ## Pull requests
 
 - One topic per pull request, branched from the current `master`. Do not mix unrelated features or fixes, and do not base a PR on another unmerged branch unless the dependency is stated.
-- Update the documentation in the same PR (see [Documentation](#documentation)) and check that it builds. Add user-facing changes to `CHANGELOG`.
+- Update the documentation in the same PR (see [Documentation](#documentation)) and check that it builds.
+- Do not edit `CHANGELOG`: the maintainer writes its entries himself and rejects pull requests that change it. Describe the user-facing changes in the PR description instead.
 - Add tests for new features (a folder in `test/` listed in `test/test_folder_list.txt` for the engine, `analysis/tests/` for oat), with reference values validated as described in [Verifying physics changes](#verifying-physics-changes).
 - In the description, state what was tested (CPU/GPU, precision, simulation types, test suite level) and, explicitly, what was not (e.g. MC/VMMC, CUDA, double precision, old-style topologies).
