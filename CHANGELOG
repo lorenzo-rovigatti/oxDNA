@@ -1,6 +1,3 @@
-unreleased
-	- Fix compressed outputs of simulations restarted with `restart_step_counter = false`, which got a new file header in the middle of the file and could no longer be read; add `utils/fix_zstd_trajectory.py` to repair such files. Appending compressed output to an uncompressed file, or vice versa, is now an error
-
 v. 3.8.0
 	- Add a preliminary version of the oxDNA3 model (#191) [8840345]
 	- Merge the protein ANM models from the old oxDNA-anm repository, with examples and tests (#192) [f52834c]
