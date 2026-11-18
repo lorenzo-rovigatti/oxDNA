@@ -59,7 +59,7 @@ The script reads the custom header (magic bytes 'OXD\x01', version, compression 
 
 ## fix_zstd_trajectory.py
 
-Simulations run with `restart_step_counter = false` append to their output files. Before this was fixed, oxDNA wrote a new compressed-file header every time such a simulation was restarted, in the middle of the file, and readers (oat, `decompress_zstd.py`) stopped there with an error such as `Expected zstd frame magic at file offset ..., got 0x0144584f`. This script repairs these files by removing every header after the first one. It does not decompress the data, so it does not need the `zstandard` library and works on files of any size. A frame cut short at the end of the file (e.g. by a simulation that was killed while writing it) is reported and dropped.
+Simulations run with `restart_step_counter = false` append to their output files. Before this was fixed, oxDNA wrote a new compressed-file header in the middle of the file every time such a simulation was restarted. Readers (oat, `decompress_zstd.py`) stopped there with an error such as `Expected zstd frame magic at file offset ..., got 0x0144584f`. This script repairs these files by removing headers after the first one. It does not decompress the data, so it does not need the `zstandard` library and works on files of any size. A frame cut short at the end of the file (e.g. by a simulation that was killed while writing it) is reported and dropped.
 
 ### Usage
 
@@ -68,11 +68,7 @@ python fix_zstd_trajectory.py <compressed_file> [output_file]
 python fix_zstd_trajectory.py --in-place <compressed_file>
 ```
 
-- `<compressed_file>`: The compressed oxDNA file to repair (a trajectory or any compressed observable output).
-- `[output_file]`: Optional output file name. If not provided, the output will be written to `<compressed_file>.fixed`.
-- `--in-place`: Replace the input file with the repaired one.
-
-Files without repeated headers are copied unchanged.
+Files without repeated headers or partial frames are copied unchanged.
 
 ## Compressing trajectory files
 
