@@ -70,6 +70,15 @@ protected:
 	llint _bytes_written;
 
 	void _open_output();
+
+	/**
+	 * @brief Checks whether new data will be appended to an existing, non-empty file, which must then have the same format.
+	 *
+	 * Throws if a compressed output would be appended to an uncompressed file or vice versa.
+	 *
+	 * @return true if the file exists and is not empty (a compressed file then already has its header)
+	 */
+	bool _continues_existing_file();
 	void _set_next_log_step();
 
 public:

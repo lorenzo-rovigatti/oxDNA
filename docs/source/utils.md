@@ -57,6 +57,19 @@ python decompress_zstd.py <compressed_file> [output_file]
 
 The script reads the custom header (magic bytes 'OXD\x01', version, compression level) and decompresses the Zstandard-compressed data stream.
 
+## fix_zstd_trajectory.py
+
+Simulations run with `restart_step_counter = false` append to their output files. Before this was fixed, oxDNA wrote a new compressed-file header in the middle of the file every time such a simulation was restarted. Readers (oat, `decompress_zstd.py`) stopped there with an error such as `Expected zstd frame magic at file offset ..., got 0x0144584f`. This script repairs these files by removing headers after the first one. It does not decompress the data, so it does not need the `zstandard` library and works on files of any size. A frame cut short at the end of the file (e.g. by a simulation that was killed while writing it) is reported and dropped.
+
+### Usage
+
+```bash
+python fix_zstd_trajectory.py <compressed_file> [output_file]
+python fix_zstd_trajectory.py --in-place <compressed_file>
+```
+
+Files without repeated headers or partial frames are copied unchanged.
+
 ## Compressing trajectory files
 
 ### Overview
