@@ -83,7 +83,7 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number &sigma, c_number &sqr_rep_rcut, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
+__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, const c_number sigma, const c_number sqr_rep_rcut, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
