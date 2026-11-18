@@ -7,7 +7,6 @@
 
 #include "CUDANNaMoInteraction.h"
 
-#include "Particles/CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
 
