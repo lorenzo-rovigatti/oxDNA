@@ -21,12 +21,18 @@ add_library_no_prefix(ANNaMoInteraction MODULE EXCLUDE_FROM_ALL src/ANNaMoIntera
 
 if(CUDA)
 	set(CMAKE_MODULE_LINKER_FLAGS  "${CMAKE_MODULE_LINKER_FLAGS} -rdynamic")
-	find_package("CUDA")
 
-	# same thing but for CUDA libs
+	# same thing but for CUDA libs. With CMake >= 3.18 the main build compiles CUDA as a first-class language, and the
+	# plugin inherits its architectures and C++ standard (C++17 with CUDA 13, whose Thrust/CUB require it); the legacy
+	# FindCUDA path (cuda_add_library) runs nvcc on its own and gets neither. Same as contrib/rovigatti
 	function(cuda_add_library_no_prefix target source)
-		cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
-		target_link_libraries(${target} ${CUDA_LIBRARIES})
+		if(CMAKE_VERSION VERSION_LESS 3.18)
+			cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+			target_link_libraries(${target} ${CUDA_LIBRARIES})
+		else()
+			add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+			target_link_libraries(${target} CUDA::cudart)
+		endif()
 		set_target_properties(${target} PROPERTIES PREFIX "")
 	endfunction()
 
