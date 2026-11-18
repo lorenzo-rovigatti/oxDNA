@@ -2,6 +2,7 @@
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
+#include "Utilities/MaxBackboneForce.h"
 #include "ANNaMoParticle.h"
 
 #include <vector>
@@ -88,13 +89,9 @@ protected:
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
 
-	/// used when max_backbone_force = true
-	bool _use_mbf = false;
-	number _mbf_xmax = 0.0;
-	number _mbf_fmax = 0.0;
-	number _mbf_Emax = 0.0;
-	number _mbf_A = 0.0;
-	number _mbf_B = 0.0;
+	/// the cap on the FENE force (max_backbone_force); the far force is chosen so that the capped potential
+	/// A r + B log(r) has no constant term
+	MaxBackboneForce _mbf { MaxBackboneForce::FarForce::CONTINUOUS };
 
 	std::vector<int> crossovers;
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;

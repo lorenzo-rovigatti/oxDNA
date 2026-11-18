@@ -1121,7 +1121,7 @@ void DRHInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 		}
 
-		if(DNA2Interaction::_use_mbf && RNA2Interaction::_use_mbf)
+		if(DNA2Interaction::_mbf.enabled() && RNA2Interaction::_mbf.enabled())
 			continue;
 
 		//checking backbone distances for DNA and RNA

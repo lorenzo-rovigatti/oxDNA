@@ -19,11 +19,9 @@ protected:
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _fene_delta2_SD;
     MultiDimArray<TETRAMER_DIM_A, TETRAMER_DIM_B, TETRAMER_DIM_B, TETRAMER_DIM_A> _mbf_xmax_SD;
     number _fene_eps;
-    /// true once init() has computed the sequence-dependent FENE widths that _mbf_xmax_SD depends on
-    bool _mbf_xmax_SD_ready = false;
 
-    /// also recomputes the sequence-dependent distances beyond which the maximum backbone force applies
-    virtual void _set_mbf_fmax(number fmax);
+    /// computes the sequence-dependent distances beyond which the maximum backbone force applies
+    void _compute_mbf_xmax_SD();
 
     Mesh _mesh_f4_SD[21][TETRAMER_DIM_A][TETRAMER_DIM_B][TETRAMER_DIM_B][TETRAMER_DIM_A]; // this is not used by the GPU so we can keep using C-style arrays
     virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);

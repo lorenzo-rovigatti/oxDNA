@@ -76,18 +76,18 @@ void CUDADRHInteraction::_on_T_update() {
 
 void CUDADRHInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
 	// the maximum backbone force can change with the step (max_backbone_rate)
-	DNAInteraction::_update_mbf();
-	RNAInteraction::_update_mbf();
+	DNAInteraction::_mbf.update();
+	RNAInteraction::_mbf.update();
 
 	cuda_drh::KernelParameters params;
 	params.average = RNAInteraction::_average;
 	params.mismatch_repulsion = RNA2Interaction::_mismatch_repulsion;
-	params.dna_use_mbf = DNAInteraction::_use_mbf;
-	params.dna_mbf_xmax = DNAInteraction::_mbf_xmax;
-	params.dna_mbf_finf = DNAInteraction::_mbf_finf;
-	params.rna_use_mbf = RNAInteraction::_use_mbf;
-	params.rna_mbf_xmax = RNAInteraction::_mbf_xmax;
-	params.rna_mbf_finf = RNAInteraction::_mbf_finf;
+	params.dna_use_mbf = DNAInteraction::_mbf.enabled();
+	params.dna_mbf_xmax = DNAInteraction::_mbf.xmax();
+	params.dna_mbf_finf = DNAInteraction::_mbf.far_force();
+	params.rna_use_mbf = RNAInteraction::_mbf.enabled();
+	params.rna_mbf_xmax = RNAInteraction::_mbf.xmax();
+	params.rna_mbf_finf = RNAInteraction::_mbf.far_force();
 	params.hybrid_only = _dump_hybrid_only;
 
 	if(_use_edge) {

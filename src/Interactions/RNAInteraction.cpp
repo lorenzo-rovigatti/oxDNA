@@ -32,10 +32,6 @@ RNAInteraction::RNAInteraction() :
 	OX_LOG(Logger::LOG_INFO,"Running oxRNA version %s",RNA_MODEL_VERSION);
 	_generate_consider_bonded_interactions = true;
 
-	_use_mbf = false;
-	_mbf_xmax = 0.f;
-	_mbf_fmax = 0.f;
-	_mbf_finf = 0.f;
 
 	CONFIG_INFO->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
@@ -90,45 +86,10 @@ void RNAInteraction::get_settings(input_file &inp) {
 		model->load_model_from_file(external_model);
 	}
 
-	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
-		_use_mbf = true;
-		if(_mbf_fmax < 0.f) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
-		}
-		getInputNumber(&inp, "max_backbone_rate", &_mbf_rate, 0);
-		if(_mbf_rate < (number) 0.) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_rate");
-		}
-		_mbf_fmax_initial = _mbf_fmax;
-		_set_mbf_fmax(_mbf_fmax);
-		if(getInputNumber(&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) {
-			_mbf_finf = 0.04f; // roughly 2pN, very weak but still there
-		}
-
-		if(_mbf_finf < 0.f) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force_far");
-		}
-	}
+	_mbf.get_settings(inp);
+	_mbf.set_fene(model->RNA_FENE_EPS, model->RNA_FENE_DELTA2);
 
 	RNANucleotide::set_model(model);
-}
-
-void RNAInteraction::_set_mbf_fmax(number fmax) {
-	_mbf_fmax = fmax;
-	_mbf_xmax = (-model->RNA_FENE_EPS + sqrt(model->RNA_FENE_EPS * model->RNA_FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * model->RNA_FENE_DELTA2)) / (2.f * _mbf_fmax);
-}
-
-bool RNAInteraction::_update_mbf() {
-	if(!_use_mbf || _mbf_rate == (number) 0.) {
-		return false;
-	}
-	llint step = CONFIG_INFO->curr_step;
-	if(step == _mbf_step) {
-		return false;
-	}
-	_mbf_step = step;
-	_set_mbf_fmax(_mbf_fmax_initial + _mbf_rate * step);
-	return true;
 }
 
 void RNAInteraction::init() {
@@ -415,11 +376,8 @@ void RNAInteraction::init() {
 		F1_SHIFT[RNA_HYDR_F1][N_G][N_T] = F1_SHIFT[RNA_HYDR_F1][N_T][N_G] = F1_EPS[RNA_HYDR_F1][N_G][N_T] * SQR(1 - exp(-(model->RNA_HYDR_RC - model->RNA_HYDR_R0) * model->RNA_HYDR_A));
 	}
 
-	if(_use_mbf) {
-		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
-		if(_mbf_rate > (number) 0.) {
-			OX_LOG(Logger::LOG_INFO, "The maximum backbone force grows by %g per step (max_backbone_rate)", _mbf_rate);
-		}
+	if(_mbf.enabled()) {
+		_mbf.log_settings("RNA");
 	}
 }
 
@@ -461,7 +419,7 @@ number RNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
-	_update_mbf();
+	_mbf.update();
 
 	LR_vector rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	number rbackmod = rback.module();
@@ -469,13 +427,11 @@ number RNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	number energy;
 	LR_vector force;
 
-	if(_use_mbf && fabs(rbackr0) > _mbf_xmax) {
-		// we use the "log"  potential
-		number fene_xmax = -(model->RNA_FENE_EPS / 2.f) * log(1.f - SQR(_mbf_xmax) / model->RNA_FENE_DELTA2);
-		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(_mbf_xmax) + _mbf_finf * _mbf_xmax;
-		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+	if(_mbf.applies(rbackr0)) {
+		// the capped ("log") potential
+		energy = _mbf.energy(rbackr0);
 		if(update_forces)
-			force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax / fabs(rbackr0) + _mbf_finf) / rbackmod);
+			force = rback * (_mbf.force(rbackr0) / rbackmod);
 	}
 	else {
 		energy = -model->RNA_FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / model->RNA_FENE_DELTA2);
@@ -1515,7 +1471,7 @@ void RNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N)
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
-		if(_use_mbf)
+		if(_mbf.enabled())
 			continue;
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		number mind = model->RNA_FENE_R0 - model->RNA_FENE_DELTA;

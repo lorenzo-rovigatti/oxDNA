@@ -163,7 +163,7 @@ void CUDADNAInteraction::_init_strand_ends(LR_bonds *d_bonds) {
 }
 
 void CUDADNAInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
-	_update_mbf(); // the maximum backbone force can change with the step (max_backbone_rate)
+	_mbf.update(); // the maximum backbone force can change with the step (max_backbone_rate)
 	if(_d_is_strand_end == nullptr) {
 		_init_strand_ends(d_bonds);
 	}
@@ -190,15 +190,15 @@ void CUDADNAInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, 
 
 		dna_forces_edge_bonded
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _use_mbf, _mbf_xmax,
-			_mbf_finf, _update_st, _d_st);
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _mbf.enabled(), _mbf.xmax(),
+			_mbf.far_force(), _update_st, _d_st);
 	}
 	else {
 		dna_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs,
-			d_bonds, _grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, _use_mbf,
-			_mbf_xmax, _mbf_finf, _update_st, _d_st, d_box);
+			d_bonds, _grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, _mbf.enabled(),
+			_mbf.xmax(), _mbf.far_force(), _update_st, _d_st, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 }

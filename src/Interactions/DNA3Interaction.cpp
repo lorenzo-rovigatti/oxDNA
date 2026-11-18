@@ -960,11 +960,10 @@ void DNA3Interaction::init() {
         }
     }
 
-    // updating _mbf_fmax after accounting for new value of fene_delta. In general this is only applied if max_backbone_force is given
+    // the maximum backbone force applies at sequence-dependent distances, since fene_delta is sequence dependent
 
-    if(_use_mbf) {
-        _mbf_xmax_SD_ready = true;
-        _set_mbf_fmax(_mbf_fmax);
+    if(_mbf.enabled()) {
+        _compute_mbf_xmax_SD();
         for(int i = 0; i < TETRAMER_DIM_A; i++) {
             for(int j = 0; j < TETRAMER_DIM_B; j++) {
                 for(int k = 0; k < TETRAMER_DIM_B; k++) {
@@ -1237,16 +1236,12 @@ number DNA3Interaction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle
     return energy;
 }
 
-void DNA3Interaction::_set_mbf_fmax(number fmax) {
-    DNA2Interaction::_set_mbf_fmax(fmax);
-    if(!_mbf_xmax_SD_ready) {
-        return;
-    }
+void DNA3Interaction::_compute_mbf_xmax_SD() {
     for(int i = 0; i < TETRAMER_DIM_A; i++) {
         for(int j = 0; j < TETRAMER_DIM_B; j++) {
             for(int k = 0; k < TETRAMER_DIM_B; k++) {
                 for(int l = 0; l < TETRAMER_DIM_A; l++) {
-                    _mbf_xmax_SD(i, j, k, l) = (-_fene_eps + sqrt(_fene_eps * _fene_eps + 4.f * _mbf_fmax * _mbf_fmax * _fene_delta2_SD(i, j, k, l))) / (2.f * _mbf_fmax);
+                    _mbf_xmax_SD(i, j, k, l) = MaxBackboneForce::xmax(_mbf.fmax(), _fene_eps, _fene_delta2_SD(i, j, k, l));
                 }
             }
         }
@@ -1257,7 +1252,9 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
     if(!_check_bonded_neighbour(&p, &q, compute_r)) {
         return (number)0.f;
     }
-    _update_mbf();
+    if(_mbf.update()) {
+        _compute_mbf_xmax_SD();
+    }
 
     if(compute_r) {
         _computed_r = q->pos - p->pos;
@@ -1275,13 +1272,11 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 
     number mbf_xmax = _mbf_xmax_SD(type_n3_2, q->type, p->type, type_n5_2);
     number fene_delta2 = _fene_delta2_SD(type_n3_2, q->type, p->type, type_n5_2);
-    if(_use_mbf && fabs(rbackr0) > mbf_xmax) {
-        // we use the "log"  potential
-        number fene_xmax = -(_fene_eps / 2.f) * log(1.f - SQR(mbf_xmax) /fene_delta2);
-        number long_xmax = (_mbf_fmax - _mbf_finf) * mbf_xmax * log(mbf_xmax) + _mbf_finf * mbf_xmax;
-        energy = (_mbf_fmax - _mbf_finf) * mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+    if(_mbf.enabled() && fabs(rbackr0) > mbf_xmax) {
+        // the capped ("log") potential, with the sequence-dependent FENE parameters
+        energy = MaxBackboneForce::energy(rbackr0, _mbf.fmax(), _mbf.far_force(), mbf_xmax, _fene_eps, fene_delta2);
         if(update_forces)
-            force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * mbf_xmax / fabs(rbackr0) + _mbf_finf) / rbackmod);
+            force = rback * (MaxBackboneForce::force(rbackr0, _mbf.fmax(), _mbf.far_force(), mbf_xmax) / rbackmod);
     }
     else {
         // we check whether we ended up OUTSIDE of the FENE range
@@ -2097,7 +2092,7 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle *> &particles)
             throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
         }
 
-        if(_use_mbf)
+        if(_mbf.enabled())
             continue;
 
         // check that the distance between bonded neighbor doesn't exceed a reasonable threshold

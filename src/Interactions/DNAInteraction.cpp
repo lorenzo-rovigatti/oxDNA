@@ -219,10 +219,6 @@ DNAInteraction::DNAInteraction() :
 	_fene_r0 = FENE_R0_OXDNA;
 
 	// variables useful only for max_backbone_force
-	_use_mbf = false;
-	_mbf_xmax = 0.f;
-	_mbf_fmax = 0.f;
-	_mbf_finf = 0.f; // roughly 2pN
 
 	CONFIG_INFO->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
@@ -277,49 +273,9 @@ void DNAInteraction::get_settings(input_file &inp) {
 		_allow_broken_fene = (tmp != 0);
 	}
 
-	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
-		_use_mbf = true;
-		if(_mbf_fmax < 0.f) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
-		}
-		getInputNumber(&inp, "max_backbone_rate", &_mbf_rate, 0);
-		if(_mbf_rate < (number) 0.) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_rate");
-		}
-		_mbf_fmax_initial = _mbf_fmax;
-		_set_mbf_fmax(_mbf_fmax);
-		if(getInputNumber(&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) {
-			_mbf_finf = 0.04f; // roughly 2pN, very weak but still there
-		}
-
-		if(_mbf_finf < 0.f) {
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force_far");
-		}
-
-		// if we use mbf, we should tell the user
-		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
-		if(_mbf_rate > (number) 0.) {
-			OX_LOG(Logger::LOG_INFO, "The maximum backbone force grows by %g per step (max_backbone_rate)", _mbf_rate);
-		}
-	}
-}
-
-void DNAInteraction::_set_mbf_fmax(number fmax) {
-	_mbf_fmax = fmax;
-	_mbf_xmax = (-FENE_EPS + sqrt(FENE_EPS * FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * FENE_DELTA2)) / (2.f * _mbf_fmax);
-}
-
-bool DNAInteraction::_update_mbf() {
-	if(!_use_mbf || _mbf_rate == (number) 0.) {
-		return false;
-	}
-	llint step = CONFIG_INFO->curr_step;
-	if(step == _mbf_step) {
-		return false;
-	}
-	_mbf_step = step;
-	_set_mbf_fmax(_mbf_fmax_initial + _mbf_rate * step);
-	return true;
+	_mbf.get_settings(inp);
+	_mbf.set_fene(FENE_EPS, FENE_DELTA2);
+	_mbf.log_settings("DNA");
 }
 
 void DNAInteraction::init() {
@@ -443,7 +399,7 @@ number DNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
-	_update_mbf();
+	_mbf.update();
 
 	if(compute_r) {
 		_computed_r = q->pos - p->pos;
@@ -456,13 +412,11 @@ number DNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	LR_vector force;
 	number energy;
 
-	if(_use_mbf && fabs(rbackr0) > _mbf_xmax) {
-		// we use the "log"  potential
-		number fene_xmax = -(FENE_EPS / 2.f) * log(1.f - SQR(_mbf_xmax) / FENE_DELTA2);
-		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(_mbf_xmax) + _mbf_finf * _mbf_xmax;
-		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+	if(_mbf.applies(rbackr0)) {
+		// the capped ("log") potential
+		energy = _mbf.energy(rbackr0);
 		if(update_forces)
-			force = rback * (-copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax / fabs(rbackr0) + _mbf_finf) / rbackmod);
+			force = rback * (_mbf.force(rbackr0) / rbackmod);
 	}
 	else {
 		// we check whether we ended up OUTSIDE of the FENE range
@@ -1492,7 +1446,7 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 		}
 
-		if(_use_mbf) {
+		if(_mbf.enabled()) {
 			continue;
 		}
 

@@ -25,6 +25,7 @@
 #define RNA_INTERACTION_H
 
 #include "BaseInteraction.h"
+#include "../Utilities/MaxBackboneForce.h"
 #include "rna_model.h"
 #include "Mesh.h"
 
@@ -44,20 +45,8 @@ protected:
 protected:
 	bool _average;
 
-	/// variables used when max_backbone_force = true
-	bool _use_mbf;
-	number _mbf_xmax;
-	number _mbf_fmax;
-	number _mbf_finf;
-	/// max_backbone_rate: the maximum backbone force grows as max_backbone_force + max_backbone_rate * step
-	number _mbf_fmax_initial = 0.;
-	number _mbf_rate = 0.;
-	llint _mbf_step = -1;
-
-	/// sets the maximum backbone force and the distance from the FENE minimum beyond which it applies
-	virtual void _set_mbf_fmax(number fmax);
-	/// with max_backbone_rate, sets the maximum backbone force of the current step; returns true if it changed
-	bool _update_mbf();
+	/// the cap on the backbone (FENE) force, see max_backbone_force
+	MaxBackboneForce _mbf;
 
 	char _seq_filename[512];
 

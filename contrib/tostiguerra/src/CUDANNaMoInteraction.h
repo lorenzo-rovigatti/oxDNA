@@ -16,6 +16,9 @@
  */
 class CUDACGNucleicAcidsInteraction: public CUDABaseInteraction, public CGNucleicAcidsInteraction {
 private:
+	/// copies the parameters of the capped FENE potential (max_backbone_force) to the GPU
+	void _copy_mbf_to_device();
+
 	c_number4 *_d_three_body_forces = nullptr;
 	c_number4 *_d_three_body_torques = nullptr;
 	float *_d_3b_epsilon = nullptr;

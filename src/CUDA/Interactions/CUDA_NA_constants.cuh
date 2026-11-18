@@ -156,16 +156,16 @@ struct NAConstants {
 	/// fills the DNA options of the kernel parameters
 	template<class Interaction>
 	static void dna_kernel_parameters(Interaction &inter, cuda_drh::KernelParameters &params) {
-		params.dna_use_mbf = inter.DNAInteraction::_use_mbf;
-		params.dna_mbf_xmax = inter.DNAInteraction::_mbf_xmax;
-		params.dna_mbf_finf = inter.DNAInteraction::_mbf_finf;
+		params.dna_use_mbf = inter.DNAInteraction::_mbf.enabled();
+		params.dna_mbf_xmax = inter.DNAInteraction::_mbf.xmax();
+		params.dna_mbf_finf = inter.DNAInteraction::_mbf.far_force();
 	}
 
 	/// with max_backbone_rate the maximum backbone force changes with the step: updates it for the current step
 	template<class Interaction>
 	static void update_dna_mbf(Interaction &inter, cuda_drh::KernelParameters &params) {
-		inter.DNAInteraction::_update_mbf();
-		params.dna_mbf_xmax = inter.DNAInteraction::_mbf_xmax;
+		inter.DNAInteraction::_mbf.update();
+		params.dna_mbf_xmax = inter.DNAInteraction::_mbf.xmax();
 	}
 
 	/// fills the RNA options of the kernel parameters
@@ -173,16 +173,16 @@ struct NAConstants {
 	static void rna_kernel_parameters(Interaction &inter, cuda_drh::KernelParameters &params) {
 		params.average = inter.RNAInteraction::_average;
 		params.mismatch_repulsion = inter.RNA2Interaction::_mismatch_repulsion;
-		params.rna_use_mbf = inter.RNAInteraction::_use_mbf;
-		params.rna_mbf_xmax = inter.RNAInteraction::_mbf_xmax;
-		params.rna_mbf_finf = inter.RNAInteraction::_mbf_finf;
+		params.rna_use_mbf = inter.RNAInteraction::_mbf.enabled();
+		params.rna_mbf_xmax = inter.RNAInteraction::_mbf.xmax();
+		params.rna_mbf_finf = inter.RNAInteraction::_mbf.far_force();
 	}
 
 	/// with max_backbone_rate the maximum backbone force changes with the step: updates it for the current step
 	template<class Interaction>
 	static void update_rna_mbf(Interaction &inter, cuda_drh::KernelParameters &params) {
-		inter.RNAInteraction::_update_mbf();
-		params.rna_mbf_xmax = inter.RNAInteraction::_mbf_xmax;
+		inter.RNAInteraction::_mbf.update();
+		params.rna_mbf_xmax = inter.RNAInteraction::_mbf.xmax();
 	}
 
 	/// positions of the interaction sites of DNA nucleotides (oxDNA2, with grooving)

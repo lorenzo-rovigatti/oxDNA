@@ -24,6 +24,12 @@ __constant__ float MD_sqr_rep_rcut_unbonded[1];
 __constant__ float MD_sqr_rep_rcut_crossover[1];
 __constant__ float MD_sqr_rfene[1];
 __constant__ float MD_Kfene[1];
+/// max_backbone_force: beyond xmax the FENE potential is replaced by A r + B log(r) + C
+__constant__ bool MD_use_mbf[1];
+__constant__ float MD_mbf_xmax[1];
+__constant__ float MD_mbf_A[1];
+__constant__ float MD_mbf_B[1];
+__constant__ float MD_mbf_C[1];
 __constant__ float MD_WCA_sigma[1];
 __constant__ float MD_WCA_sigma_unbonded[1];
 __constant__ float MD_WCA_sigma_crossover[1];
@@ -173,13 +179,21 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDAStress
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
-	if(sqr_r > sqr_rfene) {
-		printf("WARNING: the distance between particles %d and %d (%lf) exceeds the FENE R0 (%lf)\n", get_particle_index(ppos), get_particle_index(qpos), sqrtf(sqr_r), sqrtf(sqr_rfene));
+	c_number energy, force_mod; // force_mod is the module of the force over r, so we don't have to divide the distance vector by its module
+	if(MD_use_mbf[0] && sqr_r > SQR(MD_mbf_xmax[0])) {
+		// capped potential (max_backbone_force)
+		c_number r_mod = sqrtf(sqr_r);
+		energy = MD_mbf_A[0] * r_mod + MD_mbf_B[0] * logf(r_mod) + MD_mbf_C[0];
+		force_mod = -(MD_mbf_A[0] + MD_mbf_B[0] / r_mod) / r_mod;
 	}
+	else {
+		if(sqr_r > sqr_rfene) {
+			printf("WARNING: the distance between particles %d and %d (%lf) exceeds the FENE R0 (%lf)\n", get_particle_index(ppos), get_particle_index(qpos), sqrtf(sqr_r), sqrtf(sqr_rfene));
+		}
 
-	c_number energy = -Kfene * sqr_rfene * logf(1.f - sqr_r / sqr_rfene);
-	// this number is the module of the force over r, so we don't have to divide the distance vector by its module
-	c_number force_mod = -2.f * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
+		energy = -Kfene * sqr_rfene * logf(1.f - sqr_r / sqr_rfene);
+		force_mod = -2.f * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
+	}
 
 	c_number4 force = {-r.x * force_mod,
 			-r.y * force_mod,
@@ -439,6 +453,7 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut_unbonded, _PS_sqr_rep_rcut_unbonded);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, _sqr_rfene);
 	COPY_NUMBER_TO_FLOAT(MD_Kfene, _Kfene);
+	_copy_mbf_to_device();
 	COPY_NUMBER_TO_FLOAT(MD_WCA_sigma, _WCA_sigma);
 	COPY_NUMBER_TO_FLOAT(MD_WCA_sigma_unbonded, _WCA_sigma_unbonded);
 	COPY_NUMBER_TO_FLOAT(MD_deltaPatchMon, _deltaPatchMon);
@@ -466,7 +481,23 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 	GpuUtils::init_texture_object(&_tex_eps, cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat), _d_3b_epsilon, _3b_epsilon.size());
 }
 
+void CUDACGNucleicAcidsInteraction::_copy_mbf_to_device() {
+	bool use_mbf = _mbf.enabled();
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_use_mbf, &use_mbf, sizeof(bool)));
+	if(use_mbf) {
+		COPY_NUMBER_TO_FLOAT(MD_mbf_xmax, _mbf.xmax());
+		COPY_NUMBER_TO_FLOAT(MD_mbf_A, _mbf.far_force());
+		COPY_NUMBER_TO_FLOAT(MD_mbf_B, _mbf.log_coefficient());
+		COPY_NUMBER_TO_FLOAT(MD_mbf_C, _mbf.offset());
+	}
+}
+
 void CUDACGNucleicAcidsInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
+	// the maximum backbone force can change with the step (max_backbone_rate)
+	if(_mbf.update()) {
+		_copy_mbf_to_device();
+	}
+
 	thrust::device_ptr<c_number4> t_forces = thrust::device_pointer_cast(d_forces);
 	thrust::device_ptr<c_number4> t_torques = thrust::device_pointer_cast(d_torques);
 	thrust::device_ptr<c_number4> t_three_body_forces = thrust::device_pointer_cast(_d_three_body_forces);

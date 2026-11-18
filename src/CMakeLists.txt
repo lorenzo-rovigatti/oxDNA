@@ -211,6 +211,7 @@ SET(common_SOURCES
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
+	Utilities/MaxBackboneForce.cpp
 	Utilities/Histogram.cpp
 	Utilities/LR_vector.cpp
 	Utilities/LR_matrix.cpp

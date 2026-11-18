@@ -131,14 +131,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp)
 	getInputNumber(&inp, "DPS_WCA_sigma_crossover", &_WCA_sigma_crossover, 0);
 	getInputString(&inp, "DPS_crossover_file", _crossover_file, 0);
 
-	if (getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND)
-	{
-		_use_mbf = true;
-		if (_mbf_fmax < 0.f)
-		{
-			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
-		}
-	}
+	_mbf.get_settings(inp);
 
 	getInputInt(&inp, "DPS_bead_size", &_bead_size, 0);
 }
@@ -187,16 +180,9 @@ void CGNucleicAcidsInteraction::init()
 		OX_LOG(Logger::LOG_INFO, "CGNA: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
 	}
 
-	if (_use_mbf)
-	{
-		_mbf_xmax = (-_Kfene * SQR(_rfene) + std::sqrt(SQR(_Kfene) * SQR(SQR(_rfene)) + SQR(_mbf_fmax) * SQR(_rfene))) / _mbf_fmax;
-		_mbf_Emax = -_Kfene * _sqr_rfene * std::log(1. - SQR(_mbf_xmax) / _sqr_rfene);
-		_mbf_B = (_mbf_Emax - _mbf_fmax * _mbf_xmax) / (std::log(_mbf_xmax) - 1.0);
-		_mbf_A = _mbf_fmax - _mbf_B / _mbf_xmax;
-
-		// if we use mbf, we should tell the user
-		OX_LOG(Logger::LOG_INFO, "CGNA: using a maximum backbone force of %g (xmax = %g, Emax = %g, A = %g, B = %g)", _mbf_fmax, _mbf_xmax, _mbf_Emax, _mbf_A, _mbf_B);
-	}
+	// V(r) = -Kfene rfene^2 log(1 - r^2 / rfene^2) is a FENE potential with eps = 2 Kfene rfene^2 and delta2 = rfene^2
+	_mbf.set_fene(2. * _Kfene * _sqr_rfene, _sqr_rfene);
+	_mbf.log_settings("CGNA");
 }
 
 void CGNucleicAcidsInteraction::_update_inter_chain_stress_tensor(int chain, int ref_chain, LR_vector group_force)
@@ -253,14 +239,16 @@ number CGNucleicAcidsInteraction::_fene(BaseParticle *p, BaseParticle *q, bool u
 
 	number energy = 0.0;
 
-	if (_use_mbf && sqr_r > SQR(_mbf_xmax))
+	_mbf.update();
+	if (_mbf.applies(std::sqrt(sqr_r)))
 	{
 		number r = std::sqrt(sqr_r);
 
-		energy = _mbf_A * r + _mbf_B * std::log(r);
+		energy = _mbf.energy(r);
 		if (update_forces)
 		{
-			auto force = -_computed_r * (_mbf_A + _mbf_B / r) / r;
+			// _mbf.force(r) = -dV/dr: the force on p points towards q
+			auto force = -_computed_r * (_mbf.force(r) / r);
 
 			p->force += force;
 			q->force -= force;
