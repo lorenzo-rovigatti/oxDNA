@@ -1,3 +1,6 @@
+Unreleased
+	- Fix a CPU/CUDA mismatch in DNANM: the CUDA protein-DNA excluded-volume interaction was scaled by `EXCL_EPS` (2), whereas the CPU code uses a stiffness of 1 for it. CUDA DNANM simulations with protein-DNA contacts inside the repulsive wall (closer than 0.573 for the backbone sites and 0.363 for the base sites) therefore sampled a stronger wall than CPU ones, and their total energy was not conserved. Results of CUDA DNANM simulations can change; CPU simulations and the protein-protein interaction are unchanged (fix #239)
+
 v. 3.8.0
 	- Add a preliminary version of the oxDNA3 model (#191) [8840345]
 	- Merge the protein ANM models from the old oxDNA-anm repository, with examples and tests (#192) [f52834c]

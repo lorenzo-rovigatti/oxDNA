@@ -418,12 +418,14 @@ void CUDADNANMInteraction::cuda_init(int N) {
     _pro_backbone_rstar= 0.569f;
     _pro_backbone_b = 178699253.5f;
     _pro_backbone_rcut = 0.572934f;
+    _pro_backbone_stiffness = 1.0f; // same as DNANMInteraction::init()
     _pro_backbone_sqr_rcut = 0.3283f;
     //Base-Protein Excluded Volume Parameters
     _pro_base_sigma = 0.36f;
     _pro_base_rstar= 0.359f;
     _pro_base_b = 296866090.0f;
     _pro_base_rcut = 0.362897f;
+    _pro_base_stiffness = 1.0f; // same as DNANMInteraction::init()
     _pro_base_sqr_rcut = 0.1317f;
     //Protein-Protein Excluded Volume Parameters
     _pro_sigma = 0.35f;
@@ -453,12 +455,14 @@ void CUDADNANMInteraction::cuda_init(int N) {
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_backbone_rstar, &_pro_backbone_rstar, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_backbone_rc, &_pro_backbone_rcut, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_backbone_b, &_pro_backbone_b, sizeof(float)) );
+    CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_backbone_stiffness, &_pro_backbone_stiffness, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_backbone_sqr_rcut, &_pro_backbone_sqr_rcut, sizeof(float)) );
 
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_sigma, &_pro_base_sigma, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_rstar, &_pro_base_rstar, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_rc, &_pro_base_rcut, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_b, &_pro_base_b, sizeof(float)) );
+    CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_stiffness, &_pro_base_stiffness, sizeof(float)) );
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_pro_base_sqr_rcut, &_pro_base_sqr_rcut, sizeof(float)) );
 
     CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dna_sqr_rcut, &this->_sqr_rcut, sizeof(float)) );

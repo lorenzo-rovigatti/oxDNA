@@ -1084,12 +1084,14 @@ __constant__ float MD_pro_backbone_sigma;
 __constant__ float MD_pro_backbone_rstar;
 __constant__ float MD_pro_backbone_b;
 __constant__ float MD_pro_backbone_rc;
+__constant__ float MD_pro_backbone_stiffness;
 __constant__ float MD_pro_backbone_sqr_rcut;
 
 __constant__ float MD_pro_base_sigma;
 __constant__ float MD_pro_base_rstar;
 __constant__ float MD_pro_base_b;
 __constant__ float MD_pro_base_rc;
+__constant__ float MD_pro_base_stiffness;
 __constant__ float MD_pro_base_sqr_rcut;
 
 __constant__ float MD_pro_sigma;
@@ -1178,7 +1180,9 @@ __forceinline__ __device__ void ang_pot(c_number4 &dF, c_number4 &dT, const c_nu
 
 }
 
-__forceinline__ __device__ void excluded_volume_quart(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
+// stiffness scales both the force and the energy. Protein-DNA terms pass MD_pro_backbone_stiffness / MD_pro_base_stiffness, as the CPU
+// implementation does (DNANMInteraction::_protein_dna_repulsive_lj); the default is the protein-protein strength.
+__forceinline__ __device__ void excluded_volume_quart(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc, c_number stiffness = EXCL_EPS) {
     c_number rsqr = CUDA_DOT(r, r);
 
     F.x = F.y = F.z = F.w = (c_number) 0.f;
@@ -1186,19 +1190,19 @@ __forceinline__ __device__ void excluded_volume_quart(const c_number4 &r, c_numb
         if(rsqr > SQR(rstar)) {
             c_number rmod = sqrt(rsqr);
             c_number rrc = rmod - rc;
-            c_number fmod = 4.f * EXCL_EPS * b * CUB(rrc) / rmod;
+            c_number fmod = 4.f * stiffness * b * CUB(rrc) / rmod;
             F.x = r.x * fmod;
             F.y = r.y * fmod;
             F.z = r.z * fmod;
-            F.w = EXCL_EPS * b * SQR(SQR(rrc));
+            F.w = stiffness * b * SQR(SQR(rrc));
         }
         else {
             c_number lj_part = CUB(SQR(sigma)/rsqr);
-            c_number fmod = 24.f * EXCL_EPS * (lj_part - 2.f*SQR(lj_part)) / rsqr;
+            c_number fmod = 24.f * stiffness * (lj_part - 2.f*SQR(lj_part)) / rsqr;
             F.x = r.x * fmod;
             F.y = r.y * fmod;
             F.z = r.z * fmod;
-            F.w = 4.f * EXCL_EPS * (SQR(lj_part) - lj_part);
+            F.w = 4.f * stiffness * (SQR(lj_part) - lj_part);
         }
     }
 }
@@ -1457,11 +1461,11 @@ __global__ void dnanm_forces_edge_nonbonded(const c_number4 __restrict__ *poss, 
         c_number4 rbase = rnuc - nuc_base;
 
         c_number4 Ftmp = make_c_number4(0, 0, 0, 0);
-        excluded_volume_quart(rback, Ftmp, MD_pro_backbone_sigma, MD_pro_backbone_rstar, MD_pro_backbone_b, MD_pro_backbone_rc);
+        excluded_volume_quart(rback, Ftmp, MD_pro_backbone_sigma, MD_pro_backbone_rstar, MD_pro_backbone_b, MD_pro_backbone_rc, MD_pro_backbone_stiffness);
         dT += _cross(nuc_back, Ftmp);
         dF += Ftmp;
 
-        excluded_volume_quart(rbase, Ftmp, MD_pro_base_sigma, MD_pro_base_rstar, MD_pro_base_b, MD_pro_base_rc);
+        excluded_volume_quart(rbase, Ftmp, MD_pro_base_sigma, MD_pro_base_rstar, MD_pro_base_b, MD_pro_base_rc, MD_pro_base_stiffness);
         dT += _cross(nuc_base, Ftmp);
         dF += Ftmp;
 
