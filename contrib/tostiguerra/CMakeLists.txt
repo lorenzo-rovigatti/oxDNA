@@ -40,3 +40,35 @@ if(CUDA)
 	cuda_add_library_no_prefix(CUDAANNaMoInteraction src/CUDANNaMoInteraction.cu src/ANNaMoInteraction.cpp)
 	ADD_DEPENDENCIES(tostiguerra CUDAANNaMoInteraction)
 endif(CUDA)
+
+# smoke test: make test_annamo builds oxDNA, confGenerator and the plugin(s) and runs test/run_smoke_test.py
+# (a short simulation on the CPU and, in CUDA builds with a GPU, on the GPU). As for test_run and test_quick, the
+# script is run directly (it needs python3 with its standard library only), so CMake does not look for Python
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+	SET(annamo_oxdna_target oxDNA_debug)
+ELSEIF(MPI)
+	SET(annamo_oxdna_target oxDNA_mpi)
+ELSE()
+	SET(annamo_oxdna_target oxDNA)
+ENDIF()
+set(annamo_test_args
+	--oxdna $<TARGET_FILE:${annamo_oxdna_target}>
+	--confgen $<TARGET_FILE:confGenerator>
+	--plugins ${CMAKE_CURRENT_SOURCE_DIR}
+	--work ${CMAKE_CURRENT_BINARY_DIR}/test_annamo
+)
+if(CUDA)
+	if(CUDA_DOUBLE)
+		list(APPEND annamo_test_args --cuda double)
+	else()
+		list(APPEND annamo_test_args --cuda mixed)
+	endif()
+endif()
+add_custom_target(test_annamo
+	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/run_smoke_test.py ${annamo_test_args}
+	COMMENT "Running the ANNaMo smoke test" VERBATIM
+)
+add_dependencies(test_annamo ${annamo_oxdna_target} confGenerator ANNaMoInteraction)
+if(CUDA)
+	add_dependencies(test_annamo CUDAANNaMoInteraction)
+endif()

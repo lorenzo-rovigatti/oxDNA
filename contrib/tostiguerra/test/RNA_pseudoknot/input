@@ -1,0 +1,60 @@
+# ANNaMo smoke test: the RNA_pseudoknot example of https://github.com/lorenzo-rovigatti/ANNaMo_files (examples/RNA_pseudoknot),
+# shortened, with the current name of the interaction and without the plugin search path, which
+# contrib/tostiguerra/test/run_smoke_test.py adds (together with the backend options)
+debug = 0
+seed = 104123
+
+sim_type = MD
+thermostat = brownian
+newtonian_steps = 53
+diff_coeff = 0.5
+
+steps = 20000
+check_energy_every = 1000
+check_energy_threshold = 1.e-4
+
+T = 1.0
+dt = 0.002
+verlet_skin = 0.2
+
+generate_consider_bonded_interactions = true
+energy_threshold = 30
+
+interaction_type = ANNaMoInteraction
+DPS_chain_size = 11
+DPS_interaction_matrix_file = dHdS_matrix.dat
+DPS_3b_sigma = 0.21875
+DPS_deltaPatchMon = 0.65
+DPS_tC = 1.00
+DPS_dS_mod = -7.5
+DPS_alpha_mod = 0.89397
+DPS_bdG_threshold = 0
+
+reset_com_momentum = true
+reset_initial_com_momentum = true
+
+back_in_box = true
+
+DPS_semiflexibility = False
+DPS_semiflexibility_k = 11
+DPS_semiflexibility_a1 = 1
+DPS_semiflexibility_3b = True
+DPS_semiflexibility_3b_k = 4
+DPS_stacking = True
+DPS_stacking_eta = 6
+
+DPS_bead_size = 3
+DPS_semiflexibility_3b_exp_sigma = 0.07
+
+topology = topology.dat
+conf_file = init_conf.dat
+trajectory_file = trajectory.dat
+refresh_vel = true
+log_file = log.dat
+no_stdout_energy = 1
+restart_step_counter = true
+energy_file = energy.dat
+print_conf_interval = 10000
+print_energy_every = 1000
+time_scale = linear
+

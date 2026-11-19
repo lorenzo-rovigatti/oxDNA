@@ -17,11 +17,11 @@ jobs:
         cmake .. -DCUDA=0
         make -j2
         popd
-    - name: Build the ANNaMo plugin
-      # plugins are not part of the default target, so their build is checked explicitly
+    - name: Build and test the ANNaMo plugin
+      # plugins are not part of the default target, so they are built and run explicitly (smoke test)
       run: |
         pushd build
-        make -j2 tostiguerra
+        make -j2 test_annamo
         popd
     - name: Run Simple Test Script
       run: |
