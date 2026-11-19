@@ -7,12 +7,13 @@
 
 #include "CUDANNaMoInteraction.h"
 
-#include "Particles/CustomParticle.h"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
 
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
+#include <thrust/functional.h>
+#include <thrust/transform.h>
 
 #define CUDA_MAX_SWAP_NEIGHS 20
 
@@ -84,7 +85,7 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number &sigma, c_number &sqr_rep_rcut, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
+__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, const c_number sigma, const c_number sqr_rep_rcut, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -123,7 +124,8 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &p_a1, c_number4 &p_a3, c_num
 	if(sqr_r < MD_sqr_3b_rcut[0]) {
 		c_number r_mod = sqrtf(sqr_r);
 		c_number delta_r = r_mod - MD_3b_rcut[0];
-		c_number epsilon = tex1Dfetch<c_number>(tex_eps, eps_idx);
+		// the texture stores floats (textures cannot hold doubles), also in double precision
+		c_number epsilon = tex1Dfetch<float>(tex_eps, eps_idx);
 		// given the finite precision of floating point numbers, this might be equal to or ever-so-slightly larger than 0
 		if(delta_r < 0.f && epsilon != 0.f) {
 			c_number exp_part = expf(MD_3b_sigma[0] / delta_r);

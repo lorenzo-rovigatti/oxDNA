@@ -39,3 +39,7 @@ jobs:
     - name: Build
       run: |
         cmake --build build -j4
+    - name: Build the ANNaMo plugins
+      # plugins are not part of the default target, so their build is checked explicitly (CPU and CUDA versions)
+      run: |
+        cmake --build build -j4 --target tostiguerra
