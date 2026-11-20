@@ -46,6 +46,7 @@ Please cite these publications for any work that uses the oxDNA simulation packa
    umbrella_sampling.md
    ffs.md
    events.md
+   tests.md
 ```
 
 ```{eval-rst}

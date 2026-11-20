@@ -7,7 +7,6 @@ import os
 import subprocess as sp
 import math
 import difflib
-import distutils
 import importlib.util
 
 from multiprocessing import Lock
@@ -18,6 +17,24 @@ SUFFIX_LOG = "_log.dat"
 
 def get_log_name(level):
     return "%s%s" % (level, SUFFIX_LOG)
+
+# distutils was removed in Python 3.12. We need strtobool.
+# SOURCE: python3.12>site-packages>setuptools>_distutils>util>strtobool
+def strtobool(val: str) -> bool:
+    """Convert a string representation of truth to true (1) or false (0).
+
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1', "yup", "of course"):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0', "nope", "are you crazy?"):
+        return False
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
+
 
 # static class
 class Logger():
@@ -104,7 +121,7 @@ class FileExists(BaseTest):
         else:
             self.target_file = os.path.join(self.folder, self.parameters[1])
             if len(self.parameters) > 2:
-                self.check_if_empty = distutils.util.strtobool(self.parameters[2])
+                self.check_if_empty = strtobool(self.parameters[2])
             else:
                 self.check_if_empty = True
     

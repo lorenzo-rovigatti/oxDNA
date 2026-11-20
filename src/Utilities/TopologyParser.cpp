@@ -29,10 +29,20 @@ TopologyParser::TopologyParser(std::string filename) :
 		_N_strands = std::atoi(split[1].c_str());
 		_is_new_topology = false;
 	}
-	else if(split.size() == 3 && split[2] == "5->3") {
+	else if(split.size() >= 3 && split.back() == "5->3") {
 		_N = std::atoi(split[0].c_str());
 		_N_strands = std::atoi(split[1].c_str());
 		_is_new_topology = true;
+		// some systems (e.g. nucleic acids + proteins) store additional integers in the header
+		for(uint i = 2; i < split.size() - 1; i++) {
+			char *end;
+			long value = std::strtol(split[i].c_str(), &end, 10);
+			if(split[i].empty() || *end != '\0') {
+				throw oxDNAException("The first line of a new-style topology file should contain two integers, optionally followed by more integers, "
+						"and a \"5->3\" token, but '%s' is not an integer", split[i].c_str());
+			}
+			_header_extras.push_back((int) value);
+		}
 	}
 	else {
 		throw oxDNAException("The first line of the topology file should contain two integers and a \"5->3\" token "
