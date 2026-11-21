@@ -12,9 +12,12 @@
 #include "ObservableOutput.h"
 #include "ObservableFactory.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/CompressedFileHeader.h"
 
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <cstring>
 
 using namespace std;
 
@@ -118,7 +121,11 @@ void ObservableOutput::_open_output() {
 		_output = &std::cout;
 	}
 	else {
-		if(_append && !_update_name_with_time && !_only_last) {
+		bool appending = _append && !_update_name_with_time && !_only_last;
+		// with restart_step_counter = false new data are appended: an existing compressed file already has its
+		// header, and writing another one in the middle of the file would make it unreadable
+		bool write_zstd_header = !appending || !_continues_existing_file();
+		if(appending) {
 			if(_is_binary) {
 				_output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
 			}
@@ -138,19 +145,9 @@ void ObservableOutput::_open_output() {
 		_output = &_output_stream;
 
 #ifdef ZSTD_ENABLED
-		if(_use_zstd) {
-			// 8-byte magic header
-			uint8_t header[8];
-			header[0] = 'O';
-			header[1] = 'X';
-			header[2] = 'D';
-			header[3] = 0x01;        // "oxDNA" magic with compatibility byte
-			header[4] = 0x01;        // header version
-			header[5] = _zstd_level; // compression level
-			header[6] = 0x00;        // reserved
-			header[7] = 0x00;        // reserved
-
-			_output->write(reinterpret_cast<char*>(header), 8);
+		if(_use_zstd && write_zstd_header) {
+			CompressedFileHeader::Header header = CompressedFileHeader::make(_zstd_level);
+			_output->write(reinterpret_cast<const char *>(header.data()), header.size());
 			_output->flush();
 		}
 #endif
@@ -159,6 +156,34 @@ void ObservableOutput::_open_output() {
 	if(_output->bad() || !_output->good()) {
 		throw oxDNAException("Stream %s not writable", _output_name.c_str());
 	}
+}
+
+bool ObservableOutput::_continues_existing_file() {
+	std::ifstream existing(_output_name.c_str(), ios::binary);
+	if(!existing.good()) {
+		return false;
+	}
+	char header[CompressedFileHeader::SIZE];
+	existing.read(header, CompressedFileHeader::SIZE);
+	std::size_t n_read = existing.gcount();
+	if(n_read == 0) {
+		return false; // an empty file is written from scratch
+	}
+
+	bool is_compressed = CompressedFileHeader::has_magic(header, n_read);
+	if(_use_zstd && !is_compressed) {
+		throw oxDNAException("Cannot append compressed output to '%s', which is not empty and is not a compressed oxDNA file: remove it, or set restart_step_counter = true to overwrite it", _output_name.c_str());
+	}
+	if(!_use_zstd && is_compressed) {
+		throw oxDNAException("Cannot append uncompressed output to '%s', which is a compressed oxDNA file: enable compression for this output, remove the file, or set restart_step_counter = true to overwrite it", _output_name.c_str());
+	}
+	if(_use_zstd && n_read < CompressedFileHeader::SIZE) {
+		throw oxDNAException("Cannot append compressed output to '%s': its header is incomplete", _output_name.c_str());
+	}
+	if(_use_zstd && CompressedFileHeader::version(header) != CompressedFileHeader::VERSION) {
+		throw oxDNAException("Cannot append compressed output to '%s': its header has version %d, but this version of oxDNA writes version %d", _output_name.c_str(), CompressedFileHeader::version(header), CompressedFileHeader::VERSION);
+	}
+	return true;
 }
 
 void ObservableOutput::init() {
