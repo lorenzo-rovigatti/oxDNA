@@ -117,6 +117,10 @@ The following options require `backend = CUDA`.
 * `[CUDA_update_stress_tensor_every = <int>]`: copy the value of the stress computed on the GPU to the CPU every this number of steps, so that it can be consumed by observables. Defaults to 0, which means "never copy".
 * `[CUDA_update_particle_stress_tensor = <bool>]`: copy the per-particle stress-tensors in addition to the total stress tensor, also every `CUDA_update_stress_tensor_every` steps. Defaults to `false`.
 
+:::{note}
+The CUDA external forces do not take into account the shifts that `fix_diffusion` applies to strands to keep them in the simulation box, so `fix_diffusion` is automatically disabled on CUDA if `external_forces = true`.
+:::
+
 ## Monte Carlo options
 
 The following options control the behaviour of MC simulations.

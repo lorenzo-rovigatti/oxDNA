@@ -635,6 +635,14 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 		}
 	}
 
+	// The CUDA external forces (com, mutual_trap, repulsion planes, *etc*) read the positions stored on the GPU, whereas the CPU ones use absolute
+	// positions (position plus the shift that fix_diffusion applies to whole strands). A strand that fix_diffusion moved by a box vector would be
+	// subject to the wrong force, so, since the GPU interactions use the minimum image, fix_diffusion is not used if there are external forces.
+	if(_external_forces && _enable_fix_diffusion) {
+		OX_LOG(Logger::LOG_WARNING, "(MD_CUDABackend) fix_diffusion is disabled because external forces are used: the CUDA external forces do not take into account the shifts applied by fix_diffusion");
+		_enable_fix_diffusion = false;
+	}
+
 	getInputBool(&inp, "CUDA_avoid_cpu_calculations", &_avoid_cpu_calculations, 0);
 	getInputBool(&inp, "CUDA_barostat_always_refresh", &_cuda_barostat_always_refresh, 0);
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
