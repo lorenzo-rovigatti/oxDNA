@@ -240,3 +240,13 @@ OxDNA provides a plugin infrastructure to make it easier to develop new observab
 * `[plugin_observable_entry_points]`: colon-separated names that will be used as entry points for observable plugins. Defaults to `make:make_observable`.
 * `[plugin_interaction_entry_points]`: colon-separated names that will be used as entry points for interaction plugins. Defaults to `make:make_interaction`.
 * `[plugin_move_entry_points]`: colon-separated names that will be used as entry points for Monte Carlo move plugins. Defaults to `make:make_move`.
+
+### Optional screened protein electrostatics (DNANM / DNACT)
+
+`protein_dna_electrostatics` and `protein_protein_electrostatics` are
+opt-in switches (both default to `false`). When either is enabled,
+`protein_charge_file` is required and the simulation must use
+`backend = CPU`. The CUDA backend deliberately rejects these options
+with an explicit error instead of silently omitting their forces.
+Existing CUDA simulations with both switches disabled retain their
+original interaction model. Protein charges must be provided explicitly.
