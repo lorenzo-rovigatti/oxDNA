@@ -1,0 +1,2 @@
+FileExists::energy.dat
+ColumnAverage::energy.dat::2::0.370280::0.00001

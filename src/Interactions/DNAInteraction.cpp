@@ -239,7 +239,8 @@ void DNAInteraction::get_settings(input_file &inp) {
 			std::string inter_type;
 			getInputString(&inp, "interaction_type", inter_type, 0);
 
-			if(!inter_type.compare("NA") || !inter_type.compare("NA_relax")) {
+			// the oxNA-based interactions (NA and its protein hybrids) read one file per nucleic-acid type
+			if(inter_type == "NA" || inter_type == "NA_relax" || inter_type == "NANM" || inter_type == "NACT") {
 				getInputString(&inp, "seq_dep_file_DNA", _seq_filename, 1);
 			} else {
 				getInputString(&inp, "seq_dep_file", _seq_filename, 1);

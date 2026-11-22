@@ -32,6 +32,7 @@
 #include "ANMInteraction.h"
 #include "DNANMInteraction.h"
 #include "RNANMInteraction.h"
+#include "NANMInteraction.h"
 
 #ifdef LEGACY_CODE
 #include "DHSInteraction.h"
@@ -83,11 +84,14 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<TEPInteraction>();
 	else if(inter_type.compare("NA") == 0) return std::make_shared<DRHInteraction>();
 	else if(inter_type.compare("NA_relax") == 0) return std::make_shared<DRHInteraction_relax>();
-	else if(inter_type.compare("AC") == 0) return std::make_shared<ANMInteraction>();
+	else if(inter_type.compare("AC") == 0) return std::make_shared<ANMInteraction>(false);
+	else if(inter_type.compare("ACT") == 0) return std::make_shared<ANMInteraction>(true);
 	else if(inter_type.compare("DNANM") == 0) return std::make_shared<DNANMInteraction>(false);
 	else if(inter_type.compare("DNACT") == 0) return std::make_shared<DNANMInteraction>(true);
 	else if(inter_type.compare("RNANM") == 0) return std::make_shared<RNANMInteraction>(false);
 	else if(inter_type.compare("RNACT") == 0) return std::make_shared<RNANMInteraction>(true);
+	else if(inter_type.compare("NANM") == 0) return std::make_shared<NANMInteraction>(false);
+	else if(inter_type.compare("NACT") == 0) return std::make_shared<NANMInteraction>(true);
 #ifdef LEGACY_CODE
 	else if(inter_type.compare("DHS") == 0) return std::make_shared<DHSInteraction>();
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();

@@ -136,9 +136,12 @@ SET(interactions_SOURCES
 	Interactions/KFInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
+	Interactions/ANMModel.cpp
+	Interactions/ANMHybridInteraction.cpp
 	Interactions/ANMInteraction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/RNANMInteraction.cpp
+	Interactions/NANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -212,6 +215,7 @@ SET(common_SOURCES
 	Utilities/LR_vector.cpp
 	Utilities/LR_matrix.cpp
 	Utilities/Utils.cpp
+	Utilities/ANMTopology.cpp
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
@@ -282,7 +286,8 @@ IF(CUDA)
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
-		CUDA/Interactions/CUDADNANMInteraction.cu
+		CUDA/Interactions/CUDAANMInteraction.cu
+		CUDA/Interactions/CUDADRHInteraction.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu

@@ -18,6 +18,25 @@
     :prog: oat anm_parameterize
 ```
 
+## ANM fluctuation solver
+
+Builds the elastic network of a protein for the ANM-based interactions (`AC`, `ACT`, `DNANM`, `DNACT`, `RNANM`, `RNACT`, `NANM`, `NACT`) from a PDB or mmCIF file. Every pair of C-alpha atoms closer than the cutoff is joined by a spring, and the spring constant is fitted so that the B-factors predicted by normal mode analysis match the experimental ones (by default the C-alpha B-factors of the structure). It writes the parameter file (`<output>.par`), a new-style topology (`<output>.top`, one `type=peptide` strand per chain) and a starting configuration (`<output>.dat`).
+
+With `--model anmt`, every spring between consecutive particles also carries the equilibrium cosines used by the bending/torsion potentials of the DNACT/RNACT interactions. The bending and torsion terms (`--kb`/`--kt`, default 50) are included in the normal mode analysis and only the spring constant is fitted, so the same values must be used in the simulation: either set `bending_k` and `torsion_k` in the input file or use `--write-kbkt` to write them on every backbone line of the parameter file. The particle indices in the parameter file are global indices: if the protein is not the first molecule of a hybrid system, set `--index-offset` to the number of particles that precede it. `--plot` compares the predicted and experimental B-factors.
+
+For more information, see [the ANM model publication](https://doi.org/10.1039/d0sm01639j).
+
+```bash
+oat anm_fluctuation_solver protein.pdb -o protein -m anmt --plot protein_bfactors.png
+```
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/anm_fluctuation_solver.py
+    :func: cli_parser
+    :prog: oat anm_fluctuation_solver
+```
+
 ## Backbone flexibility
 
 ```{eval-rst}
